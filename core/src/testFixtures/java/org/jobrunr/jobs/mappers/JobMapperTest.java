@@ -2,9 +2,9 @@ package org.jobrunr.jobs.mappers;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.runner.RunnerJobContext;

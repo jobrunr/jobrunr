@@ -1,4 +1,4 @@
-package org.jobrunr.jobs;
+package org.jobrunr.jobs.exceptions;
 
 public class JobParameterNotDeserializableException {
 
