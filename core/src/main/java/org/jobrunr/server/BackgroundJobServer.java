@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
@@ -23,6 +24,7 @@ import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
 import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
+import org.jobrunr.server.tasks.zookeeper.ProcessCarbonAwareAwaitingJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessOrphanedJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessRecurringJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
@@ -45,15 +47,15 @@ import java.util.Spliterator;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Integer.compare;
 import static java.lang.Math.min;
+import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.PAUSE;
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.RESUME;
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.START;
@@ -67,6 +69,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
+    private final CarbonAwareJobManager carbonAwareJobManager;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
@@ -84,24 +87,19 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
-        this(storageProvider, jsonMapper, null);
+
+    public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
+        this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
     }
 
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator) {
-        this(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration());
-    }
-
-    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
-    }
-
-    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
-        if (storageProvider == null)
+    protected BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
+        if (storageProvider == null) {
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
+        }
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
+        this.carbonAwareJobManager = carbonAwareJobManager;
         this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
@@ -130,7 +128,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (guard) {
             try (LifecycleChangeLock lifecycleChange = lifecycle.goTo(START)) {
                 if (isStarted()) return;
-                firstHeartbeat = Instant.now();
+                firstHeartbeat = now();
                 startStewardAndServerZooKeeper();
                 startWorkers();
                 lifecycleChange.succeeded();
@@ -243,7 +241,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
                 (int) configuration.getPollInterval().getSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
-                firstHeartbeat, Instant.now(), isRunning(), jobServerStats);
+                firstHeartbeat, now(), isRunning(), jobServerStats);
     }
 
     public JobSteward getJobSteward() {
@@ -264,6 +262,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public DashboardNotificationManager getDashboardNotificationManager() {
         return dashboardNotificationManager;
+    }
+
+    public CarbonAwareJobManager getCarbonAwareJobManager() {
+        return carbonAwareJobManager;
     }
 
     public JsonMapper getJsonMapper() {
@@ -300,18 +302,19 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(5, 5, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), MILLISECONDS);
     }
 
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
-        JobZooKeeper recurringAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this,
+                new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), TimeUnit.MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
     }
 
     private void stopZooKeepers() {

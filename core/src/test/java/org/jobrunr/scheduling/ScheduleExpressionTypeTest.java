@@ -32,7 +32,42 @@ class ScheduleExpressionTypeTest {
         assertThat(ScheduleExpressionType.createScheduleFromString("PT10M")).isEqualTo(new Interval("PT10M"));
         assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("Not correct"))
                 .isInstanceOf(InvalidCronExpressionException.class)
-                .hasMessage("crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution)");
+                .hasMessage("crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution). Provided: Not correct");
     }
 
+    @Test
+    void canParseScheduleFromCronExpression() {
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString("* * * * *");
+        assertThat(schedule)
+                .isNotNull()
+                .isInstanceOf(CronExpression.class);
+        assertThat(schedule.isCarbonAware()).isFalse();
+    }
+
+    @Test
+    void canParseScheduleFromCronExpressionWithCarbonAwareScheduleMargin() {
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString("0 0 1 * * [P1D/P3D]");
+        assertThat(schedule)
+                .isNotNull()
+                .isInstanceOf(CronExpression.class);
+        assertThat(schedule.isCarbonAware()).isTrue();
+    }
+
+    @Test
+    void canParseScheduleFromInterval() {
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString("P5DT6H");
+        assertThat(schedule)
+                .isNotNull()
+                .isInstanceOf(Interval.class);
+        assertThat(schedule.isCarbonAware()).isFalse();
+    }
+
+    @Test
+    void canParseScheduleFromIntervalWithCarbonAwareScheduleMargin() {
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString("P5DT6H [PT6H/PT0S]");
+        assertThat(schedule)
+                .isNotNull()
+                .isInstanceOf(Interval.class);
+        assertThat(schedule.isCarbonAware()).isTrue();
+    }
 }

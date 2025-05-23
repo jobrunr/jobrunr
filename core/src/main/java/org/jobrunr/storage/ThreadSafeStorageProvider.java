@@ -144,6 +144,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return storageProvider.getCarbonAwareJobList(deadlineBefore, amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }

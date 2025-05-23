@@ -1,5 +1,6 @@
 package org.jobrunr.server.dashboard;
 
+import org.jobrunr.server.dashboard.mappers.CarbonIntensityApiErrorNotificationMapper;
 import org.jobrunr.server.dashboard.mappers.CpuAllocationIrregularityNotificationMapper;
 import org.jobrunr.server.dashboard.mappers.DashboardNotificationMapper;
 import org.jobrunr.server.dashboard.mappers.PollIntervalInSecondsTimeBoxIsTooSmallNotificationMapper;
@@ -28,7 +29,8 @@ public class DashboardNotificationManager {
         this.notificationMappers = new HashSet<>(asList(
                 new SevereJobRunrExceptionNotificationMapper(backgroundJobServerId, storageProvider),
                 new CpuAllocationIrregularityNotificationMapper(backgroundJobServerId),
-                new PollIntervalInSecondsTimeBoxIsTooSmallNotificationMapper(backgroundJobServerId)
+                new PollIntervalInSecondsTimeBoxIsTooSmallNotificationMapper(backgroundJobServerId),
+                new CarbonIntensityApiErrorNotificationMapper(backgroundJobServerId)
         ));
     }
 

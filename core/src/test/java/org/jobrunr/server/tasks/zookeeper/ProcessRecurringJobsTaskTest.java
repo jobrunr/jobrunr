@@ -3,6 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.tasks.AbstractTaskTest;
@@ -18,6 +19,7 @@ import static java.time.Instant.now;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
@@ -90,7 +92,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - No Jobs scheduled yet.
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
 
             runTask(task);
 
@@ -108,7 +110,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the 1 job scheduled in the first run is still active.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(scheduledAt));
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(scheduledAt));
 
             runTask(task);
 
@@ -118,7 +120,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
 
             runTask(task);
 
@@ -143,6 +145,32 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    void testToScheduledJobsForCarbonAwareAheadOfTimeCreatesAJobInAwaitingState() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 0 1 * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(1);
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("Awaiting ahead of time by recurring job 'a recurring job'");
+    }
+
+    @Test
+    void testToScheduledJobsForCarbonAwareCreatesAJobInAwaitingState() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 13 * * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(Instant.parse("2024-11-20T09:00:00.000Z"), Instant.parse("2024-11-21T09:00:00.000Z"));
+
+        assertThat(jobs).hasSize(1);
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("Awaiting by recurring job 'a recurring job'");
+    }
+
+    @Test
     void taskSkipsAlreadyScheduledRecurringJobsOnStartup() {
         Instant now = now();
         RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT1H").build();
@@ -154,7 +182,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - 1 job is already scheduled
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
 
             runTask(task);
 
@@ -164,19 +192,19 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the job is still scheduled but will be moved to enqueued.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
 
             runTask(task);
 
             verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
-            verify(storageProvider, never()).getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING);
+            verify(storageProvider, never()).getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
             assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range");
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearInvocations(storageProvider);
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
 
             runTask(task);
 
@@ -190,7 +218,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
             runTask(task);
@@ -226,7 +254,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             clearInvocations(storageProvider);
         }
 
-        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(FIXED_INSTANT_RIGHT_ON_THE_MINUTE));
+        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(FIXED_INSTANT_RIGHT_ON_THE_MINUTE));
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE)) {
             runTask(task);
 
@@ -238,14 +266,14 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             runTask(task);
 
             verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
-            assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:00.500Z - 2022-12-14T08:36:05.500Z (PT5S) but it is already SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.");
+            assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:00.500Z - 2022-12-14T08:36:05.500Z (PT5S) but it is already either AWAITING/SCHEDULED/ENQUEUED or PROCESSING and taking longer than given CronExpression or Interval. Run will be skipped.");
         }
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE.plusSeconds(60))) { // time skip
             runTask(task);
 
             verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
-            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:55.500Z - 2022-12-14T08:37:00.500Z (PT5S) but it is already SCHEDULED, ENQUEUED or PROCESSING.");
+            assertThat(logger).hasInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range 2022-12-14T08:36:55.500Z - 2022-12-14T08:37:00.500Z (PT5S) but it is already AWAITING, SCHEDULED, ENQUEUED or PROCESSING.");
         }
     }
 
