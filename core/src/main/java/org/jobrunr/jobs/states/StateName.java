@@ -19,4 +19,8 @@ public enum StateName {
         }
         return stateNames;
     }
+
+    public static boolean areAllStateNames(StateName... stateNames) {
+        return stateNames.length < 1 || stateNames.length == StateName.values().length;
+    }
 }

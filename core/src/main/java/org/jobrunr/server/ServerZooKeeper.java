@@ -45,7 +45,7 @@ public class ServerZooKeeper implements Runnable {
 
     @Override
     public void run() {
-        if (backgroundJobServer.isStopped()) return;
+        if (backgroundJobServer.isStopping() || backgroundJobServer.isStopped()) return;
 
         try {
             if (backgroundJobServer.isUnAnnounced()) {
