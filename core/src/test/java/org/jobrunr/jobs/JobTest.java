@@ -5,6 +5,7 @@ import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
@@ -40,15 +41,15 @@ class JobTest {
     @Test
     void getLastJobStateOfType() {
         Job scheduledJob = aScheduledJob().build();
-        assertThat(scheduledJob.getLastJobStateOfType(ScheduledState.class).get()).isInstanceOf(ScheduledState.class);
+        assertThat(scheduledJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(ScheduledState.class);
         Job awaitingJob = aCarbonAwaitingJob().build();
-        assertThat(awaitingJob.getLastJobStateOfType(CarbonAwareAwaitingState.class).get()).isInstanceOf(CarbonAwareAwaitingState.class);
+        assertThat(awaitingJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(CarbonAwareAwaitingState.class);
         Job processingCarbonAwareJob = aJob()
                 .withState(new CarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minusSeconds(200), now().plus(10, HOURS))))
                 .withState(new ScheduledState(now().minusSeconds(1)))
                 .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
                 .build();
-        assertThat(processingCarbonAwareJob.getLastJobStateOfType(ScheduledState.class).get()).isInstanceOf(ScheduledState.class);
+        assertThat(processingCarbonAwareJob.getLastJobStateOfType(SchedulableState.class).get()).isInstanceOf(ScheduledState.class);
     }
 
     @Test

@@ -64,9 +64,6 @@ public class MongoUtils {
     }
 
     public static long toMicroSeconds(Instant instant) {
-        if(instant == null) {
-            return 0;
-        }
         return MICROS.between(Instant.EPOCH, instant);
     }
 

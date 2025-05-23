@@ -15,9 +15,6 @@ import java.time.ZonedDateTime;
 import java.time.chrono.HijrahDate;
 import java.time.chrono.JapaneseDate;
 import java.time.chrono.ThaiBuddhistDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -26,19 +23,6 @@ import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
 
 class InstantUtilsTest {
-
-    @Test
-    void testMax() {
-        assertThat(InstantUtils.max(new ArrayList<>())).isNull();
-
-        Instant in2024 = Instant.parse("2024-11-20T09:00:00.000Z");
-        Instant in2025 = Instant.parse("2025-05-20T13:00:00.000Z");
-
-        assertThat(InstantUtils.max(in2025, in2024)).isEqualTo(in2025);
-        assertThat(InstantUtils.max(Optional.of(in2025), Optional.of(in2024), Optional.empty())).isEqualTo(in2025);
-        assertThat(InstantUtils.max(Optional.of(in2025), Optional.of(in2024), null)).isEqualTo(in2025);
-        assertThat(InstantUtils.max(null, in2024)).isEqualTo(in2024);
-    }
 
     @Test
     void testIsInstantInPeriod() {
