@@ -4,8 +4,10 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -25,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 
 class JobBuilderTest {
 
@@ -138,12 +143,46 @@ class JobBuilderTest {
     }
 
     @Test
+    void testWithScheduleCarbonAware() {
+        Instant deadline = now().plus(10, DAYS);
+        Job job = aJob()
+                .scheduleCarbonAware(before(deadline))
+                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .build(jobDetailsGenerator);
+        assertThat(job).hasState(StateName.AWAITING);
+        CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
+        assertThat(carbonAwareAwaitingState.getTo()).isEqualTo(deadline);
+    }
+
+    @Test
+    void testWithScheduleCarbonAware_andScheduleAt_thenThrowException() {
+        assertThatThrownBy(() -> aJob()
+                .scheduleCarbonAware(before(now().plus(1, DAYS)))
+                .scheduleAt(now().plus(6, HOURS))
+                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .build(jobDetailsGenerator))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void testThatOnlyOneOfScheduleInScheduleIsAllowed() {
+        // TODO this test isn't doing what it's meant to do...
         assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void testThatOnlyScheduleInOrScheduleCarbonAwareIsAllowed() {
+        assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
+
+        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
     }
 
     @Test

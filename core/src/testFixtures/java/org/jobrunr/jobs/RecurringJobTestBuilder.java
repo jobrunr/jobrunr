@@ -5,8 +5,8 @@ import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.Schedule;
+import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
@@ -87,7 +87,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withCronExpression(String cronExpression) {
-        this.schedule = CronExpression.create(cronExpression);
+        this.schedule = ScheduleExpressionType.createScheduleFromString(cronExpression);
         return this;
     }
 
@@ -104,6 +104,10 @@ public class RecurringJobTestBuilder {
         this.schedule = new Interval(Duration.parse(intervalExpression));
         this.createdAt = createdAt;
         return this;
+    }
+
+    public RecurringJobTestBuilder withScheduleExpression(String scheduleExpression) {
+        return withCronExpression(scheduleExpression);
     }
 
     public RecurringJobTestBuilder withLabels(String... labels) {

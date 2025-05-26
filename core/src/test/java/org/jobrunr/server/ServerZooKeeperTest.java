@@ -5,6 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,6 +40,8 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingDisabledCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,7 +65,7 @@ class ServerZooKeeperTest {
         storageProvider = Mockito.spy(new InMemoryStorageProvider());
         final JsonMapper jsonMapper = new JacksonJsonMapper();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
-        backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
+        backgroundJobServer = new BackgroundJobServer(storageProvider, new CarbonAwareJobManager(usingDisabledCarbonAwareConfiguration(), jsonMapper), jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));
     }
 
     @AfterEach

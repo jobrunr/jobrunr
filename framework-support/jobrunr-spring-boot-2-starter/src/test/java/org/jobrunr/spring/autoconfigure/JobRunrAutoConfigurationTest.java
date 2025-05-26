@@ -8,6 +8,8 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
@@ -43,6 +45,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.Mockito.doThrow;
 
 public class JobRunrAutoConfigurationTest {
@@ -128,6 +131,26 @@ public class JobRunrAutoConfigurationTest {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
                     assertThat(context.getBean(JobRunrDashboardWebServer.class))
                             .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
+                });
+    }
+
+    @Test
+    void carbonAwareManagerAutoconfiguration() {
+        this.contextRunner
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.enabled=true")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.area-code=FR")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.api-client-connect-timeout=500")
+                .withPropertyValues("jobrunr.jobs.carbon-aware.api-client-read-timeout=300")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
+                    CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
+                    CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
+                    assertThat(carbonAwareConfiguration)
+                            .hasEnabled(true)
+                            .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                            .hasApiClientReadTimeout(Duration.ofMillis(300))
+                            .hasAreaCode("FR");
                 });
     }
 

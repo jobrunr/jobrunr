@@ -10,6 +10,8 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
+import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @MicronautTest(rebuildContext = true)
 @Property(name = "jobrunr.database.type", value = "mem")
@@ -48,6 +51,40 @@ class JobRunrFactoryTest {
         assertThat(context)
                 .hasSingleBean(StorageProvider.class)
                 .doesNotHaveBean(JobScheduler.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.carbon-aware.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.carbon-aware.area-code", value = "PL")
+    @Property(name = "jobrunr.jobs.carbon-aware.carbon-intensity-api-url", value = "http://carbon.be")
+    @Property(name = "jobrunr.jobs.carbon-aware.api-client-connect-timeout-ms", value = "500")
+    @Property(name = "jobrunr.jobs.carbon-aware.api-client-read-timeout-ms", value = "1000")
+    void testCarbonAwareManagerConfiguration() {
+        assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
+        CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
+        CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
+
+        assertThat(carbonAwareConfiguration)
+                .hasAreaCode("PL")
+                .hasCarbonAwareApiUrl("http://carbon.be")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.carbon-aware.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.carbon-aware.data-provider", value = "provider")
+    @Property(name = "jobrunr.jobs.carbon-aware.external-code", value = "external")
+    void testCarbonAwareManagerConfigurationWithExternalCode() {
+        assertThat(context).hasSingleBean(CarbonAwareJobManager.class);
+        CarbonAwareJobManager carbonAwareJobManager = context.getBean(CarbonAwareJobManager.class);
+        CarbonAwareConfigurationReader carbonAwareConfiguration = getInternalState(carbonAwareJobManager, "carbonAwareConfiguration");
+
+        assertThat(carbonAwareConfiguration)
+                .hasExternalCode("external")
+                .hasDataProvider("provider");
     }
 
     @Test

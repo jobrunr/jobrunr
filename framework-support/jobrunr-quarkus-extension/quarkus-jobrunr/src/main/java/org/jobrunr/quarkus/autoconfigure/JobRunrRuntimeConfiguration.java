@@ -86,6 +86,11 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> retryBackOffTimeSeed();
 
         /**
+         * Configures carbon-aware scheduling related properties
+         */
+        CarbonAwareConfiguration carbonAwareConfiguration();
+
+        /**
          * Configures MicroMeter metrics related to jobs
          */
         MetricsConfiguration metrics();
@@ -130,6 +135,11 @@ public interface JobRunrRuntimeConfiguration {
          * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
          */
         Optional<BackgroundJobServerThreadType> threadType();
+
+        /**
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
+         */
+        Optional<Integer> carbonAwaitingJobsRequestSize();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
@@ -209,6 +219,39 @@ public interface JobRunrRuntimeConfiguration {
         @WithDefault("true")
         boolean allowAnonymousDataUsage();
     }
+
+    interface CarbonAwareConfiguration {
+        /**
+         * Enables the carbon aware configuration to schedule jobs optimally.
+         */
+        @WithDefault("false")
+        boolean isEnabled();
+
+        /**
+         * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+         * areaCode is a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
+         */
+        Optional<String> areaCode();
+
+        Optional<String> dataProvider();
+
+        Optional<String> externalIdentifier();
+
+        Optional<String> carbonIntensityApiUrl();
+
+        Optional<String> externalCode();
+
+        /**
+         * Allows to set the connect timeout for the carbon api client
+         */
+        Optional<Integer> apiClientConnectTimeoutMs();
+
+        /**
+         * Allows to set the read timeout for the carbon api client
+         */
+        Optional<Integer> apiClientReadTimeoutMs();
+    }
+
 
     interface MetricsConfiguration {
 

@@ -3,7 +3,7 @@ import {JobState} from "./job-state";
 const Deleted = ({jobState}) => {
     return (
         <JobState
-            title="Job deleted"
+            title="Job Deleted"
             state="deleted"
             date={jobState.createdAt}
             canExpand={!!jobState.reason}

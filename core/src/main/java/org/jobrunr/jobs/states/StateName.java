@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 
 public enum StateName {
 
+    AWAITING,
     SCHEDULED,
     ENQUEUED,
     PROCESSING,

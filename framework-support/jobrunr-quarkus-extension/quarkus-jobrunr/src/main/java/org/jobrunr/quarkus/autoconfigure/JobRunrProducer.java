@@ -5,6 +5,8 @@ import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -15,6 +17,8 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 
+import java.time.Duration;
+
 import static java.util.Collections.emptyList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
@@ -23,6 +27,22 @@ public class JobRunrProducer {
 
     @Inject
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    public CarbonAwareJobManager carbonAwareJobManager(JsonMapper jobRunrJsonMapper) {
+        CarbonAwareConfiguration carbonAwareConfiguration = CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
+                        .andCarbonAwareSchedulingEnabled(jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().isEnabled());
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().areaCode().ifPresent(carbonAwareConfiguration::andAreaCode);
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().dataProvider().ifPresent(carbonAwareConfiguration::andDataProvider);
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().externalCode().ifPresent(carbonAwareConfiguration::andExternalCode);
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().externalIdentifier().ifPresent(carbonAwareConfiguration::andExternalIdentifier);
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().carbonIntensityApiUrl().ifPresent(carbonAwareConfiguration::andCarbonIntensityApiUrl);
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+        jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+        return new CarbonAwareJobManager(carbonAwareConfiguration, jobRunrJsonMapper);
+    }
 
     @Produces
     @DefaultBean

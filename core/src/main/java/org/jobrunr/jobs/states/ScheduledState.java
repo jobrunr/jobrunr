@@ -5,7 +5,7 @@ import org.jobrunr.jobs.RecurringJob;
 import java.time.Instant;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
-public class ScheduledState extends AbstractJobState {
+public class ScheduledState extends AbstractJobState implements SchedulableState {
 
     private Instant scheduledAt;
     private String recurringJobId;
@@ -20,8 +20,7 @@ public class ScheduledState extends AbstractJobState {
     }
 
     public ScheduledState(Instant scheduledAt, RecurringJob recurringJob) {
-        this(scheduledAt, "Scheduled by recurring job '" + recurringJob.getJobName() + "'");
-        this.recurringJobId = recurringJob.getId();
+        this(scheduledAt, "Scheduled by recurring job '" + recurringJob.getJobName() + "'", recurringJob.getId());
     }
 
     public ScheduledState(Instant scheduledAt, String reason) {
@@ -52,16 +51,11 @@ public class ScheduledState extends AbstractJobState {
     }
 
     public static ScheduledState fromRecurringJob(Instant scheduledAt, RecurringJob recurringJob) {
-        return fromRecurringJob(scheduledAt, recurringJob, "Scheduled by recurring job '" + recurringJob.getJobName() + "'");
+        return new ScheduledState(scheduledAt, recurringJob);
     }
 
     public static ScheduledState fromRecurringJobAheadOfTime(Instant scheduledAt, RecurringJob recurringJob) {
-        return fromRecurringJob(scheduledAt, recurringJob, "Scheduled ahead of time by recurring job '" + recurringJob.getJobName() + "'");
+        return new ScheduledState(scheduledAt, "Scheduled ahead of time by recurring job '" + recurringJob.getJobName() + "'", recurringJob.getId());
     }
 
-    private static ScheduledState fromRecurringJob(Instant scheduledAt, RecurringJob recurringJob, String reason) {
-        ScheduledState scheduledState = new ScheduledState(scheduledAt, reason);
-        scheduledState.recurringJobId = recurringJob.getId();
-        return scheduledState;
-    }
 }

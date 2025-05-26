@@ -41,6 +41,16 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
     }
 
     @Test
+    void canNavigateToAwaitingJobs() {
+        assertThat(awaitingMenuBtn()).containsText("0");
+        awaitingMenuBtn().click();
+        assertThat(title("Pending jobs")).isVisible();
+
+        assertThat(noJobsFoundMessage()).isVisible();
+        assertThat(jobTable()).not().isVisible();
+    }
+
+    @Test
     void canNavigateToScheduledJobs() {
         assertThat(scheduledMenuBtn()).containsText("1");
         scheduledMenuBtn().click();
@@ -127,7 +137,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobHistoryPanelItems()).hasCount(44);
         assertThat(jobHistoryPanelItems().first()).containsText("Job scheduled");
         jobHistorySortDescBtn().click();
-        assertThat(jobHistoryPanelItems().first()).containsText("Job processing failed");
+        assertThat(jobHistoryPanelItems().first()).containsText("Job Processing Failed");
     }
 
     @Test
@@ -135,7 +145,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         recurringJobsTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(recurringJobsTabBtn()).containsText("2");
+        assertThat(recurringJobsTabBtn()).containsText("3");
     }
 
     @Test

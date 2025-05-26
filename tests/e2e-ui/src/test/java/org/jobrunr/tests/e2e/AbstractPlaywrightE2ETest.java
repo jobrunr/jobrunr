@@ -65,6 +65,10 @@ public class AbstractPlaywrightE2ETest {
         return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(name));
     }
 
+    protected Locator awaitingMenuBtn() {
+        return page.locator("#awaiting-menu-btn");
+    }
+
     protected Locator scheduledMenuBtn() {
         return page.locator("#scheduled-menu-btn");
     }

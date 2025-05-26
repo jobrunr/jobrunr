@@ -8,6 +8,7 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
@@ -63,7 +64,7 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to set the id of the recurringJob. If a recurringJob with that id already exists, JobRunr will not save it again.
+     * Allows to set the id of the recurringJob. If a {@link RecurringJob} with that id already exists, JobRunr will not save it again.
      *
      * @param jobId the recurringJob of the recurringJob
      * @return the same builder instance which provides a fluent api
@@ -161,7 +162,7 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the cron that will be used to create the recurringJobs.
+     * Allows to specify the {@link CronExpression} that will be used to create the recurringJobs.
      *
      * @param cron the cron that will be used to create the recurringJobs.
      * @return the same builder instance which provides a fluent api
@@ -170,7 +171,7 @@ public class RecurringJobBuilder {
         if (this.schedule != null) {
             throw new IllegalArgumentException("A schedule has already been provided.");
         }
-        this.schedule = CronExpression.create(cron);
+        this.schedule = ScheduleExpressionType.createScheduleFromString(cron);
         return this;
     }
 
@@ -186,6 +187,32 @@ public class RecurringJobBuilder {
         }
         this.schedule = new Interval(duration);
         return this;
+    }
+
+    /**
+     * Allows to specify a {@link CronExpression} (preferably use {@link RecurringJobBuilder#withCron(String)}),
+     * an ISO-8601 duration (preferably use {@link RecurringJobBuilder#withDuration(Duration)})
+     * or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
+     *
+     * <h5>Examples:</h5>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression(CarbonAware.dailyBefore(7))
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression("0 0 * * * [PT0H/PT7H]")
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
+     *
+     * @param scheduleExpression the schedule expression that will be used to create the recurringJobs.
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withScheduleExpression(String scheduleExpression) {
+        return withCron(scheduleExpression);
     }
 
     /**
@@ -230,7 +257,7 @@ public class RecurringJobBuilder {
 
     private RecurringJob build(JobDetails jobDetails) {
         if (schedule == null) {
-            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration().");
+            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration() or withScheduleExpression().");
         }
         if (zoneId == null) {
             zoneId = systemDefault();

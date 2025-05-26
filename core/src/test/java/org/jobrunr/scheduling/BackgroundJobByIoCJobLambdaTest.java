@@ -7,15 +7,18 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.BackgroundJobServer;
+import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Work;
 import org.jobrunr.stubs.TestServiceForIoC;
 import org.jobrunr.stubs.TestServiceInterface;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.slf4j.MDC;
 
 import java.nio.file.Path;
@@ -33,6 +36,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
@@ -41,13 +45,17 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingDisabledCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByIoCJobLambdaTest {
@@ -68,6 +76,7 @@ public class BackgroundJobByIoCJobLambdaTest {
         JobRunr.configure()
                 .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
+                .useCarbonAwareScheduling(usingDisabledCarbonAwareConfiguration())
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
@@ -235,6 +244,14 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
+    void testScheduleCarbonAware() {
+        enableCarbonAwareConfiguration();
+
+        JobId jobId = BackgroundJob.<TestService>scheduleCarbonAware(before(now().plus(1, DAYS)), x -> x.doWork());
+        assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
+    }
+
+    @Test
     void testRecurringCronJob() {
         BackgroundJob.<TestService>scheduleRecurrently(everySecond, x -> x.doWork(5));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
@@ -328,5 +345,9 @@ public class BackgroundJobByIoCJobLambdaTest {
     private Stream<UUID> getWorkStream() {
         return IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID());
+    }
+
+    private void enableCarbonAwareConfiguration() {
+        Whitebox.setInternalState(backgroundJobServer, "carbonAwareJobManager", new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration(), new JacksonJsonMapper()));
     }
 }

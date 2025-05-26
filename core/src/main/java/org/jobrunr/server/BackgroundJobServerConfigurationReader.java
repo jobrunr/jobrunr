@@ -22,6 +22,10 @@ public class BackgroundJobServerConfigurationReader {
         return configuration.name;
     }
 
+    public int getCarbonAwareAwaitingJobsRequestSize() {
+        return configuration.carbonAwareAwaitingJobsRequestSize;
+    }
+
     public int getScheduledJobsRequestSize() {
         return configuration.scheduledJobsRequestSize;
     }

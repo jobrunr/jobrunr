@@ -2,6 +2,7 @@ package org.jobrunr.scheduling;
 
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -33,7 +34,7 @@ public class BackgroundJobRequest {
     /**
      * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
      *
-     * @param jobBuilder the jobBuilder with all the details of the job
+     * @param jobBuilder the {@link JobBuilder} with all the details of the job
      * @return the id of the job
      */
     public static JobId create(JobBuilder jobBuilder) {
@@ -50,14 +51,14 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new fire-and-forget job based on a given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
      *            BackgroundJobRequest.enqueue(new MyJobRequest());
      *       }</pre>
      *
-     * @param jobRequest the jobRequest which defines the fire-and-forget job.
+     * @param jobRequest the {@link JobRequest} which defines the fire-and-forget job.
      * @return the id of the job
      */
     public static JobId enqueue(JobRequest jobRequest) {
@@ -66,7 +67,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new fire-and-forget job based on a given jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new fire-and-forget job based on a given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -74,7 +75,7 @@ public class BackgroundJobRequest {
      *       }</pre>
      *
      * @param id         the uuid with which to save the job
-     * @param jobRequest the jobRequest which defines the fire-and-forget job.
+     * @param jobRequest the {@link JobRequest} which defines the fire-and-forget job.
      * @return the id of the job
      */
     public static JobId enqueue(UUID id, JobRequest jobRequest) {
@@ -99,7 +100,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
+     * Creates a new fire-and-forget job based on the given {@link JobRequest} and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      *
      * <h5>Supported Temporal Types:</h5>
@@ -116,7 +117,7 @@ public class BackgroundJobRequest {
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
-     * @param jobRequest the lambda which defines the fire-and-forget job
+     * @param jobRequest the {@link JobRequest} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public static JobId schedule(Temporal scheduleAt, JobRequest jobRequest) {
@@ -125,7 +126,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new fire-and-forget job based on the given jobRequest and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
+     * Creates a new fire-and-forget job based on the given {@link JobRequest} and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * If a job with that id already exists, JobRunr will not save it again.
      *
@@ -144,7 +145,7 @@ public class BackgroundJobRequest {
      *
      * @param id         the uuid with which to save the job
      * @param scheduleAt the moment in time at which the job will be enqueued.
-     * @param jobRequest the jobRequest which defines the fire-and-forget job
+     * @param jobRequest the {@link JobRequest} which defines the fire-and-forget job
      * @return the id of the Job
      */
     public static JobId schedule(UUID id, Temporal scheduleAt, JobRequest jobRequest) {
@@ -170,7 +171,43 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new recurring job based on the given cron expression and the given jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new fire-and-forget job based on the given {@link JobRequest} that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
+     * JobRunr will try to find the JobRequestHandler in the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *     BackgroundJobRequest.scheduleCarbonAware(CarbonAwarePeriod.before(Instant.now().plusHours(15)), new MyJobRequest());
+     * }</pre>
+     *
+     * @param carbonAwarePeriod the period in which the job will be scheduled
+     * @param job               the {@link JobRequest} which defines the fire-and-forget job
+     * @return the id of the Job
+     */
+    public static JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobRequest job) {
+        verifyJobScheduler();
+        return jobRequestScheduler.scheduleCarbonAware(carbonAwarePeriod, job);
+    }
+
+    /**
+     * Creates a new fire-and-forget job based on the given {@link JobRequest} that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
+     * If a job with that id already exists, JobRunr will not save it again.
+     * JobRunr will try to find the JobRequestHandler in the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * <h5>An example:</h5>
+     * <pre>{@code
+     *     BackgroundJobRequest.scheduleCarbonAware(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(5)), new MyJobRequest());
+     * }</pre>
+     *
+     * @param id                the uuid with which to save the job
+     * @param carbonAwarePeriod the period in which the job will be scheduled
+     * @param job               the {@link JobRequest} which defines the fire-and-forget job
+     * @return the id of the Job
+     */
+    public static JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobRequest job) {
+        verifyJobScheduler();
+        return jobRequestScheduler.scheduleCarbonAware(id, carbonAwarePeriod, job);
+    }
+
+    /**
+     * Creates a new recurring job based on the given cron expression and the given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -178,7 +215,7 @@ public class BackgroundJobRequest {
      * }</pre>
      *
      * @param cron       The cron expression defining when to run this recurring job
-     * @param jobRequest the jobRequest which defines the recurring job
+     * @param jobRequest the {@link JobRequest} which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -188,7 +225,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
@@ -207,7 +244,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@code ZoneId} and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * Creates a new or alters the existing recurring job based on the given id, cron expression, {@link  ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -217,7 +254,7 @@ public class BackgroundJobRequest {
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param cron       The cron expression defining when to run this recurring job
      * @param zoneId     The zoneId (timezone) of when to run this recurring job
-     * @param jobRequest the jobRequest which defines the recurring job
+     * @param jobRequest the {@link JobRequest} which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      * @see org.jobrunr.scheduling.cron.Cron
      */
@@ -227,7 +264,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new recurring job based on the given duration and the given jobRequest. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new recurring job based on the given duration and the given {@link JobRequest}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -244,7 +281,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * Creates a new or alters the existing recurring job based on the given id, duration and jobRequest. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+     * Creates a new or alters the existing recurring job based on the given id, duration and {@link JobRequest}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -253,7 +290,7 @@ public class BackgroundJobRequest {
      *
      * @param id         the id of this recurring job which can be used to alter or delete it
      * @param duration   the duration defining the time between each instance of this recurring job
-     * @param jobRequest the jobRequest which defines the recurring job
+     * @param jobRequest the {@link JobRequest} which defines the recurring job
      * @return the id of this recurring job which can be used to alter or delete it
      */
     public static String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {

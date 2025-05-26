@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import static ch.qos.logback.LoggerAssert.assertThat;
@@ -108,6 +109,21 @@ class DatabaseCreatorTest {
                         "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
 
         verify(databaseCreator, never()).runMigration(any());
+    }
+
+    @Test
+    void testMigrationSkipsEmptyOrNewLines() throws IOException, SQLException {
+        SQLiteDataSource dataSource = createDataSource("jdbc:sqlite:" + SQLITE_DB1);
+        final DatabaseCreator databaseCreator = new DatabaseCreator(dataSource);
+        SqlMigration migration = mock(SqlMigration.class);
+        when(migration.getMigrationSql()).thenReturn("CREATE TABLE jobrunr_migrations(id text, script text, installedon text); \n \n");
+
+        databaseCreator.runMigration(migration);
+
+        try(Connection c = dataSource.getConnection()) {
+            boolean result = c.createStatement().execute("SELECT * FROM jobrunr_migrations;");
+            assertThat(result).isTrue();
+        }
     }
 
     @Test

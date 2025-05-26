@@ -27,7 +27,12 @@ public class DurationAdapter extends TypeAdapter<Duration> {
             return null;
         }
 
-        final BigDecimal durationAsSecAndNanoSec = new BigDecimal(jsonReader.nextString());
-        return DurationUtils.fromBigDecimal(durationAsSecAndNanoSec);
+        String durationAsString = jsonReader.nextString();
+        if (durationAsString.startsWith("P")) {
+            return Duration.parse(durationAsString);
+        } else {
+            final BigDecimal durationAsSecAndNanoSec = new BigDecimal(durationAsString);
+            return DurationUtils.fromBigDecimal(durationAsSecAndNanoSec);
+        }
     }
 }

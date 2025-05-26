@@ -56,7 +56,7 @@ class AbstractStorageProviderTest {
         // GIVEN
         when(storageProvider.getJobStats()).thenAnswer(i -> {
             sleep(5500);
-            return new JobStats(now(), 5L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
+            return new JobStats(now(), 5L, 0L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
         });
 
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
@@ -82,7 +82,7 @@ class AbstractStorageProviderTest {
 
         when(storageProvider.getJobStats()).thenAnswer(i -> {
             SleepUtils.sleep(3000);
-            return new JobStats(now(), 5L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
+            return new JobStats(now(), 5L, 0L, 0L, 1L, 1L, 0L, 3L, 0L, 0L, 1, 1);
         });
 
         long startTimeMillis = System.currentTimeMillis();
