@@ -12,7 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import org.jobrunr.jobs.JobParameter
-import org.jobrunr.jobs.JobParameterNotDeserializableException
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 import org.jobrunr.kotlin.serialization.utils.serializer
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException
@@ -21,7 +21,11 @@ import kotlin.reflect.KClass
 
 fun SerializersModule.jobArgumentValueSerializer(className: String, actualClassName: String?): KSerializer<Any>? {
     return runCatching { serializer(Class.forName(actualClassName).kotlin as KClass<Any>) }.getOrNull()
-        ?: serializer(Class.forName(className).kotlin as KClass<Any>)
+        ?: try {
+            serializer(Class.forName(className).kotlin as KClass<Any>)
+        } catch (e: ClassNotFoundException) {
+            throw IllegalArgumentException("Class not found: $className", e)
+        }
 }
 
 object JobParameterSerializer : KSerializer<JobParameter> {
@@ -55,7 +59,6 @@ object JobParameterSerializer : KSerializer<JobParameter> {
             val className = jsonObject["className"]!!.jsonPrimitive.content
             val actualClassName = jsonObject["actualClassName"]?.jsonPrimitive?.content
             val `object`: Any?
-
             try {
                 val serializer = decoder.serializersModule.jobArgumentValueSerializer(className, actualClassName)
                     ?: throw IllegalStateException("No serializer for ${JsonMapperUtils.getActualClassName(className, actualClassName)}")
@@ -64,9 +67,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 
                 `object` = if (payload != null) decoder.json.decodeFromJsonElement(serializer, payload) else null
             } catch (e: Exception) {
-                return JobParameter(
-                    JobParameterNotDeserializableException(JsonMapperUtils.getActualClassName(className, actualClassName), e.message)
-                )
+                return JobParameter(className, actualClassName, jsonObject["object"], JobParameterNotDeserializableException(className, e))
             }
 
             return JobParameter(

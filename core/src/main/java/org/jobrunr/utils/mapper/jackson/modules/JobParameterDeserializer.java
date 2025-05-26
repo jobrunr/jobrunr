@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.utils.mapper.JsonMapperUtils;
 
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                 }
             }
         } catch (Exception e) {
-            return new JobParameter(new JobParameterNotDeserializableException(getActualClassName(className, actualClassName), e.getMessage()));
+            return new JobParameter(className, actualClassName, objectJsonNode, new JobParameterNotDeserializableException(className, e));
         }
     }
 

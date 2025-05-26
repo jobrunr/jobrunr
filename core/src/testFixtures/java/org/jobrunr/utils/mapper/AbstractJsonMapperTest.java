@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
@@ -185,6 +186,10 @@ public abstract class AbstractJsonMapperTest {
 
         final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isNotNull();
+        assertThat(actualJob.getJobDetails())
+                .hasArgSize(1)
+                .hasArgComparingStringFormat("{\"now\":\"2020-01-01T00:00:00Z\",\"someId\":\"072da403-f87b-4529-8af2-0c78c395ec5f\",\"someList\":[\"a\",\"b\",\"c\"],\"someString\":\"some string\"}")
+                .hasNotDeserializableExceptionEqualTo(new JobParameterNotDeserializableException("org.jobrunr.utils.mapper.AbstractJsonMapperTest$SomeCustomObjectThatDoesNotExist", "java.lang.IllegalArgumentException", "Class not found: org.jobrunr.utils.mapper.AbstractJsonMapperTest$SomeCustomObjectThatDoesNotExist"));
     }
 
     @Test

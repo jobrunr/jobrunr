@@ -1,5 +1,7 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
+
 public class JobParameter {
 
     public static final JobParameter JobContext = new JobParameter(org.jobrunr.jobs.context.JobContext.class);
@@ -7,6 +9,7 @@ public class JobParameter {
     private String className;
     private String actualClassName;
     private Object object;
+    private transient JobParameterNotDeserializableException exception;
 
     private JobParameter() {
         // used for deserialization
@@ -29,9 +32,14 @@ public class JobParameter {
     }
 
     public JobParameter(String className, String actualClassName, Object object) {
+        this(className, actualClassName, object, null);
+    }
+
+    public JobParameter(String className, String actualClassName, Object object, JobParameterNotDeserializableException exception) {
         this.className = className;
         this.actualClassName = actualClassName;
         this.object = object;
+        this.exception = exception;
     }
 
     /**
@@ -61,6 +69,13 @@ public class JobParameter {
         return object;
     }
 
+    public JobParameterNotDeserializableException getException() {
+        return exception;
+    }
+
+    public boolean isNotDeserializable() {
+        return exception != null;
+    }
 
     protected static boolean isNotNullNorAnEnum(Object object) {
         return object != null && !(object instanceof Enum);

@@ -1,6 +1,7 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.exceptions.IllegalJobThreadStateException;
 import org.jobrunr.server.BackgroundJobServer;
 
 import java.time.Duration;
@@ -37,7 +38,7 @@ public class ProcessOrphanedJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private void changeJobStateToFailedAndRunJobFilter(Job job) {
-        IllegalThreadStateException e = new IllegalThreadStateException("Job was too long in PROCESSING state without being updated.");
+        IllegalThreadStateException e = new IllegalJobThreadStateException("Job was too long in PROCESSING state without being updated.");
         jobFilterUtils.runOnJobProcessingFailedFilters(job, e);
         job.failed("Orphaned job", e);
     }
