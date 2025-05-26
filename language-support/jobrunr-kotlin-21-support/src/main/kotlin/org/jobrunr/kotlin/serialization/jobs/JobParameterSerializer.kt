@@ -33,7 +33,6 @@ object JobParameterSerializer : KSerializer<JobParameter> {
         element("className", String.serializer().descriptor)
         element("actualClassName", String.serializer().descriptor)
         element("object", ClassDiscriminatedContextualSerializer.descriptor)
-        element("exception", JobParameterNotDeserializableExceptionSerializer.descriptor)
     }
 
     override fun serialize(encoder: Encoder, value: JobParameter) = encoder.encodeStructure(descriptor) {
@@ -48,7 +47,6 @@ object JobParameterSerializer : KSerializer<JobParameter> {
         } catch (e: Exception) {
             throw JobParameterJsonMapperException("The job parameters are not serializable.", e)
         }
-        value.exception?.let { encodeSerializableElement(descriptor, 3, JobParameterNotDeserializableExceptionSerializer, it) }
     }
 
     override fun deserialize(decoder: Decoder): JobParameter {
@@ -69,7 +67,7 @@ object JobParameterSerializer : KSerializer<JobParameter> {
 
                 `object` = if (payload != null) decoder.json.decodeFromJsonElement(serializer, payload) else null
             } catch (e: Exception) {
-                return JobParameter(className, actualClassName, jsonObject["object"], JobParameterNotDeserializableException(e))
+                return JobParameter(className, actualClassName, jsonObject["object"], JobParameterNotDeserializableException(className, e))
             }
 
             return JobParameter(

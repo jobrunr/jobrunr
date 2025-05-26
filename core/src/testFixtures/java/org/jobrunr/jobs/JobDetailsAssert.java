@@ -94,9 +94,10 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
         return this;
     }
 
-    public JobDetailsAssert hasNotDeserializableException(String exceptionClassName, String exceptionMessage) {
-        Predicate<JobParameterNotDeserializableException> predicate = e -> e.getClassName().equals(exceptionClassName) && e.getExceptionMessage().equals(exceptionMessage);
-        Assertions.assertThat(actual.getJobParameters().stream().filter(JobParameter::isNotDeserializable).map(JobParameter::getException).filter(predicate).findAny()).isPresent();
+    public JobDetailsAssert hasNotDeserializableExceptionEqualTo(JobParameterNotDeserializableException exception) {
+        var actualException = actual.getJobParameters().stream().filter(JobParameter::isNotDeserializable).map(JobParameter::getException).findAny();
+        Assertions.assertThat(actualException).isPresent();
+        Assertions.assertThat(actualException.get()).usingRecursiveComparison().isEqualTo(exception);
         return this;
     }
 }

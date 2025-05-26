@@ -40,11 +40,11 @@ class JobNotFoundExceptionTest {
                 jobDetails()
                         .withClassName(TestService.class)
                         .withMethodName("doWork")
-                        .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(new ClassNotFoundException("Class not found"))))
+                        .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(Integer.class.getName(), new ClassNotFoundException("Class not found"))))
                         .build());
 
         assertThat(jobNotFoundException).hasMessage("org.jobrunr.stubs.TestService.doWork(java.lang.Integer)" +
-                "\nCaused by: JobParameterNotDeserializableException: one of the JobParameters is not deserializable anymore" +
+                "\nCaused by: JobParameterNotDeserializableException: one of the JobParameters of type 'java.lang.Integer' is not deserializable anymore" +
                 "\nCaused by: java.lang.ClassNotFoundException: Class not found");
     }
 

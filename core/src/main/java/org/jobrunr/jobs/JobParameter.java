@@ -9,7 +9,7 @@ public class JobParameter {
     private String className;
     private String actualClassName;
     private Object object;
-    private JobParameterNotDeserializableException exception;
+    private transient JobParameterNotDeserializableException exception;
 
     private JobParameter() {
         // used for deserialization

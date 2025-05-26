@@ -64,7 +64,7 @@ class JobDetailsTest {
         JobDetails jobDetails = jobDetails()
                 .withClassName(TestService.class)
                 .withMethodName("doWork")
-                .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(new IllegalAccessException("Boom"))))
+                .withJobParameter(new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(Integer.class.getName(), new IllegalAccessException("Boom"))))
                 .build();
 
         assertThat(jobDetails)
@@ -72,7 +72,7 @@ class JobDetailsTest {
                 .hasStaticFieldName(null)
                 .hasMethodName("doWork")
                 .hasArgs(2)
-                .hasNotDeserializableException(IllegalAccessException.class.getName(), "Boom")
+                .hasNotDeserializableExceptionEqualTo(new JobParameterNotDeserializableException(Integer.class.getName(), IllegalAccessException.class.getName(), "Boom"))
                 .isNotCacheable();
 
         assertThat(jobDetails.getJobParameterTypes()).isEqualTo(new Class[]{JobParameterNotDeserializableException.class});
