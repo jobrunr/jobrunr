@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
@@ -46,6 +47,46 @@ public class JobContextTest {
         assertThat(job)
                 .hasMetadata("my-key", "my-updated-string")
                 .hasMetadata("only-once-key", "my-string");
+    }
+
+    @Test
+    void jobContextCanGetMetadata() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.saveMetadata("my-key", "my-string");
+        jobContext.saveMetadataIfAbsent("only-once-key", "my-only-once-string");
+
+        assertThat((String) jobContext.getMetadata("my-key")).isEqualTo("my-string");
+        assertThat((String) jobContext.getMetadata("only-once-key")).isEqualTo("my-only-once-string");
+    }
+
+    @Test
+    void jobContextCanRunCheckWithStepCompleted() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
+        jobContext.markStepCompleted("step-A");
+        assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
+        jobContext.markStepCompleted("step-1");
+        assertThat(jobContext.hasCompletedStep("step-1")).isTrue();
+    }
+
+    @Test
+    void jobContextRunsStepOnlyOnce() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        jobContext.runStepOnce("my-step", counter::incrementAndGet);
+        jobContext.runStepOnce("my-step", counter::incrementAndGet);
+
+        assertThat(counter).hasValue(1);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
     }
 
     @Test
