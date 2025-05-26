@@ -70,7 +70,7 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
                 }
             }
         } catch (Exception e) {
-            return new JobParameter(new JobParameterNotDeserializableException(getActualClassName(className, actualClassName), e.getMessage()));
+            return new JobParameter(className, actualClassName, objectJsonNode, new JobParameterNotDeserializableException(className, e));
         }
     }
 

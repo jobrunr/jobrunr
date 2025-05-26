@@ -2,30 +2,42 @@ package org.jobrunr.jobs.exceptions;
 
 public class JobParameterNotDeserializableException {
 
-    private String className;
-    private String exceptionMessage;
+    private final String objectClassName;
+    private final String exceptionClassName;
+    private final String exceptionMessage;
 
-    protected JobParameterNotDeserializableException() {
-        // used for deserialization, protected for JSONB
+    public JobParameterNotDeserializableException(String objectClassName, Exception e) {
+        this(objectClassName, e.getClass().getName(), e.getMessage());
     }
 
-    public JobParameterNotDeserializableException(String className, String exceptionMessage) {
-        this.className = className;
+    public JobParameterNotDeserializableException(String objectClassName, String exceptionClassName, String exceptionMessage) {
+        this.objectClassName = objectClassName;
+        this.exceptionClassName = exceptionClassName;
         this.exceptionMessage = exceptionMessage;
     }
 
-    public String getClassName() {
-        return className;
+    public String getObjectClassName() {
+        return objectClassName;
+    }
+
+    public String getExceptionClassName() {
+        return exceptionClassName;
     }
 
     public String getExceptionMessage() {
         return exceptionMessage;
     }
 
+    public String getStackTrace() {
+        return "JobParameterNotDeserializableException: one of the JobParameters of type '" + objectClassName + "' is not deserializable anymore"
+                + "\nCaused by: " + exceptionClassName + ": " + exceptionMessage;
+    }
+
     @Override
     public String toString() {
         return "JobParameterNotDeserializableException {" +
-                "className='" + className + '\'' +
+                "objectClassName='" + objectClassName + '\'' +
+                ", exceptionClassName='" + exceptionClassName + '\'' +
                 ", exceptionMessage='" + exceptionMessage + '\'' +
                 '}';
     }
