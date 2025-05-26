@@ -15,7 +15,6 @@ import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.CpuAllocatio
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.PollIntervalInSecondsTimeBoxIsTooSmallProblemSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.ScheduledJobsNotFoundProblemSerializer
 import org.jobrunr.kotlin.serialization.dashboard.ui.model.problems.SevereJobRunrExceptionProblemSerializer
-import org.jobrunr.kotlin.serialization.jobs.JobParameterNotDeserializableExceptionSerializer
 import org.jobrunr.kotlin.serialization.jobs.JobSerializer
 import org.jobrunr.kotlin.serialization.jobs.RecurringJobSerializer
 import org.jobrunr.kotlin.serialization.jobs.context.JobContextSerializer
@@ -42,7 +41,6 @@ internal val jobRunrSerializersModule = SerializersModule {
     }
     contextual(JobSerializer)
     contextual(RecurringJobSerializer)
-    contextual(JobParameterNotDeserializableExceptionSerializer)
     contextual(JobContextSerializer)
     contextual(JobDashboardLogLineSerializer)
     contextual(JobDashboardLogLinesSerializer)

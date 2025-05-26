@@ -5,7 +5,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Type;
@@ -19,12 +19,12 @@ public class JobParameterDeserializer implements JsonDeserializer<JobParameter> 
     @Override
     public JobParameter deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
-        String jobParameterMethodType = jsonObject.get(FIELD_CLASS_NAME).getAsString();
-        String jobParameterActualType = jsonObject.has(FIELD_ACTUAL_CLASS_NAME) ? jsonObject.get(FIELD_ACTUAL_CLASS_NAME).getAsString() : null;
+        String className = jsonObject.get(FIELD_CLASS_NAME).getAsString();
+        String actualClassName = jsonObject.has(FIELD_ACTUAL_CLASS_NAME) ? jsonObject.get(FIELD_ACTUAL_CLASS_NAME).getAsString() : null;
         try {
-            return new JobParameter(jobParameterMethodType, deserializeToObject(context, getActualClassName(jobParameterMethodType, jobParameterActualType), jsonObject.get("object")));
+            return new JobParameter(className, deserializeToObject(context, getActualClassName(className, actualClassName), jsonObject.get("object")));
         } catch (Exception e) {
-            return new JobParameter(new JobParameterNotDeserializableException(getActualClassName(jobParameterMethodType, jobParameterActualType), e.getMessage()));
+            return new JobParameter(className, actualClassName, jsonObject.get("object"), new JobParameterNotDeserializableException(className, e));
         }
     }
 

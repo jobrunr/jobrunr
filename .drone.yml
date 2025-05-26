@@ -106,7 +106,7 @@ steps:
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
-      - find /drone/src/.gradle -name "*.lock" -type f -delete
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - |
         bash -lc '
           set -e -o pipefail
