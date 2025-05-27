@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
 import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
 import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
  * The JobContext class gives access to the Job id, the Job name, the state, ... .
@@ -23,6 +24,8 @@ import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
  * As soon as the job is completed successfully the metadata is cleared (for storage purpose reasons).
  */
 public class JobContext {
+
+    private static final String JOBRUNR_STEP_PREFIX = "jr_step_";
 
     public static final JobContext Null = new JobContext(null);
 
@@ -103,6 +106,7 @@ public class JobContext {
                         .filter(entry -> !entry.getKey().startsWith(JOBRUNR_LOG_KEY))
                         .filter(entry -> !entry.getKey().startsWith(JOBRUNR_PROGRESSBAR_KEY))
                         .filter(entry -> !entry.getKey().startsWith(JOBRUNR_MDC_KEY))
+                        .filter(entry -> !entry.getKey().startsWith(JOBRUNR_STEP_PREFIX))
                         .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
         );
     }
@@ -133,6 +137,46 @@ public class JobContext {
     public void saveMetadataIfAbsent(String key, Object metadata) {
         validateMetadata(metadata);
         job.getMetadata().putIfAbsent(key, metadata);
+    }
+
+    /**
+     * Allows retrieving the metadata with the given key from a Job.
+     * <p>
+     *
+     * @param key the key to retrieve the metadata
+     * @return the given value associated with the provided key.
+     */
+    public <T> T getMetadata(String key) {
+        return cast(job.getMetadata().get(key));
+    }
+
+    /**
+     * Returns true if the given step has already completed successfully in a previous run.
+     */
+    public boolean hasCompletedStep(String stepName) {
+        Object value = getMetadata(JOBRUNR_STEP_PREFIX + stepName);
+        if (value == null) return false;
+        if (value instanceof Boolean) return (boolean) value;
+        if (value instanceof String) return Boolean.parseBoolean((String) value);
+        throw new IllegalStateException("Unsupported step value: " + stepName);
+    }
+
+    /**
+     * Marks the given step as completed (so it won’t run again if a job retries due to an exception).
+     */
+    void markStepCompleted(String stepName) {
+        saveMetadata(JOBRUNR_STEP_PREFIX + stepName, true);
+    }
+
+    /**
+     * Run the supplied task exactly once (i.e. only if it hasn’t already completed).
+     * If the task throws, the step won’t be marked completed.
+     */
+    public void runStepOnce(String step, Runnable task) {
+        if (!hasCompletedStep(step)) {
+            task.run();
+            markStepCompleted(step);
+        }
     }
 
     private static void validateMetadata(Object metadata) {
