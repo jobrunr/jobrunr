@@ -54,6 +54,10 @@ public class CarbonAwareConfigurationReader {
         return carbonAwareConfiguration.externalIdentifier;
     }
 
+    public int getApiClientRetriesOnException() {
+        return carbonAwareConfiguration.apiClientRetriesOnException;
+    }
+
     public Duration getApiClientConnectTimeout() {
         return carbonAwareConfiguration.apiClientConnectTimeout;
     }

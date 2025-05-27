@@ -9,9 +9,10 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class CarbonAwareConfiguration {
 
-    public static String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
-    public static Duration DEFAULT_CLIENT_API_CONNECT_TIMEOUT = Duration.ofSeconds(3);
-    public static Duration DEFAULT_CLIENT_API_READ_TIMEOUT = Duration.ofSeconds(3);
+    public static final String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
+    public static final Duration DEFAULT_API_CLIENT_CONNECT_TIMEOUT = Duration.ofSeconds(3);
+    public static final Duration DEFAULT_API_CLIENT_READ_TIMEOUT = Duration.ofSeconds(3);
+    public static final Integer DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION = 3;
 
     boolean enabled = false;
     String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL;
@@ -19,8 +20,9 @@ public class CarbonAwareConfiguration {
     String dataProvider;
     String externalCode;
     String externalIdentifier;
-    Duration apiClientConnectTimeout = DEFAULT_CLIENT_API_CONNECT_TIMEOUT;
-    Duration apiClientReadTimeout = DEFAULT_CLIENT_API_READ_TIMEOUT;
+    Integer apiClientRetriesOnException = DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION;
+    Duration apiClientConnectTimeout = DEFAULT_API_CLIENT_CONNECT_TIMEOUT;
+    Duration apiClientReadTimeout = DEFAULT_API_CLIENT_READ_TIMEOUT;
 
     private CarbonAwareConfiguration() {
     }
@@ -127,6 +129,17 @@ public class CarbonAwareConfiguration {
         return this;
     }
 
+    /**
+     * Configures the API client amount of retries when the call throws an exception
+     *
+     * @param retries the amount of retries (e.g. 3)
+     * @return the same configuration instance which provides a fluent api
+     */
+    public CarbonAwareConfiguration andApiClientRetriesOnException(int retries) {
+        this.apiClientRetriesOnException = retries;
+        return this;
+    }
+    
     /**
      * Allows to set the read timeout for the API client
      */

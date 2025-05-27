@@ -36,7 +36,7 @@ public class CarbonIntensityApiClient {
     }
 
     private String fetchLatestCarbonIntensityForecastAsStringWithRetries() {
-        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, 3, 1000);
+        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, carbonAwareConfiguration.getApiClientRetriesOnException(), 1000);
     }
 
     private String fetchLatestCarbonIntensityForecastAsString() {

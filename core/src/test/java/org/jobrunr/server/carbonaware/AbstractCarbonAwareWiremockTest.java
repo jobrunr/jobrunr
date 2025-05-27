@@ -63,7 +63,10 @@ public abstract class AbstractCarbonAwareWiremockTest {
     }
 
     protected CarbonAwareConfiguration getCarbonAwareConfigurationForAreaCode(String areaCode) {
-        return usingStandardCarbonAwareConfiguration().andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl).andAreaCode(areaCode);
+        return usingStandardCarbonAwareConfiguration()
+                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl)
+                .andApiClientRetriesOnException(1)
+                .andAreaCode(areaCode);
     }
 
     protected Instant toEndOfNextDay(ZonedDateTime dateTime) {
