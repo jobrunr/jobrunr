@@ -13,6 +13,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
 import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
 import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
  * The JobContext class gives access to the Job id, the Job name, the state, ... .
@@ -145,9 +146,8 @@ public class JobContext {
      * @param key the key to retrieve the metadata
      * @return the given value associated with the provided key.
      */
-    @SuppressWarnings("unchecked")
     public <T> T getMetadata(String key) {
-        return (T) job.getMetadata().get(key);
+        return cast(job.getMetadata().get(key));
     }
 
     /**
@@ -156,8 +156,8 @@ public class JobContext {
     public boolean hasCompletedStep(String stepName) {
         Object value = getMetadata(JOBRUNR_STEP_PREFIX + stepName);
         if (value == null) return false;
-        else if (value instanceof Boolean) return (boolean) value;
-        else if (value instanceof String) return Boolean.parseBoolean((String) value);
+        if (value instanceof Boolean) return (boolean) value;
+        if (value instanceof String) return Boolean.parseBoolean((String) value);
         throw new IllegalStateException("Unsupported step value: " + stepName);
     }
 
