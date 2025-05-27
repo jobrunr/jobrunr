@@ -18,6 +18,7 @@ import java.util.List;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
@@ -43,12 +44,28 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void runTaskWithCarbonAwareDisabledDoesNothing() {
+    void runTaskWithCarbonAwareDisabledDoesNotUpdateCarbonIntensityForecast() {
         when(carbonAwareJobManager.isDisabled()).thenReturn(true);
 
-        task.runTask();
+        runTask(task);
 
         verify(carbonAwareJobManager, times(0)).updateCarbonIntensityForecastIfNecessary();
+    }
+
+    @Test
+    void runTaskWithCarbonAwareDisabledSchedulesCarbonAwaitingJobsAtBeginningOfCarbonAwarePerioed() {
+        when(carbonAwareJobManager.isDisabled()).thenReturn(true);
+
+        ZonedDateTime currentTime = ZonedDateTime.now().truncatedTo(MINUTES);
+        try (MockedStaticHolder ignored = mockTime(currentTime)) {
+            Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
+
+            runTask(task);
+
+            assertThatJob(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now(), "Carbon aware scheduling is disabled, scheduling job at " + Instant.now());  // from is fallback instant
+        }
     }
 
     @Test

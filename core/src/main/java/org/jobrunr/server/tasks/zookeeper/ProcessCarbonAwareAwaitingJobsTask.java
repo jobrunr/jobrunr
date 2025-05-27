@@ -31,8 +31,6 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @Override
     protected void runTask() {
-        if (carbonAwareJobManager.isDisabled()) return;
-
         updateCarbonIntensityForecastIfNecessary();
         processManyJobs(this::getCarbonAwareAwaitingJobs,
                 this::moveCarbonAwareJobToNextState,
@@ -49,6 +47,8 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private void updateCarbonIntensityForecastIfNecessary() {
+        if (carbonAwareJobManager.isDisabled()) return;
+        
         carbonAwareJobManager.updateCarbonIntensityForecastIfNecessary();
         if (carbonAwareJobManager.hasCarbonIntensityForecastError()) {
             dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());

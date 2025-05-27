@@ -64,6 +64,8 @@ public class CarbonAwareJobManager {
     }
 
     public Instant getAvailableForecastEndTime() {
+        if (isDisabled()) return getDefaultDailyRefreshTime().plus(1, DAYS).plus(randomRefreshTimeOffset);
+
         Instant forecastEndPeriod = carbonIntensityForecast.getForecastEndPeriod();
         return (forecastEndPeriod != null && forecastEndPeriod.isAfter(nextRefreshTime)) ? forecastEndPeriod : nextRefreshTime;
     }
@@ -76,7 +78,9 @@ public class CarbonAwareJobManager {
         CarbonAwareAwaitingState state = job.getJobState();
         LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
 
-        if (isDeadlinePassed(state)) {
+        if (isDisabled()) {
+            scheduleJobAt(job, state.getFallbackInstant(), state, "Carbon aware scheduling is disabled, scheduling job at " + state.getFallbackInstant());
+        } else if (isDeadlinePassed(state)) {
             scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
         } else if (hasTooSmallScheduleMargin(state)) {
             scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");

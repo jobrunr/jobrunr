@@ -144,10 +144,6 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert isScheduledAt(String instantAsString) {
-        return isScheduledAt(Instant.parse(instantAsString));
-    }
-
     public JobAssert isScheduledAt(Instant instant) {
         ScheduledState scheduledState = actual.getJobState();
         Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);

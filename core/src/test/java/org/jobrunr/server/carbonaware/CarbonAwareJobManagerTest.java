@@ -16,6 +16,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static java.time.Instant.now;
+import static java.time.Instant.parse;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +33,7 @@ import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PART
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.ITALY_2025_05_20_PT15M;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
+import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
@@ -43,6 +45,17 @@ public class CarbonAwareJobManagerTest {
 
     @RegisterExtension
     static CarbonAwareApiWireMockExtension carbonAwareApiMock = new CarbonAwareApiWireMockExtension();
+
+    @Test
+    void testCarbonAwareJobManagerEnabledAndDisabled() {
+        CarbonAwareJobManager disabledCarbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(false), null);
+        assertThat(disabledCarbonAwareJobManager.isEnabled()).isFalse();
+        assertThat(disabledCarbonAwareJobManager.isDisabled()).isTrue();
+
+        CarbonAwareJobManager enabledCarbonAwareJobManager = new CarbonAwareJobManager(usingStandardCarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(true), null);
+        assertThat(enabledCarbonAwareJobManager.isEnabled()).isTrue();
+        assertThat(enabledCarbonAwareJobManager.isDisabled()).isFalse();
+    }
 
     @Test
     void testGetTimezoneReturnsSystemZoneIdByDefault() {
@@ -154,21 +167,6 @@ public class CarbonAwareJobManagerTest {
     }
 
     @Test
-    void testMoveToNextStateAlsoWorksForPT15MIntensityIntervals() {
-        carbonAwareApiMock.mockResponseWhenRequestingAreaCode("IT", ITALY_2025_05_20_PT15M);
-        CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManagerWithForecast("IT");
-        try (MockedStatic<Instant> ignored = mockTime(Instant.parse("2025-05-20T13:00:00.000Z"))) {
-            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(1, HOURS), now().plus(3, HOURS))).build();
-
-            carbonAwareJobManager.moveToNextState(job);
-
-            assertThat(job)
-                    .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(Instant.parse("2025-05-20T12:00:00.000Z"), "At the best moment to minimize carbon impact.");
-        }
-    }
-
-    @Test
     void testMoveToNextStateThrowsAnExceptionIfGivenJobsThatAreNotCarbonAwaiting() {
         CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("DE");
 
@@ -177,6 +175,42 @@ public class CarbonAwareJobManagerTest {
         assertThatCode(() -> carbonAwareJobManager.moveToNextState(job))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
+    }
+
+    @Test
+    void testMoveToNextStateMovesCarbonAwaitingJobToNextStateIfCarbonAwareSchedulingIsDisabled() {
+        try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.of(2024, 7, 11)))) {
+            carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE", BELGIUM_2024_07_11);
+            CarbonAwareConfiguration carbonAwareConfiguration = carbonAwareApiMock
+                    .getCarbonAwareConfigurationForAreaCode("BE")
+                    .andCarbonAwareSchedulingEnabled(false);
+            CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager(carbonAwareConfiguration);
+            carbonAwareJobManager.updateCarbonIntensityForecast();
+
+
+            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build();
+
+            carbonAwareJobManager.moveToNextState(job);
+
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(now(), "Carbon aware scheduling is disabled, scheduling job at 2024-07-10T22:00:00Z");
+        }
+    }
+
+    @Test
+    void testMoveToNextStateAlsoWorksForPT15MIntensityIntervals() {
+        carbonAwareApiMock.mockResponseWhenRequestingAreaCode("IT", ITALY_2025_05_20_PT15M);
+        CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManagerWithForecast("IT");
+        try (MockedStatic<Instant> ignored = mockTime(parse("2025-05-20T13:00:00.000Z"))) {
+            Job job = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minus(1, HOURS), now().plus(3, HOURS))).build();
+
+            carbonAwareJobManager.moveToNextState(job);
+
+            assertThat(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .isScheduledAt(parse("2025-05-20T12:00:00.000Z"), "At the best moment to minimize carbon impact.");
+        }
     }
 
     @Test
@@ -211,7 +245,7 @@ public class CarbonAwareJobManagerTest {
     }
 
     @Test
-    void testMoveToNextStateSchedulesCarbonAwaitingJobsAtPreferredInstantWhenCarbonIntensityForecastAreNotAvailable() {
+    void testMoveToNextStateSchedulesCarbonAwaitingJobsAtPreferredInstantWhenCarbonIntensityForecastIsNotAvailable() {
         try (MockedStatic<Instant> ignored = mockTime(startOfDay(LocalDate.now()))) {
             CarbonAwareJobManager carbonAwareJobManager = getCarbonAwareJobManager("DE");
             Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build();
@@ -243,7 +277,7 @@ public class CarbonAwareJobManagerTest {
 
             assertThat(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt("2024-07-11T01:00:00Z");
+                    .isScheduledAt(parse("2024-07-11T01:00:00Z"));
         }
     }
 
@@ -254,9 +288,13 @@ public class CarbonAwareJobManagerTest {
     }
 
     private CarbonAwareJobManager getCarbonAwareJobManager(String areaCode) {
-        CarbonAwareConfigurationReader carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareApiMock.getCarbonAwareConfigurationForAreaCode(areaCode));
-        CarbonIntensityApiClient carbonIntensityApiClient = spy(new CarbonIntensityApiClient(carbonAwareConfiguration, new JacksonJsonMapper()));
-        return spy(new CarbonAwareJobManager(carbonAwareConfiguration, carbonIntensityApiClient));
+        return getCarbonAwareJobManager(carbonAwareApiMock.getCarbonAwareConfigurationForAreaCode(areaCode));
+    }
+
+    private CarbonAwareJobManager getCarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration) {
+        CarbonAwareConfigurationReader carbonAwareConfigurationReader = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
+        CarbonIntensityApiClient carbonIntensityApiClient = spy(new CarbonIntensityApiClient(carbonAwareConfigurationReader, new JacksonJsonMapper()));
+        return spy(new CarbonAwareJobManager(carbonAwareConfigurationReader, carbonIntensityApiClient));
     }
 
     private CarbonIntensityApiClient getCarbonIntensityApiClient(CarbonAwareJobManager carbonAwareJobManager) {
