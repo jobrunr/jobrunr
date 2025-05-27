@@ -2,6 +2,7 @@ package org.jobrunr.server.carbonaware;
 
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,16 +11,18 @@ import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 
-abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareWiremockTest {
+abstract class AbstractCarbonIntensityApiClientTest {
 
-    @Override
+    @RegisterExtension
+    static CarbonAwareApiWireMockExtension carbonAwareWiremock = new CarbonAwareApiWireMockExtension();
+
     protected abstract JsonMapper getJsonMapper();
 
     @Test
     void fetchCarbonIntensityForecast() {
         // GIVEN
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.BELGIUM_2024_07_11);
 
         // WHEN
         CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -36,8 +39,8 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     @Test
     void fetchCarbonIntensityForecastReturnsNotOkWhenAreaNotFoundError() {
         // GIVEN
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("UNKNOWN");
-        mockResponseWhenRequestingAreaCode("UNKNOWN", CarbonApiMockResponses.UNKNOWN_AREA);
 
         // WHEN
         CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -55,8 +58,8 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     @Test
     void fetchCarbonIntensityForecastReturnsNotOWhenForecastNotAvailableError() {
         // GIVEN
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("DE");
-        mockResponseWhenRequestingAreaCode("DE", CarbonApiMockResponses.GERMANY_NO_DATA);
 
         // WHEN
         CarbonIntensityForecast result = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -74,8 +77,8 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     @Test
     void fetchCarbonIntensityForecastSetsMissingFieldsToNull() {
         // GIVEN
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_FIELDS);
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", CarbonApiMockResponses.MISSING_FIELDS);
 
         // WHEN
         CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -91,8 +94,8 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     @Test
     void fetchCarbonIntensityForecastReturnsEmptyForecastWhenParsingOfResponseFails() {
         // GIVEN
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE", "{ someUnKnownKey: 'someValue' }");
         CarbonIntensityApiClient carbonIntensityApiClient = createCarbonAwareApiClient("BE");
-        mockResponseWhenRequestingAreaCode("BE", "{ someUnKnownKey: 'someValue' }");
 
         // WHEN
         CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -104,7 +107,7 @@ abstract class AbstractCarbonIntensityApiClientTest extends AbstractCarbonAwareW
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
         CarbonAwareConfiguration carbonAwareConfiguration = usingStandardCarbonAwareConfiguration()
                 .andAreaCode(areaCode)
-                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl);
+                .andCarbonIntensityApiUrl(carbonAwareWiremock.carbonIntensityApiBaseUrl);
 
         return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), getJsonMapper());
     }

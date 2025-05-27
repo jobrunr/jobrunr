@@ -3,10 +3,12 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStaticHolder;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -21,6 +23,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.mockito.InstantMocker.mockTime;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +32,9 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     ProcessCarbonAwareAwaitingJobsTask task;
 
     CarbonAwareJobManager carbonAwareJobManager;
+
+    @RegisterExtension
+    static CarbonAwareApiWireMockExtension carbonAwareWiremock = new CarbonAwareApiWireMockExtension();
 
     @BeforeEach
     void setUp() {
@@ -49,7 +55,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     void runTaskWithCarbonAwareEnabled() {
         ZonedDateTime currentTime = ZonedDateTime.now();
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
-            mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE");
 
             Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
 
@@ -67,7 +73,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @Test
     void taskCallsCarbonAwareJobManagerAndOutdatedCarbonIntensityForecastAvailableSchedulesJobImmediately() {
         try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-25T09:00:00Z"))) { // in the past
-            mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE");
         }
 
         try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-27T09:00:00Z"))) {
@@ -116,7 +122,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     void taskCarbonAwaitingJobsToNextUsingCarbonAwareJobManager() {
         ZonedDateTime currentTime = ZonedDateTime.now();
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
-            mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE");
 
             List<Job> jobs = storageProvider.save(List.of(
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(4, HOURS))).build(),
@@ -155,5 +161,10 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
 
     private void setNextRefreshTime(CarbonAwareJobManager carbonAwareJobManager, Instant nextRefreshTime) {
         Whitebox.setInternalState(carbonAwareJobManager, "nextRefreshTime", nextRefreshTime);
+    }
+
+    @Override
+    protected CarbonAwareJobManager carbonAwareJobManager() {
+        return spy(new CarbonAwareJobManager(carbonAwareWiremock.getCarbonAwareConfigurationForAreaCode("BE"), jsonMapper));
     }
 }

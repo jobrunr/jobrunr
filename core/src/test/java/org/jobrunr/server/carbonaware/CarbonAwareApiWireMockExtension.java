@@ -1,13 +1,14 @@
 package org.jobrunr.server.carbonaware;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -21,32 +22,49 @@ import java.util.stream.Stream;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath;
 
-@WireMockTest
-public abstract class AbstractCarbonAwareWiremockTest {
+public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCallback {
 
-    private final JsonMapper jsonMapper = getJsonMapper();
+    private static final WireMockServer wireMockServer;
+    private final JsonMapper jsonMapper;
+    protected final String carbonIntensityApiBaseUrl;
+    protected final String carbonApiTestUrl;
 
-    protected String carbonIntensityApiBaseUrl;
-    protected String carbonApiTestUrl;
+    static {
+        wireMockServer = new WireMockServer(options().dynamicPort());
+        wireMockServer.start();
+        WireMock.configureFor(wireMockServer.port());
+    }
 
-    @BeforeEach
-    void setUp(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        carbonIntensityApiBaseUrl = "http://localhost:" + wireMockRuntimeInfo.getHttpPort();
-        carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl("http://localhost:" + wireMockRuntimeInfo.getHttpPort());
+    public CarbonAwareApiWireMockExtension() {
+        this(wireMockServer, new JacksonJsonMapper());
+    }
+
+    public CarbonAwareApiWireMockExtension(WireMockServer wireMockServer, JsonMapper jsonMapper) {
+        this.carbonIntensityApiBaseUrl = "http://localhost:" + wireMockServer.port();
+        this.carbonApiTestUrl = CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl(carbonIntensityApiBaseUrl);
+        this.jsonMapper = jsonMapper;
         WireMock.reset();
     }
 
-    protected JsonMapper getJsonMapper() {
-        return new JacksonJsonMapper();
+    public CarbonAwareConfiguration getCarbonAwareConfigurationForAreaCode(String areaCode) {
+        return usingStandardCarbonAwareConfiguration()
+                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl)
+                .andApiClientRetriesOnException(1)
+                .andAreaCode(areaCode);
     }
 
-    protected void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
+    public void mockResponseWhenRequestingAreaCode(String areaCode) {
+        mockResponseWhenRequestingAreaCode(areaCode, generateCarbonIntensityForecastForTheNextDay());
+    }
+
+    public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
         String url = format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
         stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
@@ -54,26 +72,11 @@ public abstract class AbstractCarbonAwareWiremockTest {
                         .withBody(response)));
     }
 
-    protected void mockResponseWhenRequestingAreaCode(String areaCode) {
-        String url = format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
-        stubFor(WireMock.get(urlEqualTo(url))
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(generateCarbonIntensityForecastForTheNextDay())));
-    }
-
-    protected CarbonAwareConfiguration getCarbonAwareConfigurationForAreaCode(String areaCode) {
-        return usingStandardCarbonAwareConfiguration()
-                .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl)
-                .andApiClientRetriesOnException(1)
-                .andAreaCode(areaCode);
-    }
-
-    protected Instant toEndOfNextDay(ZonedDateTime dateTime) {
+    public Instant toEndOfNextDay(ZonedDateTime dateTime) {
         return dateTime.toLocalDate().atTime(LocalTime.MAX).plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
     }
 
-    protected String generateCarbonIntensityForecastForTheNextDay() {
+    private String generateCarbonIntensityForecastForTheNextDay() {
         ZonedDateTime currentTime = ZonedDateTime.now();
         Instant startingInstant = currentTime.toInstant().truncatedTo(HOURS);
         long limit = Duration.between(startingInstant, toEndOfNextDay(currentTime)).toHours() + 1;
@@ -90,5 +93,10 @@ public abstract class AbstractCarbonAwareWiremockTest {
                         forecast
                 )
         );
+    }
+
+    @Override
+    public void beforeEach(ExtensionContext context) throws Exception {
+        WireMock.reset();
     }
 }

@@ -17,7 +17,7 @@ import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.LogAllStateChangesFilter;
-import org.jobrunr.server.carbonaware.AbstractCarbonAwareWiremockTest;
+import org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.stubs.StaticTestService;
@@ -28,6 +28,7 @@ import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.MDC;
 
 import java.nio.file.Paths;
@@ -80,7 +81,10 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 /**
  * Must be public as used as a background job
  */
-public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTest {
+public class BackgroundJobByJobLambdaTest {
+
+    @RegisterExtension
+    static CarbonAwareApiWireMockExtension carbonAwareWiremock = new CarbonAwareApiWireMockExtension();
 
     private TestService testService;
     private StorageProvider storageProvider;
@@ -90,7 +94,7 @@ public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTes
 
     @BeforeEach
     void setUpTests() {
-        mockResponseWhenRequestingAreaCode("BE");
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE");
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();
@@ -98,7 +102,7 @@ public class BackgroundJobByJobLambdaTest extends AbstractCarbonAwareWiremockTes
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
-                .useCarbonAwareScheduling(getCarbonAwareConfigurationForAreaCode("BE"))
+                .useCarbonAwareScheduling(carbonAwareWiremock.getCarbonAwareConfigurationForAreaCode("BE"))
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
 
