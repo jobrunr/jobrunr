@@ -18,18 +18,19 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
-import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
+import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
+import org.jobrunr.storage.Page;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderAssert;
 
@@ -44,8 +45,16 @@ public class JobRunrAssertions extends Assertions {
         return new Condition<>(x -> x instanceof ConcurrentJobModificationException && ((ConcurrentJobModificationException) x).getConcurrentUpdatedJobs().contains(job), "Should contain job");
     }
 
-    public static <T extends Job> IdListAssert<T> assertThatJobs(List<T> jobs) {
-        return (IdListAssert<T>) new IdListAssert<>(jobs).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker", "jobHistory.exception", "stateIndexBeforeStateChange");
+    public static <T extends Job> IdListAssert<Job, JobAssert> assertThatJobs(Page<T> jobPage) {
+        return assertThatJobs(jobPage.getItems());
+    }
+
+    public static <T extends Job> IdListAssert<Job, JobAssert> assertThatJobs(List<T> jobs) {
+        return new IdListAssert<>(jobs, JobAssert::new).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker", "newState", "jobHistory.exception", "stateIndexBeforeStateChange");
+    }
+
+    public static IdListAssert<RecurringJob, RecurringJobAssert> assertThatRecurringJobs(List<RecurringJob> recurringJobs) {
+        return new IdListAssert<>(recurringJobs, RecurringJobAssert::new).usingRecursiveFieldByFieldElementComparatorIgnoringFields("locker", "jobHistory.exception", "nextRunAt");
     }
 
     public static JobAssert assertThat(Job job) {

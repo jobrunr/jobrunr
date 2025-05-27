@@ -269,7 +269,11 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period) {
-        return withState(new CarbonAwareAwaitingState(null, period.getFrom(), period.getTo(), "carbon state for job test builder"));
+        return withCarbonAwareAwaitingState(period, "carbon state for job test builder");
+    }
+
+    public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period, String reason) {
+        return withState(new CarbonAwareAwaitingState(null, period.getFrom(), period.getTo(), reason));
     }
 
     public JobTestBuilder withScheduledState() {
@@ -282,6 +286,10 @@ public class JobTestBuilder {
 
     public JobTestBuilder withProcessingState(UUID backgroundJobServerId) {
         return withState(new ProcessingState(backgroundJobServerId, DEFAULT_SERVER_NAME));
+    }
+
+    public JobTestBuilder withProcessingState(Instant createdAt) {
+        return withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME), createdAt);
     }
 
     public JobTestBuilder withSucceededState() {

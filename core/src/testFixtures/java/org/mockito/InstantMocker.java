@@ -18,20 +18,19 @@ public class InstantMocker {
         return mockTime(Instant.parse(instantAsString));
     }
 
-    public static MockedStatic<Instant> mockTime(String instantAsString, String zoneId) {
+    public static MockedStaticHolder mockTime(String instantAsString, String zoneId) {
         return mockTime(Instant.parse(instantAsString).atZone(ZoneId.of(zoneId)));
     }
 
-    public static MockedStatic<Instant> mockTime(LocalDateTime localDateTime, ZoneId zoneId) {
+    public static MockedStaticHolder mockTime(LocalDateTime localDateTime, ZoneId zoneId) {
         return mockTime(ZonedDateTime.of(localDateTime, zoneId));
     }
 
-    public static MockedStatic<Instant> mockTime(ZonedDateTime zonedDateTime) {
-        return mockTime(zonedDateTime.toInstant());
-    }
-
-    public static MockedStatic<Instant> mockTime(ZonedDateTime zonedDateTime, String zoneId) {
-        return mockTime(zonedDateTime.withZoneSameInstant(ZoneId.of(zoneId)));
+    public static MockedStaticHolder mockTime(ZonedDateTime zonedDateTime) {
+        MockedStatic<ZonedDateTime> zonedDateTimeMock = Mockito.mockStatic(ZonedDateTime.class, Mockito.CALLS_REAL_METHODS);
+        MockedStatic<Instant> instantMockedStatic = mockTime(zonedDateTime.toInstant());
+        zonedDateTimeMock.when(ZonedDateTime::now).thenReturn(zonedDateTime);
+        return new MockedStaticHolder(zonedDateTimeMock, instantMockedStatic);
     }
 
     public static MockedStatic<Instant> mockTime(Instant instant) {

@@ -12,10 +12,11 @@ import java.util.concurrent.CountDownLatch;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.JobTestBuilder.emptyJobList;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,20 +35,22 @@ class OnboardNewWorkTaskTest extends AbstractTaskTest {
     void testTask() {
         Job enqueuedJob1 = anEnqueuedJob().build();
         Job enqueuedJob2 = anEnqueuedJob().build();
-        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+
+        saveJobsInStorageProvider(enqueuedJob1, enqueuedJob2);
+
         runTask(task);
 
-        verify(backgroundJobServer).processJob(enqueuedJob1);
-        verify(backgroundJobServer).processJob(enqueuedJob2);
+        verify(backgroundJobServer, times(2)).processJob(any(Job.class));
     }
 
     @Test
     void testTaskCanHappenAgainAfterException() {
         Job enqueuedJob1 = anEnqueuedJob().build();
         Job enqueuedJob2 = anEnqueuedJob().build();
-        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any()))
-                .thenThrow(new StorageException("Some error occurred"))
-                .thenReturn(asList(enqueuedJob1, enqueuedJob2), emptyJobList());
+
+        doThrow(new StorageException("Some error occurred"))
+                .doReturn(asList(enqueuedJob1, enqueuedJob2), emptyList())
+                .when(storageProvider).getJobsToProcess(eq(backgroundJobServer), any());
 
         new Thread(() -> runTask(task)).start();
         SleepUtils.sleep(500);
@@ -60,10 +63,10 @@ class OnboardNewWorkTaskTest extends AbstractTaskTest {
 
     @Test
     void taskIsNotDoneConcurrentlyBecauseOfTheReentrantLock() throws InterruptedException {
-        when(storageProvider.getJobsToProcess(eq(backgroundJobServer), any())).thenAnswer((invocationOnMock) -> {
+        doAnswer(invocation -> {
             sleep(100);
             return emptyList();
-        });
+        }).when(storageProvider).getJobsToProcess(eq(backgroundJobServer), any());
 
         CountDownLatch countDownLatch = new CountDownLatch(2);
         final Thread thread1 = new Thread(() -> {

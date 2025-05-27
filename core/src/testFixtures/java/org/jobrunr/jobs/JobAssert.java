@@ -24,7 +24,7 @@ import static org.assertj.core.condition.AnyOf.anyOf;
 
 public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
-    private JobAssert(Job job) {
+    public JobAssert(Job job) {
         super(job, JobAssert.class);
     }
 

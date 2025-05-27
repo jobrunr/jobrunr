@@ -1,45 +1,34 @@
 package org.jobrunr.server.tasks.zookeeper;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.DatetimeMocker;
-import org.mockito.MockedStatic;
+import org.mockito.MockedStaticHolder;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aCarbonAwaitingJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.InstantMocker.mockTime;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
-    private ProcessCarbonAwareAwaitingJobsTask task;
-    private CarbonAwareJobManager carbonAwareJobManager;
+    ProcessCarbonAwareAwaitingJobsTask task;
 
-    @Captor
-    ArgumentCaptor<Instant> instantArgumentCaptor;
+    CarbonAwareJobManager carbonAwareJobManager;
 
     @BeforeEach
     void setUp() {
@@ -49,64 +38,85 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
 
     @Test
     void runTaskWithCarbonAwareDisabledDoesNothing() {
-        CarbonAwareJobManager carbonAwareJobManagerMock = mock(CarbonAwareJobManager.class);
-        when(carbonAwareJobManagerMock.isDisabled()).thenReturn(true);
+        when(carbonAwareJobManager.isDisabled()).thenReturn(true);
 
-        BackgroundJobServer backgroundJobServerMock = mock(BackgroundJobServer.class);
-        when(backgroundJobServerMock.getCarbonAwareJobManager()).thenReturn(carbonAwareJobManagerMock);
-        when(backgroundJobServerMock.getConfiguration()).thenReturn(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
-
-        ProcessCarbonAwareAwaitingJobsTask taskWithoutCarbonAware = new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServerMock);
-        taskWithoutCarbonAware.runTask();
+        task.runTask();
 
         verify(carbonAwareJobManager, times(0)).updateCarbonIntensityForecastIfNecessary();
     }
 
     @Test
-    void taskCallsCarbonAwareJobManager() {
-        Job job = aCarbonAwaitingJob().build();
+    void taskCallsCarbonAwareJobManagerAndIfNoCarbonIntensityForecastAvailableSchedulesJobImmediatelyIfCarbonAwarePeriodIsBeforeTheRefreshTime() {
+        try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-27T09:00:00Z"))) { // daily refresh time is at 19h if no data
+            setNextRefreshTime(carbonAwareJobManager, now());
 
-        when(storageProvider.getCarbonAwareJobList(any(), any())).thenReturn(List.of(job));
+            Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
 
-        runTask(task);
+            runTask(task);
 
-        verify(carbonAwareJobManager).moveToNextState(job);
-        verify(carbonAwareJobManager).updateCarbonIntensityForecastIfNecessary();
-        verify(carbonAwareJobManager).getAvailableForecastEndTime();
+            Job updatedJob = storageProvider.getJobById(job.getId());
+            assertThat(updatedJob).hasState(SCHEDULED);
+
+            verify(carbonAwareJobManager).updateCarbonIntensityForecastIfNecessary();
+            verify(carbonAwareJobManager).getAvailableForecastEndTime();
+        }
+    }
+
+    @Test
+    void taskCallsCarbonAwareJobManagerAndIfNoCarbonIntensityForecastAvailableKeepsAwaitingStateIfCarbonAwarePeriodIsAfterTheRefreshTime() {
+        try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-27T17:00:00Z"))) { // daily refresh time is at 19h if no data
+            setNextRefreshTime(carbonAwareJobManager, now());
+
+            Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
+
+            runTask(task);
+
+            Job updatedJob = storageProvider.getJobById(job.getId());
+            assertThat(updatedJob).hasState(AWAITING);
+
+            verify(carbonAwareJobManager).updateCarbonIntensityForecastIfNecessary();
+            verify(carbonAwareJobManager).getAvailableForecastEndTime();
+        }
     }
 
     @Test
     void taskCarbonAwaitingJobsToNextUsingCarbonAwareJobManager() {
         ZonedDateTime currentTime = ZonedDateTime.now();
-        try (MockedStatic<Instant> ignored1 = mockTime(currentTime.toInstant());
-             MockedStatic<ZonedDateTime> ignored2 = DatetimeMocker.mockZonedDateTime(currentTime, ZoneId.systemDefault())) {
+        try (MockedStaticHolder ignored = mockTime(currentTime)) {
             mockResponseWhenRequestingAreaCode("BE");
 
+            List<Job> jobs = storageProvider.save(List.of(
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(4, HOURS))).build(),
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(2, HOURS), now().plus(4, HOURS)), "schedule margin too small").build(),
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(4, HOURS), now().plus(8, HOURS))).build(),
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(12, HOURS), now().plus(16, HOURS))).build(),
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(36, HOURS), now().plus(48, HOURS)), "scheduled carbon-aware too far in the future").build()
+            ));
+
             runTask(task);
 
-            verify(storageProvider).getCarbonAwareJobList(instantArgumentCaptor.capture(), any());
-            assertThat(instantArgumentCaptor.getValue()).isEqualTo(toEndOfNextDay(currentTime));
-
-            Job job1 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(4, HOURS))).build();
-            Job job2 = aJob().withState(new CarbonAwareAwaitingState(Instant.now().plus(2, HOURS), Instant.now(), Instant.now().plus(4, HOURS), "reason")).build();
-            Job job3 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(4, HOURS), Instant.now().plus(8, HOURS))).build();
-            Job job4 = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(Instant.now().plus(12, HOURS), Instant.now().plus(16, HOURS))).build();
-
-            when(storageProvider.getCarbonAwareJobList(any(), any())).thenReturn(List.of(job1, job2, job3, job4));
-            runTask(task);
-
-            assertThat(job1)
+            assertThatJob(jobs, 0)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(Instant.now().plus(1, HOURS).truncatedTo(HOURS));
-            assertThat(job2)
+                    .isScheduledAt(now().plus(1, HOURS).truncatedTo(HOURS));
+            assertThatJob(jobs, 1)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(Instant.now().plus(1, HOURS).truncatedTo(HOURS));
-            assertThat(job3)
+                    .isScheduledAt(now().plus(2, HOURS));
+            assertThatJob(jobs, 2)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(Instant.now().plus(5, HOURS).truncatedTo(HOURS));
-            assertThat(job4)
+                    .isScheduledAt(now().plus(5, HOURS).truncatedTo(HOURS));
+            assertThatJob(jobs, 3)
                     .hasStates(AWAITING, SCHEDULED)
-                    .isScheduledAt(Instant.now().plus(13, HOURS).truncatedTo(HOURS));
+                    .isScheduledAt(now().plus(13, HOURS).truncatedTo(HOURS));
+            assertThatJob(jobs, 4)
+                    .hasStates(AWAITING);
         }
+    }
+
+    private JobAssert assertThatJob(List<Job> jobs, int index) {
+        return assertThat(storageProvider.getJobById(jobs.get(index).getId()));
+    }
+
+    private void setNextRefreshTime(CarbonAwareJobManager carbonAwareJobManager, Instant nextRefreshTime) {
+        Whitebox.setInternalState(carbonAwareJobManager, "nextRefreshTime", nextRefreshTime);
     }
 }

@@ -38,8 +38,6 @@ import java.util.stream.IntStream;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MILLIS;
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
@@ -722,13 +720,12 @@ public abstract class StorageProviderTest {
 
     @Test
     void testGetCarbonAwareJobsList() {
-        final List<Job> jobs = asList(
+        final List<Job> jobs = storageProvider.save(asList(
                 aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build(),
                 aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(12, HOURS))).build(),
                 aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(36, HOURS))).build(),
                 aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(48, HOURS))).build()
-        );
-        storageProvider.save(jobs);
+        ));
 
         assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(3, HOURS), AmountBasedList.ascOnScheduledAt(100)))
                 .hasSize(0);
@@ -742,15 +739,13 @@ public abstract class StorageProviderTest {
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
 
-        Job aCarbonAwareJob = aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.before(now().plus(4, HOURS))).build();
-        storageProvider.save(aCarbonAwareJob);
-
-        aCarbonAwareJob.scheduleAt(Instant.now(), "test");
-        storageProvider.save(aCarbonAwareJob);
+        Job existingCarbonAwareJob = jobs.getFirst();
+        existingCarbonAwareJob.scheduleAt(Instant.now(), "test");
+        storageProvider.save(existingCarbonAwareJob);
 
         assertThatJobs(storageProvider.getCarbonAwareJobList(now().plus(50, HOURS), AmountBasedList.ascOnScheduledAt(100)))
-                .hasSize(4)
-                .containsExactly(jobs.get(0), jobs.get(1), jobs.get(2), jobs.get(3));
+                .hasSize(3)
+                .containsExactly(jobs.get(1), jobs.get(2), jobs.get(3));
     }
 
     @Test

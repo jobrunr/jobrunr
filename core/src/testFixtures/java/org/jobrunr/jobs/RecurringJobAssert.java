@@ -9,7 +9,7 @@ import java.util.List;
 
 public class RecurringJobAssert extends AbstractAssert<RecurringJobAssert, RecurringJob> {
 
-    private RecurringJobAssert(RecurringJob recurringJob) {
+    public RecurringJobAssert(RecurringJob recurringJob) {
         super(recurringJob, RecurringJobAssert.class);
     }
 

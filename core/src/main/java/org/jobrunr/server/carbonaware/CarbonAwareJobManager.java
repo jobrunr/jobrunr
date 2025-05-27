@@ -17,13 +17,14 @@ import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.util.Optional.ofNullable;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class CarbonAwareJobManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonAwareJobManager.class);
     private static final int DEFAULT_REFRESH_TIME = 19;
 
-    private final int randomRefreshTimeOffset = ThreadLocalRandom.current().nextInt(0, 361) * 5;
+    private final Duration randomRefreshTimeOffset = Duration.ofMinutes(30).plusSeconds(ThreadLocalRandom.current().nextInt(-300, 300)); // why: 30 minutes plus or min 5 min to make sure they don't hammer the server
 
     private final CarbonAwareConfigurationReader carbonAwareConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
@@ -31,8 +32,16 @@ public class CarbonAwareJobManager {
     private volatile Instant nextRefreshTime;
 
     public CarbonAwareJobManager(CarbonAwareConfiguration carbonAwareConfiguration, JsonMapper jsonMapper) {
-        this.carbonAwareConfiguration = new CarbonAwareConfigurationReader(carbonAwareConfiguration);
-        this.carbonIntensityApiClient = createCarbonIntensityApiClient(this.carbonAwareConfiguration, jsonMapper);
+        this(new CarbonAwareConfigurationReader(carbonAwareConfiguration), jsonMapper);
+    }
+
+    CarbonAwareJobManager(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
+        this(carbonAwareConfiguration, new CarbonIntensityApiClient(carbonAwareConfiguration, jsonMapper));
+    }
+
+    CarbonAwareJobManager(CarbonAwareConfigurationReader carbonAwareConfiguration, CarbonIntensityApiClient carbonIntensityApiClient) {
+        this.carbonAwareConfiguration = carbonAwareConfiguration;
+        this.carbonIntensityApiClient = carbonIntensityApiClient;
         this.nextRefreshTime = now();
         this.carbonIntensityForecast = new CarbonIntensityForecast();
     }
@@ -103,10 +112,6 @@ public class CarbonAwareJobManager {
         return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
     }
 
-    private CarbonIntensityApiClient createCarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
-        return new CarbonIntensityApiClient(carbonAwareConfiguration, jsonMapper);
-    }
-
     @VisibleFor("testing")
     void updateCarbonIntensityForecast() {
         CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
@@ -118,15 +123,13 @@ public class CarbonAwareJobManager {
     }
 
     private void updateNextRefreshTime() {
-        Instant nextForecastAvailableAt = carbonIntensityForecast.getNextForecastAvailableAt();
         Instant defaultDailyRefreshTime = getDefaultDailyRefreshTime();
-
-        Instant proposedNextRefreshTime = nextForecastAvailableAt != null ? nextForecastAvailableAt : defaultDailyRefreshTime;
+        Instant proposedNextRefreshTime = ofNullable(carbonIntensityForecast.getNextForecastAvailableAt()).orElse(defaultDailyRefreshTime);
 
         if (proposedNextRefreshTime.isBefore(now())) {
-            nextRefreshTime = defaultDailyRefreshTime.plus(1, DAYS).plusSeconds(randomRefreshTimeOffset);
+            nextRefreshTime = defaultDailyRefreshTime.plus(1, DAYS).plus(randomRefreshTimeOffset);
         } else {
-            nextRefreshTime = proposedNextRefreshTime.plusSeconds(randomRefreshTimeOffset);
+            nextRefreshTime = proposedNextRefreshTime.plus(randomRefreshTimeOffset);
         }
     }
 
@@ -141,7 +144,9 @@ public class CarbonAwareJobManager {
 
     @VisibleFor("testing")
     ZoneId getTimeZone() {
-        return carbonIntensityForecast.getTimezone() != null ? ZoneId.of(carbonIntensityForecast.getTimezone()) : ZoneId.systemDefault();
+        return carbonIntensityForecast.getTimezone() != null
+                ? ZoneId.of(carbonIntensityForecast.getTimezone())
+                : ZoneId.systemDefault();
     }
 
     private Instant getDefaultDailyRefreshTime() {
