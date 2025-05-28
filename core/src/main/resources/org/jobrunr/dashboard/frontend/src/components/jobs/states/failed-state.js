@@ -4,7 +4,7 @@ import {JobState} from "./job-state";
 const Failed = ({jobState}) => {
     return (
         <JobState
-            title={`Job Processing Failed - ${jobState.message}`}
+            title={`Job processing failed - ${jobState.message}`}
             state="failed"
             date={jobState.createdAt}
         >
