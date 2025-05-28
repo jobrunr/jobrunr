@@ -2,8 +2,6 @@ package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -23,7 +21,6 @@ import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingDisabledCarbonAwareConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -63,8 +60,7 @@ class BackgroundJobServerUsesBackgroundJobPerformerFactoryTest {
 
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
-                    storageProvider, new CarbonAwareJobManager(usingDisabledCarbonAwareConfiguration(), mock(JsonMapper.class)), mock(JsonMapper.class), jobActivator,
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator,
                     usingStandardBackgroundJobServerConfiguration()
                             .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();
@@ -95,7 +91,7 @@ class BackgroundJobServerUsesBackgroundJobPerformerFactoryTest {
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
             BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
-                    storageProvider, null, mock(JsonMapper.class), jobActivator,
+                    storageProvider, mock(JsonMapper.class), jobActivator,
                     usingStandardBackgroundJobServerConfiguration()
                             .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();

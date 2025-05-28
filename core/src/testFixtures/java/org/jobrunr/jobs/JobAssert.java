@@ -145,21 +145,27 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    @Deprecated
     public JobAssert isScheduledAt(Instant instant) {
-        SchedulableState scheduledState = actual.getJobState();
-        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
-        return this;
+        return hasScheduledAt(instant);
     }
 
+    @Deprecated
     public JobAssert isScheduledAt(Instant instant, String reason) {
-        ScheduledState scheduledState = actual.getJobState();
-        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
-        Assertions.assertThat(scheduledState.getReason()).isEqualTo(reason);
-        return this;
+        return hasScheduledAt(instant, reason);
     }
 
     public JobAssert hasScheduledAt(Instant scheduledAt) {
-        return isScheduledAt(scheduledAt);
+        SchedulableState scheduledState = actual.getJobState();
+        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(scheduledAt);
+        return this;
+    }
+
+    public JobAssert hasScheduledAt(Instant scheduledAt, String reason) {
+        ScheduledState scheduledState = actual.getJobState();
+        Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(scheduledAt);
+        Assertions.assertThat(scheduledState.getReason()).isEqualTo(reason);
+        return this;
     }
 
     public JobAssert isEqualTo(Job otherJob) {

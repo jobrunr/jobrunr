@@ -86,11 +86,6 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> retryBackOffTimeSeed();
 
         /**
-         * Configures carbon-aware scheduling related properties
-         */
-        CarbonAwareConfiguration carbonAwareConfiguration();
-
-        /**
          * Configures MicroMeter metrics related to jobs
          */
         MetricsConfiguration metrics();
@@ -185,6 +180,11 @@ public interface JobRunrRuntimeConfiguration {
          * Configures MicroMeter metrics related to the background job server
          */
         MetricsConfiguration metrics();
+
+        /**
+         * Configures carbon-aware job processing properties
+         */
+        CarbonAwareConfiguration carbonAwareConfiguration();
     }
 
     interface DashboardConfiguration {

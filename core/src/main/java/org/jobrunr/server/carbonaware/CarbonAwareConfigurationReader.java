@@ -13,21 +13,21 @@ import static java.util.Optional.ofNullable;
 import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 /**
- * Internal class for JobRunr to access all {@link CarbonAwareConfiguration} details
+ * Internal class for JobRunr to access all {@link CarbonAwareJobProcessingConfiguration} details
  */
 public class CarbonAwareConfigurationReader {
-    private final CarbonAwareConfiguration carbonAwareConfiguration;
+    private final CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration;
 
-    public CarbonAwareConfigurationReader(CarbonAwareConfiguration carbonAwareConfiguration) {
-        this.carbonAwareConfiguration = carbonAwareConfiguration;
+    public CarbonAwareConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
+        this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
     }
 
     public boolean isEnabled() {
-        return carbonAwareConfiguration.enabled;
+        return carbonAwareJobProcessingConfiguration.enabled;
     }
 
     public String getCarbonIntensityApiUrl() {
-        return carbonAwareConfiguration.carbonIntensityApiUrl;
+        return carbonAwareJobProcessingConfiguration.carbonIntensityApiUrl;
     }
 
     public static String getCarbonIntensityForecastApiUrl(String hostName) {
@@ -39,31 +39,31 @@ public class CarbonAwareConfigurationReader {
     }
 
     public String getDataProvider() {
-        return carbonAwareConfiguration.dataProvider;
+        return carbonAwareJobProcessingConfiguration.dataProvider;
     }
 
     public String getAreaCode() {
-        return carbonAwareConfiguration.areaCode;
+        return carbonAwareJobProcessingConfiguration.areaCode;
     }
 
     public String getExternalCode() {
-        return carbonAwareConfiguration.externalCode;
+        return carbonAwareJobProcessingConfiguration.externalCode;
     }
 
     public String getExternalIdentifier() {
-        return carbonAwareConfiguration.externalIdentifier;
+        return carbonAwareJobProcessingConfiguration.externalIdentifier;
     }
 
     public int getApiClientRetriesOnException() {
-        return carbonAwareConfiguration.apiClientRetriesOnException;
+        return carbonAwareJobProcessingConfiguration.apiClientRetriesOnException;
     }
 
     public Duration getApiClientConnectTimeout() {
-        return carbonAwareConfiguration.apiClientConnectTimeout;
+        return carbonAwareJobProcessingConfiguration.apiClientConnectTimeout;
     }
 
     public Duration getApiClientReadTimeout() {
-        return carbonAwareConfiguration.apiClientReadTimeout;
+        return carbonAwareJobProcessingConfiguration.apiClientReadTimeout;
     }
 
     URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {

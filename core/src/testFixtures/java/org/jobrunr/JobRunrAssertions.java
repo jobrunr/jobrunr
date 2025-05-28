@@ -24,8 +24,8 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
@@ -109,8 +109,8 @@ public class JobRunrAssertions extends Assertions {
         return CarbonIntensityForecastAssert.assertThat(carbonIntensityForecast);
     }
 
-    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfiguration carbonAwareConfiguration) {
-        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
+        return CarbonAwareConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration);
     }
 
     public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfigurationReader carbonAwareConfiguration) {

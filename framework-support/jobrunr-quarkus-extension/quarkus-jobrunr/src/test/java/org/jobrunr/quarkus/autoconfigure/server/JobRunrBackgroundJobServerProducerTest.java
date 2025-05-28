@@ -1,10 +1,11 @@
 package org.jobrunr.quarkus.autoconfigure.server;
 
-import org.assertj.core.api.Assertions;
+import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
@@ -53,9 +54,6 @@ class JobRunrBackgroundJobServerProducerTest {
     StorageProvider storageProvider;
 
     @Mock
-    CarbonAwareJobManager carbonAwareJobManager;
-
-    @Mock
     JsonMapper jsonMapper;
 
     @Mock
@@ -68,7 +66,7 @@ class JobRunrBackgroundJobServerProducerTest {
         lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.jobs().carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
+        lenient().when(backgroundJobServerRunTimeConfiguration.carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
 
         jobRunrBackgroundJobServerProducer = new JobRunrBackgroundJobServerProducer();
         setInternalState(jobRunrBackgroundJobServerProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
@@ -78,14 +76,14 @@ class JobRunrBackgroundJobServerProducerTest {
     void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
+        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
     }
 
     @Test
     void backgroundJobServerConfigurationIsSetupWhenConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
+        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
     }
 
     @Test
@@ -115,21 +113,58 @@ class JobRunrBackgroundJobServerProducerTest {
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3)
                 .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
-        Assertions.assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
-        Assertions.assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
+        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
+        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
     }
 
     @Test
     void backgroundJobServerIsNotSetupWhenNotConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
+        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
     }
 
     @Test
     void backgroundJobServerIsSetupWhenConfigured() {
         when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
 
-        Assertions.assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
+        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
+    }
+
+
+    @Test
+    void carbonAwareJobProcessingIsSetupWhenConfiguredAndBackgroundJobServerIsEnabled() {
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
+
+        when(carbonAwareRunTimeConfiguration.isEnabled()).thenReturn(true);
+        when(carbonAwareRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
+        when(carbonAwareRunTimeConfiguration.carbonIntensityApiUrl()).thenReturn(Optional.of("http://carbon.be"));
+        when(carbonAwareRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
+        when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
+
+        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
+        CarbonAwareConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+
+        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+                .hasAreaCode("DE")
+                .hasCarbonAwareApiUrl("http://carbon.be")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
+    }
+
+    @Test
+    void carbonAwareJobProcessingIsSetupWhenConfiguredWithExternalCodeAndBackgroundJobServerIsEnabled() {
+        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
+
+        when(carbonAwareRunTimeConfiguration.isEnabled()).thenReturn(true);
+        when(carbonAwareRunTimeConfiguration.externalCode()).thenReturn(Optional.of("external"));
+        when(carbonAwareRunTimeConfiguration.dataProvider()).thenReturn(Optional.of("provider"));
+
+        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
+        CarbonAwareConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+
+        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+                .hasExternalCode("external")
+                .hasDataProvider("provider");
     }
 }

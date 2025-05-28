@@ -12,14 +12,17 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.JobActivatorShutdownException;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
+import java.time.Duration;
+
 import static java.util.Collections.singletonList;
+import static java.util.Optional.of;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @Singleton
@@ -59,6 +62,17 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().orphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().succeededJobRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().interruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
+
+            CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration();
+            of(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().areaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().carbonIntensityApiUrl().ifPresent(carbonAwareJobProcessingConfiguration::andCarbonIntensityApiUrl);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+            backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
             return backgroundJobServerConfiguration;
         }
         return null;
@@ -68,11 +82,11 @@ public class JobRunrBackgroundJobServerProducer {
     @DefaultBean
     @Singleton
     @LookupIfProperty(name = "quarkus.jobrunr.background-job-server.enabled", stringValue = "true")
-    BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
+    BackgroundJobServer backgroundJobServer(StorageProvider storageProvider, JsonMapper jobRunrJsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
         if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             int defaultNbrOfRetries = jobRunrRuntimeConfiguration.jobs().defaultNumberOfRetries().orElse(RetryFilter.DEFAULT_NBR_OF_RETRIES);
             int retryBackOffTimeSeed = jobRunrRuntimeConfiguration.jobs().retryBackOffTimeSeed().orElse(RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED);
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, carbonAwareJobManager, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, jobRunrJsonMapper, jobActivator, backgroundJobServerConfiguration);
             backgroundJobServer.setJobFilters(singletonList(new RetryFilter(defaultNbrOfRetries, retryBackOffTimeSeed)));
             return backgroundJobServer;
         }

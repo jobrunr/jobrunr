@@ -98,7 +98,7 @@ public abstract class StorageProviderTest {
         assertThat(storageProvider).isNotNull();
         backgroundJobServerConfiguration = spy(new BackgroundJobServerConfigurationReader(usingStandardBackgroundJobServerConfiguration()));
 
-        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration, null);
+        backgroundJobServer = new BackgroundJobServerStub(storageProvider, jsonMapper, backgroundJobServerConfiguration);
         jobMapper = new JobMapper(jsonMapper);
     }
 

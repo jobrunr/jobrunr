@@ -50,33 +50,6 @@ public interface JobRunrConfiguration {
          */
         @NotNull
         MetricsConfiguration getMetrics();
-
-        @NotNull
-        CarbonAwareConfiguration getCarbonAwareConfiguration();
-
-
-        @ConfigurationProperties("carbonAware")
-        interface CarbonAwareConfiguration {
-            /**
-             * Enables the carbon aware configuration to schedule jobs optimally.
-             */
-            @Bindable(defaultValue = "false")
-            boolean isEnabled();
-
-            Optional<String> getAreaCode();
-
-            Optional<String> getDataProvider();
-
-            Optional<String> getExternalIdentifier();
-
-            Optional<String> getCarbonIntensityApiUrl();
-
-            Optional<String> getExternalCode();
-
-            Optional<Integer> getApiClientConnectTimeoutMs();
-
-            Optional<Integer> getApiClientReadTimeoutMs();
-        }
     }
 
     @ConfigurationProperties("database")
@@ -203,6 +176,33 @@ public interface JobRunrConfiguration {
          */
         @NotNull
         MetricsConfiguration getMetrics();
+
+        @NotNull
+        CarbonAwareConfiguration getCarbonAwareConfiguration();
+
+
+        @ConfigurationProperties("carbonAwareJobProcessing")
+        interface CarbonAwareConfiguration {
+            /**
+             * Enables the carbon aware configuration to schedule jobs optimally.
+             */
+            @Bindable(defaultValue = "false")
+            boolean isEnabled();
+
+            Optional<String> getAreaCode();
+
+            Optional<String> getDataProvider();
+
+            Optional<String> getExternalIdentifier();
+
+            Optional<String> getCarbonIntensityApiUrl();
+
+            Optional<String> getExternalCode();
+
+            Optional<Integer> getApiClientConnectTimeoutMs();
+
+            Optional<Integer> getApiClientReadTimeoutMs();
+        }
     }
 
     @ConfigurationProperties("dashboard")

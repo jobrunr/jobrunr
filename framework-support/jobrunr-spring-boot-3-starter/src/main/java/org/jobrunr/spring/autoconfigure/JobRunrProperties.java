@@ -166,8 +166,6 @@ public class JobRunrProperties {
          */
         private Metrics metrics = new Metrics();
 
-        private CarbonAware carbonAware = new CarbonAware();
-
         public int getDefaultNumberOfRetries() {
             return defaultNumberOfRetries;
         }
@@ -190,14 +188,6 @@ public class JobRunrProperties {
 
         public void setMetrics(Metrics metrics) {
             this.metrics = metrics;
-        }
-
-        public CarbonAware getCarbonAware() {
-            return carbonAware;
-        }
-
-        public void setCarbonAware(CarbonAware carbonAware) {
-            this.carbonAware = carbonAware;
         }
 
     }
@@ -313,6 +303,11 @@ public class JobRunrProperties {
         private Duration interruptJobsAwaitDurationOnStop = Duration.ofSeconds(10);
 
         /**
+         * Configures carbon-aware job processing properties
+         */
+        private CarbonAwareJobProcessing carbonAwareJobProcessing = new CarbonAwareJobProcessing();
+
+        /**
          * Configures MicroMeter metrics related to the BackgroundJobServer
          */
         private Metrics metrics = new Metrics();
@@ -361,9 +356,8 @@ public class JobRunrProperties {
             return carbonAwaitingJobsRequestSize;
         }
 
-        public BackgroundJobServer setCarbonAwaitingJobsRequestSize(Integer carbonAwaitingJobsRequestSize) {
+        public void setCarbonAwaitingJobsRequestSize(Integer carbonAwaitingJobsRequestSize) {
             this.carbonAwaitingJobsRequestSize = carbonAwaitingJobsRequestSize;
-            return this;
         }
 
         public Integer getServerTimeoutPollIntervalMultiplicand() {
@@ -424,6 +418,15 @@ public class JobRunrProperties {
         public void setInterruptJobsAwaitDurationOnStop(Duration interruptJobsAwaitDurationOnStop) {
             this.interruptJobsAwaitDurationOnStop = interruptJobsAwaitDurationOnStop;
         }
+
+        public CarbonAwareJobProcessing getCarbonAwareJobProcessing() {
+            return carbonAwareJobProcessing;
+        }
+
+        public void setCarbonAwareJobProcessing(CarbonAwareJobProcessing carbonAwareJobProcessing) {
+            this.carbonAwareJobProcessing = carbonAwareJobProcessing;
+        }
+
 
         public Metrics getMetrics() {
             return metrics;
@@ -531,11 +534,11 @@ public class JobRunrProperties {
         }
     }
 
-    public static class CarbonAware {
+    public static class CarbonAwareJobProcessing {
         /**
          * Enables carbon aware scheduling.
          */
-        boolean enabled = true;
+        boolean enabled = false;
 
         /**
          * Sets your preferred carbon intensity forecast dataProvider.

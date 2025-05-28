@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.configuration.JobRunr;
@@ -102,8 +103,9 @@ public class BackgroundJobByJobLambdaTest {
         JobRunr.configure()
                 .withJobFilter(logAllStateChangesFilter)
                 .useStorageProvider(storageProvider)
-                .useCarbonAwareScheduling(carbonAwareWiremock.getCarbonAwareConfigurationForAreaCode("BE"))
-                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
+                        .andPollInterval(ofMillis(200))
+                        .andCarbonAwareJobProcessingConfiguration(carbonAwareWiremock.getCarbonAwareConfigurationForAreaCode("BE")))
                 .initialize();
 
         backgroundJobServer = JobRunr.getBackgroundJobServer();
@@ -351,7 +353,7 @@ public class BackgroundJobByJobLambdaTest {
         Instant from = now();
         JobId jobId = BackgroundJob.scheduleCarbonAware(between(from, now().plus(5, HOURS)), TestService::doStaticWork);
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
-                .isScheduledAt(from.plus(1, HOURS).truncatedTo(HOURS))
+                .hasScheduledAt(from.plus(1, HOURS).truncatedTo(HOURS))
                 .hasStates(AWAITING, SCHEDULED)
         );
     }
@@ -420,7 +422,7 @@ public class BackgroundJobByJobLambdaTest {
     void testRecurringCronJobDoesNotSkipRecurringJobsIfStopTheWorldGCOccurs() {
         TestServiceForRecurringJobsIfStopTheWorldGCOccurs testService = new TestServiceForRecurringJobsIfStopTheWorldGCOccurs();
         testService.resetProcessedJobs();
-        ListAppender logger = LoggerAssert.initFor(testService);
+        ListAppender<ILoggingEvent> logger = LoggerAssert.initFor(testService);
         BackgroundJob.scheduleRecurrently(everySecond, testService::doWork);
         await().atMost(5, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 

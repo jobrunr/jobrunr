@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
@@ -37,6 +38,7 @@ public class BackgroundJobServerConfiguration {
     Duration interruptJobsAwaitDurationOnStopBackgroundJobServer = DEFAULT_INTERRUPT_JOBS_AWAIT_DURATION_ON_STOP_BACKGROUND_JOB_SERVER;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
     ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
+    CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration();
 
     private BackgroundJobServerConfiguration() {
 
@@ -223,6 +225,17 @@ public class BackgroundJobServerConfiguration {
      */
     public BackgroundJobServerConfiguration andConcurrentJobModificationPolicy(ConcurrentJobModificationPolicy concurrentJobModificationPolicy) {
         this.concurrentJobModificationPolicy = concurrentJobModificationPolicy;
+        return this;
+    }
+
+    /**
+     * Allows to configure carbon aware job scheduling using the given {@link CarbonAwareJobProcessingConfiguration}.
+     *
+     * @param carbonAwareJobProcessingConfiguration the carbonAwareConfiguration to use for scheduling jobs in a moment of low carbon emissions.
+     * @return the same configuration instance which provides a fluent api
+     */
+    public BackgroundJobServerConfiguration andCarbonAwareJobProcessingConfiguration(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
+        this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
         return this;
     }
 

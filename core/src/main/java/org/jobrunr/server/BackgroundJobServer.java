@@ -3,7 +3,6 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
-import org.jobrunr.server.carbonaware.CarbonAwareJobManager;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
@@ -69,7 +68,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
-    private final CarbonAwareJobManager carbonAwareJobManager;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final JsonMapper jsonMapper;
     private final List<BackgroundJobRunner> backgroundJobRunners;
@@ -88,18 +86,17 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private JobRunrExecutor jobExecutor;
 
 
-    public BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, carbonAwareJobManager, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
     }
 
-    protected BackgroundJobServer(StorageProvider storageProvider, CarbonAwareJobManager carbonAwareJobManager, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
+    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
         if (storageProvider == null) {
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
         }
 
         this.configuration = configuration;
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
-        this.carbonAwareJobManager = carbonAwareJobManager;
         this.dashboardNotificationManager = new DashboardNotificationManager(this.configuration.getId(), storageProvider);
         this.jsonMapper = jsonMapper;
         this.backgroundJobRunners = initializeBackgroundJobRunners(jobActivator);
@@ -262,10 +259,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public DashboardNotificationManager getDashboardNotificationManager() {
         return dashboardNotificationManager;
-    }
-
-    public CarbonAwareJobManager getCarbonAwareJobManager() {
-        return carbonAwareJobManager;
     }
 
     public JsonMapper getJsonMapper() {

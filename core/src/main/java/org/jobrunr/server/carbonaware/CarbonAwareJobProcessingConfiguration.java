@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
-public class CarbonAwareConfiguration {
+public class CarbonAwareJobProcessingConfiguration {
 
     public static final String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
     public static final Duration DEFAULT_API_CLIENT_CONNECT_TIMEOUT = Duration.ofSeconds(3);
@@ -24,7 +24,7 @@ public class CarbonAwareConfiguration {
     Duration apiClientConnectTimeout = DEFAULT_API_CLIENT_CONNECT_TIMEOUT;
     Duration apiClientReadTimeout = DEFAULT_API_CLIENT_READ_TIMEOUT;
 
-    private CarbonAwareConfiguration() {
+    private CarbonAwareJobProcessingConfiguration() {
     }
 
     /**
@@ -32,8 +32,8 @@ public class CarbonAwareConfiguration {
      *
      * @return the default CarbonAware configuration
      */
-    public static CarbonAwareConfiguration usingStandardCarbonAwareConfiguration() {
-        return new CarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(true);
+    public static CarbonAwareJobProcessingConfiguration usingStandardCarbonAwareJobProcessingConfiguration() {
+        return new CarbonAwareJobProcessingConfiguration().andCarbonAwareSchedulingEnabled(true);
     }
 
     /**
@@ -41,8 +41,8 @@ public class CarbonAwareConfiguration {
      *
      * @return the disabled CarbonAware configuration
      */
-    public static CarbonAwareConfiguration usingDisabledCarbonAwareConfiguration() {
-        return new CarbonAwareConfiguration().andCarbonAwareSchedulingEnabled(false);
+    public static CarbonAwareJobProcessingConfiguration usingDisabledCarbonAwareConfiguration() {
+        return new CarbonAwareJobProcessingConfiguration().andCarbonAwareSchedulingEnabled(false);
     }
 
     /**
@@ -51,7 +51,7 @@ public class CarbonAwareConfiguration {
      * @param enabled the status of carbon aware scheduling
      * @return the same configuration instance which provides a fluent api
      */
-    public CarbonAwareConfiguration andCarbonAwareSchedulingEnabled(boolean enabled) {
+    public CarbonAwareJobProcessingConfiguration andCarbonAwareSchedulingEnabled(boolean enabled) {
         this.enabled = enabled;
         return this;
     }
@@ -62,20 +62,20 @@ public class CarbonAwareConfiguration {
      * @param dataProvider a carbon intensity data provider (e.g., 'ENTSO-E', 'Azure', etc.)
      * @return the same configuration instance which provides a fluent api
      */
-    public CarbonAwareConfiguration andDataProvider(String dataProvider) {
+    public CarbonAwareJobProcessingConfiguration andDataProvider(String dataProvider) {
         this.dataProvider = dataProvider;
         return this;
     }
 
     /**
      * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts.
-     * Unless specified via {@link CarbonAwareConfiguration#andDataProvider(String)}, the forecast may be from any dataProvider that supports the areaCode.
+     * Unless specified via {@link CarbonAwareJobProcessingConfiguration#andDataProvider(String)}, the forecast may be from any dataProvider that supports the areaCode.
      *
      * @param areaCode a supported area code (e.g., ISO 3166-2 code like 'BE', 'IT-NO', 'US-CA' or a cloud provider region code)
      * @return the same configuration instance which provides a fluent api
      * @throws IllegalStateException if either externalCode or externalIdentifier is specified
      */
-    public CarbonAwareConfiguration andAreaCode(String areaCode) {
+    public CarbonAwareJobProcessingConfiguration andAreaCode(String areaCode) {
         validateConfiguration(areaCode, externalCode, externalIdentifier);
         this.areaCode = areaCode;
         return this;
@@ -88,7 +88,7 @@ public class CarbonAwareConfiguration {
      * @return the same configuration instance which provides a fluent api
      * @throws IllegalStateException if a dataProvider is not specified, or if either areaCode or externalIdentifier is specified
      */
-    public CarbonAwareConfiguration andExternalCode(String externalCode) {
+    public CarbonAwareJobProcessingConfiguration andExternalCode(String externalCode) {
         validateConfiguration(areaCode, externalCode, externalIdentifier);
         if (isNullOrEmpty(dataProvider)) {
             throw new IllegalStateException("Please set the dataProvider before setting the externalCode.");
@@ -104,7 +104,7 @@ public class CarbonAwareConfiguration {
      * @return the same configuration instance which provides a fluent api
      * @throws IllegalStateException if a dataProvider is not specified
      */
-    public CarbonAwareConfiguration andExternalIdentifier(String externalIdentifier) {
+    public CarbonAwareJobProcessingConfiguration andExternalIdentifier(String externalIdentifier) {
         validateConfiguration(areaCode, externalCode, externalIdentifier);
         if (isNullOrEmpty(dataProvider)) {
             throw new IllegalStateException("Please set the dataProvider before setting the externalIdentifier.");
@@ -116,7 +116,7 @@ public class CarbonAwareConfiguration {
     /**
      * Allows to set the carbon intensity API URL
      */
-    public CarbonAwareConfiguration andCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
+    public CarbonAwareJobProcessingConfiguration andCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
         this.carbonIntensityApiUrl = carbonIntensityApiUrl;
         return this;
     }
@@ -124,7 +124,7 @@ public class CarbonAwareConfiguration {
     /**
      * Allows to set the connect timeout for the API client
      */
-    public CarbonAwareConfiguration andApiClientConnectTimeout(Duration apiClientConnectTimeout) {
+    public CarbonAwareJobProcessingConfiguration andApiClientConnectTimeout(Duration apiClientConnectTimeout) {
         this.apiClientConnectTimeout = apiClientConnectTimeout;
         return this;
     }
@@ -135,15 +135,15 @@ public class CarbonAwareConfiguration {
      * @param retries the amount of retries (e.g. 3)
      * @return the same configuration instance which provides a fluent api
      */
-    public CarbonAwareConfiguration andApiClientRetriesOnException(int retries) {
+    public CarbonAwareJobProcessingConfiguration andApiClientRetriesOnException(int retries) {
         this.apiClientRetriesOnException = retries;
         return this;
     }
-    
+
     /**
      * Allows to set the read timeout for the API client
      */
-    public CarbonAwareConfiguration andApiClientReadTimeout(Duration apiClientReadTimeout) {
+    public CarbonAwareJobProcessingConfiguration andApiClientReadTimeout(Duration apiClientReadTimeout) {
         this.apiClientReadTimeout = apiClientReadTimeout;
         return this;
     }

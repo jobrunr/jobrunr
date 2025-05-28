@@ -9,7 +9,7 @@ import java.time.Instant;
 
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 
 abstract class AbstractCarbonIntensityApiClientTest {
 
@@ -105,10 +105,10 @@ abstract class AbstractCarbonIntensityApiClientTest {
     }
 
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
-        CarbonAwareConfiguration carbonAwareConfiguration = usingStandardCarbonAwareConfiguration()
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andAreaCode(areaCode)
                 .andCarbonIntensityApiUrl(carbonAwareWiremock.carbonIntensityApiBaseUrl);
 
-        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareConfiguration), getJsonMapper());
+        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareJobProcessingConfiguration), getJsonMapper());
     }
 }

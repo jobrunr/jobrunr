@@ -4,9 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
-import org.jobrunr.server.carbonaware.CarbonAwareConfiguration;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
@@ -21,11 +18,11 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -58,10 +55,10 @@ public class FrontEndDevelopment {
                 .useJsonMapper(new JacksonJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
-                .useCarbonAwareScheduling(CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration()
-                        .andCarbonIntensityApiUrl("http://localhost:10000")
-                        .andAreaCode("BE"))
-                .useBackgroundJobServer()
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
+                        .andCarbonAwareJobProcessingConfiguration(usingStandardCarbonAwareJobProcessingConfiguration()
+                                .andCarbonIntensityApiUrl("http://localhost:10000")
+                                .andAreaCode("BE")))
                 .initialize();
 
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(12, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));

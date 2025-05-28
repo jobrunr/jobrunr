@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
 
@@ -64,5 +65,9 @@ public class BackgroundJobServerConfigurationReader {
 
     public ConcurrentJobModificationPolicy getConcurrentJobModificationPolicy() {
         return configuration.concurrentJobModificationPolicy;
+    }
+
+    public CarbonAwareConfigurationReader getCarbonAwareJobProcessingConfiguration() {
+        return new CarbonAwareConfigurationReader(configuration.carbonAwareJobProcessingConfiguration);
     }
 }

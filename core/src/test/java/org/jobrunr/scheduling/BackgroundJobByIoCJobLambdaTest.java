@@ -51,7 +51,6 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingDisabledCarbonAwareConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByIoCJobLambdaTest {
@@ -72,7 +71,6 @@ public class BackgroundJobByIoCJobLambdaTest {
         JobRunr.configure()
                 .useJobActivator(jobActivator)
                 .useStorageProvider(storageProvider)
-                .useCarbonAwareScheduling(usingDisabledCarbonAwareConfiguration())
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
                 .initialize();
         backgroundJobServer = JobRunr.getBackgroundJobServer();
