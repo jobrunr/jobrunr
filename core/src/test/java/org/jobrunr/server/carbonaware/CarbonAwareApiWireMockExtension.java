@@ -6,6 +6,7 @@ import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -29,7 +30,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfiguration.usingStandardCarbonAwareConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath;
 
-public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCallback {
+public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCallback, AfterAllCallback {
 
     private static final WireMockServer wireMockServer;
     private final JsonMapper jsonMapper;
@@ -98,5 +99,11 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
         WireMock.reset();
+    }
+
+    @Override
+    public void afterAll(ExtensionContext context) throws Exception {
+        wireMockServer.stop();
+        wireMockServer.shutdown();
     }
 }
