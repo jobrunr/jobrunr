@@ -5,6 +5,8 @@ import org.jobrunr.scheduling.cron.InvalidCronExpressionException;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.Test;
 
+import java.time.format.DateTimeParseException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -60,6 +62,27 @@ class ScheduleExpressionTypeTest {
                 .isNotNull()
                 .isInstanceOf(Interval.class);
         assertThat(schedule.isCarbonAware()).isFalse();
+    }
+
+    @Test
+    void canParseScheduleFromIntervalWithLowercase() {
+        Schedule schedule = ScheduleExpressionType.createScheduleFromString("pt60m");
+        assertThat(schedule)
+                .isNotNull()
+                .isInstanceOf(Interval.class);
+        assertThat(schedule.isCarbonAware()).isFalse();
+    }
+
+    @Test
+    void cannotParseInvalidSchedules() {
+        assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("boom")).isInstanceOf(ScheduleException.class);
+        assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("")).isInstanceOf(ScheduleException.class);
+    }
+
+    @Test
+    void cannotParseScheduleFromIntervalWithInvalidCarbonAwareScheduleMargin() {
+        assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("P5DT6H [PT6H/open bracket")).isInstanceOf(DateTimeParseException.class);
+        assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("P5DT6H [PT6H/something]")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

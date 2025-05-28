@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public enum ScheduleExpressionType {
     CRON_EXPRESSION {
@@ -25,12 +26,15 @@ public enum ScheduleExpressionType {
     };
 
     public static Schedule createScheduleFromString(String scheduleExpression) {
-        if (isNotNullOrEmpty(scheduleExpression)) {
-            if (scheduleExpression.startsWith("P")) {
-                return INTERVAL.createSchedule(scheduleExpression);
-            } else if (scheduleExpression.matches(".*\\s.*")) {
-                return CRON_EXPRESSION.createSchedule(scheduleExpression);
-            }
+        if (isNullOrEmpty(scheduleExpression)) {
+            throw new ScheduleException("[empty]");
+        }
+
+        if (scheduleExpression.toUpperCase().startsWith("P")) {
+            return INTERVAL.createSchedule(scheduleExpression);
+        }
+        if (scheduleExpression.matches(".*\\s.*")) {
+            return CRON_EXPRESSION.createSchedule(scheduleExpression);
         }
         throw new ScheduleException(scheduleExpression);
     }
