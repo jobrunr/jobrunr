@@ -9,6 +9,7 @@ import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.JobState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
@@ -145,7 +146,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
     }
 
     public JobAssert isScheduledAt(Instant instant) {
-        ScheduledState scheduledState = actual.getJobState();
+        SchedulableState scheduledState = actual.getJobState();
         Assertions.assertThat(scheduledState.getScheduledAt()).isEqualTo(instant);
         return this;
     }

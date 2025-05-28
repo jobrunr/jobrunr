@@ -6,6 +6,7 @@ import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -266,13 +267,13 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         if (areAllStateNames(states)) {
             return jobQueue.values().stream()
                     .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
+                    .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been AWAITING/SCHEDULED")))
                     .collect(toList());
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
                 .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
+                .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been AWAITING/SCHEDULED")))
                 .collect(toList());
     }
 
