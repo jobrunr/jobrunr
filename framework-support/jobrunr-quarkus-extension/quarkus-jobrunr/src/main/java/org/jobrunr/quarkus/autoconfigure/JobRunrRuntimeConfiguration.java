@@ -184,7 +184,7 @@ public interface JobRunrRuntimeConfiguration {
         /**
          * Configures carbon-aware job processing properties
          */
-        CarbonAwareConfiguration carbonAwareConfiguration();
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration();
     }
 
     interface DashboardConfiguration {
@@ -220,7 +220,7 @@ public interface JobRunrRuntimeConfiguration {
         boolean allowAnonymousDataUsage();
     }
 
-    interface CarbonAwareConfiguration {
+    interface CarbonAwareJobProcessingConfiguration {
         /**
          * Enables the carbon aware configuration to schedule jobs optimally.
          */

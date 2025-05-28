@@ -57,7 +57,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
         WireMock.reset();
     }
 
-    public CarbonAwareJobProcessingConfiguration getCarbonAwareConfigurationForAreaCode(String areaCode) {
+    public CarbonAwareJobProcessingConfiguration getCarbonAwareJobProcessingConfigurationForAreaCode(String areaCode) {
         return usingStandardCarbonAwareJobProcessingConfiguration()
                 .andCarbonIntensityApiUrl(carbonIntensityApiBaseUrl)
                 .andApiClientRetriesOnException(1)

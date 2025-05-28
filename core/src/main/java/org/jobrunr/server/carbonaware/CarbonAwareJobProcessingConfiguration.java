@@ -41,7 +41,7 @@ public class CarbonAwareJobProcessingConfiguration {
      *
      * @return the disabled CarbonAware configuration
      */
-    public static CarbonAwareJobProcessingConfiguration usingDisabledCarbonAwareConfiguration() {
+    public static CarbonAwareJobProcessingConfiguration usingDisabledCarbonAwareJobProcessingConfiguration() {
         return new CarbonAwareJobProcessingConfiguration().andCarbonAwareSchedulingEnabled(false);
     }
 

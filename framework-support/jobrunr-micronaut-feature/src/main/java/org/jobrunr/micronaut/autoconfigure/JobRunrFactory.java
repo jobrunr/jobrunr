@@ -81,15 +81,15 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getSucceededJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
         configuration.getBackgroundJobServer().getInterruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
-        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration();
-        of(configuration.getBackgroundJobServer().getCarbonAwareConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getAreaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getDataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getExternalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getExternalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getCarbonIntensityApiUrl().ifPresent(carbonAwareJobProcessingConfiguration::andCarbonIntensityApiUrl);
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
-        configuration.getBackgroundJobServer().getCarbonAwareConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
+        of(configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getAreaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getDataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getExternalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getExternalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getCarbonIntensityApiUrl().ifPresent(carbonAwareJobProcessingConfiguration::andCarbonIntensityApiUrl);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
         backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
         return backgroundJobServerConfiguration;
     }

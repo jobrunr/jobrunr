@@ -121,7 +121,7 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getSucceededJobsRequestSize).to(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
         map.from(backgroundJobServerProperties::getInterruptJobsAwaitDurationOnStop).to(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
-        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration();
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
         JobRunrProperties.CarbonAwareJobProcessing carbonAwareJobProcessingProperties = properties.getBackgroundJobServer().getCarbonAwareJobProcessing();
         map.from(carbonAwareJobProcessingProperties::isEnabled).to(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
         map.from(carbonAwareJobProcessingProperties::getDataProvider).whenNonNull().to(carbonAwareJobProcessingConfiguration::andDataProvider);

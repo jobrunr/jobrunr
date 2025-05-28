@@ -178,11 +178,10 @@ public interface JobRunrConfiguration {
         MetricsConfiguration getMetrics();
 
         @NotNull
-        CarbonAwareConfiguration getCarbonAwareConfiguration();
-
+        CarbonAwareJobProcessingConfiguration getCarbonAwareJobProcessingConfiguration();
 
         @ConfigurationProperties("carbonAwareJobProcessing")
-        interface CarbonAwareConfiguration {
+        interface CarbonAwareJobProcessingConfiguration {
             /**
              * Enables the carbon aware configuration to schedule jobs optimally.
              */

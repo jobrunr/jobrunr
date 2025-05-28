@@ -38,7 +38,7 @@ import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.BELGIUM_PART
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.GERMANY_2024_07_11;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.ITALY_2025_05_20_PT15M;
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
-import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
@@ -54,7 +54,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
 
     @Test
     void runTaskWithCarbonAwareDisabledDoesNotUpdateCarbonIntensityForecast() {
-        ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareConfiguration());
+        ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareJobProcessingConfiguration());
 
         runTask(task);
 
@@ -64,7 +64,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @Test
     void runTaskWithCarbonAwareDisabledSchedulesCarbonAwaitingJobsAtBeginningOfCarbonAwarePeriod() {
         // GIVEN
-        ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareConfiguration());
+        ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareJobProcessingConfiguration());
         ZonedDateTime currentTime = ZonedDateTime.now().truncatedTo(MINUTES);
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
             Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
@@ -400,13 +400,13 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     }
 
     private ProcessCarbonAwareAwaitingJobsTask createProcessCarbonAwareAwaitingJobsTask(String areaCode) {
-        return createProcessCarbonAwareAwaitingJobsTask(carbonAwareApiMock.getCarbonAwareConfigurationForAreaCode(areaCode));
+        return createProcessCarbonAwareAwaitingJobsTask(carbonAwareApiMock.getCarbonAwareJobProcessingConfigurationForAreaCode(areaCode));
     }
 
     private ProcessCarbonAwareAwaitingJobsTask createProcessCarbonAwareAwaitingJobsTask(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         return new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer) {
             @Override
-            CarbonAwareJobProcessingConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
+            CarbonAwareJobProcessingConfigurationReader getCarbonAwareJobProcessingConfiguration(BackgroundJobServer backgroundJobServer) {
                 return new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration);
             }
 

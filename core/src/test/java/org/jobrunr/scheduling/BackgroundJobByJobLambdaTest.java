@@ -105,7 +105,7 @@ public class BackgroundJobByJobLambdaTest {
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
                         .andPollInterval(ofMillis(200))
-                        .andCarbonAwareJobProcessingConfiguration(carbonAwareWiremock.getCarbonAwareConfigurationForAreaCode("BE")))
+                        .andCarbonAwareJobProcessingConfiguration(carbonAwareWiremock.getCarbonAwareJobProcessingConfigurationForAreaCode("BE")))
                 .initialize();
 
         backgroundJobServer = JobRunr.getBackgroundJobServer();

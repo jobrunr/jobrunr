@@ -60,9 +60,9 @@ class JobRunrFactoryTest {
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout-ms", value = "1000")
     void testCarbonAwareJobProcessingConfiguration() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
 
-        assertThat(carbonAwareConfiguration)
+        assertThat(carbonAwareJobProcessingConfiguration)
                 .hasAreaCode("PL")
                 .hasCarbonAwareApiUrl("http://carbon.be")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
@@ -76,9 +76,9 @@ class JobRunrFactoryTest {
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.external-code", value = "external")
     void testCarbonAwareManagerConfigurationWithExternalCode() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
 
-        assertThat(carbonAwareConfiguration)
+        assertThat(carbonAwareJobProcessingConfiguration)
                 .hasExternalCode("external")
                 .hasDataProvider("provider");
     }

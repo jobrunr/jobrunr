@@ -38,7 +38,7 @@ public class BackgroundJobServerConfiguration {
     Duration interruptJobsAwaitDurationOnStopBackgroundJobServer = DEFAULT_INTERRUPT_JOBS_AWAIT_DURATION_ON_STOP_BACKGROUND_JOB_SERVER;
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
     ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
-    CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareConfiguration();
+    CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
 
     private BackgroundJobServerConfiguration() {
 
@@ -231,7 +231,7 @@ public class BackgroundJobServerConfiguration {
     /**
      * Allows to configure carbon aware job scheduling using the given {@link CarbonAwareJobProcessingConfiguration}.
      *
-     * @param carbonAwareJobProcessingConfiguration the carbonAwareConfiguration to use for scheduling jobs in a moment of low carbon emissions.
+     * @param carbonAwareJobProcessingConfiguration the carbonAwareJobProcessingConfiguration to use for scheduling jobs in a moment of low carbon emissions.
      * @return the same configuration instance which provides a fluent api
      */
     public BackgroundJobServerConfiguration andCarbonAwareJobProcessingConfiguration(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {

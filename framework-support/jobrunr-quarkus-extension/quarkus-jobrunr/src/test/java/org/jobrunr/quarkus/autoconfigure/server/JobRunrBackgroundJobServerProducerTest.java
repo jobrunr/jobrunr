@@ -1,6 +1,6 @@
 package org.jobrunr.quarkus.autoconfigure.server;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobProcessingConfigurationAssert;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
@@ -48,7 +48,7 @@ class JobRunrBackgroundJobServerProducerTest {
     @Mock
     JobRunrRuntimeConfiguration.MiscellaneousConfiguration miscellaneousRunTimeConfiguration;
     @Mock
-    JobRunrRuntimeConfiguration.CarbonAwareConfiguration carbonAwareRunTimeConfiguration;
+    JobRunrRuntimeConfiguration.CarbonAwareJobProcessingConfiguration carbonAwareRunTimeConfiguration;
 
     @Mock
     StorageProvider storageProvider;
@@ -66,7 +66,7 @@ class JobRunrBackgroundJobServerProducerTest {
         lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
         lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
-        lenient().when(backgroundJobServerRunTimeConfiguration.carbonAwareConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
+        lenient().when(backgroundJobServerRunTimeConfiguration.carbonAwareJobProcessingConfiguration()).thenReturn(carbonAwareRunTimeConfiguration);
 
         jobRunrBackgroundJobServerProducer = new JobRunrBackgroundJobServerProducer();
         setInternalState(jobRunrBackgroundJobServerProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
@@ -143,9 +143,9 @@ class JobRunrBackgroundJobServerProducerTest {
         when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
 
-        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+        assertThat(carbonAwareJobProcessingConfiguration)
                 .hasAreaCode("DE")
                 .hasCarbonAwareApiUrl("http://carbon.be")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
@@ -161,9 +161,9 @@ class JobRunrBackgroundJobServerProducerTest {
         when(carbonAwareRunTimeConfiguration.dataProvider()).thenReturn(Optional.of("provider"));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
 
-        CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
+        CarbonAwareJobProcessingConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration)
                 .hasExternalCode("external")
                 .hasDataProvider("provider");
     }

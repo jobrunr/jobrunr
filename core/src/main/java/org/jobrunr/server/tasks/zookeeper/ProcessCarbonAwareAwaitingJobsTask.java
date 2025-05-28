@@ -32,7 +32,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private final Duration randomRefreshTimeOffset = Duration.ofMinutes(30).plusSeconds(ThreadLocalRandom.current().nextInt(-300, 300)); // why: 30 minutes plus or min 5 min to make sure they don't hammer the server
 
-    private final CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration;
+    private final CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final int pageRequestSize;
@@ -41,7 +41,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
-        this.carbonAwareConfiguration = getCarbonAwareConfiguration(backgroundJobServer);
+        this.carbonAwareJobProcessingConfiguration = getCarbonAwareJobProcessingConfiguration(backgroundJobServer);
         this.carbonIntensityApiClient = getCarbonIntensityApiClient(backgroundJobServer);
         this.dashboardNotificationManager = getDashboardNotificationManager(backgroundJobServer);
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareAwaitingJobsRequestSize();
@@ -111,7 +111,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private boolean isCarbonAwareJobProcessingEnabled() {
-        return carbonAwareConfiguration.isEnabled();
+        return carbonAwareJobProcessingConfiguration.isEnabled();
     }
 
     private boolean isCarbonAwareJobProcessingDisabled() {
@@ -122,7 +122,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         if (carbonIntensityForecast.hasError()) {
             return format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage());
         }
-        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareConfiguration.getAreaCode(), state.getFrom(), state.getTo());
+        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareJobProcessingConfiguration.getAreaCode(), state.getFrom(), state.getTo());
     }
 
     private void scheduleJobAt(Job job, Instant scheduleAt, CarbonAwareAwaitingState state, String reason) {
@@ -180,13 +180,13 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     @VisibleFor("testing")
-    CarbonAwareJobProcessingConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
+    CarbonAwareJobProcessingConfigurationReader getCarbonAwareJobProcessingConfiguration(BackgroundJobServer backgroundJobServer) {
         return backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
     }
 
     @VisibleFor("testing")
     CarbonIntensityApiClient getCarbonIntensityApiClient(BackgroundJobServer backgroundJobServer) {
-        return new CarbonIntensityApiClient(carbonAwareConfiguration, backgroundJobServer.getJsonMapper());
+        return new CarbonIntensityApiClient(carbonAwareJobProcessingConfiguration, backgroundJobServer.getJsonMapper());
     }
 
     private DashboardNotificationManager getDashboardNotificationManager(BackgroundJobServer backgroundJobServer) {

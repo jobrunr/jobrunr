@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 public class CarbonIntensityApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
 
-    private final CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration;
+    private final CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration;
     private final JsonMapper jsonMapper;
 
-    public CarbonIntensityApiClient(CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
-        this.carbonAwareConfiguration = carbonAwareConfiguration;
+    public CarbonIntensityApiClient(CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration, JsonMapper jsonMapper) {
+        this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
         this.jsonMapper = jsonMapper;
     }
 
@@ -30,19 +30,19 @@ public class CarbonIntensityApiClient {
             String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
         } catch (Exception e) {
-            LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareConfiguration.getAreaCode(), e);
+            LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareJobProcessingConfiguration.getAreaCode(), e);
             return CarbonIntensityForecast.fromException(e);
         }
     }
 
     private String fetchLatestCarbonIntensityForecastAsStringWithRetries() {
-        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, carbonAwareConfiguration.getApiClientRetriesOnException(), 1000);
+        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, carbonAwareJobProcessingConfiguration.getApiClientRetriesOnException(), 1000);
     }
 
     private String fetchLatestCarbonIntensityForecastAsString() {
         HttpURLConnection connection = null;
         try {
-            connection = createHttpConnection(carbonAwareConfiguration.getCarbonIntensityForecastApiFullPathUrl());
+            connection = createHttpConnection(carbonAwareJobProcessingConfiguration.getCarbonIntensityForecastApiFullPathUrl());
             return readResponse(connection);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -62,8 +62,8 @@ public class CarbonIntensityApiClient {
     private void configureConnection(HttpURLConnection connection) throws IOException {
         connection.setRequestProperty("User-Agent", "JobRunr " + JarUtils.getVersion(JobRunr.class));
         connection.setRequestMethod("GET");
-        connection.setConnectTimeout((int) carbonAwareConfiguration.getApiClientConnectTimeout().toMillis());
-        connection.setReadTimeout((int) carbonAwareConfiguration.getApiClientReadTimeout().toMillis());
+        connection.setConnectTimeout((int) carbonAwareJobProcessingConfiguration.getApiClientConnectTimeout().toMillis());
+        connection.setReadTimeout((int) carbonAwareJobProcessingConfiguration.getApiClientReadTimeout().toMillis());
     }
 
     private String readResponse(HttpURLConnection con) throws IOException {

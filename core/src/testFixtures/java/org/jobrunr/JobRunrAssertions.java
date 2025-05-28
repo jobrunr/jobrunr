@@ -18,7 +18,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobDetailsAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
-import org.jobrunr.jobs.carbonaware.CarbonAwareConfigurationAssert;
+import org.jobrunr.jobs.carbonaware.CarbonAwareJobProcessingConfigurationAssert;
 import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
@@ -109,12 +109,12 @@ public class JobRunrAssertions extends Assertions {
         return CarbonIntensityForecastAssert.assertThat(carbonIntensityForecast);
     }
 
-    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
-        return CarbonAwareConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration);
+    public static CarbonAwareJobProcessingConfigurationAssert assertThat(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
+        return CarbonAwareJobProcessingConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration);
     }
 
-    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration) {
-        return CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration);
+    public static CarbonAwareJobProcessingConfigurationAssert assertThat(CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration) {
+        return CarbonAwareJobProcessingConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration);
     }
 
     public static String contentOfResource(String resourceName) {
