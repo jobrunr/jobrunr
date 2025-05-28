@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 public class CarbonIntensityApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
 
-    private final CarbonAwareConfigurationReader carbonAwareConfiguration;
+    private final CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration;
     private final JsonMapper jsonMapper;
 
-    public CarbonIntensityApiClient(CarbonAwareConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
+    public CarbonIntensityApiClient(CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration, JsonMapper jsonMapper) {
         this.carbonAwareConfiguration = carbonAwareConfiguration;
         this.jsonMapper = jsonMapper;
     }

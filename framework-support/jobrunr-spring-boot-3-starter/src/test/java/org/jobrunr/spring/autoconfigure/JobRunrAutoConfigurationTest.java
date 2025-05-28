@@ -10,7 +10,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.JobActivatorShutdownException;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -137,7 +137,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-                    CarbonAwareConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+                    CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
                     assertThat(carbonAwareConfiguration).hasEnabled(false);
                 });
     }
@@ -152,7 +152,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout=300")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-                    CarbonAwareConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+                    CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
                     assertThat(carbonAwareConfiguration)
                             .hasEnabled(true)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))

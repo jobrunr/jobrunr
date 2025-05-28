@@ -49,10 +49,10 @@ public class CarbonIntensityApiStubServer {
         public String toString() {
             var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:00:00'Z'");
             return String.format("    {\n" +
-                "      \"periodStartAt\": \"%s\",\n" +
-                "      \"periodEndAt\": \"%s\",\n" +
-                "      \"rank\": %s\n" +
-                "    }", formatter.format(start.atZone(ZoneOffset.UTC)), formatter.format(end.atZone(ZoneOffset.UTC)), rank);
+                    "      \"periodStartAt\": \"%s\",\n" +
+                    "      \"periodEndAt\": \"%s\",\n" +
+                    "      \"rank\": %s\n" +
+                    "    }", formatter.format(start.atZone(ZoneOffset.UTC)), formatter.format(end.atZone(ZoneOffset.UTC)), rank);
         }
     }
 
@@ -64,7 +64,7 @@ public class CarbonIntensityApiStubServer {
     }
 
     public CarbonIntensityApiStubServer() {
-        for(int i = 0; i < 24; i++) {
+        for (int i = 0; i < 24; i++) {
             intensityMoments.add(new IntensityMoment(i));
         }
     }
@@ -77,7 +77,7 @@ public class CarbonIntensityApiStubServer {
     public CarbonIntensityApiStubServer andBestIntensityMomentTodayAt(int hourInLocalTime) {
         intensityMoments = new ArrayList<>();
 
-        for(int i = 0; i < 24; i++) {
+        for (int i = 0; i < 24; i++) {
             IntensityMoment intensityMoment = new IntensityMoment(i);
             intensityMoment.rank = intensityMoment.getHour() == hourInLocalTime ? CARBON_LOW : CARBON_HIGH;
             intensityMoments.add(intensityMoment);
@@ -114,7 +114,7 @@ public class CarbonIntensityApiStubServer {
         webServer.createContext(new HttpExchangeHandler() {
             @Override
             public String getContextPath() {
-                return CarbonAwareConfigurationReader.getCarbonIntensityForecastApiPath();
+                return CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath();
             }
 
             @Override
@@ -138,7 +138,7 @@ public class CarbonIntensityApiStubServer {
     }
 
     public void stop() {
-        if(webServer == null) return;
+        if (webServer == null) return;
 
         webServer.stop();
         webServer = null;

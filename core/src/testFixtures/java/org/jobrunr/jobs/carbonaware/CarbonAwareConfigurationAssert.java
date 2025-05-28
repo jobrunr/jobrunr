@@ -2,22 +2,22 @@ package org.jobrunr.jobs.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 
 import java.time.Duration;
 
-public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareConfigurationAssert, CarbonAwareConfigurationReader> {
-    protected CarbonAwareConfigurationAssert(CarbonAwareConfigurationReader carbonAwareConfigurationReader) {
-        super(carbonAwareConfigurationReader, CarbonAwareConfigurationAssert.class);
+public class CarbonAwareConfigurationAssert extends AbstractAssert<CarbonAwareConfigurationAssert, CarbonAwareJobProcessingConfigurationReader> {
+    protected CarbonAwareConfigurationAssert(CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfigurationReader) {
+        super(carbonAwareJobProcessingConfigurationReader, CarbonAwareConfigurationAssert.class);
     }
 
     protected CarbonAwareConfigurationAssert(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
-        super(new CarbonAwareConfigurationReader(carbonAwareJobProcessingConfiguration), CarbonAwareConfigurationAssert.class);
+        super(new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration), CarbonAwareConfigurationAssert.class);
     }
 
-    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareConfigurationReader carbonAwareConfigurationReader) {
-        return new CarbonAwareConfigurationAssert(carbonAwareConfigurationReader);
+    public static CarbonAwareConfigurationAssert assertThat(CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfigurationReader) {
+        return new CarbonAwareConfigurationAssert(carbonAwareJobProcessingConfigurationReader);
     }
 
     public static CarbonAwareConfigurationAssert assertThat(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {

@@ -5,8 +5,8 @@ import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.Test;
@@ -406,8 +406,8 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     private ProcessCarbonAwareAwaitingJobsTask createProcessCarbonAwareAwaitingJobsTask(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         return new ProcessCarbonAwareAwaitingJobsTask(backgroundJobServer) {
             @Override
-            CarbonAwareConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
-                return new CarbonAwareConfigurationReader(carbonAwareJobProcessingConfiguration);
+            CarbonAwareJobProcessingConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
+                return new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration);
             }
 
             @Override

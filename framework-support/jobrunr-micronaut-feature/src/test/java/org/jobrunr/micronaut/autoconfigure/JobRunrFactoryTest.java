@@ -10,7 +10,7 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ class JobRunrFactoryTest {
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout-ms", value = "1000")
     void testCarbonAwareJobProcessingConfiguration() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        CarbonAwareConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
 
         assertThat(carbonAwareConfiguration)
                 .hasAreaCode("PL")
@@ -76,7 +76,7 @@ class JobRunrFactoryTest {
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.external-code", value = "external")
     void testCarbonAwareManagerConfigurationWithExternalCode() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-        CarbonAwareConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
 
         assertThat(carbonAwareConfiguration)
                 .hasExternalCode("external")

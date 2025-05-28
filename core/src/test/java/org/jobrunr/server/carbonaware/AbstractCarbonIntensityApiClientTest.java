@@ -109,6 +109,6 @@ abstract class AbstractCarbonIntensityApiClientTest {
                 .andAreaCode(areaCode)
                 .andCarbonIntensityApiUrl(carbonAwareWiremock.carbonIntensityApiBaseUrl);
 
-        return new CarbonIntensityApiClient(new CarbonAwareConfigurationReader(carbonAwareJobProcessingConfiguration), getJsonMapper());
+        return new CarbonIntensityApiClient(new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration), getJsonMapper());
     }
 }

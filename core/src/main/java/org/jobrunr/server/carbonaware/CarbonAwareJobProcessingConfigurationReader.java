@@ -15,10 +15,10 @@ import static org.jobrunr.utils.CollectionUtils.mapOf;
 /**
  * Internal class for JobRunr to access all {@link CarbonAwareJobProcessingConfiguration} details
  */
-public class CarbonAwareConfigurationReader {
+public class CarbonAwareJobProcessingConfigurationReader {
     private final CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration;
 
-    public CarbonAwareConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
+    public CarbonAwareJobProcessingConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
     }
 

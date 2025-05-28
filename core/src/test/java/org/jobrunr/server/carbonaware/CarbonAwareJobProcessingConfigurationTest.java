@@ -70,7 +70,7 @@ class CarbonAwareJobProcessingConfigurationTest {
 
     @Test
     void testGetCarbonIntensityForecastQueryString() {
-        CarbonAwareConfigurationReader reader = new CarbonAwareConfigurationReader(carbonAwareJobProcessingConfiguration);
+        CarbonAwareJobProcessingConfigurationReader reader = new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration);
 
         carbonAwareJobProcessingConfiguration.andAreaCode("IT-NO");
         assertThat(reader.getCarbonIntensityForecastQueryString()).isEqualTo("?region=IT-NO");

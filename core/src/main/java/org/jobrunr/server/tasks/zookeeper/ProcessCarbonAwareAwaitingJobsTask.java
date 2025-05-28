@@ -3,7 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
@@ -32,7 +32,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private final Duration randomRefreshTimeOffset = Duration.ofMinutes(30).plusSeconds(ThreadLocalRandom.current().nextInt(-300, 300)); // why: 30 minutes plus or min 5 min to make sure they don't hammer the server
 
-    private final CarbonAwareConfigurationReader carbonAwareConfiguration;
+    private final CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration;
     private final CarbonIntensityApiClient carbonIntensityApiClient;
     private final DashboardNotificationManager dashboardNotificationManager;
     private final int pageRequestSize;
@@ -180,7 +180,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     @VisibleFor("testing")
-    CarbonAwareConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
+    CarbonAwareJobProcessingConfigurationReader getCarbonAwareConfiguration(BackgroundJobServer backgroundJobServer) {
         return backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
     }
 

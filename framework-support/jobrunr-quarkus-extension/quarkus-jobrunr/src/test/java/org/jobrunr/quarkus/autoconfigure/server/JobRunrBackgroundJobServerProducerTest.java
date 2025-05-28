@@ -5,7 +5,7 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.JobActivator;
-import org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
@@ -143,7 +143,7 @@ class JobRunrBackgroundJobServerProducerTest {
         when(carbonAwareRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
 
         CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
                 .hasAreaCode("DE")
@@ -161,7 +161,7 @@ class JobRunrBackgroundJobServerProducerTest {
         when(carbonAwareRunTimeConfiguration.dataProvider()).thenReturn(Optional.of("provider"));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfigurationReader carbonAwareConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
 
         CarbonAwareConfigurationAssert.assertThat(carbonAwareConfiguration)
                 .hasExternalCode("external")

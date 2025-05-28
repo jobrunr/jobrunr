@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.jobrunr.server.carbonaware.CarbonAwareConfigurationReader.getCarbonIntensityForecastApiUrl;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiUrl;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class CarbonAwareJobProcessingConfiguration {
