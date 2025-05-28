@@ -1,5 +1,6 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -113,10 +114,14 @@ public class RecurringJob extends AbstractJob {
 
         if (jobs.isEmpty()) {
             Instant nextRunAtAheadOfTime = getNextRun(upTo);
-            jobs.add(toJob(ScheduledState.fromRecurringJobAheadOfTime(nextRunAtAheadOfTime, this)));
+            jobs.add(toJob(getNextStateAheadOfTime(nextRunAtAheadOfTime)));
         }
 
         return jobs;
+    }
+
+    private Schedule getSchedule() {
+        return ScheduleExpressionType.createScheduleFromString(scheduleExpression);
     }
 
     public Job toEnqueuedJob() {
@@ -140,8 +145,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun(Instant sinceInstant) {
-        return ScheduleExpressionType
-                .createScheduleFromString(scheduleExpression)
+        return getSchedule()
                 .next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
@@ -158,6 +162,14 @@ public class RecurringJob extends AbstractJob {
         }
 
         return result;
+    }
+
+    private JobState getNextStateAheadOfTime(Instant nextRun) {
+        Schedule schedule = getSchedule();
+        if (schedule.isCarbonAware()) {
+            return CarbonAwareAwaitingState.fromRecurringJobAheadOfTime(schedule.getCarbonAwareScheduleMargin(), nextRun, this);
+        }
+        return ScheduledState.fromRecurringJobAheadOfTime(nextRun, this);
     }
 
     private Job toJob(JobState jobState) {
@@ -182,7 +194,7 @@ public class RecurringJob extends AbstractJob {
 
     public Duration durationBetweenRecurringJobInstances() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
-        Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+        Schedule schedule = getSchedule();
         Instant run1 = schedule.next(base, base, ZoneOffset.UTC);
         Instant run2 = schedule.next(base, run1, ZoneOffset.UTC);
         return between(run1, run2);

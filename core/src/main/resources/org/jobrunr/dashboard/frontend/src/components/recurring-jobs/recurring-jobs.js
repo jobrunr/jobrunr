@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Grid from '@mui/material/Grid';
+import Tooltip from '@mui/material/Tooltip';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
@@ -23,6 +24,32 @@ import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {humanReadableISO8601Duration, parseScheduleExpression} from "../../utils/helper-functions";
+import {EnergySavingsLeaf} from "@mui/icons-material";
+
+const Schedule = ({recurringJob}) => {
+    const {scheduleExpression, marginBefore, marginAfter} = parseScheduleExpression(recurringJob.scheduleExpression);
+    const humanReadableMarginBefore = marginBefore && humanReadableISO8601Duration(marginBefore);
+    const humanReadableMarginAfter = marginAfter && humanReadableISO8601Duration(marginAfter);
+
+    let tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginBefore} earlier or ${humanReadableMarginAfter} later to minimize carbon impact.`;
+    if (!humanReadableMarginAfter) {
+        tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginBefore} earlier to minimize carbon impact.`;
+    } else if (!humanReadableMarginBefore) {
+        tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginAfter} later to minimize carbon impact.`;
+    }
+
+    return (
+        <div style={{display: 'flex'}}>
+            {marginBefore && <Tooltip title={tooltipTitle}>
+                <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
+            </Tooltip>}
+            {scheduleExpression.startsWith('P')
+                ? scheduleExpression
+                : cronstrue.toString(scheduleExpression)}
+        </div>
+    )
+}
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -198,9 +225,7 @@ const RecurringJobs = () => {
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {recurringJob.scheduleExpression.startsWith('P')
-                                                            ? recurringJob.scheduleExpression
-                                                            : cronstrue.toString(recurringJob.scheduleExpression)}
+                                                        <Schedule recurringJob={recurringJob}/>
                                                     </TableCell>
                                                     <TableCell>
                                                         {recurringJob.zoneId}

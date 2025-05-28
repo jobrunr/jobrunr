@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
@@ -101,6 +102,32 @@ class RecurringJobTest {
         final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
 
         assertThat(jobs).hasSize(4);
+    }
+
+    @Test
+    void testToScheduledJobsForCarbonAwareAheadOfTimeCreatesAJobInAwaitingState() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 0 1 * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(1);
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("Created by recurring job 'a recurring job'");
+    }
+
+    @Test
+    void testToScheduledJobsForCarbonAwareCreatesScheduledStateBecauseNotAheadOfTime() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 13 * * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(Instant.parse("2024-11-20T09:00:00.000Z"), Instant.parse("2024-11-21T09:00:00.000Z"));
+
+        assertThat(jobs).hasSize(1);
+        ScheduledState state = jobs.get(0).getJobState();
+        assertThat(state.getReason()).isEqualTo("Scheduled by recurring job 'a recurring job'");
     }
 
     @Test

@@ -4,6 +4,7 @@ import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
@@ -11,7 +12,9 @@ import org.jobrunr.server.JobSteward;
 import org.jobrunr.server.LogAllStateChangesFilter;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,21 +22,26 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class AbstractTaskTest {
 
+    protected final JsonMapper jsonMapper = new JacksonJsonMapper();
+
     public static final int POLL_INTERVAL_IN_SECONDS = 5;
 
     protected BackgroundJobServer backgroundJobServer;
-    @Mock
-    protected StorageProvider storageProvider;
+    @Spy
+    protected StorageProvider storageProvider = new InMemoryStorageProvider();
     @Mock
     protected JobSteward jobSteward;
     @Captor
@@ -44,7 +52,8 @@ public abstract class AbstractTaskTest {
     protected ListAppender<ILoggingEvent> logger;
 
     @BeforeEach
-    protected void setUpTaskDependencies() {
+    void setUpTaskDependencies() {
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         setUpTaskDependencies(storageProvider);
     }
 
@@ -63,6 +72,15 @@ public abstract class AbstractTaskTest {
         // hook to override settings
     }
 
+    protected void saveJobsInStorageProvider(Job... jobs) {
+        this.saveJobsInStorageProvider(Arrays.asList(jobs));
+    }
+
+    protected void saveJobsInStorageProvider(List<Job> jobs) {
+        storageProvider.save(jobs);
+        Mockito.clearInvocations(storageProvider);
+    }
+
     protected void runTask(Task task) {
         runTask(task, backgroundJobServer.getConfiguration());
     }
@@ -73,7 +91,7 @@ public abstract class AbstractTaskTest {
     }
 
     private BackgroundJobServer createBackgroundJobServerSpy(StorageProvider storageProvider, BackgroundJobServerConfiguration configuration) {
-        return Mockito.spy(new BackgroundJobServer(storageProvider, new JacksonJsonMapper(), null, configuration) {
+        return spy(new BackgroundJobServer(storageProvider, jsonMapper, null, configuration) {
             @Override
             protected JobSteward createJobSteward() {
                 return jobSteward;

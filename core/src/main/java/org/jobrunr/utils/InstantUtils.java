@@ -12,6 +12,18 @@ public class InstantUtils {
     private InstantUtils() {
     }
 
+    public static boolean isInstantInPeriod(Instant instant, Instant startOfPeriod, Instant endOfPeriod) {
+        return isInstantAfterOrEqualTo(instant, startOfPeriod) && instant.isBefore(endOfPeriod);
+    }
+
+    public static boolean isInstantBeforeOrEqualTo(Instant instant, Instant other) {
+        return !instant.isAfter(other);
+    }
+
+    public static boolean isInstantAfterOrEqualTo(Instant instant, Instant other) {
+        return !instant.isBefore(other);
+    }
+
     public static Instant toInstant(Temporal temporal) {
         if (temporal instanceof Instant) return (Instant) temporal;
         if (temporal instanceof ChronoLocalDateTime) return ((ChronoLocalDateTime<?>) temporal).atZone(ZoneId.systemDefault()).toInstant();
@@ -21,4 +33,5 @@ public class InstantUtils {
         String unsupportedTemporalType = temporal == null ? "null" : temporal.getClass().getCanonicalName();
         throw new IllegalArgumentException("JobRunr does not support Temporal type: " + unsupportedTemporalType + ". Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
     }
+
 }
