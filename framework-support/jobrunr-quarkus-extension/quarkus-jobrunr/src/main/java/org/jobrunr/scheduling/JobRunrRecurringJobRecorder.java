@@ -11,13 +11,11 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
-import org.jobrunr.utils.StringUtils;
 
 import java.time.ZoneId;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
@@ -41,8 +39,7 @@ public class JobRunrRecurringJobRecorder {
         String jobId = getId(id);
         String optionalCronExpression = getCronExpression(cron);
         String optionalInterval = getInterval(interval);
-
-        String scheduleExpression = getScheduleExpression(optionalCronExpression, optionalInterval);
+        String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(optionalCronExpression, optionalInterval);
 
         if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
             if (isNullOrEmpty(jobId)) {
@@ -57,14 +54,6 @@ public class JobRunrRecurringJobRecorder {
             RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
             scheduler.scheduleRecurrently(recurringJob);
         }
-    }
-
-    private static String getScheduleExpression(String cron, String interval) {
-        List<String> validScheduleExpressions = Stream.of(cron, interval).filter(StringUtils::isNotNullOrEmpty).toList();
-        int count = validScheduleExpressions.size();
-        if (count == 0) throw new IllegalArgumentException("Either cron or interval attribute is required.");
-        if (count > 1) throw new IllegalArgumentException("Both cron and interval attribute provided. Only one is allowed.");
-        return validScheduleExpressions.get(0);
     }
 
     private static String getId(String id) {
