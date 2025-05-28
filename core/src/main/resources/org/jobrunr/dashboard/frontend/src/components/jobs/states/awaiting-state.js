@@ -7,7 +7,7 @@ const Awaiting = ({jobState}) => {
 
     return (
         <JobState state="awaiting" title={title} date={new Date(jobState.createdAt)}>
-            Job is waiting to be scheduled at a time of low carbon emissions. It'll be scheduled between {from.toString()} and {to.toString()}.
+            Job is awaiting optimal low-carbon execution window between {from.toString()} and {to.toString()}.
         </JobState>
     )
 };

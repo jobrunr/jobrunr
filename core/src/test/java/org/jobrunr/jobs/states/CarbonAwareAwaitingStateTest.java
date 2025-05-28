@@ -77,15 +77,9 @@ class CarbonAwareAwaitingStateTest {
 
         Instant now = Instant.now();
         RecurringJob recurringJob = aDefaultRecurringJob().withId("123").withName("my recurring job").build();
-        assertThat(CarbonAwareAwaitingState.fromRecurringJob(carbonAwareScheduleMargin, now, recurringJob))
+        assertThat(CarbonAwareAwaitingState.fromRecurringJobAheadOfTime(carbonAwareScheduleMargin, now, recurringJob))
                 .usingRecursiveComparison()
                 .ignoringFields("createdAt")
-                .isEqualTo(new CarbonAwareAwaitingState(now, now.minus(Duration.ofHours(2)), now.plus(Duration.ofHours(10)), "Awaiting by recurring job 'my recurring job'"));
-
-        Instant twoDaysLater = Instant.now().plus(2, ChronoUnit.DAYS);
-        assertThat(CarbonAwareAwaitingState.fromRecurringJob(carbonAwareScheduleMargin, twoDaysLater, recurringJob))
-                .usingRecursiveComparison()
-                .ignoringFields("createdAt")
-                .isEqualTo(new CarbonAwareAwaitingState(twoDaysLater, twoDaysLater.minus(Duration.ofHours(2)), twoDaysLater.plus(Duration.ofHours(10)), "Awaiting by recurring job 'my recurring job'"));
+                .isEqualTo(new CarbonAwareAwaitingState(now, now.minus(Duration.ofHours(2)), now.plus(Duration.ofHours(10)), "Created by recurring job 'my recurring job'"));
     }
 }

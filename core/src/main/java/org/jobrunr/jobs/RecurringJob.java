@@ -108,7 +108,7 @@ public class RecurringJob extends AbstractJob {
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(getNextState(nextRun)));
+            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
             nextRun = getNextRun(nextRun);
         }
 
@@ -162,14 +162,6 @@ public class RecurringJob extends AbstractJob {
         }
 
         return result;
-    }
-
-    private JobState getNextState(Instant nextRun) {
-        Schedule schedule = getSchedule();
-        if (schedule.isCarbonAware()) {
-            return CarbonAwareAwaitingState.fromRecurringJob(schedule.getCarbonAwareScheduleMargin(), nextRun, this);
-        }
-        return ScheduledState.fromRecurringJob(nextRun, this);
     }
 
     private JobState getNextStateAheadOfTime(Instant nextRun) {

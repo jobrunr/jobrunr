@@ -54,12 +54,8 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
         this(preferredInstant, from, to, null);
     }
 
-    public static JobState fromRecurringJob(CarbonAwareScheduleMargin margin, Instant scheduleAt, RecurringJob recurringJob) {
-        return new CarbonAwareAwaitingState(scheduleAt, margin, "Awaiting by recurring job '" + recurringJob.getJobName() + "'");
-    }
-
     public static JobState fromRecurringJobAheadOfTime(CarbonAwareScheduleMargin margin, Instant scheduleAt, RecurringJob recurringJob) {
-        return new CarbonAwareAwaitingState(scheduleAt, margin, "Awaiting ahead of time by recurring job '" + recurringJob.getJobName() + "'");
+        return new CarbonAwareAwaitingState(scheduleAt, margin, "Created by recurring job '" + recurringJob.getJobName() + "'");
     }
 
     public Duration getMarginDuration() {
