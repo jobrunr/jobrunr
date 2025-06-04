@@ -1,13 +1,9 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -15,8 +11,6 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
-import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
-import static org.jobrunr.scheduling.CarbonAwareScheduleMargin.margin;
 
 class CarbonAwareAwaitingStateTest {
 
@@ -71,15 +65,4 @@ class CarbonAwareAwaitingStateTest {
                 .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
     }
 
-    @Test
-    void toCarbonAwareAwaitingState() {
-        CarbonAwareScheduleMargin carbonAwareScheduleMargin = margin(Duration.ofHours(2), Duration.ofHours(10));
-
-        Instant now = Instant.now();
-        RecurringJob recurringJob = aDefaultRecurringJob().withId("123").withName("my recurring job").build();
-        assertThat(CarbonAwareAwaitingState.fromRecurringJobAheadOfTime(carbonAwareScheduleMargin, now, recurringJob))
-                .usingRecursiveComparison()
-                .ignoringFields("createdAt")
-                .isEqualTo(new CarbonAwareAwaitingState(now, now.minus(Duration.ofHours(2)), now.plus(Duration.ofHours(10)), "Created by recurring job 'my recurring job'"));
-    }
 }

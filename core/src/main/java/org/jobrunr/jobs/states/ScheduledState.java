@@ -27,7 +27,7 @@ public class ScheduledState extends AbstractJobState implements SchedulableState
         this(scheduledAt, reason, null);
     }
 
-    protected ScheduledState(Instant scheduledAt, String reason, String recurringJobId) {
+    public ScheduledState(Instant scheduledAt, String reason, String recurringJobId) {
         this(scheduledAt, reason, recurringJobId, Instant.now());
     }
 
@@ -48,14 +48,6 @@ public class ScheduledState extends AbstractJobState implements SchedulableState
 
     public String getReason() {
         return reason;
-    }
-
-    public static ScheduledState fromRecurringJob(Instant scheduledAt, RecurringJob recurringJob) {
-        return new ScheduledState(scheduledAt, recurringJob);
-    }
-
-    public static ScheduledState fromRecurringJobAheadOfTime(Instant scheduledAt, RecurringJob recurringJob) {
-        return new ScheduledState(scheduledAt, "Scheduled ahead of time by recurring job '" + recurringJob.getJobName() + "'", recurringJob.getId());
     }
 
 }

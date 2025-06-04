@@ -3,6 +3,7 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.SchedulableState;
+import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.utils.InstantUtils;
@@ -19,6 +20,7 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.CollectionUtils.findLast;
+import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
@@ -42,9 +44,31 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         Instant from = runStartTime();
         Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
         List<RecurringJob> recurringJobs = getRecurringJobs();
+
+        if(this.recurringJobRuns.isEmpty()) {
+            fillRecurringJobRunsWithLatestScheduledAtForCarbonAware();
+        }
+
         convertAndProcessManyJobs(recurringJobs,
                 recurringJob -> toScheduledJobs(recurringJob, from, upUntil),
                 totalAmountOfJobs -> LOGGER.debug("Found {} jobs to schedule from {} recurring jobs", totalAmountOfJobs, recurringJobs.size()));
+    }
+
+    private void fillRecurringJobRunsWithLatestScheduledAtForCarbonAware() {
+        for(RecurringJob recurringJob : recurringJobs) {
+            Schedule schedule = recurringJob.getSchedule();
+            if(!schedule.isCarbonAware())
+                continue;
+
+            Instant scheduledAt = getLatestScheduledAtOfJobsInStorageProviderForAnyState(recurringJob);
+            if(scheduledAt == null)
+                continue;
+
+            Instant nextRun = recurringJob.getNextRun(runStartTime());
+            if(isInstantBeforeOrEqualTo(nextRun.minus(schedule.getCarbonAwareScheduleMargin().getMarginBefore()), scheduledAt)) {
+                this.recurringJobRuns.put(recurringJob.getId(), nextRun);
+            }
+        }
     }
 
     private List<RecurringJob> getRecurringJobs() {
@@ -57,7 +81,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     List<Job> toScheduledJobs(RecurringJob recurringJob, Instant from, Instant upUntil) {
         List<Job> jobsToSchedule = createJobsToSchedule(recurringJob, from, upUntil);
         if (jobsToSchedule.isEmpty()) {
-            LOGGER.trace("Recurring job '{}' resulted in 0 scheduled job.", recurringJob.getJobName());
+            LOGGER.trace("Recurring job '{}' resulted in 0 scheduled jobs.", recurringJob.getJobName());
             return emptyList();
         }
 
@@ -97,6 +121,10 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private Instant getLatestScheduledAtOfJobsInStorageProvider(RecurringJob recurringJob) {
         return InstantUtils.max(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING));
+    }
+
+    private Instant getLatestScheduledAtOfJobsInStorageProviderForAnyState(RecurringJob recurringJob) {
+        return InstantUtils.max(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId()));
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant instant) {

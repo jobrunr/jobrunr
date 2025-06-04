@@ -108,19 +108,19 @@ public class RecurringJob extends AbstractJob {
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
         while (nextRun.isBefore(upTo)) {
-            jobs.add(toJob(ScheduledState.fromRecurringJob(nextRun, this)));
+            jobs.add(toJob(getNextState(nextRun, "By recurring job '" + getJobName() + "'")));
             nextRun = getNextRun(nextRun);
         }
 
         if (jobs.isEmpty()) {
             Instant nextRunAtAheadOfTime = getNextRun(upTo);
-            jobs.add(toJob(getNextStateAheadOfTime(nextRunAtAheadOfTime)));
+            jobs.add(toJob(getNextState(nextRunAtAheadOfTime, "Ahead of time by recurring job '" + getJobName() + "'")));
         }
 
         return jobs;
     }
 
-    private Schedule getSchedule() {
+    public Schedule getSchedule() {
         return ScheduleExpressionType.createScheduleFromString(scheduleExpression);
     }
 
@@ -145,8 +145,7 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Instant getNextRun(Instant sinceInstant) {
-        return getSchedule()
-                .next(createdAt, sinceInstant, ZoneId.of(zoneId));
+        return getSchedule().next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
     private String validateAndSetId(String input) {
@@ -164,12 +163,12 @@ public class RecurringJob extends AbstractJob {
         return result;
     }
 
-    private JobState getNextStateAheadOfTime(Instant nextRun) {
+    private JobState getNextState(Instant nextRun, String reason) {
         Schedule schedule = getSchedule();
         if (schedule.isCarbonAware()) {
-            return CarbonAwareAwaitingState.fromRecurringJobAheadOfTime(schedule.getCarbonAwareScheduleMargin(), nextRun, this);
+            return new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason);
         }
-        return ScheduledState.fromRecurringJobAheadOfTime(nextRun, this);
+        return new ScheduledState(nextRun, reason, getId());
     }
 
     private Job toJob(JobState jobState) {

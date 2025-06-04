@@ -114,11 +114,11 @@ class RecurringJobTest {
 
         assertThat(jobs).hasSize(1);
         CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
-        assertThat(awaitingState.getReason()).isEqualTo("Created by recurring job 'a recurring job'");
+        assertThat(awaitingState.getReason()).isEqualTo("Ahead of time by recurring job 'a recurring job'");
     }
 
     @Test
-    void testToScheduledJobsForCarbonAwareCreatesScheduledStateBecauseNotAheadOfTime() {
+    void testToScheduledJobsForCarbonAwareCreatesAJobInAwaitingState() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withCronExpression("0 13 * * * [PT1H/PT10H]")
                 .build();
@@ -126,8 +126,8 @@ class RecurringJobTest {
         final List<Job> jobs = recurringJob.toScheduledJobs(Instant.parse("2024-11-20T09:00:00.000Z"), Instant.parse("2024-11-21T09:00:00.000Z"));
 
         assertThat(jobs).hasSize(1);
-        ScheduledState state = jobs.get(0).getJobState();
-        assertThat(state.getReason()).isEqualTo("Scheduled by recurring job 'a recurring job'");
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("By recurring job 'a recurring job'");
     }
 
     @Test

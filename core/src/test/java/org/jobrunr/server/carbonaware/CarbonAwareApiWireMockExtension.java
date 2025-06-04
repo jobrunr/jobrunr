@@ -68,6 +68,10 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
         mockResponseWhenRequestingAreaCode(areaCode, generateCarbonIntensityForecastForTheNextDay());
     }
 
+    public void mockResponseWhenRequestingAreaCode(String areaCode, CarbonIntensityForecast forecast) {
+        mockResponseWhenRequestingAreaCode(areaCode, jsonMapper.serialize(forecast));
+    }
+
     public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
         String url = format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
         stubFor(WireMock.get(urlEqualTo(url))
@@ -100,7 +104,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     }
 
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
+    public void beforeEach(ExtensionContext context) {
         WireMock.reset();
     }
 }

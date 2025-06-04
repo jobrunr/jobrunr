@@ -11,6 +11,7 @@ public class Interval extends Schedule {
     private final Duration duration;
 
     public Interval(Duration duration) {
+        super(duration.toString());
         this.duration = duration;
     }
 
@@ -26,11 +27,6 @@ public class Interval extends Schedule {
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
         return createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));
-    }
-
-    @Override
-    public String toString() {
-        return duration.toString();
     }
 
     /**

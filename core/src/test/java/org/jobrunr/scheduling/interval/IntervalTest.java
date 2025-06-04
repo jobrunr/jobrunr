@@ -1,5 +1,7 @@
 package org.jobrunr.scheduling.interval;
 
+import org.jobrunr.scheduling.ScheduleExpressionType;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -49,6 +51,21 @@ class IntervalTest {
             System.out.printf("Error for %s and %s%n", baseDateTime, durationExpression);
             throw e;
         }
+    }
+
+    @Test
+    void toStringForDuration() {
+        assertThat(new Interval(Duration.ofHours(1)).toString()).isEqualTo("PT1H");
+        assertThat(new Interval("PT1H [PT1H/PT1H]").toString()).isEqualTo("PT1H [PT1H/PT1H]");
+    }
+
+    @Test
+    void toStringCanBeParsedBackIntoInterval() {
+        var pt1h = new Interval(Duration.ofHours(1)).toString();
+        assertThat(ScheduleExpressionType.createScheduleFromString(pt1h).toString()).isEqualTo(pt1h);
+
+        var pt1hWithMargin = new Interval("PT1H [PT1H/PT1H]").toString();
+        assertThat(ScheduleExpressionType.createScheduleFromString(pt1hWithMargin).toString()).isEqualTo(pt1hWithMargin);
     }
 
     @Test
