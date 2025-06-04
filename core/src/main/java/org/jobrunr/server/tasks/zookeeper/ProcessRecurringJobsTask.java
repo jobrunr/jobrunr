@@ -3,7 +3,6 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.SchedulableState;
-import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.utils.InstantUtils;
@@ -56,8 +55,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private void fillRecurringJobRunsWithLatestScheduledAtForCarbonAware() {
         for(RecurringJob recurringJob : recurringJobs) {
-            Schedule schedule = recurringJob.getSchedule();
-            if(!schedule.isCarbonAware())
+            if(!recurringJob.isCarbonAware())
                 continue;
 
             Instant scheduledAt = getLatestScheduledAtOfJobsInStorageProviderForAnyState(recurringJob);
@@ -65,7 +63,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
                 continue;
 
             Instant nextRun = recurringJob.getNextRun(runStartTime());
-            if(isInstantBeforeOrEqualTo(nextRun.minus(schedule.getCarbonAwareScheduleMargin().getMarginBefore()), scheduledAt)) {
+            if(isInstantBeforeOrEqualTo(nextRun.minus(recurringJob.getCarbonAwareScheduleMarginBefore()), scheduledAt)) {
                 this.recurringJobRuns.put(recurringJob.getId(), nextRun);
             }
         }
