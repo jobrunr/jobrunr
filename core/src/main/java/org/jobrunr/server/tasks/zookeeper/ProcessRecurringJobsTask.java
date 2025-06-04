@@ -3,9 +3,9 @@ package org.jobrunr.server.tasks.zookeeper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.SchedulableState;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.RecurringJobsResult;
+import org.jobrunr.utils.InstantUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +28,10 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.recurringJobRuns = new HashMap<>();
+
+        // TODO fill recurring job runs just like in pro
+        // TODO write integration-like test perhaps using same wiremock thing as in BackgroundJobByJobLambdaTest (effectively kill filter instead of whitebox set map back to empty)
+
         this.recurringJobs = new RecurringJobsResult();
     }
 
@@ -65,7 +69,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
                 LOGGER.info("Recurring job '{}' resulted in {} scheduled jobs in time range {} - {} ({}) but it is already AWAITING, SCHEDULED, ENQUEUED or PROCESSING. Run will be skipped as job is taking longer than given CronExpression or Interval.", recurringJob.getJobName(), jobsToSchedule.size(), from, upUntil, Duration.between(from, upUntil));
             }
             jobsToSchedule.clear();
-            scheduledAtOfLastJobToSchedule = recurringJobIsTakingTooLong(scheduledAtOfLatestJobInStorageProvider, upUntil) ? scheduledAtOfLatestJobInStorageProvider : upUntil;
+            scheduledAtOfLastJobToSchedule = InstantUtils.max(upUntil, scheduledAtOfLatestJobInStorageProvider);
         }
 
         if (jobsToSchedule.size() > 1) {
@@ -92,8 +96,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private Instant getLatestScheduledAtOfJobsInStorageProvider(RecurringJob recurringJob) {
-        List<Instant> scheduledInstants = storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
-        return scheduledInstants.stream().max(Instant::compareTo).orElse(null);
+        return InstantUtils.max(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING));
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant instant) {
