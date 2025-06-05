@@ -67,24 +67,24 @@ data class KCarbonAwareAwaitingState(
     @Serializable(with = InstantSerializer::class) val preferredInstant: Instant? = null,
     @Serializable(with = InstantSerializer::class) val from: Instant? = null,
     @Serializable(with = InstantSerializer::class) val to: Instant? = null,
-    @Serializable(with = InstantSerializer::class) val createdAt: Instant,
     val reason: String? = null,
+    @Serializable(with = InstantSerializer::class) val createdAt: Instant,
 ) {
     object Serializer : DTOSerializer<CarbonAwareAwaitingState, KCarbonAwareAwaitingState>(CarbonAwareAwaitingState::class, serializer()) {
         override fun CarbonAwareAwaitingState.toDTO() = KCarbonAwareAwaitingState(
             preferredInstant = preferredInstant,
             from = from,
             to = to,
-            createdAt = createdAt,
             reason = reason,
+            createdAt = createdAt,
         )
 
         override fun KCarbonAwareAwaitingState.fromDTO() = CarbonAwareAwaitingState(
             preferredInstant,
             from,
             to,
-            createdAt,
             reason,
+            createdAt,
         )
     }
 }

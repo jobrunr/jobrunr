@@ -28,29 +28,24 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
     }
 
     public CarbonAwareAwaitingState(Instant from, Instant to) {
-        this(null, from, to, null);
+        this(null, from, to, null, null);
     }
 
-    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to, Instant createdAt, String reason) {
-        // for json deserialization
+    public CarbonAwareAwaitingState(Instant preferredInstant, CarbonAwareScheduleMargin margin, String reason) {
+        this(preferredInstant, preferredInstant.minus(margin.getMarginBefore()), preferredInstant.plus(margin.getMarginAfter()), reason);
+    }
+
+    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to, String reason) {
+        this(preferredInstant, from, to, reason, Instant.now());
+    }
+
+    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to, String reason, Instant createdAt) {
         super(StateName.AWAITING, createdAt);
         this.preferredInstant = preferredInstant;
         this.from = from;
         this.to = to;
         this.reason = reason;
         validateCarbonAwarePeriod(from, to);
-    }
-
-    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to, String reason) {
-        this(preferredInstant, from, to, Instant.now(), reason);
-    }
-
-    public CarbonAwareAwaitingState(Instant preferredInstant, CarbonAwareScheduleMargin margin, String reason) {
-        this(preferredInstant, preferredInstant.minus(margin.getMarginBefore()), preferredInstant.plus(margin.getMarginAfter()), Instant.now(), reason);
-    }
-
-    public CarbonAwareAwaitingState(Instant preferredInstant, Instant from, Instant to) {
-        this(preferredInstant, from, to, null);
     }
 
     public Duration getMarginDuration() {

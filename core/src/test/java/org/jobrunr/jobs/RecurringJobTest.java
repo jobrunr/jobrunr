@@ -62,6 +62,27 @@ class RecurringJobTest {
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
     }
 
+
+    @Test
+    void testCreateARecurringCronJobWithCarbonAwareMarginSetsScheduleCorrectly() {
+        var cron = aDefaultRecurringJob()
+                .withId("cron")
+                .withCronExpression("0 0 1 * * [PT1H/PT10H]")
+                .build();
+
+        assertThat(cron).hasScheduleExpression("0 0 1 * * [PT1H/PT10H]");
+    }
+
+    @Test
+    void testCreateARecurringIntervalJobWithCarbonAwareMarginSetsScheduleCorrectly() {
+        var interval = aDefaultRecurringJob()
+                .withId("interval")
+                .withIntervalExpression("PT1H [PT4H/PT0S]")
+                .build();
+
+        assertThat(interval).hasScheduleExpression("PT1H [PT4H/PT0S]");
+    }
+
     @Test
     void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
         final RecurringJob recurringJob = aDefaultRecurringJob()

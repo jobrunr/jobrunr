@@ -40,7 +40,7 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
         List<RecurringJob> recurringJobsToRun = getRecurringJobsToRun();
 
-        if(this.recurringJobRuns.isEmpty()) {
+        if (this.recurringJobRuns.isEmpty()) {
             fillRecurringJobRunsWithLatestScheduledAtForCarbonAware();
         }
 
@@ -50,16 +50,14 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private void fillRecurringJobRunsWithLatestScheduledAtForCarbonAware() {
-        for(RecurringJob recurringJob : recurringJobs) {
-            if(!recurringJob.isCarbonAware())
-                continue;
+        for (RecurringJob recurringJob : recurringJobs) {
+            if (!recurringJob.isCarbonAware()) continue;
 
             Instant scheduledAt = getLatestScheduledAtOfJobsInStorageProviderForAnyState(recurringJob);
-            if(scheduledAt == null)
-                continue;
+            if (scheduledAt == null) continue;
 
             Instant nextRun = recurringJob.getNextRun(runStartTime());
-            if(isInstantBeforeOrEqualTo(nextRun.minus(recurringJob.getCarbonAwareScheduleMarginBefore()), scheduledAt)) {
+            if (isInstantBeforeOrEqualTo(nextRun.minus(recurringJob.getCarbonAwareScheduleMarginBefore()), scheduledAt)) {
                 this.recurringJobRuns.put(recurringJob.getId(), nextRun);
             }
         }

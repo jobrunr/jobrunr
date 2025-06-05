@@ -39,10 +39,11 @@ public class RecurringJob extends AbstractJob {
 
     private String id;
     private String scheduleExpression;
-    private transient Schedule schedule;
     private String zoneId;
     private CreatedBy createdBy;
     private Instant createdAt;
+
+    private transient Schedule schedule;
 
     private RecurringJob() {
         // used for deserialization
@@ -126,12 +127,12 @@ public class RecurringJob extends AbstractJob {
     }
 
     public Duration getCarbonAwareScheduleMarginBefore() {
-        if(!isCarbonAware()) throw new IllegalArgumentException("Not a carbon-aware job");
+        if (!isCarbonAware()) throw new IllegalStateException("Not a carbon-aware job");
         return getSchedule().getCarbonAwareScheduleMargin().getMarginBefore();
     }
 
     public Schedule getSchedule() {
-        if(schedule == null) {
+        if (schedule == null) {
             schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
         }
         return schedule;

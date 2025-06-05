@@ -5,17 +5,15 @@ import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.Schedule;
-import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.scheduling.interval.Interval;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
+import static org.jobrunr.scheduling.ScheduleExpressionType.createScheduleFromString;
 
 public class RecurringJobTestBuilder {
 
@@ -87,7 +85,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withCronExpression(String cronExpression) {
-        this.schedule = ScheduleExpressionType.createScheduleFromString(cronExpression);
+        this.schedule = createScheduleFromString(cronExpression);
         return this;
     }
 
@@ -101,7 +99,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withIntervalExpression(String intervalExpression, Instant createdAt) {
-        this.schedule = new Interval(Duration.parse(intervalExpression));
+        this.schedule = createScheduleFromString(intervalExpression);
         this.createdAt = createdAt;
         return this;
     }
