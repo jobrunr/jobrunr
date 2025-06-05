@@ -29,10 +29,6 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     public ProcessRecurringJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
         this.recurringJobRuns = new HashMap<>();
-
-        // TODO fill recurring job runs just like in pro
-        // TODO write integration-like test perhaps using same wiremock thing as in BackgroundJobByJobLambdaTest (effectively kill filter instead of whitebox set map back to empty)
-
         this.recurringJobs = new RecurringJobsResult();
     }
 
