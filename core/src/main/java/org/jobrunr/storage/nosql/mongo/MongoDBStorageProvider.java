@@ -77,6 +77,7 @@ import static com.mongodb.client.model.Projections.excludeId;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
@@ -401,17 +402,19 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
         if (areAllStateNames(states)) {
             return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
                     .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                    .sort(descending(Jobs.FIELD_SCHEDULED_AT)).limit(1)
                     .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
-                    .into(new ArrayList<>());
+                    .first();
         }
         return jobCollection.find(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)))
                 .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                .sort(descending(Jobs.FIELD_SCHEDULED_AT)).limit(1)
                 .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
-                .into(new ArrayList<>());
+                .first();
     }
 
     @Override

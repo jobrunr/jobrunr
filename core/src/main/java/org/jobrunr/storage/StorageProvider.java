@@ -205,13 +205,13 @@ public interface StorageProvider extends AutoCloseable {
     Set<String> getDistinctJobSignatures(StateName... states);
 
     /**
-     * Returns the scheduled instants of the {@link Job Jobs} created by the {@link RecurringJob} with the given recurringJobId.
+     * Returns the scheduled instant of the last {@link Job}, in one of the given states, created by the {@link RecurringJob} with the given recurringJobId.
      *
-     * @param recurringJobId the id of the RecurringJob for which to get the scheduled instants
-     * @param states         the possible states for the {@link Job} (can be empty)
-     * @return a list of the scheduled instants of the matched {@link Job Jobs}
+     * @param recurringJobId the id of the RecurringJob for which to get the latest scheduled instant
+     * @param states         the possible states for the {@link Job} (can be empty, then match against all possible states)
+     * @return the scheduled instant of the last created {@link Job}
      */
-    List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states);
+    Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states);
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten

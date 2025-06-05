@@ -331,9 +331,9 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).getRecurringJobScheduledInstants(recurringJobId, states);
+            return jobTable(conn).getRecurringJobLatestScheduledInstant(recurringJobId, states);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

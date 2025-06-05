@@ -19,17 +19,18 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BinaryOperator;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
@@ -263,18 +264,22 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
         if (areAllStateNames(states)) {
             return jobQueue.values().stream()
                     .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been AWAITING/SCHEDULED")))
-                    .collect(toList());
+                    .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
+                    .filter(Objects::nonNull)
+                    .sorted(reverseOrder()).limit(1)
+                    .findFirst().orElse(null);
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
                 .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been AWAITING/SCHEDULED")))
-                .collect(toList());
+                .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
+                .filter(Objects::nonNull)
+                .sorted(reverseOrder()).limit(1)
+                .findFirst().orElse(null);
     }
 
     @Override

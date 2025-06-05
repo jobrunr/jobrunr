@@ -19,7 +19,6 @@ import java.util.List;
 
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
@@ -100,7 +99,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - No Jobs scheduled yet.
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
 
             runTask(task);
 
@@ -118,7 +117,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the 1 job scheduled in the first run is still active.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(scheduledAt));
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(scheduledAt);
 
             runTask(task);
 
@@ -128,7 +127,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
 
             runTask(task);
 
@@ -161,7 +160,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // FIRST RUN - 1 job is already scheduled
         try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(lastScheduledAt);
 
             runTask(task);
 
@@ -171,19 +170,19 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         // SECOND RUN - the job is still scheduled but will be moved to enqueued.
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
             clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(lastScheduledAt));
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(lastScheduledAt);
 
             runTask(task);
 
             verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
-            verify(storageProvider, never()).getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
+            verify(storageProvider, never()).getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
             assertThat(logger).hasNoInfoMessageContaining("Recurring job 'a recurring job' resulted in 1 scheduled jobs in time range");
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
             clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
 
             runTask(task);
 
@@ -200,7 +199,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         when(storageProvider.recurringJobsUpdated(anyLong())).thenReturn(true);
         when(storageProvider.getRecurringJobs()).thenReturn(new RecurringJobsResult(List.of(recurringJob)));
-        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of());
+        when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
             runTask(task);
@@ -235,7 +234,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             clearStorageProviderInvocationsAndCaptors();
         }
 
-        when(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(List.of(FIXED_INSTANT_RIGHT_ON_THE_MINUTE));
+        when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(FIXED_INSTANT_RIGHT_ON_THE_MINUTE);
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE)) {
             runTask(task);
 
@@ -286,9 +285,9 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     private void mockRunningRecurringJob(List<String> runningRecurringJobs) {
-        List<Instant> scheduledAts = runningRecurringJobs.stream().map(x -> now()).collect(toList());
-        lenient().doReturn(scheduledAts)
-                .when(storageProvider).getRecurringJobScheduledInstants(anyString(), eq(AWAITING), eq(SCHEDULED), eq(ENQUEUED), eq(PROCESSING));
+        Instant scheduledAt = runningRecurringJobs.isEmpty() ? null : Instant.now();
+        lenient().doReturn(scheduledAt)
+                .when(storageProvider).getRecurringJobLatestScheduledInstant(anyString(), eq(AWAITING), eq(SCHEDULED), eq(ENQUEUED), eq(PROCESSING));
     }
 
     IdListAssert<Job, JobAssert> assertThatSavedScheduledJobs() {

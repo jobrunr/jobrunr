@@ -112,11 +112,11 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private Instant getLatestScheduledAtOfJobsInStorageProvider(RecurringJob recurringJob) {
-        return InstantUtils.max(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING));
+        return storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING);
     }
 
     private Instant getLatestScheduledAtOfJobsInStorageProviderForAnyState(RecurringJob recurringJob) {
-        return InstantUtils.max(storageProvider.getRecurringJobScheduledInstants(recurringJob.getId()));
+        return storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId());
     }
 
     private void registerRecurringJobRun(RecurringJob recurringJob, Instant instant) {
