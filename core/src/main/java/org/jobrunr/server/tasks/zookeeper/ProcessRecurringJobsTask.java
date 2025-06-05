@@ -38,15 +38,15 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
         Instant from = runStartTime();
         Instant upUntil = runStartTime().plus(backgroundJobServerConfiguration().getPollInterval());
-        List<RecurringJob> recurringJobs = getRecurringJobs();
+        List<RecurringJob> recurringJobsToRun = getRecurringJobsToRun();
 
         if(this.recurringJobRuns.isEmpty()) {
             fillRecurringJobRunsWithLatestScheduledAtForCarbonAware();
         }
 
-        convertAndProcessManyJobs(recurringJobs,
-                recurringJob -> toScheduledJobs(recurringJob, from, upUntil),
-                totalAmountOfJobs -> LOGGER.debug("Found {} jobs to schedule from {} recurring jobs", totalAmountOfJobs, recurringJobs.size()));
+        convertAndProcessManyJobs(recurringJobsToRun,
+                recurringJob -> toJobsToSchedule(recurringJob, from, upUntil),
+                totalAmountOfJobs -> LOGGER.debug("Found {} jobs to schedule from {} recurring jobs", totalAmountOfJobs, recurringJobsToRun.size()));
     }
 
     private void fillRecurringJobRunsWithLatestScheduledAtForCarbonAware() {
@@ -65,14 +65,14 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
         }
     }
 
-    private List<RecurringJob> getRecurringJobs() {
+    private List<RecurringJob> getRecurringJobsToRun() {
         if (storageProvider.recurringJobsUpdated(recurringJobs.getLastModifiedHash())) {
             this.recurringJobs = storageProvider.getRecurringJobs();
         }
         return this.recurringJobs;
     }
 
-    List<Job> toScheduledJobs(RecurringJob recurringJob, Instant from, Instant upUntil) {
+    private List<Job> toJobsToSchedule(RecurringJob recurringJob, Instant from, Instant upUntil) {
         List<Job> jobsToSchedule = createJobsToSchedule(recurringJob, from, upUntil);
         if (jobsToSchedule.isEmpty()) {
             LOGGER.trace("Recurring job '{}' resulted in 0 scheduled jobs.", recurringJob.getJobName());
