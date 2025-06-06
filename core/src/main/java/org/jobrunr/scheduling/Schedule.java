@@ -64,6 +64,10 @@ public abstract class Schedule implements Comparable<Schedule> {
         return carbonAwareScheduleMargin != null;
     }
 
+    public boolean isNotCarbonAware() {
+        return !isCarbonAware();
+    }
+
     public final Duration durationBetweenSchedules() {
         Instant base = Instant.EPOCH.plusSeconds(3600);
         Instant run1 = this.next(base, base, ZoneOffset.UTC);
@@ -72,7 +76,7 @@ public abstract class Schedule implements Comparable<Schedule> {
     }
 
     public void validate() {
-        if (!isCarbonAware()) return;
+        if (isNotCarbonAware()) return;
 
         Duration durationBetweenSchedules = durationBetweenSchedules();
         Duration totalMargin = carbonAwareScheduleMargin.getMarginBefore().plus(carbonAwareScheduleMargin.getMarginAfter());

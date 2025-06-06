@@ -19,15 +19,12 @@ import org.jobrunr.storage.InMemoryStorageProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
@@ -40,47 +37,27 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension.buildForecastSlots;
+import static org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension.generateCarbonIntensityForecastUsing;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class ProcessRecurringJobsTaskIntegrationTest {
 
-    static CarbonAwareApiWireMockExtension carbonAwareApiMock;
+    @RegisterExtension
+    static CarbonAwareApiWireMockExtension carbonAwareWiremock = new CarbonAwareApiWireMockExtension();
+
     private InMemoryStorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
-    private static final int FORECAST_ITEM_LENGTH = 60 * 60 * 3;
     private ListAppender<ILoggingEvent> loggerAppender;
 
     @BeforeEach
     void setUpTests() {
-        this.carbonAwareApiMock = new CarbonAwareApiWireMockExtension();
-        this.carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE", getIntensityForecastFakeDataOptimalAtEarliestTime());
+        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE", getIntensityForecastFakeDataOptimalAtEarliestTime());
         this.storageProvider = new InMemoryStorageProvider();
 
         this.loggerAppender = LoggerAssert.initForLogger((Logger) LoggerFactory.getLogger(ProcessRecurringJobsTask.class));
 
         startJobRunr();
-    }
-
-    private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtEarliestTime() {
-        return getIntensityForecastFakeDataOptimalAtIndex(0);
-    }
-
-    private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtLatestTime() {
-        return getIntensityForecastFakeDataOptimalAtIndex(FORECAST_ITEM_LENGTH);
-    }
-
-    private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtIndex(int optimalIndex) {
-        var startingInstant = Instant.now().truncatedTo(SECONDS);
-        var forecast = Stream.iterate(0, i -> i + 1).limit(FORECAST_ITEM_LENGTH).map(
-                i -> new CarbonIntensityForecast.TimestampedCarbonIntensityForecast(startingInstant.plus(i, SECONDS), startingInstant.plus(i + 1, SECONDS), i == optimalIndex ? 0 : i)
-        ).collect(Collectors.toList());
-
-        return new CarbonIntensityForecast(
-                new CarbonIntensityForecast.ApiResponseStatus("OK", "DataProvider MOCK_PROVIDER and area MOCK_AREA has 24 forecasts."),
-                "MOCK_PROVIDER", "MOCK_ID", "MOCK_AREA",
-                ZoneId.systemDefault().getId(), ZonedDateTime.now().truncatedTo(DAYS).plusDays(1).withHour(18).withMinute(30).toInstant(),
-                Duration.ZERO, // to make sure the margin is not small enough even if we use seconds in our test
-                forecast);
     }
 
     @AfterEach
@@ -94,7 +71,7 @@ public class ProcessRecurringJobsTaskIntegrationTest {
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
                         .andPollInterval(ofMillis(200))
-                        .andCarbonAwareJobProcessingConfiguration(carbonAwareApiMock.getCarbonAwareJobProcessingConfigurationForAreaCode("BE")))
+                        .andCarbonAwareJobProcessingConfiguration(carbonAwareWiremock.getCarbonAwareJobProcessingConfigurationForAreaCode("BE")))
                 .initialize();
         this.backgroundJobServer = JobRunr.getBackgroundJobServer();
     }
@@ -117,7 +94,7 @@ public class ProcessRecurringJobsTaskIntegrationTest {
         // The server rebooted: the ProcessRecurringJobsTask cache is cleared
         stopJobRunr();
 
-        try(var ignored = Logback.temporarilyChangeLogLevel(ProcessRecurringJobsTask.class, Level.TRACE)) {
+        try (var ignored = Logback.temporarilyChangeLogLevel(ProcessRecurringJobsTask.class, Level.TRACE)) {
             startJobRunr();
             await().atMost(ofSeconds(5)).untilAsserted(() -> JobRunrAssertions.assertThat(this.loggerAppender).hasTraceMessageContaining("resulted in 0 scheduled jobs"));
 
@@ -126,5 +103,16 @@ public class ProcessRecurringJobsTaskIntegrationTest {
             assertThat(storageProvider.countJobs(PROCESSING)).isEqualTo(0);
             assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(1);
         }
+    }
+
+    private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtEarliestTime() {
+        return getIntensityForecastFakeDataOptimalAtIndex(0);
+    }
+
+    private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtIndex(int optimalIndex) {
+        ZonedDateTime startTime = ZonedDateTime.now().truncatedTo(SECONDS);
+        ZonedDateTime forecastUntil = startTime.plusHours(3);
+        var forecast = buildForecastSlots(startTime, forecastUntil, SECONDS, i -> i == optimalIndex ? 0 : i);
+        return generateCarbonIntensityForecastUsing(startTime.truncatedTo(DAYS).plusDays(1).withHour(18).withMinute(30), forecast);
     }
 }

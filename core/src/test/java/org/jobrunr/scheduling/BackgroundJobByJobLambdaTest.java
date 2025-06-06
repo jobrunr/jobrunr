@@ -95,7 +95,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @BeforeEach
     void setUpTests() {
-        carbonAwareWiremock.mockResponseWhenRequestingAreaCode("BE");
+        carbonAwareWiremock.mockDefaultResponseWhenRequestingAreaCode("BE");
         testService = new TestService();
         testService.reset();
         storageProvider = new InMemoryStorageProvider();
@@ -350,10 +350,10 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAwareIsScheduledAtTheLowestPossibleCarbonIntensityTime() {
-        Instant from = now();
-        JobId jobId = BackgroundJob.scheduleCarbonAware(between(from, now().plus(5, HOURS)), TestService::doStaticWork);
+        Instant now = now();
+        JobId jobId = BackgroundJob.scheduleCarbonAware(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
-                .hasScheduledAt(from.plus(1, HOURS).truncatedTo(HOURS))
+                .hasScheduledAt(now.plus(1, HOURS).truncatedTo(HOURS))
                 .hasStates(AWAITING, SCHEDULED)
         );
     }

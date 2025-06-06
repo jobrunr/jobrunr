@@ -24,11 +24,7 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
     }
 
     public CarbonAwareAwaitingState(CarbonAwarePeriod carbonAwarePeriod) {
-        this(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo());
-    }
-
-    public CarbonAwareAwaitingState(Instant from, Instant to) {
-        this(null, from, to, null, null);
+        this(null, carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo(), null);
     }
 
     public CarbonAwareAwaitingState(Instant preferredInstant, CarbonAwareScheduleMargin margin, String reason) {

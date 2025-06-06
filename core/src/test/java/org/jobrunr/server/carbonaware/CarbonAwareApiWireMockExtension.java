@@ -2,6 +2,7 @@ package org.jobrunr.server.carbonaware;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -14,19 +15,21 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.IntFunction;
+import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.lang.String.format;
-import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRelPath;
 
@@ -37,7 +40,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     protected final String carbonIntensityApiBaseUrl;
 
     static {
-        wireMockServer = new WireMockServer(options().dynamicPort());
+        wireMockServer = new WireMockServer(options().dynamicPort().notifier(new ConsoleNotifier(true)));
         wireMockServer.start();
         WireMock.configureFor(wireMockServer.port());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -64,7 +67,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
         return config;
     }
 
-    public void mockResponseWhenRequestingAreaCode(String areaCode) {
+    public void mockDefaultResponseWhenRequestingAreaCode(String areaCode) {
         mockResponseWhenRequestingAreaCode(areaCode, generateCarbonIntensityForecastForTheNextDay());
     }
 
@@ -80,27 +83,39 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
                         .withBody(response)));
     }
 
-    public Instant toEndOfNextDay(ZonedDateTime dateTime) {
-        return dateTime.toLocalDate().atTime(LocalTime.MAX).plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
+    private CarbonIntensityForecast generateCarbonIntensityForecastForTheNextDay() {
+        ZonedDateTime currentTime = ZonedDateTime.now().truncatedTo(HOURS);
+        ZonedDateTime forecastUntil = currentTime.plusDays(1).with(LocalTime.MAX);
+        List<TimestampedCarbonIntensityForecast> forecast = buildForecastSlots(currentTime, forecastUntil, HOURS, i -> i);
+        ZonedDateTime nextDataAvailableAt = forecastUntil.withHour(18).withMinute(30).truncatedTo(MINUTES);
+        return generateCarbonIntensityForecastUsing(nextDataAvailableAt, forecast);
     }
 
-    private String generateCarbonIntensityForecastForTheNextDay() {
-        ZonedDateTime currentTime = ZonedDateTime.now();
-        Instant startingInstant = currentTime.toInstant().truncatedTo(HOURS);
-        long limit = Duration.between(startingInstant, toEndOfNextDay(currentTime)).toHours() + 1;
-        List<TimestampedCarbonIntensityForecast> forecast = Stream.iterate(0, i -> i + 1).limit(limit).map(
-                i -> new TimestampedCarbonIntensityForecast(startingInstant.plus(i, HOURS), startingInstant.plus(i + 1, HOURS), i)
-        ).collect(Collectors.toList());
+    public static CarbonIntensityForecast generateCarbonIntensityForecastUsing(ZonedDateTime nextDataAvailableAt, List<TimestampedCarbonIntensityForecast> forecast) {
+        return new CarbonIntensityForecast(
+                new ApiResponseStatus("OK", "DataProvider MOCK_PROVIDER and area MOCK_AREA has " + forecast.size() + " forecasts."),
+                "MOCK_PROVIDER", "MOCK_ID", "MOCK_AREA",
+                systemDefault().getId(), nextDataAvailableAt.toInstant(),
+                Duration.between(forecast.get(0).getPeriodStartAt(), forecast.get(0).getPeriodEndAt()),
+                forecast);
+    }
 
-        return jsonMapper.serialize(
-                new CarbonIntensityForecast(
-                        new ApiResponseStatus("OK", "DataProvider MOCK_PROVIDER and area MOCK_AREA has 24 forecasts."),
-                        "MOCK_PROVIDER", "MOCK_ID", "MOCK_AREA",
-                        ZoneId.systemDefault().getId(), currentTime.truncatedTo(DAYS).plusDays(1).withHour(18).withMinute(30).toInstant(),
-                        Duration.ofHours(1),
-                        forecast
-                )
-        );
+    /**
+     * Builds a consecutive list of TimestampedCarbonIntensityForecast slots,
+     * starting at 'start', ending at 'end' with slots of length 'slotUnit',
+     * where each slot’s “value” comes from intensityFn.apply(i).
+     */
+    public static List<TimestampedCarbonIntensityForecast> buildForecastSlots(ZonedDateTime start, ZonedDateTime end, TemporalUnit slotUnit, IntFunction<Integer> intensityFn) {
+        int rangeStart = 0;
+        int rangeEnd = (int) slotUnit.between(start, end);
+        return IntStream.range(rangeStart, rangeEnd + 1) // range is endExclusive
+                .mapToObj(i -> {
+                    Instant slotStart = start.toInstant().plus(i, slotUnit);
+                    Instant slotEnd = start.toInstant().plus(i + 1, slotUnit);
+                    int value = intensityFn.apply(i);
+                    return new TimestampedCarbonIntensityForecast(slotStart, slotEnd, value);
+                })
+                .collect(toList());
     }
 
     @Override

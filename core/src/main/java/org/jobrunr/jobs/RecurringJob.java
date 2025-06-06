@@ -10,7 +10,6 @@ import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -70,6 +69,7 @@ public class RecurringJob extends AbstractJob {
         super(jobDetails, version);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
+        this.schedule = schedule;
         this.scheduleExpression = schedule.toString();
         this.createdBy = createdBy;
         this.createdAt = createdAt;
@@ -117,15 +117,6 @@ public class RecurringJob extends AbstractJob {
         }
 
         return jobs;
-    }
-
-    public boolean isCarbonAware() {
-        return getSchedule().isCarbonAware();
-    }
-
-    public Duration getCarbonAwareScheduleMarginBefore() {
-        if (!isCarbonAware()) throw new IllegalStateException("Not a carbon-aware job");
-        return getSchedule().getCarbonAwareScheduleMargin().getMarginBefore();
     }
 
     public Schedule getSchedule() {
@@ -176,10 +167,9 @@ public class RecurringJob extends AbstractJob {
 
     private JobState getNextState(Instant nextRun, String reason) {
         Schedule schedule = getSchedule();
-        if (schedule.isCarbonAware()) {
-            return new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason);
-        }
-        return new ScheduledState(nextRun, reason, getId());
+        return schedule.isCarbonAware()
+                ? new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason)
+                : new ScheduledState(nextRun, reason, getId());
     }
 
     private Job toJob(JobState jobState) {

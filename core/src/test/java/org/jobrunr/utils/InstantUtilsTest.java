@@ -24,25 +24,26 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualTo;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
+import static org.jobrunr.utils.InstantUtils.max;
 
 class InstantUtilsTest {
 
     @Test
     void testMax() {
-        assertThat(InstantUtils.max(new ArrayList<>())).isNull();
+        assertThat(max(new ArrayList<>())).isNull();
 
         Instant in2024 = Instant.parse("2024-11-20T09:00:00.000Z");
         Instant in2025 = Instant.parse("2025-05-20T13:00:00.000Z");
 
-        assertThat(InstantUtils.max(Arrays.asList(in2025, in2024))).isEqualTo(in2025);
-        assertThat(InstantUtils.max(Arrays.asList(null, in2024))).isEqualTo(in2024);
-        assertThat(InstantUtils.max(Arrays.asList(null, null))).isNull();
-        assertThat(InstantUtils.max(List.of())).isNull();
+        assertThat(max(Arrays.asList(in2025, in2024))).isEqualTo(in2025);
+        assertThat(max(Arrays.asList(null, in2024))).isEqualTo(in2024);
+        assertThat(max(Arrays.asList(null, null))).isNull();
+        assertThat(max(List.of())).isNull();
 
-        assertThat(InstantUtils.max(in2025, in2024)).isEqualTo(in2025);
-        assertThat(InstantUtils.max(null, in2024)).isEqualTo(in2024);
-        assertThat(InstantUtils.max(in2024, null)).isEqualTo(in2024);
-        assertThat(InstantUtils.max(null, null)).isNull();
+        assertThat(max(in2025, in2024)).isEqualTo(in2025);
+        assertThat(max(null, in2024)).isEqualTo(in2024);
+        assertThat(max(in2024, null)).isEqualTo(in2024);
+        assertThat(max(null, null)).isNull();
     }
 
     @Test

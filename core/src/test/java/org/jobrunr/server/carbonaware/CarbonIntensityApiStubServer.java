@@ -7,7 +7,7 @@ import org.jobrunr.dashboard.server.http.ContentType;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -32,9 +32,9 @@ public class CarbonIntensityApiStubServer {
         return this;
     }
 
-    private class IntensityMoment {
-        private Instant start;
-        private Instant end;
+    private static class IntensityMoment {
+        private final Instant start;
+        private final Instant end;
         private int rank;
 
         private IntensityMoment(int i) {
@@ -128,12 +128,12 @@ public class CarbonIntensityApiStubServer {
             }
 
             @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
+            public void handle(HttpExchange httpExchange) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.APPLICATION_JSON);
                 httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 try (var outputStream = httpExchange.getResponseBody()) {
                     httpExchange.sendResponseHeaders(200, 0);
-                    outputStream.write(getIntensityJson().getBytes(Charset.forName("UTF-8")));
+                    outputStream.write(getIntensityJson().getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e) {
                     throw new IllegalStateException(e);
                 }

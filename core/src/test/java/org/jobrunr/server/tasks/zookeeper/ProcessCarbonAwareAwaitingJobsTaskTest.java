@@ -86,7 +86,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
         ZonedDateTime currentTime = ZonedDateTime.now();
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
             ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask("BE");
-            carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareApiMock.mockDefaultResponseWhenRequestingAreaCode("BE");
             Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
 
             // WHEN
@@ -104,7 +104,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     void taskCallsCarbonIntensityApiClientAndIfOnlyOutdatedCarbonIntensityForecastAvailableSchedulesJobImmediately() {
         // GIVEN
         try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-25T09:00:00Z"))) { // in the past
-            carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareApiMock.mockDefaultResponseWhenRequestingAreaCode("BE");
         }
 
         try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-27T09:00:00Z"))) {
@@ -204,7 +204,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
         ZonedDateTime currentTime = ZonedDateTime.now();
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
             ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask("BE");
-            carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE");
+            carbonAwareApiMock.mockDefaultResponseWhenRequestingAreaCode("BE");
 
             List<Job> jobs = storageProvider.save(List.of(
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(4, HOURS))).build(),

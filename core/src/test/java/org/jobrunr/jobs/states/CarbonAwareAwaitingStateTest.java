@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -16,30 +17,30 @@ class CarbonAwareAwaitingStateTest {
 
     @Test
     void creatingAwaitingState_InvalidPeriods_ThrowsException() {
-        assertThatCode(() -> new CarbonAwareAwaitingState(Instant.now().plusSeconds(12), Instant.now())).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> new CarbonAwareAwaitingState(null, Instant.now())).isInstanceOf(IllegalArgumentException.class);
-        assertThatCode(() -> new CarbonAwareAwaitingState(Instant.now(), null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> createCarbonAwareAwaitingState(Instant.now().plusSeconds(12), Instant.now())).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> createCarbonAwareAwaitingState(null, Instant.now())).isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> createCarbonAwareAwaitingState(Instant.now(), null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void carbonAwareJobsOnCreationAcceptsDeadlineIfEqualTo3HoursInTheFuture() {
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now(), now().plus(3, HOURS).plusMillis(1000))).build())
+        assertThatCode(() -> aJob().withState(createCarbonAwareAwaitingState(now(), now().plus(3, HOURS).plusMillis(1000))).build())
                 .doesNotThrowAnyException();
     }
 
     @Test
     void carbonAwareJobsOnCreationAcceptsDeadlineIfMoreThan3HoursInTheFuture() {
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now(), now().plus(4, HOURS))).build())
+        assertThatCode(() -> aJob().withState(createCarbonAwareAwaitingState(now(), now().plus(4, HOURS))).build())
                 .doesNotThrowAnyException();
 
-        assertThatCode(() -> aJob().withState(new CarbonAwareAwaitingState(now(), now().plus(1, DAYS))).build())
+        assertThatCode(() -> aJob().withState(createCarbonAwareAwaitingState(now(), now().plus(1, DAYS))).build())
                 .doesNotThrowAnyException();
     }
 
     @Test
     void moveToNextStateMovesJobToScheduledStateAtIdealMoment() {
         // GIVEN
-        CarbonAwareAwaitingState state = new CarbonAwareAwaitingState(now(), now().plus(1, DAYS));
+        CarbonAwareAwaitingState state = createCarbonAwareAwaitingState(now(), now().plus(1, DAYS));
         Job carbonAwareJob = aJob().withState(state).build();
 
         // WHEN
@@ -65,4 +66,7 @@ class CarbonAwareAwaitingStateTest {
                 .hasMessage("Only jobs in CarbonAwaitingState can move to a next state");
     }
 
+    private CarbonAwareAwaitingState createCarbonAwareAwaitingState(Instant from, Instant to) {
+        return new CarbonAwareAwaitingState(CarbonAwarePeriod.between(from, to));
+    }
 }

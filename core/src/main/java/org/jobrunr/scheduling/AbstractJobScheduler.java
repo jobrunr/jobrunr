@@ -131,7 +131,7 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
-        Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod.getFrom(), carbonAwarePeriod.getTo()));
+        Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod));
         return saveJob(carbonAwareJob);
     }
 
