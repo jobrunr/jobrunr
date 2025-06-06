@@ -26,16 +26,20 @@ public class CarbonAwareJobProcessingConfigurationReader {
         return carbonAwareJobProcessingConfiguration.enabled;
     }
 
-    public String getCarbonIntensityApiUrl() {
+    public String getCarbonIntensityApiBaseUrl() {
         return carbonAwareJobProcessingConfiguration.carbonIntensityApiUrl;
     }
 
-    public static String getCarbonIntensityForecastApiUrl(String hostName) {
-        return hostName + getCarbonIntensityForecastApiPath();
+    public static String getCarbonIntensityForecastApiRootUrl(String baseUrl) {
+        return baseUrl + getCarbonIntensityForecastApiRelPath();
     }
 
-    public static String getCarbonIntensityForecastApiPath() {
+    public static String getCarbonIntensityForecastApiRelPath() {
         return "/carbon-intensity/forecast";
+    }
+
+    URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
+        return new URL(getCarbonIntensityForecastApiRootUrl(getCarbonIntensityApiBaseUrl()) + getCarbonIntensityForecastQueryString());
     }
 
     public String getDataProvider() {
@@ -64,10 +68,6 @@ public class CarbonAwareJobProcessingConfigurationReader {
 
     public Duration getApiClientReadTimeout() {
         return carbonAwareJobProcessingConfiguration.apiClientReadTimeout;
-    }
-
-    URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
-        return new URL(getCarbonIntensityForecastApiUrl(getCarbonIntensityApiUrl()) + getCarbonIntensityForecastQueryString());
     }
 
     @VisibleFor("testing")

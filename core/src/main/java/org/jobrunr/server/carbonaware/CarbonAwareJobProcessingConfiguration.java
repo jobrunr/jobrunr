@@ -4,12 +4,12 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiUrl;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRootUrl;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class CarbonAwareJobProcessingConfiguration {
 
-    public static final String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiUrl("https://api.jobrunr.io");
+    public static final String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiRootUrl("https://api.jobrunr.io");
     public static final Duration DEFAULT_API_CLIENT_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static final Duration DEFAULT_API_CLIENT_READ_TIMEOUT = Duration.ofSeconds(3);
     public static final Integer DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION = 3;
@@ -110,14 +110,6 @@ public class CarbonAwareJobProcessingConfiguration {
             throw new IllegalStateException("Please set the dataProvider before setting the externalIdentifier.");
         }
         this.externalIdentifier = externalIdentifier;
-        return this;
-    }
-
-    /**
-     * Allows to set the carbon intensity API URL
-     */
-    public CarbonAwareJobProcessingConfiguration andCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
-        this.carbonIntensityApiUrl = carbonIntensityApiUrl;
         return this;
     }
 

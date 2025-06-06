@@ -45,9 +45,13 @@ public class FrontEndDevelopment {
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
         storageProvider.save(anEnqueuedJob().withEnqueuedState(now()).withName("A job").build());
 
+        var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
+                .andAreaCode("BE");
+
         var stubServer = new CarbonIntensityApiStubServer()
                 .andPort(10000)
                 .andBestIntensityMomentTodayAt(12)
+                .andCarbonAwareJobProcessingConfig(carbonConfig)
                 .start();
 
         JobRunr
@@ -56,9 +60,7 @@ public class FrontEndDevelopment {
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
-                        .andCarbonAwareJobProcessingConfiguration(usingStandardCarbonAwareJobProcessingConfiguration()
-                                .andCarbonIntensityApiUrl("http://localhost:10000")
-                                .andAreaCode("BE")))
+                        .andCarbonAwareJobProcessingConfiguration(carbonConfig))
                 .initialize();
 
         BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(12, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));

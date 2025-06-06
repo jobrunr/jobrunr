@@ -105,10 +105,7 @@ abstract class AbstractCarbonIntensityApiClientTest {
     }
 
     protected CarbonIntensityApiClient createCarbonAwareApiClient(String areaCode) {
-        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = usingStandardCarbonAwareJobProcessingConfiguration()
-                .andAreaCode(areaCode)
-                .andCarbonIntensityApiUrl(carbonAwareWiremock.carbonIntensityApiBaseUrl);
-
-        return new CarbonIntensityApiClient(new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration), getJsonMapper());
+        var config = carbonAwareWiremock.getCarbonAwareJobProcessingConfigurationForAreaCode(areaCode);
+        return new CarbonIntensityApiClient(new CarbonAwareJobProcessingConfigurationReader(config), getJsonMapper());
     }
 }

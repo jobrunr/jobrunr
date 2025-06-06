@@ -50,7 +50,7 @@ public class CarbonAwareJobProcessingConfigurationAssert extends AbstractAssert<
     }
 
     public CarbonAwareJobProcessingConfigurationAssert hasCarbonAwareApiUrl(String url) {
-        Assertions.assertThat(actual.getCarbonIntensityApiUrl()).isEqualTo(url);
+        Assertions.assertThat(actual.getCarbonIntensityApiBaseUrl()).isEqualTo(url);
         return this;
     }
 

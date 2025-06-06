@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.dashboard.server.HttpExchangeHandler;
 import org.jobrunr.dashboard.server.WebServer;
 import org.jobrunr.dashboard.server.http.ContentType;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -25,6 +26,11 @@ public class CarbonIntensityApiStubServer {
     private List<IntensityMoment> intensityMoments = new ArrayList<>();
     private static final int CARBON_LOW = 1;
     private static final int CARBON_HIGH = 5;
+
+    public CarbonIntensityApiStubServer andCarbonAwareJobProcessingConfig(CarbonAwareJobProcessingConfiguration carbonConfig) {
+        Whitebox.setInternalState(carbonConfig, "carbonIntensityApiUrl", "http://localhost:" + port);
+        return this;
+    }
 
     private class IntensityMoment {
         private Instant start;
@@ -114,7 +120,7 @@ public class CarbonIntensityApiStubServer {
         webServer.createContext(new HttpExchangeHandler() {
             @Override
             public String getContextPath() {
-                return CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath();
+                return CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRelPath();
             }
 
             @Override
