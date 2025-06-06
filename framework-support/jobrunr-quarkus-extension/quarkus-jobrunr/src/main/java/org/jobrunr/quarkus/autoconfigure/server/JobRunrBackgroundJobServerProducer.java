@@ -69,7 +69,6 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().carbonIntensityApiUrl().ifPresent(carbonAwareJobProcessingConfiguration::andCarbonIntensityApiUrl);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
             backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);

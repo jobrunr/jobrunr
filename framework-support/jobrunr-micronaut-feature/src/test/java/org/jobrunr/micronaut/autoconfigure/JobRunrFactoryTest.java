@@ -55,7 +55,6 @@ class JobRunrFactoryTest {
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.enabled", value = "true")
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.area-code", value = "PL")
-    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.carbon-intensity-api-url", value = "http://carbon.be")
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout-ms", value = "500")
     @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout-ms", value = "1000")
     void testCarbonAwareJobProcessingConfiguration() {
@@ -64,7 +63,6 @@ class JobRunrFactoryTest {
 
         assertThat(carbonAwareJobProcessingConfiguration)
                 .hasAreaCode("PL")
-                .hasCarbonAwareApiUrl("http://carbon.be")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }

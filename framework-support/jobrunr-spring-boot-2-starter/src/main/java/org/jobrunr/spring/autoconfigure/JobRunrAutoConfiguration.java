@@ -129,7 +129,6 @@ public class JobRunrAutoConfiguration {
         map.from(carbonAwareJobProcessingProperties::getExternalIdentifier).whenNonNull().to(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
         map.from(carbonAwareJobProcessingProperties::getApiClientConnectTimeout).whenNonNull().to(carbonAwareJobProcessingConfiguration::andApiClientConnectTimeout);
         map.from(carbonAwareJobProcessingProperties::getApiClientReadTimeout).whenNonNull().to(carbonAwareJobProcessingConfiguration::andApiClientReadTimeout);
-        map.from(carbonAwareJobProcessingProperties::getCarbonIntensityApiUrl).whenNonNull().to(carbonAwareJobProcessingConfiguration::andCarbonIntensityApiUrl);
         backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
 
         return backgroundJobServerConfiguration;

@@ -574,12 +574,6 @@ public class JobRunrProperties {
         @DurationUnit(MILLIS)
         Duration apiClientReadTimeout;
 
-        /**
-         * Sets the carbon intensity API URL (should only be set if the default URL changes unexpectedly).
-         */
-        String carbonIntensityApiUrl;
-
-
         public boolean isEnabled() {
             return enabled;
         }
@@ -636,12 +630,5 @@ public class JobRunrProperties {
             this.apiClientReadTimeout = apiClientReadTimeout;
         }
 
-        public String getCarbonIntensityApiUrl() {
-            return carbonIntensityApiUrl;
-        }
-
-        public void setCarbonIntensityApiUrl(String carbonIntensityApiUrl) {
-            this.carbonIntensityApiUrl = carbonIntensityApiUrl;
-        }
     }
 }

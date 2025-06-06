@@ -137,7 +137,6 @@ class JobRunrBackgroundJobServerProducerTest {
 
         when(carbonAwareJobProcessingRunTimeConfiguration.isEnabled()).thenReturn(true);
         when(carbonAwareJobProcessingRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
-        when(carbonAwareJobProcessingRunTimeConfiguration.carbonIntensityApiUrl()).thenReturn(Optional.of("http://carbon.be"));
         when(carbonAwareJobProcessingRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
         when(carbonAwareJobProcessingRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
 
@@ -146,7 +145,6 @@ class JobRunrBackgroundJobServerProducerTest {
 
         assertThat(carbonAwareJobProcessingConfiguration)
                 .hasAreaCode("DE")
-                .hasCarbonAwareApiUrl("http://carbon.be")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }

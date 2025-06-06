@@ -237,8 +237,6 @@ public interface JobRunrRuntimeConfiguration {
 
         Optional<String> externalIdentifier();
 
-        Optional<String> carbonIntensityApiUrl();
-
         Optional<String> externalCode();
 
         /**

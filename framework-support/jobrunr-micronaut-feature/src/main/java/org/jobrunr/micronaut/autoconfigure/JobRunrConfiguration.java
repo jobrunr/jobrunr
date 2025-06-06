@@ -194,8 +194,6 @@ public interface JobRunrConfiguration {
 
             Optional<String> getExternalIdentifier();
 
-            Optional<String> getCarbonIntensityApiUrl();
-
             Optional<String> getExternalCode();
 
             Optional<Integer> getApiClientConnectTimeoutMs();
