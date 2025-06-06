@@ -35,7 +35,7 @@ const Succeeded = ({jobState}) => {
     return (
         <JobState
             state="success"
-            title="Job processing succeeded"
+            title="Job Processing Succeeded"
             date={jobState.createdAt}
         >
             <ul style={{margin: 0, padding: 0, listStylePosition: "inside"}}>

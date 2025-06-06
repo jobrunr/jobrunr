@@ -29,6 +29,7 @@ public class JobStatsView extends Sql<JobStats> {
         return new JobStats(
                 instant,
                 resultSet.asLong(StorageProviderUtils.JobStats.FIELD_TOTAL),
+                resultSet.asLong(StorageProviderUtils.JobStats.FIELD_AWAITING),
                 resultSet.asLong(StorageProviderUtils.JobStats.FIELD_SCHEDULED),
                 resultSet.asLong(StorageProviderUtils.JobStats.FIELD_ENQUEUED),
                 resultSet.asLong(StorageProviderUtils.JobStats.FIELD_PROCESSING),

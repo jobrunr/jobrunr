@@ -32,15 +32,14 @@ public class JobRunrRecurringJobRecorder {
         this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
     }
 
-    public void schedule(BeanContainer container, String id, String cronAsString, String intervalAsString, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
+    public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
         if (!jobRunrRuntimeConfiguration.jobScheduler().enabled()) return;
 
         JobScheduler scheduler = container.beanInstance(JobScheduler.class);
         String jobId = getId(id);
-        String cron = getCronExpression(cronAsString);
-        String interval = getInterval(intervalAsString);
-        String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(cron, interval);
-
+        String optionalCronExpression = getCronExpression(cron);
+        String optionalInterval = getInterval(interval);
+        String scheduleExpression = ScheduleExpressionType.selectConfiguredScheduleExpression(optionalCronExpression, optionalInterval);
 
         if (Recurring.RECURRING_JOB_DISABLED.equals(scheduleExpression)) {
             if (isNullOrEmpty(jobId)) {

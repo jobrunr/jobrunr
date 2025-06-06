@@ -79,11 +79,12 @@ dependencies {
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'org.wiremock:wiremock'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
-    testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'org.mockito:mockito-inline'
     testFixturesApi 'org.mockito:mockito-junit-jupiter'
+    testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
@@ -108,20 +109,7 @@ normalization {
     }
 }
 
-task npmRunBuildWarning {
-    onlyIf {
-        System.getenv("CI") != "true"
-    }
-    doLast {
-        println "JobRunr Frontend not build during local development - please build it manually"
-    }
-}
-
 task npmRunBuild() {
-    onlyIf {
-        System.getenv("CI") == "true"
-    }
-
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     outputs.cacheIf { true }
@@ -140,7 +128,6 @@ task npmRunBuild() {
     }
 }
 
-npmRunBuild.dependsOn npmRunBuildWarning
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 

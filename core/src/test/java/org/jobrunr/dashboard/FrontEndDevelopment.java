@@ -4,32 +4,25 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
-import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
-import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
+import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.diagnostics.DiagnosticsBuilder;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
-import java.time.Instant;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.sql.SQLException;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
-import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
-import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -38,70 +31,62 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
-        StorageProvider storageProvider = postgresStorageProvider();
+        StorageProvider storageProvider = inMemoryStorageProvider();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
         //.addSomeRecurringJobs();
 
-//        storageProvider.saveRecurringJob(aDefaultRecurringJob()
-//                .withId("rj-with-labels")
-//                .withName("Recurring job with labels")
-//                .withCronExpression("*/5 * * * * *")
-//                .withLabels("tenant: JobRunr", "a second label", "123")
-//                .build());
-
-        for (int i = 0; i < 1; i++) {
-            storageProvider.saveRecurringJob(aDefaultRecurringJob()
-                    .withId("every-3-m-" + i)
-                    .withName("Every 3 minutes")
-                    .withCronExpression("*/3 * * * *")
-                    .withJobDetails(() -> new TestService().doWork())
-                    .build());
-        }
-
-        for (int i = 0; i < 1; i++) {
-            storageProvider.saveRecurringJob(aDefaultRecurringJob()
-                    .withId("every-1-m-" + i)
-                    .withName("Every 1 minute")
-                    .withCronExpression(Cron.minutely())
-                    .withJobDetails(() -> new TestService().doWork())
-                    .build());
-        }
-
-        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
-        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(classThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(2, MINUTES))).build());
+//        storageProvider.save(aJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, MINUTES))).build());
 
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
-        storageProvider.save(anEnqueuedJob().withName("A job").build());
+        storageProvider.save(anEnqueuedJob().withEnqueuedState(now()).withName("A job").build());
+
+        var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
+                .andAreaCode("BE");
+
+        var stubServer = new CarbonIntensityApiStubServer()
+                .andPort(10000)
+                .andBestIntensityMomentTodayAt(12)
+                .andCarbonAwareJobProcessingConfig(carbonConfig)
+                .start();
 
         JobRunr
                 .configure()
                 .useJsonMapper(new JacksonJsonMapper())
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
-                .useBackgroundJobServer()
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
+                        .andCarbonAwareJobProcessingConfiguration(carbonConfig))
                 .initialize();
 
-        BackgroundJob.<TestService>scheduleRecurrently("Github-75", Cron.daily(18, 4),
-                x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-1", CarbonAware.dailyBetween(12, 18), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
 
-        //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofSeconds(5), TestService::doWork);
+//        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-2", CarbonAware.dailyBefore(7), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+//        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-3", CarbonAware.using(Cron.daily(4), Duration.ofHours(2), Duration.ofHours(1)), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+//        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-4", CarbonAware.using(Cron.daily(4), Duration.ofHours(4), Duration.ZERO), x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+//        BackgroundJob.<TestService>scheduleRecurrently("carbon-aware-rj-5", "0 0 1 * * [P2DT6H/P10DT12H4M29.45S]", x -> x.doWorkWithJobAnnotationAndLabels(1, "carbon-aware"));
+//        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
-        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
-        new Timer().schedule(new TimerTask() {
-                                 @Override
-                                 public void run() {
-                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
-                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
-                                     System.out.println("Saved ServerJobRunrException");
-                                 }
-                             },
-                30000
-        );
+        //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
 
+//        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
+//        new Timer().schedule(new TimerTask() {
+//                                 @Override
+//                                 public void run() {
+//                                     dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
+//                                     //dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
+//                                     System.out.println("Saved ServerJobRunrException");
+//                                 }
+//                             },
+//                30000
+//        );
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();
@@ -127,13 +112,13 @@ public class FrontEndDevelopment {
         }
     }
 
-    private static StorageProvider inMemoryStorageProvider() {
+    private static StorageProvider inMemoryStorageProvider() throws SQLException {
         StorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         return storageProvider;
     }
 
-    private static StorageProvider db2StorageProvider() {
+    private static StorageProvider db2StorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:db2://127.0.0.1:53759/test");
         config.setUsername("db2inst1");
@@ -149,7 +134,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider mariaDBStorageProvider() {
+    private static StorageProvider mariaDBStorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mariadb://localhost:3306/mysql?rewriteBatchedStatements=true&useBulkStmts=false");
         config.setUsername("root");
@@ -157,7 +142,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider mysqlStorageProvider() {
+    private static StorageProvider mysqlStorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("com.mysql.jdbc.Driver");
         config.setJdbcUrl("jdbc:mysql://127.0.0.1:50516/test?rewriteBatchedStatements=true&useSSL=false");
@@ -166,7 +151,7 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider oracleStorageProvider() {
+    private static StorageProvider oracleStorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:oracle:thin:@127.0.0.1:54076/xepdb1");
         config.setUsername("test");
@@ -174,21 +159,22 @@ public class FrontEndDevelopment {
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider postgresStorageProvider() {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://127.0.0.1:5432/postgres");
-        config.setUsername("postgres");
-        config.setPassword("postgres");
-        return toStorageProvider(new HikariDataSource(config));
+    private static StorageProvider postgresStorageProvider() throws SQLException {
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setURL("jdbc:postgresql://127.0.0.1:5432/postgres");
+        dataSource.setUser("postgres");
+        dataSource.setPassword("postgres");
+        dataSource.setProperty("socketTimeout", "10");
+        return toStorageProvider(dataSource);
     }
 
-    private static StorageProvider sqliteStorageProvider() {
+    private static StorageProvider sqliteStorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlite:/tmp/jobrunr-frontend.db");
         return toStorageProvider(new HikariDataSource(config));
     }
 
-    private static StorageProvider sqlServerStorageProvider() {
+    private static StorageProvider sqlServerStorageProvider() throws SQLException {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlserver://localhost:1433;databaseName=tempdb;encrypt=true;trustServerCertificate=true;");
         config.setUsername("sa");

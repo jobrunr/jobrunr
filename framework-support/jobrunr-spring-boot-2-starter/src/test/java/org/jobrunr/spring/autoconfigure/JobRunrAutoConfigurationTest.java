@@ -10,6 +10,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.JobActivatorShutdownException;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.strategy.BasicWorkDistributionStrategy;
 import org.jobrunr.server.strategy.WorkDistributionStrategy;
@@ -128,6 +129,36 @@ public class JobRunrAutoConfigurationTest {
                     assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
                     assertThat(context.getBean(JobRunrDashboardWebServer.class))
                             .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
+                });
+    }
+
+    @Test
+    void carbonAwareManagerAutoConfigurationIsDisabledByDefault() {
+        this.contextRunner
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+                    CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+                    assertThat(carbonAwareJobProcessingConfiguration).hasEnabled(false);
+                });
+    }
+
+    @Test
+    void carbonAwareManagerAutoConfiguration() {
+        this.contextRunner
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.area-code=FR")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout=500")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout=300")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+                    CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+                    assertThat(carbonAwareJobProcessingConfiguration)
+                            .hasEnabled(true)
+                            .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                            .hasApiClientReadTimeout(Duration.ofMillis(300))
+                            .hasAreaCode("FR");
                 });
     }
 

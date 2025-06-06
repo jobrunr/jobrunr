@@ -16,12 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static java.time.temporal.ChronoUnit.MICROS;
 import static org.bson.internal.UuidHelper.decodeBinaryToUuid;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class MongoUtils {
 
@@ -60,13 +57,6 @@ public class MongoUtils {
         throw shouldNotHappenException("Unknown id: " + document.get("_id").getClass());
     }
 
-    public static Object toValueForBson(String fieldName, String value) {
-        if (asSet(FIELD_CREATED_AT, FIELD_UPDATED_AT, FIELD_SCHEDULED_AT).contains(fieldName)) {
-            return toMicroSeconds(Instant.parse(value));
-        }
-        return value;
-    }
-
     public static byte[] clone(final byte[] array) {
         final byte[] result = new byte[array.length];
         System.arraycopy(array, 0, result, 0, array.length);
@@ -74,7 +64,7 @@ public class MongoUtils {
     }
 
     public static long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
+        return MICROS.between(Instant.EPOCH, instant);
     }
 
     public static Instant fromMicroseconds(Long micros) {
