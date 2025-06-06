@@ -31,10 +31,10 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     public static String getCarbonIntensityForecastApiRootUrl(String baseUrl) {
-        return baseUrl + getCarbonIntensityForecastApiRelPath();
+        return baseUrl + getCarbonIntensityForecastApiPath();
     }
 
-    public static String getCarbonIntensityForecastApiRelPath() {
+    public static String getCarbonIntensityForecastApiPath() {
         return "/carbon-intensity/forecast";
     }
 

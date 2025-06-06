@@ -31,7 +31,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
-import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRelPath;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath;
 
 public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCallback {
 
@@ -76,7 +76,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     }
 
     public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        var url = format(getCarbonIntensityForecastApiRelPath() + "?region=%s", areaCode);
+        var url = format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
         stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
