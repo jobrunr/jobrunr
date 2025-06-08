@@ -4,6 +4,8 @@ import java.nio.file.Paths;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+
 public class CIInfo {
 
     public enum CIType {
@@ -18,7 +20,7 @@ public class CIInfo {
         CIType(boolean isCIMachine, Predicate<String> isActivePredicate) {
             this.isCIMachine = isCIMachine;
             workDir = System.getenv("CI_LOCAL_WORK_DIR");
-            isActive = isActivePredicate.test(workDir);
+            isActive = isNotNullOrEmpty(workDir) && isActivePredicate.test(workDir);
         }
 
         public String getWorkDir() {
