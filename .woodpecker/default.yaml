@@ -2,7 +2,7 @@
 when:
   - event:
       - push
-      - pull_reques
+      - pull_request
     branch:
       - master
       - v8
