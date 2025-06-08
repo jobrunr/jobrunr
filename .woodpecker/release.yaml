@@ -1,0 +1,44 @@
+when:
+  event:
+    - tag  # identical to Drone’s tag trigger :contentReference[oaicite:5]{index=5}
+
+steps:
+  - name: build-and-upload-to-maven-central
+    image: jobrunr.io/build-container:1.4.1
+    commands:
+      - rm -f *.hprof
+      - rm -rf /tmp/reports/*
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - |
+        bash -lc '
+          set -e -o pipefail
+          ./gradlew --no-daemon -Djib.console=plain --info clean assemble publishToSonatype \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
+        '
+    environment:
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
+      SIGNING_KEY:
+        from_secret: SIGNING_KEY
+      SIGNING_PASSWORD:
+        from_secret: SIGNING_PASSWORD
+      ORG_GRADLE_PROJECT_sonatypeUsername:
+        from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
+      ORG_GRADLE_PROJECT_sonatypePassword:
+        from_secret: ORG_GRADLE_PROJECT_sonatypePassword
+
+  - name: update-and-push-readme
+    image: jobrunr.io/build-container:1.4.1
+    environment:
+      GITHUB_PAT:
+        from_secret: GITHUB_TOKEN
+    commands:
+      - sed -i "s@<version>.*</version>@<version>${CI_TAG}</version>@g" README.md
+      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${CI_TAG}'@g" README.md
+      - git config --global user.email "woodpecker-bot@jobrunr.io"
+      - git config --global user.name "woodpecker-bot"
+      - git add README.md
+      - git commit -m "Update readme to version ${CI_TAG} [ci skip]"
+      - git push https://$(GITHUB_PAT)@github.com/jobrunr/jobrunr.git

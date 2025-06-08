@@ -1,0 +1,37 @@
+# Trigger on branch and event filters
+when:
+  branch:
+    - master
+    - v8
+  event:
+    - push
+    - pull_request  # Woodpecker events mirror Drone’s :contentReference[oaicite:0]{index=0}
+
+# Optional: match Drone’s workspace path
+workspace:
+  base: /drone
+  path: jobrunr/src    # relative to base :contentReference[oaicite:1]{index=1}
+
+steps:
+  - name: prepare
+    image: plugins/docker
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"  # DRONE_* → CI_* built-ins :contentReference[oaicite:2]{index=2}
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
+
+  - name: build
+    image: jobrunr.io/build-container:1.4.1
+    commands:
+      - rm -rf /tmp/reports/*
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - |
+        bash -lc '
+          set -e -o pipefail
+          ./gradlew --no-daemon -Djib.console=plain --info clean build test --fail-fast \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
+        '
+    environment:
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD  # secrets moved under environment/from_secret
