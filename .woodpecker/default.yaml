@@ -14,12 +14,11 @@ workspace:
 
 steps:
   - name: prepare
-    image: woodpeckerci/plugin-kaniko
-    settings:
-      dockerfile: PrepareDockerfile
-      context: .
-      repo: jobrunr.io/build-container
-      tags: 1.4.1
+    image: plugins/docker
+    privileged: true
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"  # DRONE_* → CI_* built-ins :contentReference[oaicite:2]{index=2}
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
 
   - name: build
     image: jobrunr.io/build-container:1.4.1
