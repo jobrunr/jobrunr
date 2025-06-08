@@ -1,13 +1,14 @@
 # Trigger on branch and event filters
 when:
-  branch:
-    - master
-    - v8
-  event:
-    - push
-    - pull_request  # Woodpecker events mirror Drone’s :contentReference[oaicite:0]{index=0}
+  - event:
+      - push
+      - pull_reques
+    branch:
+      - master
+      - v8
+  - event: manual
 
-# Optional: match Drone’s workspace path
+
 workspace:
   path: jobrunr/src    # relative to base :contentReference[oaicite:1]{index=1}
 
