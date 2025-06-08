@@ -24,7 +24,7 @@ steps:
     image: jobrunr.io/build-container:1.4.1
     commands:
       - rm -rf /tmp/reports/*
-      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - find /woodpecker/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - |
         bash -lc '
           set -e -o pipefail
