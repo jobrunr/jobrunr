@@ -16,7 +16,7 @@ RUN npx playwright install
 # disable SVE so ld-linux on arm64 doesn't segfault
 ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
-ENV GRADLE_VERSION 8.5
+ENV GRADLE_VERSION=8.5
 COPY gradle /home/gradle/gradle
 COPY gradlew /home/gradle/gradlew
 RUN /home/gradle/gradlew -version
