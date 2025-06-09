@@ -13,12 +13,14 @@ workspace:
   path: jobrunr/src    # relative to base :contentReference[oaicite:1]{index=1}
 
 steps:
-  #  - name: prepare
-  #    image: plugins/docker
-  #    privileged: true
-  #    commands:
-  #      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"  # DRONE_* → CI_* built-ins :contentReference[oaicite:2]{index=2}
-  #      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
+  - name: prepare
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f PrepareDockerfile -t containers.jobrunr.io/build-container:1.4.1 .
 
   - name: build
     image: jobrunr.io/build-container:1.4.1
