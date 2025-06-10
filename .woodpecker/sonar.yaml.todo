@@ -1,0 +1,28 @@
+when:
+  event:
+    - manual
+
+steps:
+  - name: prepare
+    image: plugins/docker
+    commands:
+      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
+
+  - name: build
+    image: jobrunr.io/build-container:1.4.1
+    commands:
+      - rm -rf /tmp/reports/*
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - |
+        bash -lc '
+          set -e -o pipefail
+          ./gradlew --no-daemon -Djib.console=plain --info clean build jacocoTestReport sonar \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
+        '
+    environment:
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
