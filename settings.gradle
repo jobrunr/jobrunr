@@ -13,7 +13,7 @@ buildCache {
         enabled = true
     }
 
-    if (System.getenv('CI')?.toBoolean()) {
+    if (System.getenv('CI')) {
         remote(HttpBuildCache) {
             url = uri("http://192.168.129.102:5071/cache/")
             push = true

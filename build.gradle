@@ -14,7 +14,7 @@ nexusPublishing {
 
 subprojects {
     group = 'org.jobrunr'
-    version = System.getenv('DRONE_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
+    version = System.getenv('CI_COMMIT_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
 }
 
 def isNonStable = { String version ->

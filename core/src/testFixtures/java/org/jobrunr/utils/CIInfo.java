@@ -1,25 +1,50 @@
 package org.jobrunr.utils;
 
+import java.nio.file.Paths;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class CIInfo {
 
-    private CIInfo() {
-    }
-
     public enum CIType {
-        NAS,
-        MacMini,
-        Other
+        NAS(true, workDir -> workDir.startsWith("/volume2")),
+        MacMini(true, workDir -> workDir.startsWith("/Users/rdehuyss")),
+        Other(false, StringUtils::isNullOrEmpty);
+
+        private final String workDir;
+        private final boolean isActive;
+        private final boolean isCIMachine;
+
+        CIType(boolean isCIMachine, Predicate<String> isActivePredicate) {
+            this.isCIMachine = isCIMachine;
+            workDir = System.getenv("CI_LOCAL_WORK_DIR");
+            isActive = isNotNullOrEmpty(workDir) && isActivePredicate.test(workDir);
+        }
+
+        public String getWorkDir() {
+            return workDir;
+        }
+
+        public String getM2RepoDir() {
+            return isCIMachine
+                    ? workDir + "/m2/cache"
+                    : Paths.get(System.getProperty("user.home"), ".m2").toString();
+        }
     }
 
     public static boolean isRunningOn(CIType type) {
-        String droneWorkDir = System.getenv("DRONE_WORK_DIR");
-        if (isNotNullOrEmpty(droneWorkDir)) {
-            if (droneWorkDir.startsWith("/volume2") && CIType.NAS.equals(type)) return true;
-            if (droneWorkDir.startsWith("/Users/rdehuyss") && CIType.MacMini.equals(type)) return true;
-        }
-        return isNullOrEmpty(droneWorkDir) && CIType.Other.equals(type);
+        return type.isActive;
+    }
+
+    public static CIType current() {
+        return Stream.of(CIType.values())
+                .filter(type -> type.isActive)
+                .findFirst().orElseThrow();
+    }
+
+    public static boolean isRunningOnCIMachine() {
+        return current().isCIMachine;
     }
 }
