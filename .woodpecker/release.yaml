@@ -1,10 +1,19 @@
 when:
   event:
-    - tag  # identical to Drone’s tag trigger :contentReference[oaicite:5]{index=5}
+    - tag
 
 steps:
+  - name: prepare-docker-build-container
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+
   - name: build-and-upload-to-maven-central
-    image: container-registry.jobrunr.io/build-container:1.4.1
+    image: container-registry.jobrunr.io/build-container:latest
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
@@ -30,7 +39,7 @@ steps:
         from_secret: ORG_GRADLE_PROJECT_sonatypePassword
 
   - name: update-and-push-readme
-    image: jobrunr.io/build-container:1.4.1
+    image: container-registry.jobrunr.io/build-container:latest
     environment:
       GITHUB_PAT:
         from_secret: GITHUB_TOKEN

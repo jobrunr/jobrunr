@@ -1,3 +1,9 @@
+# build stage for Maven
+FROM maven:3.9.4-eclipse-temurin-21 AS maven-dist
+# build stage for Gradle
+FROM gradle:8.5-jdk21 AS gradle-dist
+
+# Main build stage
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
 RUN apt-get update
@@ -16,7 +22,10 @@ RUN npx playwright install
 # disable SVE so ld-linux on arm64 doesn't segfault
 ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
-ENV GRADLE_VERSION=8.5
-COPY gradle /home/gradle/gradle
-COPY gradlew /home/gradle/gradlew
-RUN /home/gradle/gradlew -version
+# copy Maven and Gradle
+COPY --from=maven-dist /usr/share/maven /usr/share/maven
+COPY --from=gradle-dist /opt/gradle /opt/gradle
+
+ENV MAVEN_HOME=/usr/share/maven
+ENV GRADLE_HOME=/opt/gradle
+ENV PATH=${MAVEN_HOME}/bin:${GRADLE_HOME}/bin:$PATH

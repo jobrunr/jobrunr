@@ -10,20 +10,20 @@ when:
 
 
 workspace:
-  path: jobrunr/src    # relative to base :contentReference[oaicite:1]{index=1}
+  path: jobrunr/src
 
 steps:
-  - name: prepare
+  - name: prepare-docker-build-container
     image: docker
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
-      - docker build -f PrepareDockerfile -t container-registry.jobrunr.io/build-container:1.4.1 .
+      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
 
   - name: build
-    image: container-registry.jobrunr.io/build-container:1.4.1
+    image: container-registry.jobrunr.io/build-container:latest
     commands:
       - rm -rf /tmp/reports/*
       - find /woodpecker/jobrunr/src/.gradle -name "*.lock" -type f -delete
@@ -37,4 +37,4 @@ steps:
       BUILD_CACHE_USER:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:
-        from_secret: BUILD_CACHE_PASSWORD  # secrets moved under environment/from_secret
+        from_secret: BUILD_CACHE_PASSWORD
