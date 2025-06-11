@@ -30,6 +30,7 @@ dependencies {
     implementation 'io.micronaut:micronaut-runtime'
     implementation 'io.micronaut:micronaut-management'
     implementation 'io.micronaut.validation:micronaut-validation'
+    compileOnly 'io.micronaut:micronaut-inject-java'
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'io.micrometer:micrometer-core'
