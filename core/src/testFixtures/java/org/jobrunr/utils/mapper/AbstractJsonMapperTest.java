@@ -2,11 +2,13 @@ package org.jobrunr.utils.mapper;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
 import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Task;
@@ -16,12 +18,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static java.time.Instant.now;
+import static java.time.Instant.parse;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -345,5 +349,34 @@ public abstract class AbstractJsonMapperTest {
         String serializedJobInV6 = contentOfResource("/org/jobrunr/utils/mapper/complete-job-v6.0.json");
 
         assertThatCode(() -> jsonMapper.deserialize(serializedJobInV6, Job.class)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void canDeserializeCarbonIntensityForecast() {
+        var json = contentOfResource("/carbonaware/api/belgium_2024-07-11.json");
+
+        var forecast = jsonMapper.deserialize(json, CarbonIntensityForecast.class);
+
+        assertThat(forecast)
+                .hasDisplayName("Belgium")
+                .hasForecastInterval(Duration.ofHours(1))
+                .hasNextForecastAvailableAt(Instant.parse("2024-07-11T16:30:00.054245Z"))
+                .hasIntensityForecastSize(24)
+                .hasIntensityForecastAt(0, parse("2024-07-10T22:00:00Z"), 16);
+    }
+
+    @Test
+    void canDeserializeCarbonIntensityForecastWhenResponseIsAnError() {
+        var json = contentOfResource("/carbonaware/api/germany_no_data.json");
+
+        var forecast = jsonMapper.deserialize(json, CarbonIntensityForecast.class);
+
+        CarbonIntensityForecastAssert.assertThat(forecast)
+                .hasNoForecast()
+                .hasForecastInterval(null)
+                .hasNextForecastAvailableAt(null)
+                .hasError()
+                .hasErrorCode("FORECAST_NOT_AVAILABLE")
+                .hasErrorMessage("No forecast available for DataProvider ENTSO-E and area Germany.");
     }
 }
