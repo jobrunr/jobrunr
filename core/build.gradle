@@ -73,7 +73,7 @@ dependencies {
     testImplementation 'com.ibm.db2:jcc'
     testImplementation 'com.oracle.database.jdbc:ojdbc8'
     testImplementation 'org.mariadb.jdbc:mariadb-java-client'
-    testImplementation 'mysql:mysql-connector-java'
+    testImplementation 'com.mysql:mysql-connector-j'
     testImplementation 'com.zaxxer:HikariCP'
     testImplementation 'org.apache.commons:commons-dbcp2'
     testImplementation 'io.agroal:agroal-pool'

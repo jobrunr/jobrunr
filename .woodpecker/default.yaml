@@ -30,7 +30,7 @@ steps:
       - |
         bash -lc '
           set -e -o pipefail
-          ./gradlew --no-daemon -Djib.console=plain --info clean build test --fail-fast \
+          gradle --no-daemon -Djib.console=plain --info clean build test --fail-fast \
             | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
         '
     environment:
