@@ -127,7 +127,6 @@ task npmRunBuild() {
     }
 }
 
-npmRunBuild.dependsOn npmRunBuildWarning
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
