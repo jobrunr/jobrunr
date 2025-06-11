@@ -2,7 +2,6 @@ package org.jobrunr.server.carbonaware;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -40,7 +39,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     protected final String carbonIntensityApiBaseUrl;
 
     static {
-        wireMockServer = new WireMockServer(options().dynamicPort().notifier(new ConsoleNotifier(true)));
+        wireMockServer = new WireMockServer(options().dynamicPort());
         wireMockServer.start();
         WireMock.configureFor(wireMockServer.port());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -56,7 +55,6 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     public CarbonAwareApiWireMockExtension(WireMockServer wireMockServer, JsonMapper jsonMapper) {
         this.carbonIntensityApiBaseUrl = "http://localhost:" + wireMockServer.port();
         this.jsonMapper = jsonMapper;
-        WireMock.reset();
     }
 
     public CarbonAwareJobProcessingConfiguration getCarbonAwareJobProcessingConfigurationForAreaCode(String areaCode) {

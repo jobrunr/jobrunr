@@ -57,16 +57,16 @@ public class ProcessRecurringJobsTaskIntegrationTest {
 
         this.loggerAppender = LoggerAssert.initForLogger((Logger) LoggerFactory.getLogger(ProcessRecurringJobsTask.class));
 
-        startJobRunr();
+        configureJobRunr();
     }
 
     @AfterEach
     void cleanUp() {
         MDC.clear();
-        stopJobRunr();
+        stopJobRunrBackgroundJobServer();
     }
 
-    private void startJobRunr() {
+    private void configureJobRunr() {
         JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
@@ -76,12 +76,16 @@ public class ProcessRecurringJobsTaskIntegrationTest {
         this.backgroundJobServer = JobRunr.getBackgroundJobServer();
     }
 
-    private void stopJobRunr() {
+    private void startJobRunrBackgroundJobServer() {
+        backgroundJobServer.start();
+    }
+
+    private void stopJobRunrBackgroundJobServer() {
         backgroundJobServer.stop();
     }
 
     @Test
-    void carbonAwareAwaitingJobCreatedAndScheduledBeforeIdealTimeNotRecreatedWhenServerReboots() throws InterruptedException {
+    void carbonAwareAwaitingJobCreatedAndScheduledBeforeIdealTimeNotRecreatedWhenServerReboots() {
         BackgroundJob.scheduleRecurrently("recurring", CarbonAware.using(Duration.ofHours(1), Duration.ofHours(1), Duration.ZERO), () -> System.out.println("carbon job"));
         await().atMost(ofSeconds(5)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
@@ -92,10 +96,10 @@ public class ProcessRecurringJobsTaskIntegrationTest {
         assertThat(actuallyScheduled).isBefore(awaitingScheduled);
 
         // The server rebooted: the ProcessRecurringJobsTask cache is cleared
-        stopJobRunr();
+        stopJobRunrBackgroundJobServer();
 
         try (var ignored = Logback.temporarilyChangeLogLevel(ProcessRecurringJobsTask.class, Level.TRACE)) {
-            startJobRunr();
+            startJobRunrBackgroundJobServer();
             await().atMost(ofSeconds(5)).untilAsserted(() -> JobRunrAssertions.assertThat(this.loggerAppender).hasTraceMessageContaining("resulted in 0 scheduled jobs"));
 
             assertThat(storageProvider.countJobs(SCHEDULED)).isEqualTo(0);
