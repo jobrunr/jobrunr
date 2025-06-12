@@ -8,8 +8,10 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.jobs.states.AbstractJobState;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.JobUtils;
 
 import java.time.Duration;
@@ -50,6 +52,7 @@ public class JobBuilder {
     private UUID jobId;
     private String jobName;
     private Instant scheduleAt;
+    private CarbonAwarePeriod carbonAwarePeriod;
     private Integer retries;
     private List<String> labels;
     private JobRunrJob jobLambda;
@@ -105,6 +108,17 @@ public class JobBuilder {
      */
     public JobBuilder scheduleAt(Instant scheduleAt) {
         this.scheduleAt = scheduleAt;
+        return this;
+    }
+
+    /**
+     * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
+     *
+     * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
+     * @return the same builder instance which provides a fluent api
+     */
+    public JobBuilder scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod) {
+        this.carbonAwarePeriod = carbonAwarePeriod;
         return this;
     }
 
@@ -241,8 +255,14 @@ public class JobBuilder {
     }
 
     private AbstractJobState getState() {
+        if (this.scheduleAt != null && this.carbonAwarePeriod != null) {
+            throw new IllegalArgumentException("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware(), which is not allowed. Specify either a time to schedule the job " +
+                    "or allow a carbonAwarePeriod for the job to be scheduled, not both.");
+        }
         if (this.scheduleAt != null) {
             return new ScheduledState(this.scheduleAt);
+        } else if (this.carbonAwarePeriod != null) {
+            return new CarbonAwareAwaitingState(carbonAwarePeriod);
         } else {
             return new EnqueuedState();
         }

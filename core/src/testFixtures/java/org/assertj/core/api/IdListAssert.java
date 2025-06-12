@@ -1,26 +1,18 @@
 package org.assertj.core.api;
 
+import org.jobrunr.jobs.AbstractJob;
+
 import java.util.List;
-import java.util.function.Predicate;
 
-public class IdListAssert<T> extends ListAssert<T> {
+public class IdListAssert<ELEMENT extends AbstractJob, ELEMENT_ASSERT extends AbstractAssert<ELEMENT_ASSERT, ELEMENT>> extends FactoryBasedNavigableListAssert<IdListAssert<ELEMENT, ELEMENT_ASSERT>, List<? extends ELEMENT>, ELEMENT, ELEMENT_ASSERT> {
 
-    public IdListAssert(List<? extends T> actual) {
-        super(actual);
+    public IdListAssert(List<? extends ELEMENT> elements, AssertFactory<ELEMENT, ELEMENT_ASSERT> assertFactory) {
+        super(elements, IdListAssert.class, assertFactory);
     }
 
-    @Override
-    public IdListAssert<T> hasSize(int expected) {
-        return (IdListAssert<T>) super.hasSize(expected);
-    }
-
-    @Override
-    public IdListAssert<T> allMatch(Predicate<? super T> predicate) {
-        return (IdListAssert<T>) super.allMatch(predicate);
-    }
-
-    public IdListAssert containsExactlyComparingById(T... t) {
-        usingElementComparatorOnFields("id")
+    @SafeVarargs
+    public final IdListAssert<ELEMENT, ELEMENT_ASSERT> containsExactlyComparingById(ELEMENT... t) {
+        usingRecursiveFieldByFieldElementComparatorOnFields("id")
                 .containsExactly(t);
         return this;
     }

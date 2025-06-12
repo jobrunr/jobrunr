@@ -1,0 +1,189 @@
+{
+  "apiResponse": {
+    "code": "OK",
+    "message": "DataProvider ENTSO-E and area Belgium has 35 forecasts."
+  },
+  "dataProvider": "ENTSO-E",
+  "dataIdentifier": "10YBE----------2",
+  "displayName": "Belgium",
+  "timezone": "Europe/Brussels",
+  "nextForecastAvailableAt": "2024-07-12T16:30:00.873318Z",
+  "forecastInterval": "PT1H",
+  "intensityForecast": [
+    {
+      "periodStartAt": "2024-07-11T11:00:00Z",
+      "periodEndAt": "2024-07-11T12:00:00Z",
+      "rank": 2
+    },
+    {
+      "periodStartAt": "2024-07-11T12:00:00Z",
+      "periodEndAt": "2024-07-11T13:00:00Z",
+      "rank": 0
+    },
+    {
+      "periodStartAt": "2024-07-11T13:00:00Z",
+      "periodEndAt": "2024-07-11T14:00:00Z",
+      "rank": 3
+    },
+    {
+      "periodStartAt": "2024-07-11T14:00:00Z",
+      "periodEndAt": "2024-07-11T15:00:00Z",
+      "rank": 8
+    },
+    {
+      "periodStartAt": "2024-07-11T15:00:00Z",
+      "periodEndAt": "2024-07-11T16:00:00Z",
+      "rank": 21
+    },
+    {
+      "periodStartAt": "2024-07-11T16:00:00Z",
+      "periodEndAt": "2024-07-11T17:00:00Z",
+      "rank": 27
+    },
+    {
+      "periodStartAt": "2024-07-11T17:00:00Z",
+      "periodEndAt": "2024-07-11T18:00:00Z",
+      "rank": 31
+    },
+    {
+      "periodStartAt": "2024-07-11T18:00:00Z",
+      "periodEndAt": "2024-07-11T19:00:00Z",
+      "rank": 34
+    },
+    {
+      "periodStartAt": "2024-07-11T19:00:00Z",
+      "periodEndAt": "2024-07-11T20:00:00Z",
+      "rank": 33
+    },
+    {
+      "periodStartAt": "2024-07-11T20:00:00Z",
+      "periodEndAt": "2024-07-11T21:00:00Z",
+      "rank": 32
+    },
+    {
+      "periodStartAt": "2024-07-11T21:00:00Z",
+      "periodEndAt": "2024-07-11T22:00:00Z",
+      "rank": 30
+    },
+    {
+      "periodStartAt": "2024-07-11T22:00:00Z",
+      "periodEndAt": "2024-07-11T23:00:00Z",
+      "rank": 28
+    },
+    {
+      "periodStartAt": "2024-07-11T23:00:00Z",
+      "periodEndAt": "2024-07-12T00:00:00Z",
+      "rank": 19
+    },
+    {
+      "periodStartAt": "2024-07-12T00:00:00Z",
+      "periodEndAt": "2024-07-12T01:00:00Z",
+      "rank": 17
+    },
+    {
+      "periodStartAt": "2024-07-12T01:00:00Z",
+      "periodEndAt": "2024-07-12T02:00:00Z",
+      "rank": 11
+    },
+    {
+      "periodStartAt": "2024-07-12T02:00:00Z",
+      "periodEndAt": "2024-07-12T03:00:00Z",
+      "rank": 1
+    },
+    {
+      "periodStartAt": "2024-07-12T03:00:00Z",
+      "periodEndAt": "2024-07-12T04:00:00Z",
+      "rank": 7
+    },
+    {
+      "periodStartAt": "2024-07-12T04:00:00Z",
+      "periodEndAt": "2024-07-12T05:00:00Z",
+      "rank": 10
+    },
+    {
+      "periodStartAt": "2024-07-12T05:00:00Z",
+      "periodEndAt": "2024-07-12T06:00:00Z",
+      "rank": 22
+    },
+    {
+      "periodStartAt": "2024-07-12T06:00:00Z",
+      "periodEndAt": "2024-07-12T07:00:00Z",
+      "rank": 26
+    },
+    {
+      "periodStartAt": "2024-07-12T07:00:00Z",
+      "periodEndAt": "2024-07-12T08:00:00Z",
+      "rank": 16
+    },
+    {
+      "periodStartAt": "2024-07-12T08:00:00Z",
+      "periodEndAt": "2024-07-12T09:00:00Z",
+      "rank": 14
+    },
+    {
+      "periodStartAt": "2024-07-12T09:00:00Z",
+      "periodEndAt": "2024-07-12T10:00:00Z",
+      "rank": 13
+    },
+    {
+      "periodStartAt": "2024-07-12T10:00:00Z",
+      "periodEndAt": "2024-07-12T11:00:00Z",
+      "rank": 12
+    },
+    {
+      "periodStartAt": "2024-07-12T11:00:00Z",
+      "periodEndAt": "2024-07-12T12:00:00Z",
+      "rank": 6
+    },
+    {
+      "periodStartAt": "2024-07-12T12:00:00Z",
+      "periodEndAt": "2024-07-12T13:00:00Z",
+      "rank": 5
+    },
+    {
+      "periodStartAt": "2024-07-12T13:00:00Z",
+      "periodEndAt": "2024-07-12T14:00:00Z",
+      "rank": 4
+    },
+    {
+      "periodStartAt": "2024-07-12T14:00:00Z",
+      "periodEndAt": "2024-07-12T15:00:00Z",
+      "rank": 15
+    },
+    {
+      "periodStartAt": "2024-07-12T15:00:00Z",
+      "periodEndAt": "2024-07-12T16:00:00Z",
+      "rank": 20
+    },
+    {
+      "periodStartAt": "2024-07-12T16:00:00Z",
+      "periodEndAt": "2024-07-12T17:00:00Z",
+      "rank": 9
+    },
+    {
+      "periodStartAt": "2024-07-12T17:00:00Z",
+      "periodEndAt": "2024-07-12T18:00:00Z",
+      "rank": 18
+    },
+    {
+      "periodStartAt": "2024-07-12T18:00:00Z",
+      "periodEndAt": "2024-07-12T19:00:00Z",
+      "rank": 24
+    },
+    {
+      "periodStartAt": "2024-07-12T19:00:00Z",
+      "periodEndAt": "2024-07-12T20:00:00Z",
+      "rank": 29
+    },
+    {
+      "periodStartAt": "2024-07-12T20:00:00Z",
+      "periodEndAt": "2024-07-12T21:00:00Z",
+      "rank": 25
+    },
+    {
+      "periodStartAt": "2024-07-12T21:00:00Z",
+      "periodEndAt": "2024-07-12T22:00:00Z",
+      "rank": 23
+    }
+  ]
+}

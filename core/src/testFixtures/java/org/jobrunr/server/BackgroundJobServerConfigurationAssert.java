@@ -14,7 +14,9 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
     }
 
     public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
-        return new BackgroundJobServerConfigurationAssert(new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration));
+        return new BackgroundJobServerConfigurationAssert(backgroundJobServerConfiguration != null
+                ? new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration)
+                : null);
     }
 
     public BackgroundJobServerConfigurationAssert hasName(String name) {

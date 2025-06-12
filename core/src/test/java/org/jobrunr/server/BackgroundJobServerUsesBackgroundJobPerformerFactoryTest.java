@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BackgroundJobServerUsesBackJobPerformerFactoryTest {
+class BackgroundJobServerUsesBackgroundJobPerformerFactoryTest {
 
     private StorageProvider storageProvider;
 
@@ -60,8 +60,7 @@ class BackgroundJobServerUsesBackJobPerformerFactoryTest {
 
             serviceLoaderMock.when(() -> ServiceLoader.load(BackgroundJobPerformerFactory.class)).thenReturn(backgroundJobPerformerFactoryServiceLoader);
 
-            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(
-                    storageProvider, mock(JsonMapper.class), jobActivator,
+            BackgroundJobServer backgroundJobServer = new BackgroundJobServer(storageProvider, mock(JsonMapper.class), jobActivator,
                     usingStandardBackgroundJobServerConfiguration()
                             .andBackgroundJobServerWorkerPolicy(new DefaultBackgroundJobServerWorkerPolicy(5, x -> jobRunrExecutor)));
             backgroundJobServer.start();

@@ -144,6 +144,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return storageProvider.getCarbonAwareJobList(deadlineBefore, amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }
@@ -164,8 +169,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
-        return storageProvider.getRecurringJobScheduledInstants(recurringJobId, states);
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
+        return storageProvider.getRecurringJobLatestScheduledInstant(recurringJobId, states);
     }
 
     @Override

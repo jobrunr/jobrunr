@@ -17,12 +17,12 @@ import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class UpdateJobsInProgressTaskTest extends AbstractTaskTest {
 
@@ -45,7 +45,7 @@ class UpdateJobsInProgressTaskTest extends AbstractTaskTest {
         // THEN
         verify(storageProvider).save(singletonList(job));
         ProcessingState processingState = job.getJobState();
-        Assertions.assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
+        assertThat(processingState.getUpdatedAt()).isAfter(processingState.getCreatedAt());
     }
 
     @Test
@@ -83,7 +83,7 @@ class UpdateJobsInProgressTaskTest extends AbstractTaskTest {
         // GIVEN
         final Job job = anEnqueuedJob().withId().build();
         doThrow(new ConcurrentJobModificationException(job)).when(storageProvider).save(singletonList(job));
-        when(storageProvider.getJobById(job.getId())).thenReturn(aCopyOf(job).withDeletedState().build());
+        doReturn(aCopyOf(job).withDeletedState().build()).when(storageProvider).getJobById(job.getId());
         final Thread threadMock = startProcessingJobAndReturnThread(job);
 
         // WHEN
@@ -101,7 +101,7 @@ class UpdateJobsInProgressTaskTest extends AbstractTaskTest {
         // GIVEN
         final Job job = anEnqueuedJob().withId().build();
         doThrow(new ConcurrentJobModificationException(job)).when(storageProvider).save(singletonList(job));
-        when(storageProvider.getJobById(job.getId())).thenThrow(new JobNotFoundException(job.getId()));
+        doThrow(new JobNotFoundException(job.getId())).when(storageProvider).getJobById(job.getId());
         final Thread threadMock = startProcessingJobAndReturnThread(job);
 
         // WHEN

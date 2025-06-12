@@ -2,6 +2,7 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
@@ -15,8 +16,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 
-import static java.time.Duration.ofMillis;
-import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -61,6 +60,27 @@ class RecurringJobTest {
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
     }
 
+
+    @Test
+    void testCreateARecurringCronJobWithCarbonAwareMarginSetsScheduleCorrectly() {
+        var cron = aDefaultRecurringJob()
+                .withId("cron")
+                .withCronExpression("0 0 1 * * [PT1H/PT10H]")
+                .build();
+
+        assertThat(cron).hasScheduleExpression("0 0 1 * * [PT1H/PT10H]");
+    }
+
+    @Test
+    void testCreateARecurringIntervalJobWithCarbonAwareMarginSetsScheduleCorrectly() {
+        var interval = aDefaultRecurringJob()
+                .withId("interval")
+                .withIntervalExpression("PT1H [PT4H/PT0S]")
+                .build();
+
+        assertThat(interval).hasScheduleExpression("PT1H [PT4H/PT0S]");
+    }
+
     @Test
     void testToScheduledJobsGetsAllJobsBetweenStartAndEnd() {
         final RecurringJob recurringJob = aDefaultRecurringJob()
@@ -101,6 +121,32 @@ class RecurringJobTest {
         final List<Job> jobs = recurringJob.toScheduledJobs(now().minusSeconds(15), now().plusSeconds(5));
 
         assertThat(jobs).hasSize(4);
+    }
+
+    @Test
+    void testToScheduledJobsForCarbonAwareAheadOfTimeCreatesAJobInAwaitingState() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 0 1 * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(now(), now().plusSeconds(5));
+
+        assertThat(jobs).hasSize(1);
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("Ahead of time by recurring job 'a recurring job'");
+    }
+
+    @Test
+    void testToScheduledJobsForCarbonAwareCreatesAJobInAwaitingState() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression("0 13 * * * [PT1H/PT10H]")
+                .build();
+
+        final List<Job> jobs = recurringJob.toScheduledJobs(Instant.parse("2024-11-20T09:00:00.000Z"), Instant.parse("2024-11-21T09:00:00.000Z"));
+
+        assertThat(jobs).hasSize(1);
+        CarbonAwareAwaitingState awaitingState = jobs.get(0).getJobState();
+        assertThat(awaitingState.getReason()).isEqualTo("By recurring job 'a recurring job'");
     }
 
     @Test
@@ -163,26 +209,5 @@ class RecurringJobTest {
                 .build();
         Instant nextRun = recurringJob.getNextRun();
         assertThat(nextRun).isAfter(now());
-    }
-
-    @Test
-    void testDurationBetweenRecurringJobInstancesForCronJob() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
-        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
-
-        RecurringJob recurringJob2 = aDefaultRecurringJob().withCronExpression("*/5 * * * * *").build();
-        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
-    }
-
-    @Test
-    void testDurationBetweenRecurringJobInstancesForIntervalJob() {
-        RecurringJob recurringJob1 = aDefaultRecurringJob().withIntervalExpression(ofMillis(200).toString()).build();
-        assertThat(recurringJob1.durationBetweenRecurringJobInstances()).isEqualTo(ofMillis(200));
-
-        RecurringJob recurringJob2 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(1).toString()).build();
-        assertThat(recurringJob2.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(1));
-
-        RecurringJob recurringJob3 = aDefaultRecurringJob().withIntervalExpression(ofSeconds(5).toString()).build();
-        assertThat(recurringJob3.durationBetweenRecurringJobInstances()).isEqualTo(ofSeconds(5));
     }
 }

@@ -33,5 +33,6 @@ public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer
         storageProvider.save(aSucceededJob().build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("carbon-aware-generate-sales-reports").withName("Generate sales report at 3am with some margin for carbon aware scheduling").withCronExpression("0 3 * * * [PT2H/PT3H]").build());
     }
 }

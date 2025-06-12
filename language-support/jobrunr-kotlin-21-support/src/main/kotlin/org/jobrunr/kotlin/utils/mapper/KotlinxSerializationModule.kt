@@ -23,6 +23,7 @@ import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardLogLinesSeriali
 import org.jobrunr.kotlin.serialization.jobs.context.JobDashboardProgressSerializer
 import org.jobrunr.kotlin.serialization.jobs.states.*
 import org.jobrunr.kotlin.serialization.misc.*
+import org.jobrunr.kotlin.serialization.server.carbonaware.CarbonIntensityForecastSerializer
 import org.jobrunr.kotlin.serialization.storage.*
 import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
@@ -35,6 +36,7 @@ internal val jobRunrSerializersModule = SerializersModule {
         subclass(KEnqueuedState.Serializer)
         subclass(KFailedState.Serializer)
         subclass(KProcessingState.Serializer)
+        subclass(KCarbonAwareAwaitingState.Serializer)
         subclass(KScheduledState.Serializer)
         subclass(KSucceededState.Serializer)
     }
@@ -44,6 +46,7 @@ internal val jobRunrSerializersModule = SerializersModule {
     contextual(JobDashboardLogLineSerializer)
     contextual(JobDashboardLogLinesSerializer)
     contextual(JobDashboardProgressSerializer)
+    contextual(CarbonIntensityForecastSerializer)
 
     contextual(JobStatsSerializer)
     contextual(JobStatsExtendedSerializer)
