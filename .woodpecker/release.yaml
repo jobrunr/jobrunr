@@ -24,6 +24,13 @@ steps:
           gradle --no-daemon -Djib.console=plain --info clean assemble publishToSonatype \
             | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
         '
+      - |
+        bash -lc '
+          SONATYPE_KEY=$(curl -X GET -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/search/repositories\?profile_id\=org.jobrunr\&state\=open\&ip\=any | grep "key" | sed 's/"key": "//' | sed 's/",//' | tr -d ' ')
+          echo "Sonatype OSSRH Staging API Repository key $SONATYPE_KEY found"
+          curl -X POST -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/upload/repository/$SONATYPE_KEY
+          echo "Sonatype Upload from Staging API to Portal complete. Go to https://central.sonatype.com/publishing/deployments to finish the release."
+        '
     environment:
       BUILD_CACHE_USER:
         from_secret: BUILD_CACHE_USER
@@ -33,6 +40,8 @@ steps:
         from_secret: SIGNING_KEY
       SIGNING_PASSWORD:
         from_secret: SIGNING_PASSWORD
+      SONATYPE_AUTH_HEADER:
+        from_secret: SONATYPE_AUTH_HEADER
       ORG_GRADLE_PROJECT_sonatypeUsername:
         from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
       ORG_GRADLE_PROJECT_sonatypePassword:
