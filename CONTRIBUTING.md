@@ -1,4 +1,10 @@
 
+# Welcome to the JobRunr community!
+
+👋 Hey, I'm [Ronald](https://github.com/rdehuyss), the creator and lead engineer of [JobRunr](https://www.jobrunr.io/). Nice to meet you! Who are you?
+
+JobRunr is an open-source project where we try to make a living from, so we kindly ask you to have a **complete Github Personal Profile** (Name and Company details or LinkedIn Profile). It's always nice to know to whom we're talking to and providing free support to. If your Github Profile is not complete, we will probably close the issue without answering. For more info, read this excellent blog post about [open-source etiquette](https://www.yegor256.com/2020/07/29/open-source-etiquette.html). 
+
 ## Contributing to jobrunr
 JobRunr follows a very standard Github development process, using Github tracker for issues and merging pull requests into master. If you want to contribute even something trivial please do not hesitate, but follow the guidelines below.
 
