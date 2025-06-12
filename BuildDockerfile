@@ -7,7 +7,7 @@ FROM gradle:8.5-jdk21 AS gradle-dist
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
 
 RUN apt-get update
-RUN apt-get install -y software-properties-common git ca-certificates curl jq gnupg lsb-release docker.io
+RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
 RUN source /root/.bashrc
