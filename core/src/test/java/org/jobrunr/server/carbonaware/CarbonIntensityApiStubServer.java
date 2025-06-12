@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.time.ZoneId.systemDefault;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRootUrl;
 
 public class CarbonIntensityApiStubServer {
 
@@ -28,7 +29,7 @@ public class CarbonIntensityApiStubServer {
     private static final int CARBON_HIGH = 5;
 
     public CarbonIntensityApiStubServer andCarbonAwareJobProcessingConfig(CarbonAwareJobProcessingConfiguration carbonConfig) {
-        Whitebox.setInternalState(carbonConfig, "carbonIntensityApiUrl", "http://localhost:" + port);
+        Whitebox.setInternalState(carbonConfig, "carbonIntensityApiUrl", getCarbonIntensityForecastApiRootUrl("http://localhost:" + port));
         return this;
     }
 

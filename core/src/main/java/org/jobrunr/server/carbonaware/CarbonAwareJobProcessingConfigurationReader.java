@@ -39,7 +39,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
-        return new URL(getCarbonIntensityForecastApiRootUrl(getCarbonIntensityApiBaseUrl()) + getCarbonIntensityForecastQueryString());
+        return new URL(getCarbonIntensityApiBaseUrl() + getCarbonIntensityForecastQueryString());
     }
 
     public String getDataProvider() {

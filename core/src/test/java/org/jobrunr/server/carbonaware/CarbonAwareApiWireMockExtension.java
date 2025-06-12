@@ -31,6 +31,7 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRootUrl;
 
 public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCallback {
 
@@ -61,7 +62,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
         var config = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andApiClientRetriesOnException(1)
                 .andAreaCode(areaCode);
-        Whitebox.setInternalState(config, "carbonIntensityApiUrl", carbonIntensityApiBaseUrl);
+        Whitebox.setInternalState(config, "carbonIntensityApiUrl", getCarbonIntensityForecastApiRootUrl(carbonIntensityApiBaseUrl));
         return config;
     }
 
