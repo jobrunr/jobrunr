@@ -29,18 +29,7 @@ public abstract class Schedule implements Comparable<Schedule> {
                 ? scheduleWithOptionalCarbonAwareScheduleMargin
                 : substringBeforeLast(scheduleWithOptionalCarbonAwareScheduleMargin, CarbonAwareScheduleMargin.MARGIN_OPENING_TAG).trim();
     }
-
-    /**
-     * Calculates the next occurrence based on the creation time and the current time.
-     *
-     * @param createdAt Instant object when the schedule was first created
-     * @param zoneId    the zone for which to calculate the schedule
-     * @return Instant of the next occurrence.
-     */
-    public Instant next(Instant createdAt, ZoneId zoneId) {
-        return next(createdAt, now(), zoneId);
-    }
-
+    
     /**
      * Calculates the next occurrence based on the creation time and the provided base time.
      *
@@ -106,8 +95,8 @@ public abstract class Schedule implements Comparable<Schedule> {
         }
 
         Instant baseInstant = now();
-        final Instant nextAnother = schedule.next(baseInstant, ZoneOffset.UTC);
-        final Instant nextThis = this.next(baseInstant, ZoneOffset.UTC);
+        final Instant nextAnother = schedule.next(baseInstant, now(), ZoneOffset.UTC);
+        final Instant nextThis = this.next(baseInstant, now(), ZoneOffset.UTC);
 
         return nextThis.compareTo(nextAnother);
     }
