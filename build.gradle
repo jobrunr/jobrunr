@@ -8,13 +8,17 @@ plugins {
 nexusPublishing {
     packageGroup = "org.jobrunr"
     repositories {
-        sonatype()
+        // see https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/#configuration
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
     }
 }
 
 subprojects {
     group = 'org.jobrunr'
-    version = System.getenv('DRONE_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
+    version = System.getenv('CI_COMMIT_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
 }
 
 def isNonStable = { String version ->

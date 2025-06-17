@@ -135,16 +135,17 @@ public class DatabaseCreator {
         try (final Connection conn = getConnection()) {
             List<String> allTableNames = new ArrayList<>();
             String catalog = conn.getCatalog();
-            ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null);
-            while (tables.next()) {
-                if (tablePrefixStatementUpdater.getSchema() != null) {
-                    String tableSchema = tables.getString("TABLE_SCHEM");
-                    String tableName = tables.getString("TABLE_NAME");
-                    String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
-                    allTableNames.add(completeTableName);
-                } else {
-                    String tableName = tables.getString("TABLE_NAME").toUpperCase();
-                    allTableNames.add(tableName);
+            try (ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null)) {
+                while (tables.next()) {
+                    if (tablePrefixStatementUpdater.getSchema() != null) {
+                        String tableSchema = tables.getString("TABLE_SCHEM");
+                        String tableName = tables.getString("TABLE_NAME");
+                        String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
+                        allTableNames.add(completeTableName);
+                    } else {
+                        String tableName = tables.getString("TABLE_NAME").toUpperCase();
+                        allTableNames.add(tableName);
+                    }
                 }
             }
             return allTableNames;
