@@ -55,7 +55,7 @@ class CronExpressionTest {
         int daysToAdd = hour >= 24 ? 1 : 0;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(Instant.now(), UTC);
+        Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(createdAtNotRelevantInstant, Instant.now(), UTC);
 
         Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
@@ -74,7 +74,7 @@ class CronExpressionTest {
             minute = minute - 1;
         }
 
-        Instant nextRun = new CronExpression(Cron.daily(hour, minute)).next(Instant.now(), ZoneOffset.of("+02:00"));
+        Instant nextRun = new CronExpression(Cron.daily(hour, minute)).next(createdAtNotRelevantInstant, Instant.now(), ZoneOffset.of("+02:00"));
         Instant expectedNextRun = now().plusDays(1).withHour(hour).withMinute(minute).withSecond(0).withNano(0).atZone(ZoneOffset.of("+02:00")).toInstant();
         assertThat(nextRun)
                 .isAfter(Instant.now())
@@ -87,7 +87,7 @@ class CronExpressionTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = new CronExpression(Cron.hourly(nextMinute)).next(Instant.now(), ZoneOffset.of("+02:00"));
+        Instant nextRun = new CronExpression(Cron.hourly(nextMinute)).next(createdAtNotRelevantInstant, Instant.now(), ZoneOffset.of("+02:00"));
         assertThat(nextRun).isAfter(Instant.now());
     }
 
@@ -97,7 +97,7 @@ class CronExpressionTest {
         OffsetDateTime offsetDateTime = OffsetDateTime.now(ZoneId.of("America/New_York"));
         int nextMinute = offsetDateTime.plusMinutes(1).getMinute();
 
-        Instant nextRun = new CronExpression(Cron.hourly(nextMinute)).next(Instant.now(), ZoneId.of("America/New_York"));
+        Instant nextRun = new CronExpression(Cron.hourly(nextMinute)).next(createdAtNotRelevantInstant, Instant.now(), ZoneId.of("America/New_York"));
         assertThat(nextRun)
                 .isAfter(Instant.now())
                 .isBefore(now().toLocalDate().plusDays(1).atStartOfDay().toInstant(UTC));
@@ -109,7 +109,7 @@ class CronExpressionTest {
         int hour = now().getHour() + 1;
         hour = hour >= 24 ? 0 : hour;
 
-        Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(Instant.now(), systemDefault());
+        Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(createdAtNotRelevantInstant, Instant.now(), systemDefault());
         Instant expectedNextInstant = ZonedDateTime.now(systemDefault()).plusHours(1).truncatedTo(HOURS).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
@@ -117,7 +117,7 @@ class CronExpressionTest {
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart2() {
-        Instant actualNextInstant = new CronExpression(Cron.hourly()).next(Instant.now(), systemDefault());
+        Instant actualNextInstant = new CronExpression(Cron.hourly()).next(createdAtNotRelevantInstant, Instant.now(), systemDefault());
 
         Instant expectedNextInstant = now().plusHours(1).withMinute(0).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
@@ -126,7 +126,7 @@ class CronExpressionTest {
 
     @Test
     void cronExpressionsCanBeMappedToOtherZonePart3() {
-        Instant actualNextInstant = new CronExpression(Cron.minutely()).next(Instant.now(), UTC);
+        Instant actualNextInstant = new CronExpression(Cron.minutely()).next(createdAtNotRelevantInstant, Instant.now(), UTC);
 
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
@@ -163,7 +163,7 @@ class CronExpressionTest {
         CronExpression cronExpression2 = new CronExpression(Cron.daily(23, 59));
 
         assertThat(cronExpression1)
-                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", cronExpression1.next(now, UTC).toString(), cronExpression2.next(now, UTC).toString(), now.toString())
+                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", cronExpression1.next(createdAtNotRelevantInstant, now, UTC).toString(), cronExpression2.next(createdAtNotRelevantInstant, now, UTC).toString(), now.toString())
                 .isLessThan(cronExpression2);
     }
 
