@@ -93,7 +93,6 @@ data class KCarbonAwareAwaitingState(
 data class KScheduledState(
     val state: StateName = StateName.SCHEDULED,
     @Serializable(with = InstantSerializer::class) val scheduledAt: Instant,
-    val recurringJobId: String? = null,
     val reason: String? = null,
     @Serializable(with = InstantSerializer::class) val createdAt: Instant,
 ) {
@@ -101,14 +100,12 @@ data class KScheduledState(
         override fun ScheduledState.toDTO() = KScheduledState(
             scheduledAt = scheduledAt,
             reason = reason,
-            recurringJobId = recurringJobId,
             createdAt = createdAt,
         )
 
         override fun KScheduledState.fromDTO() = ScheduledState(
             scheduledAt,
             reason,
-            recurringJobId,
             createdAt,
         )
     }

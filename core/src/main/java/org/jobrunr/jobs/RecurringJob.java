@@ -169,7 +169,7 @@ public class RecurringJob extends AbstractJob {
         Schedule schedule = getSchedule();
         return schedule.isCarbonAware()
                 ? new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason)
-                : new ScheduledState(nextRun, reason, getId());
+                : new ScheduledState(nextRun, reason);
     }
 
     private Job toJob(JobState jobState) {
