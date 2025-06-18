@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ServiceLoader;
@@ -32,7 +33,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobServerUsesBackgroundJobPerformerFactoryTest {
 
-    private StorageProvider storageProvider;
+    @Spy
+    private StorageProvider storageProvider = new InMemoryStorageProvider();
 
     private SimpleJobActivator jobActivator;
 
@@ -41,7 +43,6 @@ class BackgroundJobServerUsesBackgroundJobPerformerFactoryTest {
 
     @BeforeEach
     void setUp() {
-        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobActivator = new SimpleJobActivator(new TestServiceForIoC("an argument"));
     }
 

@@ -5,7 +5,6 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.DatabaseCleaner;
-import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
@@ -18,7 +17,7 @@ import java.sql.SQLException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
-public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProviderTest {
+public class NativePoolH2TablePrefixStorageProviderTest extends AbstractH2StorageProviderTest {
 
     private static JdbcConnectionPool dataSource;
 
@@ -57,6 +56,7 @@ public class NativePoolH2TablePrefixStorageProviderTest extends SqlStorageProvid
 
     @AfterAll
     public static void destroyDatasource() throws SQLException {
+        shutdownDatabase(dataSource);
         dataSource.dispose();
         dataSource = null;
     }

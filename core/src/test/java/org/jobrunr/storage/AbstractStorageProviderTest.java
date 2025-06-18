@@ -12,7 +12,10 @@ import org.jobrunr.utils.SleepUtils;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,20 +29,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.utils.SleepUtils.sleep;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
+@ExtendWith(MockitoExtension.class)
 class AbstractStorageProviderTest {
 
     public static final String SOME_METADATA_NAME = "some-metadata-name";
     Condition<JobChangeListenerForTest> closeCalled = new Condition<>(x -> x.closeIsCalled, "Close is called");
     Condition<JobChangeListenerForTest> jobNotNull = new Condition<>(x -> x.job != null, "Has Job");
 
-    private AbstractStorageProvider storageProvider;
+    @Spy
+    AbstractStorageProvider storageProvider = new InMemoryStorageProvider();
 
     @BeforeEach
     void setUpStorageProvider() {
-        this.storageProvider = Mockito.spy(new InMemoryStorageProvider());
         this.storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
     }
 
@@ -63,7 +70,7 @@ class AbstractStorageProviderTest {
         storageProvider.addJobStorageOnChangeListener(changeListener);
 
         CountDownLatch countDownLatch = new CountDownLatch(5);
-        for(int i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++) {
             sleep(1050);
             new Thread(() -> {
                 storageProvider.notifyJobStatsOnChangeListeners();

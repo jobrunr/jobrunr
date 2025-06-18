@@ -66,6 +66,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void close() {
         stopTimerToSendUpdates();
+        onChangeListeners.clear();
     }
 
     @Override

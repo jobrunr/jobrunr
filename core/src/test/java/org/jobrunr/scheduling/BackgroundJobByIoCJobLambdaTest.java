@@ -79,8 +79,7 @@ public class BackgroundJobByIoCJobLambdaTest {
     @AfterEach
     public void cleanUp() {
         MDC.clear();
-        backgroundJobServer.stop();
-        storageProvider.close();
+        JobRunr.destroy();
     }
 
     @Test

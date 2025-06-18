@@ -26,9 +26,12 @@ import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.ThrowsException;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,10 +65,12 @@ import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 
+@ExtendWith(MockitoExtension.class)
 class BackgroundJobServerTest {
 
     private TestService testService;
-    private StorageProvider storageProvider;
+    @Spy
+    private StorageProvider storageProvider = new InMemoryStorageProvider();
     private BackgroundJobServer backgroundJobServer;
     private TestServiceForIoC testServiceForIoC;
     private SimpleJobActivator jobActivator;
@@ -78,7 +83,6 @@ class BackgroundJobServerTest {
         testServiceForIoC = new TestServiceForIoC("an argument");
         testService.reset();
         testServiceForIoC.reset();
-        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobActivator = new SimpleJobActivator(testServiceForIoC);
         JobRunr.configure()
                 .useJobActivator(jobActivator)
@@ -91,8 +95,9 @@ class BackgroundJobServerTest {
     }
 
     @AfterEach
-    void stopBackgroundJobServer() {
+    void tearDown() {
         backgroundJobServer.stop();
+        storageProvider.close();
     }
 
     @Test

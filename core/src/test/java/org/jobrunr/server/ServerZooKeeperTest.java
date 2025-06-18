@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
@@ -53,12 +54,12 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 class ServerZooKeeperTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeperTest.class);
-    private StorageProvider storageProvider;
+    @Spy
+    private StorageProvider storageProvider = new InMemoryStorageProvider();
     private BackgroundJobServer backgroundJobServer;
 
     @BeforeEach
     void setUp() {
-        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         final JsonMapper jsonMapper = new JacksonJsonMapper();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
         backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, null, usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(500)).andWorkerCount(10));

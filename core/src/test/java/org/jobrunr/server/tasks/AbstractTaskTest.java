@@ -16,6 +16,8 @@ import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +57,16 @@ public abstract class AbstractTaskTest {
     void setUpTaskDependencies() {
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
         setUpTaskDependencies(storageProvider);
+    }
+
+    @AfterEach
+    void tearDownTaskDependencies() {
+        storageProvider.close();
+    }
+
+    @AfterAll
+    static void clearInlineMocks() {
+        Mockito.framework().clearInlineMocks();
     }
 
     protected void setUpTaskDependencies(StorageProvider storageProvider) {

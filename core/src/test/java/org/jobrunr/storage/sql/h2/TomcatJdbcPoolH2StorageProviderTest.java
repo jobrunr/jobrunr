@@ -2,12 +2,11 @@ package org.jobrunr.storage.sql.h2;
 
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.h2.Driver;
-import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.AfterAll;
 
 import java.sql.SQLException;
 
-public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest {
+public class TomcatJdbcPoolH2StorageProviderTest extends AbstractH2StorageProviderTest {
 
     private static DataSource dataSource;
 
@@ -30,6 +29,7 @@ public class TomcatJdbcPoolH2StorageProviderTest extends SqlStorageProviderTest 
 
     @AfterAll
     public static void destroyDatasource() throws SQLException {
+        shutdownDatabase(dataSource);
         dataSource.close();
         dataSource = null;
     }

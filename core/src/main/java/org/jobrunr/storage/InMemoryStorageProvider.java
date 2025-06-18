@@ -336,6 +336,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
     }
 
+    @Override
+    public void close() {
+        super.close();
+        clear();
+        backgroundJobServers.clear();
+        jobMapper = null;
+    }
+
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
                 .sorted(getJobComparator(amountRequest));

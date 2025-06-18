@@ -114,7 +114,7 @@ public class BackgroundJobByJobLambdaTest {
     @AfterEach
     void cleanUp() {
         MDC.clear();
-        backgroundJobServer.stop();
+        JobRunr.destroy();
     }
 
     @Test

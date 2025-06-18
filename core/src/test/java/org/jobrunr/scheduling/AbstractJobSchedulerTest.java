@@ -10,16 +10,18 @@ import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.h2.H2StorageProvider;
+import org.jobrunr.utils.InstantUtils;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.jobrunr.utils.InstantUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.time.chrono.HijrahDate;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -31,12 +33,23 @@ import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDA
 
 class AbstractJobSchedulerTest {
 
+    StorageProvider storageProvider;
+
+    @BeforeEach
+    void setUp() {
+        storageProvider = new InMemoryStorageProvider();
+    }
+
+    @AfterEach
+    void tearDown() {
+        storageProvider.close();
+    }
+
     @Test
     void scheduleValidatesTemporalType() {
-        var storageProvider = new InMemoryStorageProvider();
         try (var mockedInstantUtils = Mockito.mockStatic(InstantUtils.class, Mockito.CALLS_REAL_METHODS)) {
             storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-            AbstractJobScheduler jobScheduler = jobScheduler(storageProvider);
+            AbstractJobScheduler jobScheduler = jobScheduler();
 
             assertThatCode(() -> jobScheduler.schedule(null, Instant.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
 
@@ -47,8 +60,6 @@ class AbstractJobSchedulerTest {
             mockedInstantUtils.verify(() -> InstantUtils.toInstant(ArgumentMatchers.any()), Mockito.times(2));
         }
     }
-
-    StorageProvider storageProvider;
 
     @Test
     void scheduleCarbonAwareSavesJobInAwaitingState() {
@@ -68,7 +79,10 @@ class AbstractJobSchedulerTest {
 
     @Test
     void scheduleRecurrentlyValidatesScheduleDoesThrowExceptionWhenUsingNotAnH2StorageProvider() {
-        AbstractJobScheduler jobScheduler = jobScheduler(new H2StorageProvider(null, NO_VALIDATE));
+        storageProvider.close();
+        storageProvider = new H2StorageProvider(null, NO_VALIDATE);
+        storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+        AbstractJobScheduler jobScheduler = jobScheduler();
         RecurringJob recurringJob = aDefaultRecurringJob().withCronExpression("* * * * * *").build();
         assertThatCode(() -> jobScheduler.scheduleRecurrently(recurringJob))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -86,14 +100,8 @@ class AbstractJobSchedulerTest {
 
     AbstractJobScheduler jobScheduler() {
         JsonMapper jsonMapper = new JacksonJsonMapper();
-        StorageProvider storageProvider = new InMemoryStorageProvider();
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
 
-        return jobScheduler(storageProvider);
-    }
-
-    AbstractJobScheduler jobScheduler(StorageProvider storageProvider) {
-        this.storageProvider = storageProvider;
         return new AbstractJobScheduler(storageProvider, emptyList()) {
             @Override
             JobId create(JobBuilder jobBuilder) {
