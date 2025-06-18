@@ -30,7 +30,7 @@ class ScheduleExpressionTypeTest {
 
     @Test
     void createScheduleFromString() {
-        assertThat(ScheduleExpressionType.createScheduleFromString("* * * * *")).isEqualTo(CronExpression.create("* * * * *"));
+        assertThat(ScheduleExpressionType.createScheduleFromString("* * * * *")).isEqualTo(new CronExpression("* * * * *"));
         assertThat(ScheduleExpressionType.createScheduleFromString("PT10M")).isEqualTo(new Interval("PT10M"));
         assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("Not correct"))
                 .isInstanceOf(InvalidCronExpressionException.class)

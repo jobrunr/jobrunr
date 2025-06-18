@@ -150,16 +150,7 @@ public class CronExpression extends Schedule {
         if (!this.canScheduleActuallyOccur())
             throw new InvalidCronExpressionException("Cron expression not valid. The specified months do not have the day 30th or the day 31st");
     }
-
-
-    /**
-     * Not used by JobRunr and will be removed, use the constructor instead.
-     */
-    @Deprecated
-    public static CronExpression create(String expression) {
-        return new CronExpression(expression);
-    }
-
+    
     /**
      * Calculates the next occurrence based on provided base time.
      *

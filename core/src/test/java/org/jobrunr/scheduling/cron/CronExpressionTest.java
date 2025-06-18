@@ -137,7 +137,7 @@ class CronExpressionTest {
     @Because("github issue 1145")
     void cronExpressionsReturnTimeAfterCurrentInstantDuringDST() {
         Instant from = Instant.parse("2024-10-27T01:00:15.660199Z");
-        Instant actualNextInstant = CronExpression.create("0 5 2 * * *").next(Instant.parse("2024-10-27T00:58:19.509707Z"), from, ZoneId.of("Europe/Brussels"));
+        Instant actualNextInstant = new CronExpression("0 5 2 * * *").next(Instant.parse("2024-10-27T00:58:19.509707Z"), from, ZoneId.of("Europe/Brussels"));
 
         assertThat(actualNextInstant)
                 .isNotNull()
