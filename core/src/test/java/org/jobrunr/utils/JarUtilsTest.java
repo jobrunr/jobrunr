@@ -25,7 +25,7 @@ class JarUtilsTest {
 
     @Test
     void jacksonVersion() {
-        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.18.3");
+        assertThat(JarUtils.getVersion(ObjectMapper.class)).isEqualTo("2.19.1");
     }
 
     @Test
