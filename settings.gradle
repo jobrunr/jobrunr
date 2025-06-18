@@ -29,7 +29,6 @@ buildCache {
 rootProject.name = 'JobRunr'
 include ':platform'
 include ':core'
-include ':language-support:jobrunr-kotlin-19-support'
 include ':language-support:jobrunr-kotlin-20-support'
 include ':language-support:jobrunr-kotlin-21-support'
 include ':framework-support:jobrunr-micronaut-feature'
