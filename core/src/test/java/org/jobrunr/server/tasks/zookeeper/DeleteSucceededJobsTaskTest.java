@@ -10,25 +10,24 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.within;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
-import static org.jobrunr.jobs.JobTestBuilder.emptyJobList;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
 
@@ -48,7 +47,7 @@ class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
     void testTask() {
         Job succeededJob1 = aSucceededJob().build();
         Job succeededJob2 = aSucceededJob().build();
-        when(storageProvider.getJobList(eq(SUCCEEDED), any(), any())).thenReturn(asList(succeededJob1, succeededJob2), emptyJobList());
+        whenGetJobsToDeleteThenReturn(List.of(succeededJob1, succeededJob2));
         runTask(task);
 
         verify(storageProvider).save(anyList());
@@ -74,10 +73,7 @@ class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
     void taskMovesSucceededJobsToDeletedStateAlsoForMethodsThatDontExistAnymore() {
         Job job = aSucceededJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
 
-        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
-                .thenReturn(
-                        singletonList(job),
-                        emptyJobList());
+        whenGetJobsToDeleteThenReturn(singletonList(job));
 
         // WHEN
         runTask(task);
@@ -91,16 +87,13 @@ class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
     @Test
     void taskMovesSucceededJobsToDeletedStateAlsoForInterfacesWithMethodsThatDontExistAnymore() {
         // GIVEN
-        lenient().when(storageProvider.getJobList(eq(SUCCEEDED), any(Instant.class), any()))
-                .thenReturn(
-                        asList(aSucceededJob()
-                                .withJobDetails(jobDetails()
-                                        .withClassName(TestServiceInterface.class)
-                                        .withMethodName("methodThatDoesNotExist")
-                                        .build())
-                                .build()),
-                        emptyJobList()
-                );
+        Job job = aSucceededJob().withJobDetails(jobDetails()
+                        .withClassName(TestServiceInterface.class)
+                        .withMethodName("methodThatDoesNotExist")
+                        .build())
+                .build();
+
+        whenGetJobsToDeleteThenReturn(singletonList(job));
 
         // WHEN
         runTask(task);
@@ -109,5 +102,11 @@ class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
         assertThat(logger).hasNoWarnLogMessages();
         verify(storageProvider).save(anyList());
         verify(storageProvider).publishTotalAmountOfSucceededJobs(1);
+    }
+
+    private void whenGetJobsToDeleteThenReturn(List<Job> jobs) {
+        doReturn(jobs, Collections.<Job>emptyList())
+                .when(storageProvider)
+                .getJobList(eq(SUCCEEDED), any(Instant.class), any());
     }
 }

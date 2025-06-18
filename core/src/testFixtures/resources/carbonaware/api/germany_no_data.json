@@ -1,0 +1,13 @@
+{
+  "apiResponse": {
+    "code": "FORECAST_NOT_AVAILABLE",
+    "message": "No forecast available for DataProvider ENTSO-E and area Germany."
+  },
+  "dataProvider": "ENTSO-E",
+  "dataIdentifier": "10Y1001A1001A82H",
+  "displayName": "Germany",
+  "timezone": "Europe/Berlin",
+  "nextForecastAvailableAt": null,
+  "forecastInterval": null,
+  "intensityForecast": null
+}

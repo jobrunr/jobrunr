@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling.interval;
 
+import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class IntervalTest {
 
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final Instant createdAtNotRelevantInstant = Instant.ofEpochSecond(0);
 
     private static final String FIVE_SECONDS = "PT5S";
     private static final String TEN_SECONDS = "PT10S";
@@ -52,12 +54,27 @@ class IntervalTest {
     }
 
     @Test
+    void toStringForDuration() {
+        assertThat(new Interval(Duration.ofHours(1)).toString()).isEqualTo("PT1H");
+        assertThat(new Interval("PT1H [PT1H/PT1H]").toString()).isEqualTo("PT1H [PT1H/PT1H]");
+    }
+
+    @Test
+    void toStringCanBeParsedBackIntoInterval() {
+        var pt1h = new Interval(Duration.ofHours(1)).toString();
+        assertThat(ScheduleExpressionType.createScheduleFromString(pt1h).toString()).isEqualTo(pt1h);
+
+        var pt1hWithMargin = new Interval("PT1H [PT1H/PT1H]").toString();
+        assertThat(ScheduleExpressionType.createScheduleFromString(pt1hWithMargin).toString()).isEqualTo(pt1hWithMargin);
+    }
+
+    @Test
     void intervalsAreScheduledIndependentlyOfZoneId() {
         int hour = 8;
         Instant now = Instant.now();
 
-        Instant actualNextInstant1 = new Interval(Duration.ofHours(hour)).next(now, ZoneId.of("+02:00"));
-        Instant actualNextInstant2 = new Interval(Duration.ofHours(hour)).next(now, UTC);
+        Instant actualNextInstant1 = new Interval(Duration.ofHours(hour)).next(createdAtNotRelevantInstant, now, ZoneId.of("+02:00"));
+        Instant actualNextInstant2 = new Interval(Duration.ofHours(hour)).next(createdAtNotRelevantInstant, now, UTC);
 
         assertThat(actualNextInstant1).isEqualTo(actualNextInstant2);
     }
@@ -80,7 +97,7 @@ class IntervalTest {
         Interval interval2 = new Interval(Duration.ofDays(1));
 
         assertThat(interval1)
-                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", interval1.next(now, UTC).toString(), interval2.next(now, UTC).toString(), now.toString())
+                .describedAs("Expecting %s to be less than %s. Current LocalDateTime", interval1.next(createdAtNotRelevantInstant, now, UTC).toString(), interval2.next(createdAtNotRelevantInstant, now, UTC).toString(), now.toString())
                 .isLessThan(interval2);
     }
 

@@ -5,7 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.navigation.AmountRequest;
@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.areAllStateNames;
+import static org.jobrunr.storage.Paging.AmountBasedList.descOnScheduledAt;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
@@ -60,7 +61,7 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
-                .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElse(null))
+                .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
     }
 
@@ -157,9 +158,10 @@ public class JobTable extends Sql<Job> {
                 .collect(toList());
     }
 
-    public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, AmountRequest amountRequest) {
-        return withScheduledAt(scheduledBefore)
-                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
+    public List<Job> selectJobsWithStateBefore(StateName state, Instant scheduledBefore, AmountRequest amountRequest) {
+        return withState(state)
+                .withScheduledAt(scheduledBefore)
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 
@@ -169,17 +171,17 @@ public class JobTable extends Sql<Job> {
                 .collect(Collectors.toSet());
     }
 
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) throws SQLException {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) throws SQLException {
         if (areAllStateNames(states)) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId")
+                    .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId", pageRequestMapper.map(descOnScheduledAt(1)))
                     .map(rs -> rs.asInstant("scheduledAt"))
-                    .collect(toList());
+                    .findFirst().orElse(null);
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")")
+                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")", pageRequestMapper.map(descOnScheduledAt(1)))
                 .map(rs -> rs.asInstant("scheduledAt"))
-                .collect(toList());
+                .findFirst().orElse(null);
     }
 
     public int deletePermanently(UUID... ids) throws SQLException {

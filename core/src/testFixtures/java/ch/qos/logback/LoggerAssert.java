@@ -15,6 +15,7 @@ import java.util.Map;
 import static ch.qos.logback.classic.Level.DEBUG;
 import static ch.qos.logback.classic.Level.ERROR;
 import static ch.qos.logback.classic.Level.INFO;
+import static ch.qos.logback.classic.Level.TRACE;
 import static ch.qos.logback.classic.Level.WARN;
 import static java.util.Collections.emptyMap;
 
@@ -30,9 +31,18 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         super(listAppender, LoggerAssert.class);
     }
 
-    public static ListAppender<ILoggingEvent> initFor(Object object) {
+    public static ListAppender<ILoggingEvent> initForLogger(Logger logger) {
         final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
+        if (logger.getLoggerContext().getProperty("AssertLoggerOriginalLevel-" + logger.getName()) == null) {
+            logger.getLoggerContext().putProperty("AssertLoggerOriginalLevel-" + logger.getName(), ((Logger) logger).getEffectiveLevel().toInt() + "");
+            logger.setLevel(DEBUG);
+        }
+        logger.addAppender(listAppender);
+        return listAppender;
+    }
+    
+    public static ListAppender<ILoggingEvent> initFor(Object object) {
         Object logger = Whitebox.getInternalState(object, "LOGGER");
         if (logger instanceof JobRunrDashboardLogger) {
             logger = Whitebox.getInternalState(logger, "logger");
@@ -40,13 +50,7 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         if (!(logger instanceof Logger)) {
             throw new IllegalArgumentException("Cannot find logger for object " + object);
         }
-        final Logger actualLogger = (Logger) logger;
-        if (actualLogger.getLoggerContext().getProperty("AssertLoggerOriginalLevel-" + actualLogger.getName()) == null) {
-            actualLogger.getLoggerContext().putProperty("AssertLoggerOriginalLevel-" + actualLogger.getName(), ((Logger) logger).getEffectiveLevel().toInt() + "");
-            actualLogger.setLevel(DEBUG);
-        }
-        actualLogger.addAppender(listAppender);
-        return listAppender;
+        return initForLogger((Logger) logger);
     }
 
     public static LoggerAssert assertThat(ListAppender<ILoggingEvent> logger) {
@@ -119,6 +123,11 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
 
     public LoggerAssert hasInfoMessageContaining(String message, int times) {
         Assertions.assertThat(actual.list).areExactly(times, logsWithLevelAndMessageContaining(INFO, message));
+        return this;
+    }
+
+    public LoggerAssert hasTraceMessageContaining(String message) {
+        Assertions.assertThat(actual.list).areExactly(1, logsWithLevelAndMessageContaining(TRACE, message, emptyMap()));
         return this;
     }
 

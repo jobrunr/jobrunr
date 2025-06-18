@@ -6,10 +6,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonEncoder
-import kotlinx.serialization.json.JsonUnquotedLiteral
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import org.jobrunr.utils.DurationUtils.fromBigDecimal
 import org.jobrunr.utils.DurationUtils.toBigDecimal
 import java.time.Duration
@@ -23,7 +20,10 @@ object DurationSerializer : KSerializer<Duration> {
     }
 
     override fun deserialize(decoder: Decoder): Duration {
-        val durationAsSecAndNanoSec = (decoder as JsonDecoder).decodeJsonElement().jsonPrimitive.content.toBigDecimal()
-        return fromBigDecimal(durationAsSecAndNanoSec)
+        val jsonElement = (decoder as JsonDecoder).decodeJsonElement()
+        if (jsonElement is JsonPrimitive && jsonElement.isString) {
+            return Duration.parse(jsonElement.content)
+        }
+        return fromBigDecimal(jsonElement.jsonPrimitive.content.toBigDecimal())
     }
 }

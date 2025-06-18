@@ -9,7 +9,9 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.architecture.PackageDependenciesTest.DoNotIncludeTestFixtures;
 import org.jobrunr.jobs.AbstractJob;
-import org.jobrunr.server.BackgroundJobPerformer;
+import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
+import org.jobrunr.scheduling.Schedule;
+import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.Java11OrHigherInternalDesktopUtil;
@@ -17,7 +19,9 @@ import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
@@ -106,8 +110,12 @@ class PackageDependenciesTest {
 
     @ArchTest
     ArchRule jobServerClassesShouldNotDependOnSchedulingClasses = noClasses()
-            .that().resideInAPackage("org.jobrunr.server..").and().areNotAssignableFrom(BackgroundJobPerformer.class)
-            .should().dependOnClassesThat().resideInAnyPackage("org.jobrunr.scheduling..");
+            .that().resideInAPackage("org.jobrunr.server..")
+            .should().dependOnClassesThat(
+                    resideInAnyPackage("org.jobrunr.scheduling..")
+                            .and(not(assignableTo(JobNotFoundException.class)))
+                            .and(not(assignableTo(Schedule.class)))
+                            .and(not(assignableTo(CarbonAwareScheduleMargin.class))));
 
     @ArchTest
     ArchRule jobServerClassesShouldNotDependOnDashboardClasses = noClasses()
@@ -160,18 +168,4 @@ class PackageDependenciesTest {
             .that().resideInAPackage("org.jobrunr.utils.mapper.jsonb..")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "jakarta.json..", "java..");
 
-    static final class DoNotIncludeMainResources implements ImportOption {
-
-        @Override
-        public boolean includes(Location location) {
-            if (location.contains("Java11OrHigherInternalDesktopUtil")) {
-                System.out.println(location);
-                return false;
-            }
-            if (location.contains("/build/resources/")) {
-                return false;
-            }
-            return true;
-        }
-    }
 }

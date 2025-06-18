@@ -59,7 +59,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe())
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe())
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter().nullSafe())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
                 .create();
     }

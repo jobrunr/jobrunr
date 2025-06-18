@@ -1,0 +1,13 @@
+{
+  "apiResponse": {
+    "code": "DATA_PROVIDER_AREA_NOT_FOUND",
+    "message": "No DataProvider supports area UNKNOWN."
+  },
+  "dataProvider": null,
+  "dataIdentifier": null,
+  "displayName": null,
+  "timezone": null,
+  "nextForecastAvailableAt": null,
+  "forecastInterval": null,
+  "intensityForecast": null
+}

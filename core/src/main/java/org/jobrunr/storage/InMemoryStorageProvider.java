@@ -5,6 +5,8 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
@@ -17,6 +19,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,8 +30,10 @@ import java.util.stream.Stream;
 import static java.lang.Long.parseLong;
 import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -167,6 +172,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return getJobsStream(AWAITING, amountRequest)
+                .filter(job -> job.getJobState() instanceof CarbonAwareAwaitingState && ((CarbonAwareAwaitingState) job.getJobState()).getTo().isBefore(deadlineBefore))
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return getJobsStream(SCHEDULED, amountRequest)
                 .filter(job -> ((ScheduledState) job.getJobState()).getScheduledAt().isBefore(scheduledBefore))
@@ -249,18 +264,22 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
         if (areAllStateNames(states)) {
             return jobQueue.values().stream()
                     .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
-                    .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
-                    .collect(toList());
+                    .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
+                    .filter(Objects::nonNull)
+                    .sorted(reverseOrder()).limit(1)
+                    .findFirst().orElse(null);
         }
         return jobQueue.values().stream()
                 .filter(job -> recurringJobId.equals(job.getRecurringJobId().orElse(null)))
                 .filter(job -> asList(getStateNames(states)).contains(job.getState()))
-                .map(job -> job.getLastJobStateOfType(ScheduledState.class).map(ScheduledState::getScheduledAt).orElseThrow(() -> new IllegalStateException("Expected Job to have been SCHEDULED")))
-                .collect(toList());
+                .map(job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
+                .filter(Objects::nonNull)
+                .sorted(reverseOrder()).limit(1)
+                .findFirst().orElse(null);
     }
 
     @Override
@@ -292,6 +311,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         return new JobStats(
                 Instant.now(),
                 (long) jobQueue.size(),
+                getJobsStream(AWAITING).count(),
                 getJobsStream(SCHEDULED).count(),
                 getJobsStream(ENQUEUED).count(),
                 getJobsStream(PROCESSING).count(),
@@ -314,6 +334,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         jobQueue.clear();
         recurringJobs.clear();
         metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        clear();
+        backgroundJobServers.clear();
+        jobMapper = null;
     }
 
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {

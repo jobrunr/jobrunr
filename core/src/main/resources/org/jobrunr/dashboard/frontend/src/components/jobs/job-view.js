@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 
+import Awaiting from "./states/awaiting-state";
 import Scheduled from "./states/scheduled-state";
 import Enqueued from "./states/enqueued-state";
 import Processing from "./states/processing-state";
@@ -207,6 +208,8 @@ const JobView = (props) => {
                                 {
                                     jobStates.map((jobState, index) => {
                                         switch (jobState.state) {
+                                            case 'AWAITING':
+                                                return <Awaiting key={index} jobState={jobState}/>;
                                             case 'SCHEDULED':
                                                 return <Scheduled key={index} jobState={jobState}/>;
                                             case 'ENQUEUED':
