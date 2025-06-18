@@ -22,10 +22,10 @@ dependencies {
     testImplementation 'com.google.code.gson:gson:2.13.1'
 
     testImplementation 'org.assertj:assertj-core:3.27.3'
-    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.0'
+    testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.1'
     testImplementation 'org.awaitility:awaitility:4.3.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.1'
-    testImplementation 'org.testcontainers:testcontainers:1.20.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.1'
+    testImplementation 'org.testcontainers:testcontainers:1.21.1'
     testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
 }
 
