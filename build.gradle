@@ -18,7 +18,7 @@ nexusPublishing {
 
 subprojects {
     group = 'org.jobrunr'
-    version = System.getenv('DRONE_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
+    version = System.getenv('CI_COMMIT_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
 }
 
 def isNonStable = { String version ->
@@ -101,7 +101,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             property "sonar.sourceEncoding", "UTF-8"
             property "sonar.projectKey", "jobrunr_jobrunr"
             property "sonar.organization", "jobrunr"
-            property "sonar.branch.name", System.getenv("DRONE_BRANCH") ?: "master"
+            property "sonar.branch.name", System.getenv("CI_COMMIT_BRANCH") ?: "master"
             property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
         }
     }
