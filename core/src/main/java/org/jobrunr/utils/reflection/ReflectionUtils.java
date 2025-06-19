@@ -3,6 +3,8 @@ package org.jobrunr.utils.reflection;
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
@@ -21,6 +23,8 @@ import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.utils.StringUtils.capitalize;
 
 public class ReflectionUtils {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionUtils.class);
 
     private static final String ROOT_PACKAGE_NAME = "org/jobrunr/";
     private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_TYPE_MAPPING = new HashMap<>();
@@ -91,15 +95,12 @@ public class ReflectionUtils {
     public static Class<?> loadClass(String className) throws ClassNotFoundException {
         // why: support for quarkus:dev (see https://github.com/quarkusio/quarkus/issues/2809) and Spring Boot Live reload
         // Jackson uses this order also
-        try {
-            ClassLoader classLoader = currentThread().getContextClassLoader();
-            if (classLoader != null) {
-                return Class.forName(className, true, classLoader);
-            }
-        } catch (ClassNotFoundException e) {
-            // support for Spring Boot Executable jar. See https://github.com/jobrunr/jobrunr/issues/81
+        ClassLoader classLoader = currentThread().getContextClassLoader();
+        if (classLoader != null) {
+            Class<?> clazz = loadClassUsingContextClassLoader(className, classLoader);
+            if (clazz != null) return clazz;
         }
-        return Class.forName(className);
+        return loadClassWithoutClassLoader(className);
     }
 
     public static boolean hasDefaultNoArgConstructor(String clazzName) {
@@ -282,6 +283,27 @@ public class ReflectionUtils {
 
     public static void makeAccessible(AccessibleObject accessibleObject) {
         accessibleObject.setAccessible(true);
+    }
+
+    private static Class<?> loadClassWithoutClassLoader(String className) throws ClassNotFoundException {
+        try {
+            LOGGER.atTrace().log("Attempting to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            LOGGER.atTrace().log("Failed to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            throw e;
+        }
+    }
+
+    private static Class<?> loadClassUsingContextClassLoader(String className, ClassLoader classLoader) {
+        try {
+            LOGGER.atTrace().log("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+            return Class.forName(className, true, classLoader);
+        } catch (ClassNotFoundException e) {
+            // support for Spring Boot Executable jar. See https://github.com/jobrunr/jobrunr/issues/81
+            LOGGER.atTrace().log("Failed to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+        }
+        return null;
     }
 
     private static <T> Constructor<T> getConstructorForArgs(Class<T> clazz, Class<?>[] args) throws NoSuchMethodException {
