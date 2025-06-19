@@ -115,20 +115,7 @@ normalization {
     }
 }
 
-task npmRunBuildWarning {
-    onlyIf {
-        System.getenv("CI") != "true"
-    }
-    doLast {
-        println "JobRunr Frontend not build during local development - please build it manually"
-    }
-}
-
 task npmRunBuild() {
-    onlyIf {
-        System.getenv("CI") == "true"
-    }
-
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     outputs.cacheIf { true }
@@ -147,7 +134,6 @@ task npmRunBuild() {
     }
 }
 
-npmRunBuild.dependsOn npmRunBuildWarning
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
