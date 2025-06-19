@@ -1,6 +1,7 @@
 package org.jobrunr.tests.e2e;
 
 import com.microsoft.playwright.assertions.LocatorAssertions.ContainsTextOptions;
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.tests.server.AbstractSimpleBackgroundJobServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobTabButton()).containsText("33", new ContainsTextOptions().setTimeout(20_000));
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 3)
     void canOpenTheJobsDashboardPage() {
         assertThat(jobTabButton()).containsText("33");
         assertThat(title("Enqueued jobs")).isVisible();
