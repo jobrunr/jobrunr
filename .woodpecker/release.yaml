@@ -1,0 +1,62 @@
+when:
+  event:
+    - tag
+
+steps:
+  - name: prepare-docker-build-container
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+
+  - name: build-and-upload-to-maven-central
+    image: container-registry.jobrunr.io/build-container:latest
+    commands:
+      - rm -f *.hprof
+      - rm -rf /tmp/reports/*
+      - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - |
+        bash -lc '
+          set -e -o pipefail
+          gradle --no-daemon -Djib.console=plain --info clean assemble publishToSonatype \
+            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
+        '
+      - |
+        bash -lc '
+          SONATYPE_KEY=$(curl -X GET -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/search/repositories\?profile_id\=org.jobrunr\&state\=open\&ip\=any | grep "key" | sed 's/"key": "//' | sed 's/",//' | tr -d ' ')
+          echo "Sonatype OSSRH Staging API Repository key $SONATYPE_KEY found"
+          curl -X POST -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/upload/repository/$SONATYPE_KEY
+          echo "Sonatype Upload from Staging API to Portal complete. Go to https://central.sonatype.com/publishing/deployments to finish the release."
+        '
+    environment:
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
+      SIGNING_KEY:
+        from_secret: SIGNING_KEY
+      SIGNING_PASSWORD:
+        from_secret: SIGNING_PASSWORD
+      SONATYPE_AUTH_HEADER:
+        from_secret: SONATYPE_AUTH_HEADER
+      ORG_GRADLE_PROJECT_sonatypeUsername:
+        from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
+      ORG_GRADLE_PROJECT_sonatypePassword:
+        from_secret: ORG_GRADLE_PROJECT_sonatypePassword
+
+  - name: update-and-push-readme
+    image: container-registry.jobrunr.io/build-container:latest
+    environment:
+      GITHUB_PAT:
+        from_secret: GITHUB_TOKEN
+    commands:
+      - sed -i "s@<version>.*</version>@<version>${CI_TAG}</version>@g" README.md
+      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${CI_TAG}'@g" README.md
+      - git config --global user.email "woodpecker-bot@jobrunr.io"
+      - git config --global user.name "woodpecker-bot"
+      - git add README.md
+      - git commit -m "Update readme to version ${CI_TAG} [ci skip]"
+      - git push https://$(GITHUB_PAT)@github.com/jobrunr/jobrunr.git
