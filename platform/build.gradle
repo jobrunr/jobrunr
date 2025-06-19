@@ -58,7 +58,7 @@ dependencies {
         api 'org.testcontainers:postgresql:1.20.6'
         api 'org.testcontainers:db2:1.20.6'
         api 'org.testcontainers:elasticsearch:1.20.6'
-        api 'com.microsoft.playwright:playwright:1.51.0'
+        api 'com.microsoft.playwright:playwright:1.52.0'
     }
 }
 

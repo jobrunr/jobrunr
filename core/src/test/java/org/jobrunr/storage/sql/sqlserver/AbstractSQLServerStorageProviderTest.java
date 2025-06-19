@@ -20,7 +20,7 @@ import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 @ExtendWith(ForAllSubclassesExtension.class)
 public abstract class AbstractSQLServerStorageProviderTest extends SqlStorageProviderTest {
 
-    protected static MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/azure-sql-edge").asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server"));
+    protected static MSSQLServerContainer sqlContainer = new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest"));
 
     protected static HikariDataSource dataSource;
 
