@@ -26,7 +26,9 @@ steps:
         '
       - |
         bash -lc '
-          SONATYPE_KEY=$(curl -X GET -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/search/repositories\?profile_id\=org.jobrunr\&state\=open\&ip\=any | grep "key" | sed 's/"key": "//' | sed 's/",//' | tr -d ' ')
+          SONATYPE_OUT=$(curl -sS -X GET -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/search/repositories\?profile_id\=org.jobrunr\&state\=open\&ip\=any)
+          echo "Sonatype Saging API: Received JSON $SONATYPE_OUT"
+          SONATYPE_KEY=$(echo "$SONATYPE_OUT" | grep "key" | sed "s/\"key\": \"//" | sed "s/\",//" | tr -d " ")
           echo "Sonatype OSSRH Staging API Repository key $SONATYPE_KEY found"
           curl -X POST -H "$SONATYPE_AUTH_HEADER" https://ossrh-staging-api.central.sonatype.com/manual/upload/repository/$SONATYPE_KEY
           echo "Sonatype Upload from Staging API to Portal complete. Go to https://central.sonatype.com/publishing/deployments to finish the release."
