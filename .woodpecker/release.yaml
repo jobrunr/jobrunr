@@ -46,17 +46,3 @@ steps:
         from_secret: ORG_GRADLE_PROJECT_sonatypeUsername
       ORG_GRADLE_PROJECT_sonatypePassword:
         from_secret: ORG_GRADLE_PROJECT_sonatypePassword
-
-  - name: update-and-push-readme
-    image: container-registry.jobrunr.io/build-container:latest
-    environment:
-      GITHUB_PAT:
-        from_secret: GITHUB_TOKEN
-    commands:
-      - sed -i "s@<version>.*</version>@<version>${CI_TAG}</version>@g" README.md
-      - sed -i "s@'org.jobrunr:jobrunr:.*'@'org.jobrunr:jobrunr:${CI_TAG}'@g" README.md
-      - git config --global user.email "woodpecker-bot@jobrunr.io"
-      - git config --global user.name "woodpecker-bot"
-      - git add README.md
-      - git commit -m "Update readme to version ${CI_TAG} [ci skip]"
-      - git push https://$(GITHUB_PAT)@github.com/jobrunr/jobrunr.git
