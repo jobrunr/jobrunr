@@ -28,3 +28,9 @@ export function convertISO8601DurationToSeconds(durationString) {
         * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
     );
 }
+
+export function subDaysToDate(date, days = 30) {
+    const jsDate = new Date(date);
+    jsDate.setDate(jsDate.getDate() - days);
+    return jsDate;
+}

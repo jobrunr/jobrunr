@@ -6,6 +6,8 @@ import java.time.ZoneId;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
+import java.util.Collection;
+import java.util.Objects;
 
 public class InstantUtils {
 
@@ -20,5 +22,11 @@ public class InstantUtils {
 
         String unsupportedTemporalType = temporal == null ? "null" : temporal.getClass().getCanonicalName();
         throw new IllegalArgumentException("JobRunr does not support Temporal type: " + unsupportedTemporalType + ". Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
+    }
+
+    public static Instant max(Collection<Instant> instants) {
+        return instants.stream().filter(Objects::nonNull)
+                .max(Instant::compareTo)
+                .orElse(null);
     }
 }
