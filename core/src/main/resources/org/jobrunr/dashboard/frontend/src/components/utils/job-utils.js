@@ -1,5 +1,7 @@
 export function jobStateToHumanReadableName(jobState) {
     switch (jobState.toUpperCase()) {
+        case 'AWAITING':
+            return "Pending jobs";
         case 'SCHEDULED':
             return "Scheduled jobs";
         case 'ENQUEUED':

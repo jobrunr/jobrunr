@@ -77,6 +77,7 @@ import static com.mongodb.client.model.Projections.excludeId;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
@@ -84,6 +85,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -337,6 +339,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return findJobs(and(eq(Jobs.FIELD_STATE, AWAITING), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(deadlineBefore))), amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return findJobs(and(eq(Jobs.FIELD_STATE, SCHEDULED), lt(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(scheduledBefore))), amountRequest);
     }
@@ -395,17 +402,19 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
-    public List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
         if (areAllStateNames(states)) {
             return jobCollection.find(eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId))
                     .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                    .sort(descending(Jobs.FIELD_SCHEDULED_AT)).limit(1)
                     .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
-                    .into(new ArrayList<>());
+                    .first();
         }
         return jobCollection.find(and(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toSet())), eq(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId)))
                 .projection(fields(excludeId(), include(Jobs.FIELD_SCHEDULED_AT)))
+                .sort(descending(Jobs.FIELD_SCHEDULED_AT)).limit(1)
                 .map(r -> fromMicroseconds(r.getLong(Jobs.FIELD_SCHEDULED_AT)))
-                .into(new ArrayList<>());
+                .first();
     }
 
     @Override
@@ -452,6 +461,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
                         limit(10)))
                 .into(new ArrayList<>());
 
+
+        Long awaitingCount = getCount(AWAITING, stateAggregation);
         Long scheduledCount = getCount(SCHEDULED, stateAggregation);
         Long enqueuedCount = getCount(ENQUEUED, stateAggregation);
         Long processingCount = getCount(PROCESSING, stateAggregation);
@@ -466,6 +477,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         return new JobStats(
                 instant,
                 total,
+                awaitingCount,
                 scheduledCount,
                 enqueuedCount,
                 processingCount,
@@ -486,8 +498,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     private Long getCount(StateName stateName, List<Document> aggregates) {
         Predicate<Document> statePredicate = document -> stateName.name().equals(document.get(toMongoId(Jobs.FIELD_ID)));
         BiFunction<Optional<Document>, Integer, Integer> count = (document, defaultValue) -> document.map(doc -> doc.getInteger(Jobs.FIELD_STATE)).orElse(defaultValue);
-        long aggregateCount = count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
-        return aggregateCount;
+        return (long) count.apply(aggregates.stream().filter(statePredicate).findFirst(), 0);
     }
 
     public static String toMongoId(String id) {

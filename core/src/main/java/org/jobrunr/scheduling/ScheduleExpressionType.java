@@ -9,12 +9,13 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public enum ScheduleExpressionType {
     CRON_EXPRESSION {
         @Override
         public Schedule createSchedule(String scheduleExpression) {
-            return CronExpression.create(scheduleExpression);
+            return new CronExpression(scheduleExpression);
         }
     },
     INTERVAL {
@@ -25,12 +26,15 @@ public enum ScheduleExpressionType {
     };
 
     public static Schedule createScheduleFromString(String scheduleExpression) {
-        if (isNotNullOrEmpty(scheduleExpression)) {
-            if (scheduleExpression.matches(".*\\s.*")) {
-                return CRON_EXPRESSION.createSchedule(scheduleExpression);
-            } else if (scheduleExpression.startsWith("P")) {
-                return INTERVAL.createSchedule(scheduleExpression);
-            }
+        if (isNullOrEmpty(scheduleExpression)) {
+            throw new ScheduleException("[empty]");
+        }
+
+        if (scheduleExpression.toUpperCase().startsWith("P")) {
+            return INTERVAL.createSchedule(scheduleExpression);
+        }
+        if (scheduleExpression.matches(".*\\s.*")) {
+            return CRON_EXPRESSION.createSchedule(scheduleExpression);
         }
         throw new ScheduleException(scheduleExpression);
     }

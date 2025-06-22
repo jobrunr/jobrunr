@@ -10,6 +10,7 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,36 @@ class JobRunrFactoryTest {
         assertThat(context)
                 .hasSingleBean(StorageProvider.class)
                 .doesNotHaveBean(JobScheduler.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.area-code", value = "PL")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout-ms", value = "500")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout-ms", value = "1000")
+    void testCarbonAwareJobProcessingConfiguration() {
+        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+
+        assertThat(carbonAwareJobProcessingConfiguration)
+                .hasAreaCode("PL")
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(1000));
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.data-provider", value = "provider")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing.external-code", value = "external")
+    void testCarbonAwareManagerConfigurationWithExternalCode() {
+        BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+
+        assertThat(carbonAwareJobProcessingConfiguration)
+                .hasExternalCode("external")
+                .hasDataProvider("provider");
     }
 
     @Test

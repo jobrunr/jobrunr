@@ -1,12 +1,11 @@
 package org.jobrunr.storage.sql.h2;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.AfterAll;
 
 import java.sql.SQLException;
 
-public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
+public class CommonsDbcpH2StorageProviderTest extends AbstractH2StorageProviderTest {
 
     private static BasicDataSource dataSource;
 
@@ -28,6 +27,7 @@ public class CommonsDbcpH2StorageProviderTest extends SqlStorageProviderTest {
 
     @AfterAll
     public static void destroyDatasource() throws SQLException {
+        shutdownDatabase(dataSource);
         dataSource.close();
         dataSource = null;
     }

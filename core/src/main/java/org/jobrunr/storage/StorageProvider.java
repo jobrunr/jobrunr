@@ -175,6 +175,15 @@ public interface StorageProvider extends AutoCloseable {
         }
     }
 
+    /**
+     * Returns all carbon aware jobs with a deadline before the given {@link Instant}.
+     *
+     * @param deadlineBefore the Instant to test each carbon aware {@link Job} against
+     * @param amountRequest  the amount and the order in which to return the {@link Job jobs}.
+     * @return a list of carbon aware jobs.
+     */
+    List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest);
+
     List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest);
 
     default Page<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
@@ -196,13 +205,13 @@ public interface StorageProvider extends AutoCloseable {
     Set<String> getDistinctJobSignatures(StateName... states);
 
     /**
-     * Returns the scheduled instants of the {@link Job Jobs} created by the {@link RecurringJob} with the given recurringJobId.
+     * Returns the scheduled instant of the last {@link Job}, in one of the given states, created by the {@link RecurringJob} with the given recurringJobId.
      *
-     * @param recurringJobId the id of the RecurringJob for which to get the scheduled instants
-     * @param states         the possible states for the {@link Job} (can be empty)
-     * @return a list of the scheduled instants of the matched {@link Job Jobs}
+     * @param recurringJobId the id of the RecurringJob for which to get the latest scheduled instant
+     * @param states         the possible states for the {@link Job} (can be empty, then match against all possible states)
+     * @return the scheduled instant of the last created {@link Job}
      */
-    List<Instant> getRecurringJobScheduledInstants(String recurringJobId, StateName... states);
+    Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states);
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten

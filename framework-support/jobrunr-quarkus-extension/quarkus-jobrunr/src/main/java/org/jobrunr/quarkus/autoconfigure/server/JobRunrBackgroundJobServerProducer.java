@@ -12,13 +12,17 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.JobActivatorShutdownException;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
+import java.time.Duration;
+
 import static java.util.Collections.singletonList;
+import static java.util.Optional.of;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @Singleton
@@ -53,10 +57,21 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().serverTimeoutPollIntervalMultiplicand().ifPresent(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
             jobRunrRuntimeConfiguration.backgroundJobServer().deleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().permanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwaitingJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().scheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().orphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().succeededJobRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().interruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
+
+            CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
+            of(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().areaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+            backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
             return backgroundJobServerConfiguration;
         }
         return null;

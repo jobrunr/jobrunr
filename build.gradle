@@ -36,6 +36,18 @@ tasks.named("dependencyUpdates").configure {
     }
 }
 
+
+sonar {
+    properties {
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.projectKey", "jobrunr_jobrunr"
+        property "sonar.organization", "jobrunr"
+        property "sonar.branch.name", "v8"
+        property "sonar.branch.target", "v8"
+        property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
+    }
+}
+
 configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -101,7 +113,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             property "sonar.sourceEncoding", "UTF-8"
             property "sonar.projectKey", "jobrunr_jobrunr"
             property "sonar.organization", "jobrunr"
-            property "sonar.branch.name", System.getenv("DRONE_BRANCH") ?: "master"
+            property "sonar.branch.name", System.getenv("CI_COMMIT_BRANCH") ?: "master"
             property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
         }
     }

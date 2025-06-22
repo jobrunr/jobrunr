@@ -1,6 +1,12 @@
 package org.jobrunr.jobs.states;
 
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.PROCESSING;
+import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class AllowedJobStateStateChanges {
 
@@ -14,6 +20,8 @@ public class AllowedJobStateStateChanges {
 
     public static boolean isAllowedStateChange(StateName from, StateName to) {
         switch (from) {
+            case AWAITING:
+                return to == AWAITING || to == SCHEDULED || to == ENQUEUED || to == DELETED;
             case SCHEDULED:
                 return to != PROCESSING;
             case ENQUEUED:

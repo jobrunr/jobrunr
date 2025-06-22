@@ -68,7 +68,7 @@ const Processing = ({index, job, jobState}) => {
         <JobState
             expanded={expanded}
             onChange={handleChange}
-            title="Processing job"
+            title="Job Processing"
             state="processing"
             date={jobState.createdAt}
             removeDetailsPadding

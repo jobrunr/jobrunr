@@ -1,4 +1,4 @@
-export function humanFileSize(bytes, si) {
+export function humanFileSize(bytes, si = true) {
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
         return bytes + ' B';
@@ -15,8 +15,7 @@ export function humanFileSize(bytes, si) {
 }
 
 export function convertISO8601DurationToSeconds(durationString) {
-    const iso8601TimePattern = /^PT(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?$/;
-    const stringParts = iso8601TimePattern.exec(durationString);
+    const stringParts = getComponentsOfISO8601Duration(durationString);
     return (
         (
             (
@@ -27,6 +26,34 @@ export function convertISO8601DurationToSeconds(durationString) {
         )
         * 60 + (stringParts[4] === undefined ? 0 : stringParts[4] * 1) /* Seconds */
     );
+}
+
+export function humanReadableISO8601Duration(durationString) {
+    const stringParts = getComponentsOfISO8601Duration(durationString);
+    if (!stringParts) return "";
+    let result = "";
+    if (+stringParts[1]) result += stringParts[1] + " day(s) ";
+    if (+stringParts[2]) result += stringParts[2] + " hr ";
+    if (+stringParts[3]) result += stringParts[3] + " min ";
+    if (+stringParts[4]) result += stringParts[4] + " sec ";
+    return result.trim();
+}
+
+export function parseScheduleExpression(scheduleExpressionWithOptionalCarbonAwareMargin) {
+    const scheduleExpressionPattern = /(.+?)\s+\[\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*\/\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*]\s*/;
+
+    const matches = scheduleExpressionPattern.exec(scheduleExpressionWithOptionalCarbonAwareMargin);
+
+    const scheduleExpression = matches ? matches[1] : scheduleExpressionWithOptionalCarbonAwareMargin;
+    const marginBefore = matches?.[2];
+    const marginAfter = matches?.[3];
+
+    return {scheduleExpression, marginBefore, marginAfter};
+}
+
+function getComponentsOfISO8601Duration(durationString) {
+    const iso8601TimePattern = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?)?$/;
+    return iso8601TimePattern.exec(durationString);
 }
 
 export function subDaysToDate(date, days = 30) {

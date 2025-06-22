@@ -16,8 +16,8 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
-RUN npx playwright install-deps
-RUN npx playwright install
+RUN npx playwright@1.52.0 install-deps
+RUN npx playwright@1.52.0 install
 
 # disable SVE so ld-linux on arm64 doesn't segfault
 ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"

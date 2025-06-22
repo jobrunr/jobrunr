@@ -7,7 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.MILLIS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 @ConfigurationProperties(prefix = "jobrunr")
 public class JobRunrProperties {
@@ -254,6 +257,11 @@ public class JobRunrProperties {
         private Integer pollIntervalInSeconds = 15;
 
         /**
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
+         */
+        private Integer carbonAwaitingJobsRequestSize = 1000;
+
+        /**
          * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
          */
         private Integer serverTimeoutPollIntervalMultiplicand = 4;
@@ -277,22 +285,27 @@ public class JobRunrProperties {
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
-        @DurationUnit(ChronoUnit.HOURS)
+        @DurationUnit(HOURS)
         private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
          * is not specified, hours will be used.
          */
-        @DurationUnit(ChronoUnit.HOURS)
+        @DurationUnit(HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
         /**
          * Sets the duration to wait before interrupting threads/jobs when the server is stopped. If a duration suffix
          * is not specified, seconds will be used.
          */
-        @DurationUnit(ChronoUnit.SECONDS)
+        @DurationUnit(SECONDS)
         private Duration interruptJobsAwaitDurationOnStop = Duration.ofSeconds(10);
+
+        /**
+         * Configures carbon-aware job processing properties
+         */
+        private CarbonAwareJobProcessing carbonAwareJobProcessing = new CarbonAwareJobProcessing();
 
         /**
          * Configures MicroMeter metrics related to the BackgroundJobServer
@@ -347,6 +360,14 @@ public class JobRunrProperties {
             this.serverTimeoutPollIntervalMultiplicand = serverTimeoutPollIntervalMultiplicand;
         }
 
+        public Integer getCarbonAwaitingJobsRequestSize() {
+            return carbonAwaitingJobsRequestSize;
+        }
+
+        public void setCarbonAwaitingJobsRequestSize(Integer carbonAwaitingJobsRequestSize) {
+            this.carbonAwaitingJobsRequestSize = carbonAwaitingJobsRequestSize;
+        }
+
         public Integer getScheduledJobsRequestSize() {
             return scheduledJobsRequestSize;
         }
@@ -396,6 +417,14 @@ public class JobRunrProperties {
 
         public void setInterruptJobsAwaitDurationOnStop(Duration interruptJobsAwaitDurationOnStop) {
             this.interruptJobsAwaitDurationOnStop = interruptJobsAwaitDurationOnStop;
+        }
+
+        public CarbonAwareJobProcessing getCarbonAwareJobProcessing() {
+            return carbonAwareJobProcessing;
+        }
+
+        public void setCarbonAwareJobProcessing(CarbonAwareJobProcessing carbonAwareJobProcessing) {
+            this.carbonAwareJobProcessing = carbonAwareJobProcessing;
         }
 
         public Metrics getMetrics() {
@@ -502,5 +531,104 @@ public class JobRunrProperties {
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
+    }
+
+    public static class CarbonAwareJobProcessing {
+        /**
+         * Enables carbon aware scheduling.
+         */
+        boolean enabled = false;
+
+        /**
+         * Sets your preferred carbon intensity forecast dataProvider.
+         */
+        String dataProvider;
+
+        /**
+         * Sets the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with externalCode or externalIdentifier.
+         */
+        String areaCode;
+
+        /**
+         * Sets the code of an area as defined by your specified dataProvider in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with areaCode or externalIdentifier and without dataProvider.
+         */
+        String externalCode;
+
+        /**
+         * Sets the identifier of an area as defined by your specified dataProvider in order to have more accurate carbon emissions forecasts.
+         * Cannot be used together with areaCode or externalCode and without dataProvider.
+         */
+        String externalIdentifier;
+
+        /**
+         * Sets the connect timeout for the API client.
+         */
+        @DurationUnit(MILLIS)
+        Duration apiClientConnectTimeout;
+
+        /**
+         * Sets the read timeout for the API client.
+         */
+        @DurationUnit(MILLIS)
+        Duration apiClientReadTimeout;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getAreaCode() {
+            return areaCode;
+        }
+
+        public void setAreaCode(String areaCode) {
+            this.areaCode = areaCode;
+        }
+
+        public String getDataProvider() {
+            return dataProvider;
+        }
+
+        public void setDataProvider(String dataProvider) {
+            this.dataProvider = dataProvider;
+        }
+
+        public String getExternalCode() {
+            return externalCode;
+        }
+
+        public void setExternalCode(String externalCode) {
+            this.externalCode = externalCode;
+        }
+
+        public Duration getApiClientConnectTimeout() {
+            return apiClientConnectTimeout;
+        }
+
+        public void setApiClientConnectTimeout(Duration apiClientConnectTimeout) {
+            this.apiClientConnectTimeout = apiClientConnectTimeout;
+        }
+
+        public String getExternalIdentifier() {
+            return externalIdentifier;
+        }
+
+        public void setExternalIdentifier(String externalIdentifier) {
+            this.externalIdentifier = externalIdentifier;
+        }
+
+        public Duration getApiClientReadTimeout() {
+            return apiClientReadTimeout;
+        }
+
+        public void setApiClientReadTimeout(Duration apiClientReadTimeout) {
+            this.apiClientReadTimeout = apiClientReadTimeout;
+        }
+
     }
 }
