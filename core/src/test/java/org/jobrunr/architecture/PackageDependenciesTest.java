@@ -16,11 +16,16 @@ import org.jobrunr.server.Java11OrHigherInternalDesktopUtil;
 import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.reflection.autobox.InstantForOracleTypeAutoboxer;
+import org.slf4j.Logger;
 
+import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameStartingWith;
+import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -178,6 +183,13 @@ class PackageDependenciesTest {
     ArchRule jobRunrUtilsJsonBMapperClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.utils.mapper.jsonb..")
             .should().onlyDependOnClassesThat().resideInAnyPackage("org.jobrunr..", "jakarta.json..", "java..");
+
+    @ArchTest
+    ArchRule noCallToSlf4jV2Api = noClasses()
+            .should()
+            .callMethodWhere(target(nameStartingWith("at"))
+                    .and(target(owner(assignableTo(Logger.class)))))
+            .because("Use of SLF4J 2.x fluent logging break Spring Boot 2 logging system");
 
     static final class DoNotIncludeMainResources implements ImportOption {
 
