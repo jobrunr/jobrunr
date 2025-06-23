@@ -287,21 +287,21 @@ public class ReflectionUtils {
 
     private static Class<?> loadClassWithoutClassLoader(String className) throws ClassNotFoundException {
         try {
-            LOGGER.atTrace().log("Attempting to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            LOGGER.trace("Attempting to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            LOGGER.atTrace().log("Failed to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            LOGGER.trace("Failed to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
             throw e;
         }
     }
 
     private static Class<?> loadClassUsingContextClassLoader(String className, ClassLoader classLoader) {
         try {
-            LOGGER.atTrace().log("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+            LOGGER.trace("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
             return Class.forName(className, true, classLoader);
         } catch (ClassNotFoundException e) {
             // support for Spring Boot Executable jar. See https://github.com/jobrunr/jobrunr/issues/81
-            LOGGER.atTrace().log("Failed to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+            LOGGER.trace("Failed to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
         }
         return null;
     }
