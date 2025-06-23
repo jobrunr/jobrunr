@@ -1,6 +1,6 @@
 import {DismissibleClusterProblemNotification} from "./dismissible-notification";
 
-export const CarbonIntensityApiErrorProblem = ({problem, onDismiss, ...rest}) => {
+export const CarbonIntensityApiErrorProblem = ({problem, ...rest}) => {
     return (
         <DismissibleClusterProblemNotification
             endpoint="/api/problems/carbon-intensity-api-error"

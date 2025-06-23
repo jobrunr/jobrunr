@@ -26,7 +26,7 @@ export const DismissibleClusterProblemNotification = ({endpoint, onDismiss, ...r
             method: 'DELETE'
         })
             .then(() => onDismiss())
-            .catch(error => console.log(error));
+            .catch(error => console.error(error));
     }
 
     return (
