@@ -5,7 +5,6 @@ import org.jobrunr.utils.InstantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CpuAllocationIrregularityProblem extends Problem {
 
@@ -13,7 +12,7 @@ public class CpuAllocationIrregularityProblem extends Problem {
     private final ArrayList<JobRunrMetadata> cpuAllocationIrregularityMetadataSet;
 
     protected CpuAllocationIrregularityProblem(List<JobRunrMetadata> cpuAllocationIrregularityMetadataSet) {
-        super(PROBLEM_TYPE, InstantUtils.max(cpuAllocationIrregularityMetadataSet.stream().map(JobRunrMetadata::getCreatedAt).collect(Collectors.toList())));
+        super(PROBLEM_TYPE, InstantUtils.max(cpuAllocationIrregularityMetadataSet.stream().map(JobRunrMetadata::getCreatedAt)));
         this.cpuAllocationIrregularityMetadataSet = new ArrayList<>(cpuAllocationIrregularityMetadataSet);
     }
 

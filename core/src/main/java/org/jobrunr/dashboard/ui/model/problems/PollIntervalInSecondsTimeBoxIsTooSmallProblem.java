@@ -5,7 +5,6 @@ import org.jobrunr.utils.InstantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class PollIntervalInSecondsTimeBoxIsTooSmallProblem extends Problem {
 
@@ -13,7 +12,7 @@ public class PollIntervalInSecondsTimeBoxIsTooSmallProblem extends Problem {
     private final ArrayList<JobRunrMetadata> pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet;
 
     protected PollIntervalInSecondsTimeBoxIsTooSmallProblem(List<JobRunrMetadata> pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet) {
-        super(PROBLEM_TYPE, InstantUtils.max(pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet.stream().map(JobRunrMetadata::getCreatedAt).collect(Collectors.toList())));
+        super(PROBLEM_TYPE, InstantUtils.max(pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet.stream().map(JobRunrMetadata::getCreatedAt)));
         this.pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet = new ArrayList<>(pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet);
     }
 

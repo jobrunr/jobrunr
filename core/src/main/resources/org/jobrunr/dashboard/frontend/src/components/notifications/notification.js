@@ -106,13 +106,13 @@ export const Notification = ({title = "Notification", date, severity = "warning"
                                 color={severity}
                                 sx={{fontSize: "0.7rem", textTransform: "capitalize"}}
                             />
-                            <Chip
+                            {!read && <Chip
                                 label="New"
                                 size="small"
                                 variant="outlined"
                                 color="info"
                                 sx={{fontSize: "0.7rem"}}
-                            />
+                            />}
                         </Stack>
                     </Box>
                 }

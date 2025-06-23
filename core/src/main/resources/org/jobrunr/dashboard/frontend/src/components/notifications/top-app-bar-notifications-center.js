@@ -16,6 +16,7 @@ import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interva
 import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_NOTIFICATION} from "./jobrunr-api-notification";
 import {JobRunrInfoContext} from "../../JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
+import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
 
@@ -77,9 +78,9 @@ const useReadNotifications = () => {
 
 const problemTypeOrder = {
     "api-notification": 0, "severe-jobrunr-exception": 1, "jobs-not-found": 2, "cpu-allocation-irregularity": 3,
-    "poll-interval-in-seconds-is-too-small": 4, "new-jobrunr-version": 5
+    "poll-interval-in-seconds-is-too-small": 4, "carbon-intensity-api-error": 5, "new-jobrunr-version": 6
 };
-const getProblemOrder = (type) => problemTypeOrder[type] ?? 6;
+const getProblemOrder = (type) => problemTypeOrder[type] ?? 99;
 const problemCompareFn = (a, b) => {
     return getProblemOrder(a.type) - getProblemOrder(b.type);
 }
@@ -190,19 +191,25 @@ export const TopAppBarNotificationsCenter = React.memo(() => {
                 return <SevereJobRunrExceptionProblemNotification
                     problem={problem}
                     onReadStatusToggled={handleReadStatusToggled}
-                    refresh={reloadProblems}
+                    onDismiss={reloadProblems}
                     hasCpuAllocationIrregularity={hasProblemOfType(problems, "cpu-allocation-irregularity")}
                 />
             case 'cpu-allocation-irregularity':
                 return <CPUAllocationIrregularityProblemNotification
                     problem={problem}
-                    refresh={reloadProblems}
+                    onDismiss={reloadProblems}
                     onReadStatusToggled={handleReadStatusToggled}
                 />
             case 'poll-interval-in-seconds-is-too-small':
                 return <PollIntervalInSecondsIsTooSmallProblemNotification
                     problem={problem}
-                    refresh={reloadProblems}
+                    onDismiss={reloadProblems}
+                    onReadStatusToggled={handleReadStatusToggled}
+                />
+            case "carbon-intensity-api-error":
+                return <CarbonIntensityApiErrorProblem
+                    problem={problem}
+                    onDismiss={reloadProblems}
                     onReadStatusToggled={handleReadStatusToggled}
                 />
             case 'new-jobrunr-version':

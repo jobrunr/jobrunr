@@ -1,12 +1,10 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
 import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
-import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.storage.JobRunrMetadata;
-import org.jobrunr.storage.JobStats;
 import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
+import org.jobrunr.utils.InstantUtils;
 
 import java.util.List;
 
@@ -37,8 +35,8 @@ public class CarbonIntensityApiErrorProblemHandler implements MetadataChangeList
     public void onChange(List<JobRunrMetadata> metadataList) {
         if (this.metadata == null || this.metadata.size() != metadataList.size()) {
             dismiss();
-            if (!metadataList.isEmpty() && !problems.containsProblemOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE)) {
-                problems.addProblem(new CarbonIntensityApiErrorProblem());
+            if (!metadataList.isEmpty()) {
+                problems.addProblem(new CarbonIntensityApiErrorProblem(InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt))));
             }
             this.metadata = metadataList;
         }

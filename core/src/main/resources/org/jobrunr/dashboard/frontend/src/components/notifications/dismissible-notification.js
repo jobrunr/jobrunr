@@ -20,16 +20,16 @@ export const DismissibleNotification = ({onDismiss, extraMenuItems, children, ..
     )
 }
 
-export const DismissibleClusterProblemNotification = ({endpoint, refresh, ...rest}) => {
-    const dismiss = () => {
+export const DismissibleClusterProblemNotification = ({endpoint, onDismiss, ...rest}) => {
+    const handleDismiss = () => {
         fetch(endpoint, {
             method: 'DELETE'
         })
-            .then(() => refresh())
+            .then(() => onDismiss())
             .catch(error => console.log(error));
     }
 
     return (
-        <DismissibleNotification onDismiss={dismiss} {...rest}/>
+        <DismissibleNotification onDismiss={handleDismiss} {...rest}/>
     )
 }
