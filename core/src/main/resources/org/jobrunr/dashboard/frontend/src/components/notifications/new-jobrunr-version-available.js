@@ -34,6 +34,8 @@ export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion
         onDismiss();
     }
 
+    const isStable = !latestVersion.includes("-");
+
     return (
         <DismissibleNotification
             severity="info"
@@ -43,8 +45,13 @@ export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion
             containerId="jobrunr-version-available"
             {...rest}
         >
-            JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
-            performance improvements and new features.<br/>
+            {isStable
+                ? <p>JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
+                    performance improvements and new features.</p>
+                : <p>JobRunr version {latestVersion} is live!
+                    Try it out and share your thoughts by starting a <a target="_blank" href="https://github.com/jobrunr/jobrunr/discussions">
+                        discussion on GitHub</a>. Thanks for your contribution!</p>
+            }
             Current version: {currentVersion ?? "UNKNOWN"}
         </DismissibleNotification>
     );
