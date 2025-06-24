@@ -286,7 +286,7 @@ public class BackgroundJob {
      * @param job               the lambda which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
+    public static JobId schedule(CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
         verifyJobScheduler();
         return jobScheduler.scheduleCarbonAware(carbonAwarePeriod, job);
     }
@@ -305,7 +305,7 @@ public class BackgroundJob {
      * @param job               the lambda which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
+    public static JobId schedule(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
         verifyJobScheduler();
         return jobScheduler.scheduleCarbonAware(id, carbonAwarePeriod, job);
     }
@@ -322,7 +322,7 @@ public class BackgroundJob {
      * @param iocJob            the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static <S> JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
+    public static <S> JobId schedule(CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
         return jobScheduler.scheduleCarbonAware(carbonAwarePeriod, iocJob);
     }
 
@@ -339,7 +339,7 @@ public class BackgroundJob {
      * @param iocJob            the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public static <S> JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
+    public static <S> JobId schedule(UUID id, CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
         return jobScheduler.scheduleCarbonAware(id, carbonAwarePeriod, iocJob);
     }
 

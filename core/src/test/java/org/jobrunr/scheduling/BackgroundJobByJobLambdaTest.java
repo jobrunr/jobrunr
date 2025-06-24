@@ -344,14 +344,14 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)), TestService::doStaticWork);
+        JobId jobId = BackgroundJob.schedule(before(now().plus(1, DAYS)), TestService::doStaticWork);
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
     @Test
     void testScheduleCarbonAwareIsScheduledAtTheLowestPossibleCarbonIntensityTime() {
         Instant now = now();
-        JobId jobId = BackgroundJob.scheduleCarbonAware(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
+        JobId jobId = BackgroundJob.schedule(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
                 .hasScheduledAt(now.plus(1, HOURS).truncatedTo(HOURS))
                 .hasStates(AWAITING, SCHEDULED)
