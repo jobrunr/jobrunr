@@ -37,8 +37,6 @@ java {
     withSourcesJar()
 }
 
-compileJava.dependsOn tasks.compileQuarkusGeneratedSourcesJava
-
 normalization {
     runtimeClasspath {
         ignore '**/MANIFEST.MF'
