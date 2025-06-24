@@ -28,6 +28,7 @@ import {jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
+import CarbonAwareScheduledNotification from "./notifications/carbon-aware-scheduled-notification";
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
@@ -188,6 +189,7 @@ const JobView = (props) => {
                             {job.jobDetails.cacheable === false && <JobDetailsNotCacheableNotification job={job}/>}
                             {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
+                            {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
 
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">

@@ -106,7 +106,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
             scheduleJobAt(job, state.getFallbackInstant(), state, getReasonForMissingForecast(state));
         } else {
-            scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact.");
+            scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact in " + this.carbonIntensityForecast.getDisplayName() + ".");
         }
     }
 
