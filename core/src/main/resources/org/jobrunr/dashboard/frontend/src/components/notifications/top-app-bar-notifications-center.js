@@ -92,14 +92,11 @@ const hasProblemOfType = (problems, problemType) => {
 const getProblemId = (problem) => {
     switch (problem.type) {
         case "api-notification":
-            return `${problem.type};${problem.id}`;
         case 'jobs-not-found':
-            return `${problem.type};${problem.createdAt}`;
         case 'severe-jobrunr-exception':
-            return `${problem.type};${problem.createdAt}`;
         case 'cpu-allocation-irregularity':
-            return `${problem.type};${problem.createdAt}`;
         case 'poll-interval-in-seconds-is-too-small':
+        case "carbon-intensity-api-error":
             return `${problem.type};${problem.createdAt}`;
         case 'new-jobrunr-version':
             return `${problem.type};${problem.latestVersion}`;
