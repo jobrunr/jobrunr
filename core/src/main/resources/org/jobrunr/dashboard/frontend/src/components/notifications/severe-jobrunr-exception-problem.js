@@ -1,12 +1,11 @@
 import {useState} from "react";
-import {Alert, Dialog, Link, MenuItem, Snackbar} from "@mui/material";
-import ListItemIcon from "@mui/material/ListItemIcon";
+import {Alert, Dialog, Link, Snackbar} from "@mui/material";
 import {AspectRatio} from "@mui/icons-material";
-import ListItemText from "@mui/material/ListItemText";
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from "../utils/highlighter";
 import {DismissibleClusterProblemNotification} from "./dismissible-notification";
+import Button from "@mui/material/Button";
 
 export const SevereJobRunrExceptionProblemNotification = ({problem, hasCpuAllocationIrregularity, ...rest}) => {
     const [copyStatus, setCopyStatus] = useState(null);
@@ -49,17 +48,12 @@ export const SevereJobRunrExceptionProblemNotification = ({problem, hasCpuAlloca
             severity="error"
             endpoint="/api/problems/severe-jobrunr-exception"
             date={problem.createdAt}
-            extraMenuItems={
-                <MenuItem onClick={toggleShowIssueDialog}>
-                    <ListItemIcon><AspectRatio fontSize="small"/></ListItemIcon>
-                    <ListItemText>More details</ListItemText>
-                </MenuItem>
-            }
             read={problem.read}
             {...rest}
         >
             <div>JobRunr encountered an exception that should not happen that could result in the Background Job Servers stopping. <b>You need to look into
-                this.</b>
+                this.</b> <Button sx={{textTransform: "none", color: "inherit"}} startIcon={<AspectRatio fontSize="small"/>} onClick={toggleShowIssueDialog}>More
+                details</Button>
             </div>
             {copyStatus &&
                 <Snackbar open={true}
