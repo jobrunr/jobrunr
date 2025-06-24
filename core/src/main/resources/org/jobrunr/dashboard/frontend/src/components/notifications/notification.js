@@ -77,7 +77,7 @@ const NotificationTitle = ({title, date = undefined, extraMenuItems, read = fals
 
 export const Notification = ({title = "Notification", date, severity = "warning", read, onReadStatusToggled, extraMenuItems, children}) => {
     return (
-        <NotificationListItem read={read} onClick={onReadStatusToggled}>
+        <NotificationListItem read={read}>
             <ListItemText
                 mt={0}
                 primary={
