@@ -8,7 +8,6 @@ const getVersionParts = (version) => {
 }
 
 const versionIsNewerThanOther = (version, otherVersion) => {
-    // TODO ignore betas
     const versionParts = getVersionParts(version);
     const otherVersionParts = getVersionParts(otherVersion);
 
@@ -41,6 +40,7 @@ export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion
             title="New JobRunr Version Available"
             onDismiss={handleDismiss}
             read={read}
+            containerId="jobrunr-version-available"
             {...rest}
         >
             JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,

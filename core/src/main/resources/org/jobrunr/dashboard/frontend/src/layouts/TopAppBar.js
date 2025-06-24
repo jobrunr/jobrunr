@@ -11,7 +11,7 @@ import {ProblemsContext} from "../ProblemsContext";
 import {Badge} from "@mui/material";
 import {StatChip} from "../components/ui/StatChip";
 import {useJobStats} from "../hooks/useJobStats";
-import {TopAppBarNotificationsCenter} from "../components/notifications/top-app-bar-notifications-center";
+import {TopAppBarNotificationCenter} from "../components/notifications/top-app-bar-notification-center";
 
 const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
@@ -75,7 +75,7 @@ const TopAppBar = () => {
                     <MenuButtonWithStat text="Recurring Jobs" stat={stats.recurringJobs} id="recurring-jobs-btn" to="/dashboard/recurring-jobs"/>
                     <MenuButtonWithStat text="Servers" stat={stats.backgroundJobServers} id="servers-btn" to="/dashboard/servers"/>
                 </Buttons>
-                <TopAppBarNotificationsCenter/>
+                <TopAppBarNotificationCenter/>
                 <IconButton
                     edge="start"
                     color="inherit"

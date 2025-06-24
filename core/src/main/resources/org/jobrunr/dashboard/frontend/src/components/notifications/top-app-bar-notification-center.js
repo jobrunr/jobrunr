@@ -109,7 +109,7 @@ const getProblemId = (problem) => {
 const isNotDismissed = (key, value) => !localStorage.getItem(key)?.endsWith(value);
 
 // why memoized: component re-renders because of job stats changes in TopAppBar
-export const TopAppBarNotificationsCenter = React.memo(() => {
+export const TopAppBarNotificationCenter = React.memo(() => {
     const [clusterProblems, setClusterProblems] = useState([]);
     const [latestVersion, setLatestVersion] = useState();
     const [apiNotification, setApiNotification] = useState();
@@ -231,6 +231,7 @@ export const TopAppBarNotificationsCenter = React.memo(() => {
             sx={{marginRight: 2}}
             onClick={openNotifications}
             ref={popperAnchorEl}
+            id="notifications-center-button"
         >
             <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" style={{textTransform: "uppercase"}}>
                 <Notifications/>
@@ -238,7 +239,7 @@ export const TopAppBarNotificationsCenter = React.memo(() => {
         </IconButton>
         <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
             <Paper elevation={6}>
-                <Box width="80vw" maxWidth={500} maxHeight="70vh" overflow="auto">
+                <Box width="80vw" maxWidth={500} maxHeight="70vh" overflow="auto" id="notifications-center-container">
                     <Box p={2}>
                         <Stack direction="row" spacing={1} justifyContent="space-between">
                             <Button

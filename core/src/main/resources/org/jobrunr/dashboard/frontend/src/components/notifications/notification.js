@@ -60,7 +60,8 @@ const NotificationTitle = ({title, date = undefined, extraMenuItems, read = fals
                 transformOrigin={{vertical: "top", horizontal: "right"}}
                 onClick={stopPropagation}
             >
-                {read ? <MenuItem onClick={onReadStatusToggled}>
+                {read
+                    ? <MenuItem onClick={onReadStatusToggled}>
                         <ListItemIcon><MarkEmailUnread fontSize="small"/></ListItemIcon>
                         <ListItemText>Mark as unread</ListItemText>
                     </MenuItem>
@@ -75,9 +76,9 @@ const NotificationTitle = ({title, date = undefined, extraMenuItems, read = fals
     )
 }
 
-export const Notification = ({title = "Notification", date, severity = "warning", read, onReadStatusToggled, extraMenuItems, children}) => {
+export const Notification = ({title = "Notification", date, severity = "warning", read, onReadStatusToggled, extraMenuItems, containerId, children}) => {
     return (
-        <NotificationListItem read={read}>
+        <NotificationListItem read={read} id={containerId}>
             <ListItemText
                 mt={0}
                 primary={
