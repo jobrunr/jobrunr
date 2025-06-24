@@ -91,7 +91,7 @@ export const Notification = ({title = "Notification", date, severity = "warning"
                 }
                 secondary={
                     <Box>
-                        <Box sx={{fontSize: "14px", color: "text.secondary", mb: 1}}>
+                        <Box sx={{fontSize: "0.875rem", color: "text.secondary", mb: 1}}>
                             {children}
                         </Box>
                         <Stack
@@ -104,14 +104,14 @@ export const Notification = ({title = "Notification", date, severity = "warning"
                                 label={getChipLabel(severity)}
                                 size="small"
                                 color={severity}
-                                sx={{fontSize: "0.7rem", textTransform: "capitalize"}}
+                                sx={{fontSize: "0.75rem", textTransform: "capitalize"}}
                             />
                             {!read && <Chip
                                 label="New"
                                 size="small"
                                 variant="outlined"
                                 color="info"
-                                sx={{fontSize: "0.7rem"}}
+                                sx={{fontSize: "0.75rem"}}
                             />}
                         </Stack>
                     </Box>
