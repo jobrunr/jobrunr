@@ -92,6 +92,7 @@ const hasProblemOfType = (problems, problemType) => {
 const getProblemId = (problem) => {
     switch (problem.type) {
         case "api-notification":
+            return `${problem.type};${problem.id}`;
         case 'jobs-not-found':
         case 'severe-jobrunr-exception':
         case 'cpu-allocation-irregularity':
