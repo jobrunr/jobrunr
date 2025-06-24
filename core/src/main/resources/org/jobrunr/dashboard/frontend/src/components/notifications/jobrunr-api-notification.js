@@ -33,7 +33,7 @@ export const JobRunrApiNotification = ({problem, onDismiss, ...rest}) => {
         <style>body{background-color: initial; font-size: 0.875rem; line-height: 1.43; font-weight: 400;}</style>
         <base target="_blank">
         </head>
-        <body><div class="MuiAlert-root" style="width: fit-content; max-width: 100%">${problem.body}</div></body>
+        <body><div style="width: fit-content; max-width: 100%">${problem.body}</div></body>
         </html>
     `;
 
