@@ -190,6 +190,7 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
+                            {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
 
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">

@@ -7,7 +7,7 @@ import {SwitchableTimeAgo} from "../../utils/time-ago";
 
 const CarbonAwareScheduledNotification = ({job}) => {
     const awaitingState = job.jobHistory[0];
-    if(awaitingState["@class"].indexOf("CarbonAwareAwaitingState") === -1) {
+    if(!awaitingState["@class"].endsWith("CarbonAwareAwaitingState")) {
         return;
     }
 
