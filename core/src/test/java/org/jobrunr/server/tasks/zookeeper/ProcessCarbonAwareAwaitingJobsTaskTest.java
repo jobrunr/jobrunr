@@ -96,7 +96,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             verify(carbonIntensityApiClient(task)).fetchCarbonIntensityForecast();
             assertThatJob(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .hasScheduledAt(now().plus(1, HOURS).truncatedTo(HOURS), "At the best moment to minimize carbon impact.");
+                    .hasScheduledAt(now().plus(1, HOURS).truncatedTo(HOURS), "At the best moment to minimize carbon impact in MOCK_AREA");
         }
     }
 
@@ -383,7 +383,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             // THEN
             assertThatJob(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .hasScheduledAt(parse("2025-05-20T12:00:00.000Z"), "At the best moment to minimize carbon impact.");
+                    .hasScheduledAt(parse("2025-05-20T12:00:00.000Z"), "At the best moment to minimize carbon impact in Italy");
         }
     }
 
