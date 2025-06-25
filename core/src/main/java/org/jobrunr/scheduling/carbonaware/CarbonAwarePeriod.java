@@ -9,9 +9,35 @@ import static java.time.Instant.now;
 import static org.jobrunr.utils.InstantUtils.toInstant;
 
 /**
- * Represents a period of time, in which a job will be scheduled in a moment of low carbon emissions.
+ * Represents a period of time in which a job may be scheduled to minimize carbon emissions.
+ * <p>
+ * A {@code CarbonAwarePeriod} is constructed using the {@link CarbonAware} utility class. It defines a flexible scheduling window
+ * that can be centered around a point in time, start from now until a deadline, or be bounded by a custom range.
+ * The actual execution time within this window is determined by a carbon-aware scheduler.
+ * <p>
+ * <strong>Note:</strong> The scheduling window must currently span at least <strong>3 hours</strong>. This is due to the
+ * underlying carbon intensity data being available only at an hourly resolution.
+ * <p>
+ * Example usages:
+ * <pre>{@code
+ * // Schedule before a specific deadline
+ * CarbonAwarePeriod beforeDeadline = CarbonAware.before(Instant.parse("2025-07-01T08:00:00Z"));
  *
- * <em>NOTE: CarbonAwarePeriod implements {@link Temporal} a marker interface and all temporal related methods throw Exceptions for now </em>
+ * // Schedule between two custom times
+ * CarbonAwarePeriod betweenTimes = CarbonAware.between(
+ *     Instant.parse("2025-07-01T00:00:00Z"),
+ *     Instant.parse("2025-07-01T08:00:00Z")
+ * );
+ *
+ * // Schedule around a target time with flexibility
+ * CarbonAwarePeriod flexible = CarbonAware.at(
+ *     Instant.parse("2025-07-01T04:00:00Z"),
+ *     Duration.ofHours(4)
+ * );
+ * }</pre>
+ * <p>
+ * <em>NOTE:</em> {@code CarbonAwarePeriod} implements {@link Temporal} as a marker interface. All temporal methods
+ * currently throw {@link UnsupportedOperationException} and are not intended for direct time manipulation.
  */
 public class CarbonAwarePeriod implements Temporal {
 

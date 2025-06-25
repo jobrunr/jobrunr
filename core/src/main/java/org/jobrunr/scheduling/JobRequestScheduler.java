@@ -135,12 +135,12 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * Creates a new fire-and-forget job based on the given {@link JobRequest} and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      *
-     * <h5>Supported Temporal Types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
      *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
@@ -151,7 +151,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *
      * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
      * <pre>{@code
-     *      jobScheduler.schedule(CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(5, ChronoUnit.HOURS)), new MyJobRequest());
+     *      jobScheduler.schedule(CarbonAware.between(Instant.now(), Instant.now().plus(5, ChronoUnit.HOURS)), new MyJobRequest());
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
@@ -167,12 +167,12 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * If a job with that id already exists, JobRunr will not save it again.
      *
-     * <h5>Supported Temporal Types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
      *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
@@ -183,7 +183,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      *
      * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
      * <pre>{@code
-     *      jobScheduler.schedule(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(5, ChronoUnit.HOURS)), new MyJobRequest());
+     *      jobScheduler.schedule(id, CarbonAware.between(Instant.now(), Instant.now().plus(5, ChronoUnit.HOURS)), new MyJobRequest());
      * }</pre>
      *
      * @param id         the uuid with which to save the job

@@ -10,7 +10,6 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
 import java.time.ZoneId;
@@ -162,17 +161,14 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the {@link CronExpression} that will be used to create the recurringJobs.
+     * Allows to specify the {@link CronExpression} or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
      *
      * @param cron the cron that will be used to create the recurringJobs.
      * @return the same builder instance which provides a fluent api
+     * @see CarbonAware for more info on how to create a carbon aware schedule expression
      */
     public RecurringJobBuilder withCron(String cron) {
-        if (this.schedule != null) {
-            throw new IllegalArgumentException("A schedule has already been provided.");
-        }
-        this.schedule = ScheduleExpressionType.createScheduleFromString(cron);
-        return this;
+        return withScheduleExpression(cron);
     }
 
     /**
@@ -182,11 +178,7 @@ public class RecurringJobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withDuration(Duration duration) {
-        if (this.schedule != null) {
-            throw new IllegalArgumentException("A schedule has already been provided.");
-        }
-        this.schedule = new Interval(duration);
-        return this;
+        return withScheduleExpression(duration.toString());
     }
 
     /**
@@ -212,7 +204,11 @@ public class RecurringJobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withScheduleExpression(String scheduleExpression) {
-        return withCron(scheduleExpression);
+        if (this.schedule != null) {
+            throw new IllegalArgumentException("A schedule has already been provided.");
+        }
+        this.schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
+        return this;
     }
 
     /**

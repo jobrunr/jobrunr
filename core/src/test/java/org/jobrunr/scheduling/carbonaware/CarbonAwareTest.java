@@ -2,10 +2,23 @@ package org.jobrunr.scheduling.carbonaware;
 
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Duration;
+import java.time.Instant;
+
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class CarbonAwareTest {
+
+    @Test
+    void testCarbonAwareAt() {
+        CarbonAwarePeriod carbonAwarePeriod = CarbonAware.at(Instant.parse("2025-06-25T10:00:00Z"), Duration.of(3, HOURS));
+        assertThat(carbonAwarePeriod)
+                .isNotNull()
+                .hasFrom(Instant.parse("2025-06-25T07:00:00Z"))
+                .hasTo(Instant.parse("2025-06-25T13:00:00Z"));
+    }
 
     @Test
     void dailyBetween_invalidValuesThrowsException() {

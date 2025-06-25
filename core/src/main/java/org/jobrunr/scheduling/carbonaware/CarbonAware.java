@@ -1,7 +1,6 @@
 package org.jobrunr.scheduling.carbonaware;
 
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
@@ -12,6 +11,7 @@ import java.time.OffsetDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
@@ -25,14 +25,13 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  * <ul>
  *     <li>{@link CarbonAware#before(Temporal)}</li>
  *     <li>{@link CarbonAware#between(Temporal, Temporal)}</li>
+ *     <li>{@link CarbonAware#at(Temporal, TemporalAmount)}</li>
  * </ul>
  * <p>
  * For recurring jobs, you can use:
  * <ul>
  *     <li>{@link CarbonAware#cron(String, Duration)}</li>
- *     <li>{@link CarbonAware#cron(String, Duration, Duration)}</li>
  *     <li>{@link CarbonAware#interval(Duration, Duration)}</li>
- *     <li>{@link CarbonAware#interval(Duration, Duration, Duration)}</li>
  *     <li>{@link CarbonAware#dailyBefore(int)}</li>
  *     <li>{@link CarbonAware#dailyBetween(int, int)}</li>
  * </ul>
@@ -40,35 +39,65 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
 public class CarbonAware {
 
     /**
-     * Allows to relax the scheduling of a job to minimize carbon impact.
+     * Allows relaxing the scheduling of a job to minimize carbon impact.
      * The job will run before the provided {@code to} {@link Temporal} instance.
+     * <p>
+     * Supported {@link Temporal} implementations: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}.
      *
-     * The following {@link Temporal} implementations are supported: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}
-     *
-     * @param to the time expressed in {@link Temporal} before which the job must be scheduled.
-     * @return A carbon aware period between {@code Instant.now()} and the provided {@code to}.
+     * @param to the time, expressed as a {@link Temporal}, before which the job must be scheduled.
+     * @return a carbon-aware period between {@code Instant.now()} and the provided {@code to}.
      */
     public static CarbonAwarePeriod before(Temporal to) {
         return between(now(), to);
     }
 
     /**
-     * Allows to relax the scheduling of a job to minimize carbon impact.
-     * The job will run between the two provided {@code from} and {@code to} {@link Temporal} instances as the interval.
+     * Allows relaxing the scheduling of a job to minimize carbon impact.
+     * The job will run within the interval defined by the provided {@code from} and {@code to} {@link Temporal} instances.
+     * <p>
+     * Supported {@link Temporal} implementations: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}.
      *
-     * The following {@link Temporal} implementations are supported: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}
-     *
-     * @param from the start time expressed in {@link Temporal} of the carbon aware margin.
-     * @param to   the end time expressed in {@link Temporal} of the carbon aware margin.
-     * @return A carbon aware period between the provided {@code from} and {@code to}.
+     * @param from the start time of the carbon-aware margin, expressed as a {@link Temporal}.
+     * @param to   the end time of the carbon-aware margin, expressed as a {@link Temporal}.
+     * @return a carbon-aware period between the provided {@code from} and {@code to}.
      */
     public static CarbonAwarePeriod between(Temporal from, Temporal to) {
         return new CarbonAwarePeriod(toInstant(from), toInstant(to));
     }
 
     /**
+     * Allows relaxing the scheduling of a job to minimize carbon impact.
+     * The job is intended to run near the provided {@code at} {@link Temporal} instance, but may run up to {@code marginBeforeAndAfter} earlier or later.
+     * <p>
+     * Supported {@link Temporal} implementations: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}.
+     *
+     * @param at                   the central time, expressed as a {@link Temporal}, around which the job may be scheduled.
+     * @param marginBeforeAndAfter the maximum time deviation before and after {@code at}, expressed as a {@link TemporalAmount}.
+     * @return a carbon-aware period centered around {@code at}, extended by {@code marginBeforeAndAfter} in both directions.
+     */
+    public static CarbonAwarePeriod at(Temporal at, TemporalAmount marginBeforeAndAfter) {
+        return between(at.minus(marginBeforeAndAfter), at.plus(marginBeforeAndAfter));
+    }
+
+    /**
+     * Allows relaxing the scheduling of a job to minimize carbon impact.
+     * The job is intended to run near the provided {@code at} {@link Temporal} instance, but may run up to {@code marginBefore} earlier
+     * and {@code marginAfter} later.
+     * <p>
+     * Supported {@link Temporal} implementations: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}.
+     *
+     * @param at           the central time, expressed as a {@link Temporal}, around which the job may be scheduled.
+     * @param marginBefore the maximum time the job may run before {@code at}, expressed as a {@link TemporalAmount}.
+     * @param marginAfter  the maximum time the job may run after {@code at}, expressed as a {@link TemporalAmount}.
+     * @return a carbon-aware period starting {@code marginBefore} before {@code at} and ending {@code marginAfter} after {@code at}.
+     */
+    public static CarbonAwarePeriod at(Temporal at, TemporalAmount marginBefore, TemporalAmount marginAfter) {
+        return between(at.minus(marginBefore), at.plus(marginAfter));
+    }
+
+    /**
      * Allows to relax the schedule of a {@link RecurringJob} to minimize carbon impact.
-     * The RecurringJob may run {@code marginBefore} earlier and {@code marginAfter} later than originally planned.
+     * The RecurringJob may run {@code marginBeforeAndAfter} earlier and {@code marginBeforeAndAfter} later than originally planned.
      *
      * @param scheduleExpression   the scheduleExpression may be a {@link CronExpression} or a Duration (for {@link Interval} scheduling).
      * @param marginBeforeAndAfter the amount of time the {@link RecurringJob} is allowed to run before and after its original schedule.

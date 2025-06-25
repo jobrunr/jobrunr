@@ -14,13 +14,20 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.JobUtils;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static org.jobrunr.utils.InstantUtils.toInstant;
 
 /**
  * This class is used to build a {@link Job} using a job lambda or a {@link JobRequest}.
@@ -90,34 +97,46 @@ public class JobBuilder {
     }
 
     /**
-     * Allows to specify the duration after which the job should be enqueued.
+     * Schedules the job to run after the specified duration from now.
      *
-     * @param duration the duration after which the job should be enqueued
+     * @param duration the delay, expressed as a {@link TemporalAmount}, after which the job should be scheduled
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder scheduleIn(Duration duration) {
+    public JobBuilder scheduleIn(TemporalAmount duration) {
         this.scheduleAt = Instant.now().plus(duration);
         return this;
     }
 
     /**
-     * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
+     * Specifies the moment at which the job should be scheduled.
      *
-     * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
+     * <h5>Supported {@link Temporal} implementations:</h5>
+     * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
+     *     <li>{@link Instant}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link OffsetDateTime}</li>
+     * </ul>
+     *
+     * <h5>Example with {@code Instant}:</h5>
+     * <pre>{@code
+     * aJob()
+     *     .scheduleAt(Instant.now().plusSeconds(60))
+     *     .withDetails(...)
+     * }</pre>
+     *
+     * <h5>Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     * aJob()
+     *     .scheduleAt(CarbonAware.before(Instant.now().plus(2, DAYS))
+     *     .withDetails(...)
+     * }</pre>
+     *
+     * @param scheduleAt the moment on which the job will be scheduled
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder scheduleIn(CarbonAwarePeriod carbonAwarePeriod) {
-        this.scheduleAt = carbonAwarePeriod;
-        return this;
-    }
-
-    /**
-     * Allows to specify the instant on which the job will be enqueued.
-     *
-     * @param scheduleAt the instant on which the job will be enqueued
-     * @return the same builder instance which provides a fluent api
-     */
-    public JobBuilder scheduleAt(Instant scheduleAt) {
+    public JobBuilder scheduleAt(Temporal scheduleAt) {
         this.scheduleAt = scheduleAt;
         return this;
     }
@@ -255,12 +274,12 @@ public class JobBuilder {
     }
 
     private AbstractJobState getState() {
-        if(this.scheduleAt == null) {
+        if (this.scheduleAt == null) {
             return new EnqueuedState();
         }
 
         return this.scheduleAt instanceof CarbonAwarePeriod ?
                 new CarbonAwareAwaitingState((CarbonAwarePeriod) this.scheduleAt) :
-                new ScheduledState((Instant) this.scheduleAt);
+                new ScheduledState(toInstant(scheduleAt));
     }
 }

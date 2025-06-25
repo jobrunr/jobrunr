@@ -7,7 +7,6 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequestWithoutJobAnnotation;
@@ -21,7 +20,6 @@ import java.util.UUID;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -146,7 +144,7 @@ class JobBuilderTest {
     void testWithScheduleCarbonAware() {
         Instant deadline = now().plus(10, DAYS);
         Job job = aJob()
-                .scheduleIn(before(deadline))
+                .scheduleAt(before(deadline))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
         assertThat(job).hasState(StateName.AWAITING);
