@@ -10,7 +10,6 @@ import AvgSystemCpuLoadCard from "./cards/avg-system-cpu-load-card";
 import AvgProcessMemoryUsageCard from "./cards/avg-process-memory-usage-card";
 import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import LoadingIndicator from "../LoadingIndicator";
-import Problems from "./problems/problems-notifications";
 import VersionFooter from "../utils/version-footer";
 import {openEventSource} from "../../stores/serversStore";
 import {useServers} from "../../hooks/useServers";
@@ -36,7 +35,6 @@ const Overview = () => {
                     <Typography id="title" variant="h4">Dashboard</Typography>
                 </Box>
             </div>
-            <Problems/>
             <div style={{display: "flex"}}>
                 {isServersApiLoading
                     ? <LoadingIndicator/>

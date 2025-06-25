@@ -1,12 +1,13 @@
-import {useState} from 'react';
-import {Alert, Dialog, Link, Snackbar} from '@mui/material';
+import {useState} from "react";
+import {Alert, Dialog, Link, Snackbar} from "@mui/material";
+import {AspectRatio} from "@mui/icons-material";
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
-import Highlight from '../../utils/highlighter';
-import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
+import Highlight from "../utils/highlighter";
+import {DismissibleClusterProblemNotification} from "./dismissible-notification";
 import Button from "@mui/material/Button";
 
-const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, refresh}) => {
+export const SevereJobRunrExceptionProblemNotification = ({problem, hasCpuAllocationIrregularity, ...rest}) => {
     const [copyStatus, setCopyStatus] = useState(null);
     const [showIssueDialog, setShowIssueDialog] = useState(false);
 
@@ -42,15 +43,17 @@ const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, r
         : `https://github.com/jobrunr/jobrunr/issues/new?title=${encodeURIComponent(issueTitle)}&body=%3C%21--%20Please%20paste%20the%20issue%20content%20generated%20JobRunr%20below.%20--%3E&labels=bug`;
 
     return (
-        <DismissibleInstanceProblemNotification
-            title="Fatal"
+        <DismissibleClusterProblemNotification
+            title="Severe JobRunr Exception"
             severity="error"
             endpoint="/api/problems/severe-jobrunr-exception"
-            refresh={refresh}
-            extraAction={<Button variant="outlined" onClick={toggleShowIssueDialog} size="small">More&nbsp;details</Button>}
+            date={problem.createdAt}
+            read={problem.read}
+            {...rest}
         >
             <div>JobRunr encountered an exception that should not happen that could result in the Background Job Servers stopping. <b>You need to look into
-                this.</b>
+                this.</b> <Button sx={{textTransform: "none", color: "inherit"}} startIcon={<AspectRatio fontSize="small"/>} onClick={toggleShowIssueDialog}>More
+                details</Button>
             </div>
             {copyStatus &&
                 <Snackbar open={true}
@@ -113,8 +116,6 @@ const SevereJobRunrExceptionProblem = ({problem, hasCpuAllocationIrregularity, r
                     </MuiDialogContent>
                 </Dialog>
             }
-        </DismissibleInstanceProblemNotification>
-    );
+        </DismissibleClusterProblemNotification>
+    )
 }
-
-export default SevereJobRunrExceptionProblem;

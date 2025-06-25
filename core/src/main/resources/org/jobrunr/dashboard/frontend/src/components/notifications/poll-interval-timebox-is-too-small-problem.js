@@ -1,11 +1,13 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleClusterProblemNotification} from "./dismissible-notification";
 
-const PollIntervalInSecondsIsTooSmallProblem = (props) => {
+export const PollIntervalInSecondsIsTooSmallProblemNotification = ({problem, ...rest}) => {
     return (
-        <DismissibleInstanceProblemNotification
+        <DismissibleClusterProblemNotification
             endpoint="/api/problems/poll-interval-in-seconds-is-too-small"
-            refresh={props.refresh}
+            date={problem.createdAt}
+            read={problem.read}
+            {...rest}
         >
             JobRunr detected that your poll interval in seconds setting is too small - are you perhaps scheduling a lot
             of <a href={"https://www.jobrunr.io/en/documentation/background-methods/recurring-jobs/"}>recurring jobs</a>?
@@ -14,16 +16,14 @@ const PollIntervalInSecondsIsTooSmallProblem = (props) => {
             <em><b>&nbsp;You are urged to increase your poll interval in seconds setting as soon as possible.</b></em>
             <br/>
             <ul>
-                {props.problem.pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet.map((problem, index) => {
-                    return <li key={index}>{problem.owner} has a poll interval in seconds that is too small.
+                {problem.pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet.map((issue, index) => {
+                    return <li key={issue.owner}>{issue.owner} has a poll interval in seconds that is too small.
                         &nbsp;The poll interval in seconds time box was exceeded <TimeAgo
                             style={{textDecoration: 'underline', textDecorationStyle: 'dotted'}}
-                            date={new Date(problem.createdAt)}
-                            title={new Date(problem.createdAt).toString()}/>.</li>
+                            date={new Date(issue.createdAt)}
+                            title={new Date(issue.createdAt).toString()}/>.</li>
                 })}
             </ul>
-        </DismissibleInstanceProblemNotification>
+        </DismissibleClusterProblemNotification>
     );
 };
-
-export default PollIntervalInSecondsIsTooSmallProblem;

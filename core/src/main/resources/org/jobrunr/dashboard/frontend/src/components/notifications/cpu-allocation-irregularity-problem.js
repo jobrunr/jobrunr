@@ -1,27 +1,29 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleInstanceProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleClusterProblemNotification} from "./dismissible-notification";
 
-const CPUAllocationIrregularityProblem = (props) => {
+export const CPUAllocationIrregularityProblemNotification = ({problem, ...rest}) => {
     return (
-        <DismissibleInstanceProblemNotification
+        <DismissibleClusterProblemNotification
+            title="CPU Allocation Irregularity"
             endpoint="/api/problems/cpu-allocation-irregularity"
-            refresh={props.refresh}
+            date={problem.createdAt}
+            read={problem.read}
+            {...rest}
         >
             JobRunr detected some CPU Allocation Irregularities (e.g. due to a very long garbage collect cycle
             or due to CPU starvation on shared hosting). This may result in unstable behaviour of your JobRunr cluster.
             <em><b>&nbsp;You are urged to look into this as soon as possible.</b></em>
             <br/>
             <ul>
-                {props.problem.cpuAllocationIrregularityMetadataSet.map((irregularity, index) => {
-                    return <li key={index}>{irregularity.owner} was <strong>not able to execute critical tasks for {irregularity.value} seconds</strong>
+                {problem.cpuAllocationIrregularityMetadataSet.map((irregularity) => {
+                    return <li key={irregularity.owner} style={{marginTop: "4px"}}>{irregularity.owner} was <strong>not able to execute critical tasks
+                        for {irregularity.value} seconds</strong>
                         {" "}<TimeAgo
                             style={{textDecoration: 'underline', textDecorationStyle: 'dotted'}}
                             date={new Date(irregularity.createdAt)}
                             title={new Date(irregularity.createdAt).toString()}/></li>
                 })}
             </ul>
-        </DismissibleInstanceProblemNotification>
+        </DismissibleClusterProblemNotification>
     );
 };
-
-export default CPUAllocationIrregularityProblem;

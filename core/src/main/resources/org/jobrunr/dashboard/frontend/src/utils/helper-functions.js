@@ -55,3 +55,9 @@ function getComponentsOfISO8601Duration(durationString) {
     const iso8601TimePattern = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d{1,6})?)S)?)?$/;
     return iso8601TimePattern.exec(durationString);
 }
+
+export function subDaysToDate(date, days = 30) {
+    const jsDate = new Date(date);
+    jsDate.setDate(jsDate.getDate() - days);
+    return jsDate;
+}

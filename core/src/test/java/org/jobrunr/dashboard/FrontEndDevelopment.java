@@ -8,6 +8,9 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
+import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
@@ -18,6 +21,8 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
@@ -74,17 +79,18 @@ public class FrontEndDevelopment {
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
         BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
 
-//        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
-//        new Timer().schedule(new TimerTask() {
-//                                 @Override
-//                                 public void run() {
-//                                     dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
-//                                     //dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
-//                                     System.out.println("Saved ServerJobRunrException");
-//                                 }
-//                             },
-//                30000
-//        );
+        DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
+        new Timer().schedule(new TimerTask() {
+                                 @Override
+                                 public void run() {
+                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
+                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
+                                     dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
+                                     System.out.println("Saved ServerJobRunrException");
+                                 }
+                             },
+                30000
+        );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
