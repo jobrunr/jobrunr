@@ -89,7 +89,7 @@ public class FrontEndDevelopment {
                                      System.out.println("Saved ServerJobRunrException");
                                  }
                              },
-                1000
+                30000
         );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));

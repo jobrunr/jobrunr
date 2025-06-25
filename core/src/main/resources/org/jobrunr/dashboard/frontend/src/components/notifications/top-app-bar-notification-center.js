@@ -132,17 +132,39 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             .catch(e => console.error("Failed to reload problems", e))
     }, []);
 
-    useEffect(() => {
+    const fetchAllNotifications = useCallback((abortController) => {
+        const config = {signal: abortController.signal};
         Promise.all([
-            fetch("/api/problems").then(res => res.json()),
-            fetch("https://api.jobrunr.io/api/version/jobrunr/latest").then(res => res.json()).catch(() => undefined /* ignored */),
-            fetch("https://api.jobrunr.io/api/notifications/jobrunr").then(res => res.json()).catch(() => undefined /* ignored */),
+            fetch("/api/problems", config).then(res => res.json()),
+            fetch("https://api.jobrunr.io/api/version/jobrunr/latest", config).then(res => res.json()).catch(() => undefined /* ignored */),
+            fetch("https://api.jobrunr.io/api/notifications/jobrunr", config).then(res => res.json()).catch(() => undefined /* ignored */),
         ]).then(([clusterProblems, latestVersion, apiNotification]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
         }).catch(error => console.error(error));
-    }, []);
+    }, [])
+
+    useEffect(() => {
+        const abortController = new AbortController();
+        fetchAllNotifications(abortController);
+        return () => abortController.abort("Component unmounted");
+    }, [fetchAllNotifications]);
+
+    useEffect(() => {
+        // effect to poll new notifications at regular intervals when the notification center is closed
+        const abortController = new AbortController();
+
+        const intervalId = setInterval(() => {
+            if (isOpen) return;
+            fetchAllNotifications(abortController);
+        }, 60 * 15 * 1000);
+
+        return () => {
+            abortController.abort("Component unmounted");
+            clearInterval(intervalId);
+        }
+    }, [isOpen, fetchAllNotifications]);
 
     const problems = useMemo(() => {
             const problems = [...clusterProblems];
