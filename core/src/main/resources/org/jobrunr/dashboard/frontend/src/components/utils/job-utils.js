@@ -18,3 +18,5 @@ export function jobStateToHumanReadableName(jobState) {
             return 'Unknown state';
     }
 }
+
+export const getJobPreviousState = (job) => job?.jobHistory[job.jobHistory.length - 2];
