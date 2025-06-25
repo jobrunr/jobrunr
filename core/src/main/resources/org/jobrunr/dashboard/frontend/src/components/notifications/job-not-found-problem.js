@@ -1,13 +1,11 @@
-import {ProblemNotification} from "./problem-notification";
+import {Notification} from "./notification";
 
-const JobNotFoundProblem = () => {
+export const JobNotFoundProblemNotification = ({problem, ...rest}) => {
     return (
-        <ProblemNotification>
+        <Notification title="Job Not Found Exception" date={problem.createdAt} read={problem.read} {...rest}>
             There are SCHEDULED jobs that do not exist anymore in your code. These jobs will
             fail with a <strong>JobNotFoundException</strong> (due to a ClassNotFoundException or a
             MethodNotFoundException). <br/>
-        </ProblemNotification>
+        </Notification>
     );
 };
-
-export default JobNotFoundProblem;

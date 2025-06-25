@@ -6,7 +6,7 @@ import java.time.ZoneId;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -15,7 +15,7 @@ public class InstantUtils {
     private InstantUtils() {
     }
 
-    public static Instant max(List<Instant> instants) {
+    public static Instant max(Collection<Instant> instants) {
         return max(instants.stream());
     }
 

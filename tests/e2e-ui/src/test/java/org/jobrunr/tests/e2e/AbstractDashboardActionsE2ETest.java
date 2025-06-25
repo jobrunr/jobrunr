@@ -6,6 +6,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.regex.Pattern;
+
 import static org.jobrunr.tests.e2e.PlaywrightAssertions.assertThat;
 
 public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywrightE2ETest {
@@ -154,5 +156,37 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         page.waitForLoadState();
 
         assertThat(serversTabBtn()).containsText("1");
+    }
+
+    @Test
+    void canNavigateToDashboardPageAndOpenNotificationCenter() {
+        dashboardTabBtn().click();
+        page.waitForLoadState();
+
+        assertThat(title("Dashboard")).isVisible();
+
+        var notificationsCenterButton = page.locator("#notifications-center-button");
+        assertThat(notificationsCenterButton).hasText(Pattern.compile("[12]")); // the unread notifications count (could be 2 because of JobRunr.io notification)
+        notificationsCenterButton.click();
+
+        var notificationsCenter = page.locator("#notifications-center-container");
+        assertThat(notificationsCenter).isVisible();
+
+        var newVersionNotification = notificationsCenter.locator("#jobrunr-version-available");
+        assertThat(newVersionNotification).isVisible();
+
+        var newVersionNotificationTitleContainer = newVersionNotification.locator(".MuiTypography-body1");
+        assertThat(newVersionNotificationTitleContainer.locator(".MuiTypography-subtitle2"))
+                .hasText("New JobRunr Version Available");
+
+        var newVersionNotificationMenuButton = newVersionNotificationTitleContainer.locator("button");
+        assertThat(newVersionNotificationMenuButton).isVisible();
+        newVersionNotificationMenuButton.click();
+
+        var newVersionNotificationMenu = page.locator(".MuiMenu-root");
+        assertThat(newVersionNotificationMenu).isVisible();
+        newVersionNotificationMenu.locator("li").all().get(1).click();
+
+        assertThat(newVersionNotification).isHidden();
     }
 }

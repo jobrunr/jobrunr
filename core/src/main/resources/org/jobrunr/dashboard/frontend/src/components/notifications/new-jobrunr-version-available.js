@@ -1,4 +1,4 @@
-import {DismissibleProblemNotification} from "./dismissible-problem-notification";
+import {DismissibleNotification} from "./dismissible-notification";
 
 export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
 
@@ -28,19 +28,31 @@ export const getNewVersionProblem = (currentVersion, latestVersion) => {
     if (!currentVersion || versionIsNewerThanOther(latestVersion, currentVersion)) return {type: "new-jobrunr-version", latestVersion, currentVersion};
 }
 
-const NewJobRunrVersionAvailable = ({problem: {currentVersion, latestVersion, reset}}) => {
+export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion, latestVersion, read}, onDismiss, ...rest}) => {
     const handleDismiss = () => {
         localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
-        reset();
+        onDismiss();
     }
 
+    const isStable = !latestVersion.includes("-");
+
     return (
-        <DismissibleProblemNotification severity="info" title="Info" onDismiss={handleDismiss}>
-            JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
-            performance improvements and new features.<br/>
+        <DismissibleNotification
+            severity="info"
+            title="New JobRunr Version Available"
+            onDismiss={handleDismiss}
+            read={read}
+            containerId="jobrunr-version-available"
+            {...rest}
+        >
+            {isStable
+                ? <p>JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
+                    performance improvements and new features.</p>
+                : <p>JobRunr version {latestVersion} is live!
+                    Try it out and share your thoughts by starting a <a target="_blank" href="https://github.com/jobrunr/jobrunr/discussions">
+                        discussion on GitHub</a>. Thanks for your contribution!</p>
+            }
             Current version: {currentVersion ?? "UNKNOWN"}
-        </DismissibleProblemNotification>
+        </DismissibleNotification>
     );
 };
-
-export default NewJobRunrVersionAvailable;
