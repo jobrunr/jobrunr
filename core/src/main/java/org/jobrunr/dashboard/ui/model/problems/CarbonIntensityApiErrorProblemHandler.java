@@ -36,7 +36,7 @@ public class CarbonIntensityApiErrorProblemHandler implements MetadataChangeList
         if (this.metadata == null || this.metadata.size() != metadataList.size()) {
             dismiss();
             if (!metadataList.isEmpty()) {
-                problems.addProblem(new CarbonIntensityApiErrorProblem(InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt))));
+                problems.addProblem(new CarbonIntensityApiErrorProblem(metadataList, InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt))));
             }
             this.metadata = metadataList;
         }

@@ -22,6 +22,7 @@ public class CarbonIntensityApiErrorNotificationMapper implements DashboardNotif
 
     @Override
     public JobRunrMetadata mapToMetadata(CarbonIntensityApiErrorNotification notification) {
-        return new JobRunrMetadata(CarbonIntensityApiErrorNotification.class.getSimpleName(), id, "error");
+        return new JobRunrMetadata(CarbonIntensityApiErrorNotification.class.getSimpleName(), id,
+                "response code: " + notification.getApiResponseStatus().getCode() + "; message: " + notification.getApiResponseStatus().getMessage());
     }
 }

@@ -75,7 +75,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             updateNextRefreshTime();
             LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
             if (carbonIntensityForecast.hasError()) {
-                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
+                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
             }
         }
     }
