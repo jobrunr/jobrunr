@@ -11,6 +11,8 @@ import JobLabel from "./job-label";
 import {ItemsNotFound} from "./items-not-found";
 import {styled} from "@mui/material/styles";
 import {SwitchableTimeAgo} from "./time-ago";
+import Tooltip from '@mui/material/Tooltip';
+import {EnergySavingsLeaf} from "@mui/icons-material";
 
 const IdColumn = styled(TableCell)`
     width: 20%;
@@ -59,6 +61,10 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
         navigate(`?${urlSearchParams.toString()}`);
     };
 
+    const isCarbonAwareJob = (job) => {
+        return job.jobHistory[0]["@class"].indexOf("CarbonAwareAwaitingState") !== -1;
+    };
+
     return (
         <> {isLoading
             ? <LoadingIndicator/>
@@ -96,6 +102,11 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                             }}>{job.jobName}</Link>
                                         </TableCell>
                                         <TableCell>
+                                            {isCarbonAwareJob(job) &&
+                                                <Tooltip title="This job is Carbon Aware">
+                                                    <EnergySavingsLeaf fontSize="small" color="success" style={{position: "relative", top: "5px", marginRight: "5px"}}/>
+                                                </Tooltip>
+                                            }
                                             <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
                                         </TableCell>
                                     </TableRow>
