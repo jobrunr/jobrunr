@@ -105,7 +105,7 @@ public class BackgroundJobRequest {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
-     *     <li>{@link CarbonAwarePeriod}</li>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
@@ -138,7 +138,7 @@ public class BackgroundJobRequest {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
-     *     <li>{@link CarbonAwarePeriod}</li>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>

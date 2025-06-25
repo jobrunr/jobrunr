@@ -156,7 +156,7 @@ public class BackgroundJob {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
-     *     <li>{@link CarbonAwarePeriod}</li>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
@@ -190,16 +190,23 @@ public class BackgroundJob {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
-     * <h5>An Example with Instant:</h5>
+     * <h5>An Example with {@code Instant}:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
-     *      BackgroundJob.schedule(id, Instant.now().plusHours(5), () -> service.doWork());
+     *      BackgroundJob.schedule(id, Instant.now().plus(5, ChronoUnit.HOURS), () -> service.doWork());
+     * }</pre>
+     *
+     * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     *      MyService service = new MyService();
+     *      BackgroundJob.schedule(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plus(1, ChronoUnit.HOURS)), () -> service.doWork());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -217,7 +224,7 @@ public class BackgroundJob {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
-     *     <li>{@link CarbonAwarePeriod}</li>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
@@ -249,7 +256,7 @@ public class BackgroundJob {
      *
      * <h5>Supported Temporal Types:</h5>
      * <ul>
-     *     <li>{@link CarbonAwarePeriod}</li>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
      *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>

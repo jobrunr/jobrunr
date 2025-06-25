@@ -7,6 +7,10 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoZonedDateTime;
 import java.time.temporal.Temporal;
 
 import static java.lang.String.format;
@@ -19,23 +23,29 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  * <p>
  * For scheduling jobs, you can use:
  * <ul>
- *     <li>TODO</li>
+ *     <li>{@link CarbonAware#before(Temporal)}</li>
+ *     <li>{@link CarbonAware#between(Temporal, Temporal)}</li>
  * </ul>
  * <p>
  * For recurring jobs, you can use:
  * <ul>
  *     <li>{@link CarbonAware#cron(String, Duration)}</li>
  *     <li>{@link CarbonAware#cron(String, Duration, Duration)}</li>
+ *     <li>{@link CarbonAware#interval(Duration, Duration)}</li>
  *     <li>{@link CarbonAware#interval(Duration, Duration, Duration)}</li>
+ *     <li>{@link CarbonAware#dailyBefore(int)}</li>
+ *     <li>{@link CarbonAware#dailyBetween(int, int)}</li>
  * </ul>
  */
 public class CarbonAware {
 
     /**
      * Allows to relax the scheduling of a job to minimize carbon impact.
-     * The job will run before the provided {@code to} Temporal instance.
+     * The job will run before the provided {@code to} {@link Temporal} instance.
      *
-     * @param to the time expressed in java.time.Temporal before which the job must be scheduled.
+     * The following {@link Temporal} implementations are supported: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}
+     *
+     * @param to the time expressed in {@link Temporal} before which the job must be scheduled.
      * @return A carbon aware period between {@code Instant.now()} and the provided {@code to}.
      */
     public static CarbonAwarePeriod before(Temporal to) {
@@ -44,10 +54,12 @@ public class CarbonAware {
 
     /**
      * Allows to relax the scheduling of a job to minimize carbon impact.
-     * The job will run between the two provided {@code from} and {@code to} Temporal instances as the interval.
+     * The job will run between the two provided {@code from} and {@code to} {@link Temporal} instances as the interval.
      *
-     * @param from the start time expressed in java.time.Temporal of the carbon aware margin.
-     * @param to   the end time expressed in java.time.Temporal of the carbon aware margin.
+     * The following {@link Temporal} implementations are supported: {@link Instant}, {@link ChronoLocalDateTime}, {@link ChronoZonedDateTime}, {@link OffsetDateTime}
+     *
+     * @param from the start time expressed in {@link Temporal} of the carbon aware margin.
+     * @param to   the end time expressed in {@link Temporal} of the carbon aware margin.
      * @return A carbon aware period between the provided {@code from} and {@code to}.
      */
     public static CarbonAwarePeriod between(Temporal from, Temporal to) {
