@@ -146,22 +146,12 @@ class JobBuilderTest {
     void testWithScheduleCarbonAware() {
         Instant deadline = now().plus(10, DAYS);
         Job job = aJob()
-                .scheduleCarbonAware(before(deadline))
+                .scheduleIn(before(deadline))
                 .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
         assertThat(job).hasState(StateName.AWAITING);
         CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
         assertThat(carbonAwareAwaitingState.getTo()).isEqualTo(deadline);
-    }
-
-    @Test
-    void testWithScheduleCarbonAware_andScheduleAt_thenThrowException() {
-        assertThatThrownBy(() -> aJob()
-                .scheduleCarbonAware(before(now().plus(1, DAYS)))
-                .scheduleAt(now().plus(6, HOURS))
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
-                .build(jobDetailsGenerator))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -172,17 +162,6 @@ class JobBuilderTest {
 
         assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator))
                 .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void testThatOnlyScheduleInOrScheduleCarbonAwareIsAllowed() {
-        assertThatThrownBy(() -> aJob().scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).scheduleIn(Duration.ZERO).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
-
-        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleCarbonAware(CarbonAwarePeriod.before(now().plusSeconds(3600))).withDetails(() -> System.out.println()).build(jobDetailsGenerator))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware()");
     }
 
     @Test

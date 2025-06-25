@@ -16,6 +16,7 @@ import org.jobrunr.utils.JobUtils;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,8 +52,7 @@ public class JobBuilder {
 
     private UUID jobId;
     private String jobName;
-    private Instant scheduleAt;
-    private CarbonAwarePeriod carbonAwarePeriod;
+    private Temporal scheduleAt;
     private Integer retries;
     private List<String> labels;
     private JobRunrJob jobLambda;
@@ -101,6 +101,17 @@ public class JobBuilder {
     }
 
     /**
+     * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
+     *
+     * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
+     * @return the same builder instance which provides a fluent api
+     */
+    public JobBuilder scheduleIn(CarbonAwarePeriod carbonAwarePeriod) {
+        this.scheduleAt = carbonAwarePeriod;
+        return this;
+    }
+
+    /**
      * Allows to specify the instant on which the job will be enqueued.
      *
      * @param scheduleAt the instant on which the job will be enqueued
@@ -108,17 +119,6 @@ public class JobBuilder {
      */
     public JobBuilder scheduleAt(Instant scheduleAt) {
         this.scheduleAt = scheduleAt;
-        return this;
-    }
-
-    /**
-     * Allows to specify the carbonAwarePeriod, in order to schedule the job in the hour of the period when the electricity has the lowest carbon emissions
-     *
-     * @param carbonAwarePeriod the allowed time period (from,to) in which the job has to run
-     * @return the same builder instance which provides a fluent api
-     */
-    public JobBuilder scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod) {
-        this.carbonAwarePeriod = carbonAwarePeriod;
         return this;
     }
 
@@ -255,16 +255,12 @@ public class JobBuilder {
     }
 
     private AbstractJobState getState() {
-        if (this.scheduleAt != null && this.carbonAwarePeriod != null) {
-            throw new IllegalArgumentException("You called either scheduleAt() or scheduleIn() and scheduleCarbonAware(), which is not allowed. Specify either a time to schedule the job " +
-                    "or allow a carbonAwarePeriod for the job to be scheduled, not both.");
-        }
-        if (this.scheduleAt != null) {
-            return new ScheduledState(this.scheduleAt);
-        } else if (this.carbonAwarePeriod != null) {
-            return new CarbonAwareAwaitingState(carbonAwarePeriod);
-        } else {
+        if(this.scheduleAt == null) {
             return new EnqueuedState();
         }
+
+        return this.scheduleAt instanceof CarbonAwarePeriod ?
+                new CarbonAwareAwaitingState((CarbonAwarePeriod) this.scheduleAt) :
+                new ScheduledState((Instant) this.scheduleAt);
     }
 }
