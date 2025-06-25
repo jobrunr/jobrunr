@@ -1,26 +1,19 @@
-import {JobNotification} from "./job-notification";
 import {EnergySavingsLeaf} from "@mui/icons-material";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import Alert from "@mui/material/Alert";
 import {SwitchableTimeAgo} from "../../utils/time-ago";
+import {isCarbonAwaitingState} from "../../utils/job-utils";
+import {JobNotification} from "./job-notification";
 
-const CarbonAwareScheduledNotification = ({job}) => {
-    const awaitingState = job.jobHistory[0];
-    if(!awaitingState["@class"].endsWith("CarbonAwareAwaitingState")) {
-        return;
-    }
+const CarbonAwareScheduledNotification = ({state}) => {
+    if (!isCarbonAwaitingState(state)) return;
 
     return (
-        <Grid item xs={12}>
-            <Paper>
-                <Alert severity="info" icon={
-                    <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
-                } style={{fontSize: '1rem'}}>
-                    This job is scheduled Carbon Aware between <SwitchableTimeAgo date={new Date(awaitingState.from)}/> and <SwitchableTimeAgo date={new Date(awaitingState.to)}/> to minimize carbon impact.
-                </Alert>
-            </Paper>
-        </Grid>
+        <JobNotification
+            severity="info"
+            icon={<EnergySavingsLeaf fontSize="small" color="success"/>}
+        >
+            This job is scheduled Carbon Aware between <SwitchableTimeAgo date={new Date(state.from)}/> and <SwitchableTimeAgo
+            date={new Date(state.to)}/> to minimize carbon impact.
+        </JobNotification>
     )
 };
 

@@ -21,3 +21,7 @@ export function jobStateToHumanReadableName(jobState) {
 
 export const getJobPreviousState = (job) => job?.jobHistory[job.jobHistory.length - 2];
 export const getJobMostRecentState = (job) => job?.jobHistory[job.jobHistory.length - 1];
+
+export const isCarbonAwaitingState = (state) => {
+    return !!state?.["@class"]?.endsWith("CarbonAwareAwaitingState");
+}

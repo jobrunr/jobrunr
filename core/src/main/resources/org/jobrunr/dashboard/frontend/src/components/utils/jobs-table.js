@@ -13,8 +13,7 @@ import {styled} from "@mui/material/styles";
 import {SwitchableTimeAgo} from "./time-ago";
 import Tooltip from '@mui/material/Tooltip';
 import {EnergySavingsLeaf} from "@mui/icons-material";
-import {getJobPreviousState, getJobMostRecentState} from "./job-utils";
-import Typography from "@mui/material/Typography";
+import {getJobMostRecentState, getJobPreviousState, isCarbonAwaitingState} from "./job-utils";
 
 const IdColumn = styled(TableCell)`
     width: 20%;
@@ -22,10 +21,6 @@ const IdColumn = styled(TableCell)`
     text-overflow: ellipsis;
     white-space: nowrap;
 `;
-
-function getJobCurrentState(job) {
-    return job.jobHistory[job.jobHistory.length - 1];
-}
 
 const JobsTable = ({jobPage, jobState, isLoading}) => {
     const location = useLocation();
@@ -35,8 +30,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
     let columnFunction = (job) => getJobMostRecentState(job).createdAt;
     switch (jobState) {
         case 'AWAITING':
-            column = "Deadline";
-            columnFunction = (job) => getJobMostRecentState(job).to
+            column = "Created";
             break;
         case 'SCHEDULED':
             column = "Scheduled";
@@ -67,9 +61,8 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
         navigate(`?${urlSearchParams.toString()}`);
     };
 
-    const isStateCarbonAware = (state) => state && state["@class"]?.endsWith("CarbonAwareAwaitingState");
-    const isInAwaitingViewAndJobIsCarbonAware = (job) => jobState === "AWAITING" && isStateCarbonAware(getJobMostRecentState(job));
-    const isInScheduledViewAndJobIsCarbonAware = (job) => jobState === "SCHEDULED" && isStateCarbonAware(getJobPreviousState(job));
+    const isInAwaitingViewAndJobIsCarbonAware = (job) => jobState === "AWAITING" && isCarbonAwaitingState(getJobMostRecentState(job));
+    const isInScheduledViewAndJobIsCarbonAware = (job) => jobState === "SCHEDULED" && isCarbonAwaitingState(getJobPreviousState(job));
 
     return (
         <> {isLoading
@@ -108,21 +101,25 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                             }}>{job.jobName}</Link>
                                         </TableCell>
                                         <TableCell>
-                                            {isInAwaitingViewAndJobIsCarbonAware(job) &&
-                                                <Tooltip title={
-                                                    <Typography style={{fontSize: '1.2em'}}>
-                                                        This is a Carbon Aware job that may be scheduled between <SwitchableTimeAgo date={new Date(getJobMostRecentState(job).from)}/> and <SwitchableTimeAgo date={new Date(getJobMostRecentState(job).to)}/>
-                                                    </Typography>
+                                            <div style={{display: "flex", alignItems: "center"}}>
+                                                {isInAwaitingViewAndJobIsCarbonAware(job) &&
+                                                    <Tooltip title={
+                                                        <>
+                                                            This is a Carbon Aware job that may be scheduled between <SwitchableTimeAgo
+                                                            date={new Date(getJobMostRecentState(job).from)}/> and <SwitchableTimeAgo
+                                                            date={new Date(getJobMostRecentState(job).to)}/>
+                                                        </>
                                                     }>
-                                                    <EnergySavingsLeaf fontSize="small" color="success" style={{position: "relative", top: "5px", marginRight: "5px"}}/>
-                                                </Tooltip>
-                                            }
-                                            {isInScheduledViewAndJobIsCarbonAware(job) &&
-                                                <Tooltip title={<Typography style={{fontSize: '1.2em'}}>This is a Carbon Aware job</Typography>}>
-                                                    <EnergySavingsLeaf fontSize="small" color="success" style={{position: "relative", top: "5px", marginRight: "5px"}}/>
-                                                </Tooltip>
-                                            }
-                                            <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
+                                                        <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
+                                                    </Tooltip>
+                                                }
+                                                {isInScheduledViewAndJobIsCarbonAware(job) &&
+                                                    <Tooltip title="This is a Carbon Aware job">
+                                                        <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
+                                                    </Tooltip>
+                                                }
+                                                <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))}
