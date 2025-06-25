@@ -274,22 +274,22 @@ public class BackgroundJob {
         delete(jobId.asUUID());
     }
 
-    /**
-     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *     MyService service = new MyService();
-     *     BackgroundJob.scheduleCarbonAware(CarbonAwarePeriod.before(Instant.now().plusHours(15)), () -> service.doWork());
-     * }</pre>
-     *
-     * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param job               the lambda which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public static JobId schedule(CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
-        verifyJobScheduler();
-        return jobScheduler.scheduleCarbonAware(carbonAwarePeriod, job);
-    }
+//    /**
+//     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
+//     * <h5>An example:</h5>
+//     * <pre>{@code
+//     *     MyService service = new MyService();
+//     *     BackgroundJob.scheduleCarbonAware(CarbonAwarePeriod.before(Instant.now().plusHours(15)), () -> service.doWork());
+//     * }</pre>
+//     *
+//     * @param carbonAwarePeriod the period in which the job will be scheduled
+//     * @param job               the lambda which defines the fire-and-forget job
+//     * @return the id of the Job
+//     */
+//    public static JobId schedule(CarbonAwarePeriod carbonAwarePeriod, JobLambda job) {
+//        verifyJobScheduler();
+//        return jobScheduler.scheduleCarbonAware(carbonAwarePeriod, job);
+//    }
 
     /**
      * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.

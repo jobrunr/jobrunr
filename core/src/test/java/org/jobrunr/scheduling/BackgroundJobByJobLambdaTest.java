@@ -76,6 +76,7 @@ import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.between;
+import static org.jobrunr.scheduling.cron.Cron.daily;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
@@ -641,7 +642,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testJobInheritance() {
-        SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
+        SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(daily());
         assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
     }
 
