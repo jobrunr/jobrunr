@@ -43,7 +43,7 @@ public class CarbonAwarePeriod implements Temporal {
     }
 
     /**
-     * Allows to relax schedule of a job to minimize carbon impact.
+     * Allows to relax the scheduling of a job to minimize carbon impact.
      * The job will run between the two provided {@code from} and {@code to} Temporal instances as the interval.
      *
      * @param from the start time expressed in java.time.Temporal of the carbon aware margin.
