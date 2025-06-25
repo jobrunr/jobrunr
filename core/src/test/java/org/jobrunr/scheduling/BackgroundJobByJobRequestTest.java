@@ -220,7 +220,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJobRequest.scheduleCarbonAware(before(now().plus(1, DAYS)), new TestJobRequest("from testScheduleCarbonAware"));
+        JobId jobId = BackgroundJobRequest.schedule(before(now().plus(1, DAYS)), new TestJobRequest("from testScheduleCarbonAware"));
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 

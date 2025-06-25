@@ -131,13 +131,6 @@ public abstract class AbstractJobScheduler {
         ));
     }
 
-    // TODO carbon
-    @Deprecated
-    JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
-        Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod));
-        return saveJob(carbonAwareJob);
-    }
-
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
 
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
