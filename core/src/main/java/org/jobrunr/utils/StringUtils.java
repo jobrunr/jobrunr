@@ -21,7 +21,7 @@ public class StringUtils {
     }
 
     public static boolean isNullEmptyOrBlank(String s) {
-        return isNullOrEmpty(s.trim());
+        return isNullOrEmpty(s) || isNullOrEmpty(s.trim());
     }
 
     public static String capitalize(String s) {
