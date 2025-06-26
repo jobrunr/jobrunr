@@ -1,5 +1,0 @@
-org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration
-org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration
-org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration
-org.jobrunr.spring.autoconfigure.storage.JobRunrInMemoryStorageAutoConfiguration
-org.jobrunr.spring.autoconfigure.metrics.JobRunrMetricsAutoConfiguration
