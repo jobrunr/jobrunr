@@ -29,10 +29,10 @@ public class CarbonIntensityApiClient {
             String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
         } catch (CarbonIntensityApiClientException apiClientEx) {
-            LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareJobProcessingConfiguration.getAreaCode(), apiClientEx);
+            LOGGER.error("Error processing energy prices for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), apiClientEx.getMessage(), apiClientEx);
             return CarbonIntensityForecast.fromException(apiClientEx);
         } catch (Exception e) {
-            LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareJobProcessingConfiguration.getAreaCode(), e);
+            LOGGER.error("Error processing energy prices for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), e.getMessage(), e);
             return CarbonIntensityForecast.fromException(e);
         }
     }
@@ -69,10 +69,7 @@ public class CarbonIntensityApiClient {
     }
 
     private String readResponse(HttpURLConnection con) throws IOException {
-        if (con.getResponseCode() == 404) {
-            // Avoid showing the entire 404 HTML file in the notification centre.
-            throw new CarbonIntensityApiClientException(con.getResponseCode(), "Not Found");
-        } else if (con.getResponseCode() > 299) {
+        if(con.getResponseCode() > 299) {
             throw new CarbonIntensityApiClientException(con.getResponseCode(), readErrorStream(con));
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
