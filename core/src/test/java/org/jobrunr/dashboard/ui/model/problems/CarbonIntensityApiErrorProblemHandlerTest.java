@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,6 +69,17 @@ class CarbonIntensityApiErrorProblemHandlerTest {
         handler.onChange(emptyList());
         verify(problems).removeProblemsOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE);
         verify(problems, never()).addProblem(any());
+    }
+
+    @Test
+    void ifCarbonIntensityApiErrorNotificationIsDismissedThenProblemIsRemovedAndDeletedFromStorageProvider() {
+        final JobRunrMetadata jobRunrMetadata = new JobRunrMetadata(CarbonIntensityApiErrorNotification.class.getSimpleName(), "BackgroundJobServer " + UUID.randomUUID(), "23");
+        handler.onChange(asList(jobRunrMetadata));
+        reset(problems);
+
+        handler.dismiss();
+        verify(problems).removeProblemsOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE);
+        verify(storageProvider).deleteMetadata(CarbonIntensityApiErrorNotification.class.getSimpleName());
     }
 
 }

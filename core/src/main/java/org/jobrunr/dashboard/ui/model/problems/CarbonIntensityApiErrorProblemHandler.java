@@ -24,6 +24,7 @@ public class CarbonIntensityApiErrorProblemHandler implements MetadataChangeList
     @Override
     public void dismiss() {
         problems.removeProblemsOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE);
+        storageProvider.deleteMetadata(CarbonIntensityApiErrorNotification.class.getSimpleName());
     }
 
     @Override
@@ -34,12 +35,11 @@ public class CarbonIntensityApiErrorProblemHandler implements MetadataChangeList
     @Override
     public void onChange(List<JobRunrMetadata> metadataList) {
         if (this.metadata == null || this.metadata.size() != metadataList.size()) {
-            dismiss();
+            problems.removeProblemsOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE);
             if (!metadataList.isEmpty()) {
                 problems.addProblem(new CarbonIntensityApiErrorProblem(metadataList, InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt))));
             }
             this.metadata = metadataList;
         }
-
     }
 }
