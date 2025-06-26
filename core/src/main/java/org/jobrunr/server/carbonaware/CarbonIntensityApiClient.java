@@ -2,7 +2,6 @@ package org.jobrunr.server.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
-import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
