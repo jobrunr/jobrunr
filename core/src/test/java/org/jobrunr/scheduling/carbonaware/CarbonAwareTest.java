@@ -21,6 +21,12 @@ class CarbonAwareTest {
     }
 
     @Test
+    void testCarbonAwareAtWithCarbonAwarePeriodThrowsException() {
+        assertThatCode(() -> CarbonAware.at(new CarbonAwarePeriod(Instant.now(), Instant.now().plus(4, HOURS)), Duration.of(3, HOURS)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void dailyBetween_invalidValuesThrowsException() {
         assertThatCode(() -> CarbonAware.dailyBetween(-1, 1)).isInstanceOf(IllegalArgumentException.class);
         assertThatCode(() -> CarbonAware.dailyBetween(1, -1)).isInstanceOf(IllegalArgumentException.class);

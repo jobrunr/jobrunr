@@ -62,8 +62,10 @@ public class CarbonAware {
      * @return a carbon-aware period between the provided {@code from} and {@code to}.
      */
     public static CarbonAwarePeriod between(Temporal from, Temporal to) {
+        validateTemporalObjectIsNotCarbonAwarePeriod(from, to);
         return new CarbonAwarePeriod(toInstant(from), toInstant(to));
     }
+
 
     /**
      * Allows relaxing the scheduling of a job to minimize carbon impact.
@@ -76,7 +78,7 @@ public class CarbonAware {
      * @return a carbon-aware period centered around {@code at}, extended by {@code marginBeforeAndAfter} in both directions.
      */
     public static CarbonAwarePeriod at(Temporal at, TemporalAmount marginBeforeAndAfter) {
-        return between(at.minus(marginBeforeAndAfter), at.plus(marginBeforeAndAfter));
+        return at(at, marginBeforeAndAfter, marginBeforeAndAfter);
     }
 
     /**
@@ -92,6 +94,7 @@ public class CarbonAware {
      * @return a carbon-aware period starting {@code marginBefore} before {@code at} and ending {@code marginAfter} after {@code at}.
      */
     public static CarbonAwarePeriod at(Temporal at, TemporalAmount marginBefore, TemporalAmount marginAfter) {
+        validateTemporalObjectIsNotCarbonAwarePeriod(at);
         return between(at.minus(marginBefore), at.plus(marginAfter));
     }
 
@@ -173,5 +176,13 @@ public class CarbonAware {
      */
     public static String dailyBefore(int untilHour) {
         return dailyBetween(0, untilHour);
+    }
+
+    private static void validateTemporalObjectIsNotCarbonAwarePeriod(Temporal... temporals) {
+        for (Temporal temporal : temporals) {
+            if (temporal instanceof CarbonAwarePeriod) {
+                throw new IllegalArgumentException("When using the CarbonAware utility class, you may not pass a CarbonAwarePeriod");
+            }
+        }
     }
 }
