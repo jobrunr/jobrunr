@@ -1,10 +1,9 @@
-package org.jobrunr.jobs.carbonaware;
+package org.jobrunr.scheduling.carbonaware;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 
-import java.time.Instant;
+import java.time.temporal.Temporal;
 
 public class CarbonAwarePeriodAssert extends AbstractAssert<CarbonAwarePeriodAssert, CarbonAwarePeriod> {
 
@@ -16,12 +15,12 @@ public class CarbonAwarePeriodAssert extends AbstractAssert<CarbonAwarePeriodAss
         return new CarbonAwarePeriodAssert(carbonAwarePeriod);
     }
 
-    public CarbonAwarePeriodAssert hasFrom(Instant from) {
+    public CarbonAwarePeriodAssert hasFrom(Temporal from) {
         Assertions.assertThat(actual.getFrom()).isEqualTo(from);
         return this;
     }
 
-    public CarbonAwarePeriodAssert hasTo(Instant to) {
+    public CarbonAwarePeriodAssert hasTo(Temporal to) {
         Assertions.assertThat(actual.getTo()).isEqualTo(to);
         return this;
     }

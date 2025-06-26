@@ -1,8 +1,8 @@
 package org.jobrunr.jobs.states;
 
 import org.jobrunr.jobs.Job;
-import org.jobrunr.scheduling.CarbonAwareScheduleMargin;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.carbonaware.CarbonAwareScheduleMargin;
 
 import java.time.Duration;
 import java.time.Instant;

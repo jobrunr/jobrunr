@@ -20,6 +20,8 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.RecurringJobAssert;
 import org.jobrunr.jobs.carbonaware.CarbonAwareJobProcessingConfigurationAssert;
 import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriodAssert;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -107,6 +109,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static CarbonIntensityForecastAssert assertThat(CarbonIntensityForecast carbonIntensityForecast) {
         return CarbonIntensityForecastAssert.assertThat(carbonIntensityForecast);
+    }
+
+    public static CarbonAwarePeriodAssert assertThat(CarbonAwarePeriod carbonAwarePeriod) {
+        return CarbonAwarePeriodAssert.assertThat(carbonAwarePeriod);
     }
 
     public static CarbonAwareJobProcessingConfigurationAssert assertThat(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {

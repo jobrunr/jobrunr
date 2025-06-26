@@ -31,6 +31,7 @@ class StringUtilsTest {
 
     @Test
     void testIsNullEmptyOrBlank() {
+        assertThat(isNullEmptyOrBlank(null)).isTrue();
         assertThat(isNullEmptyOrBlank("\n")).isTrue();
         assertThat(isNullEmptyOrBlank("   \n")).isTrue();
         assertThat(isNullEmptyOrBlank("bla")).isFalse();

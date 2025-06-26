@@ -202,11 +202,12 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time.
      *
-     * <h5>Supported Temporal Types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
@@ -214,6 +215,11 @@ public class JobScheduler extends AbstractJobScheduler {
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.schedule(Instant.now().plusHours(5), () -> service.doWork());
+     * }</pre>
+     *
+     * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     *      jobScheduler.schedule(CarbonAware.between(Instant.now(), Instant.now().plus(1, ChronoUnit.HOURS)), () -> service.doWork());
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
@@ -228,11 +234,12 @@ public class JobScheduler extends AbstractJobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time.
      * If a job with that id already exists, JobRunr will not save it again.
      *
-     * <h5>Supported Temporal Types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
@@ -240,6 +247,11 @@ public class JobScheduler extends AbstractJobScheduler {
      * <pre>{@code
      *      MyService service = new MyService();
      *      jobScheduler.schedule(id, Instant.now().plusHours(5), () -> service.doWork());
+     * }</pre>
+     *
+     * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     *      jobScheduler.schedule(id, CarbonAware.between(Instant.now(), Instant.now().plus(1, ChronoUnit.HOURS)), () -> service.doWork());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -255,17 +267,23 @@ public class JobScheduler extends AbstractJobScheduler {
     /**
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      *
-     * <h5>Supported Temporal Types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
      * <h5>An example with Instant:</h5>
      * <pre>{@code
-     *      jobScheduler.<MyService>schedule(id, Instant.now().plusHours(5), x -> x.doWork());
+     *      jobScheduler.<MyService>schedule(Instant.now().plusHours(5), x -> x.doWork());
+     * }</pre>
+     *
+     * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     *      jobScheduler.<MyService>schedule(CarbonAware.between(Instant.now(), Instant.now().plus(1, ChronoUnit.HOURS)), x -> x.doWork());
      * }</pre>
      *
      * @param scheduleAt the moment in time at which the job will be enqueued.
@@ -280,17 +298,23 @@ public class JobScheduler extends AbstractJobScheduler {
      * Creates a new fire-and-forget job based on the given lambda and schedules it to be enqueued at the given moment of time. The IoC container will be used to resolve {@code MyService}.
      * If a job with that id already exists, JobRunr will not save it again.
      *
-     * <h5>Supported Temporal types:</h5>
+     * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
      *     <li>{@link Instant}</li>
      *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
-     *     <li>{@link ChronoZonedDateTime}) (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
      *     <li>{@link OffsetDateTime}</li>
      * </ul>
      *
-     * <h5>An Example with Instant:</h5>
+     * <h5>An Example with {@code Instant}:</h5>
      * <pre>{@code
-     *      jobScheduler.<MyService>schedule(id, Instant.now().plusHours(5), x -> x.doWork());
+     *      jobScheduler.<MyService>schedule(id, Instant.now().plus(5, ChronoUnit.HOURS), x -> x.doWork());
+     * }</pre>
+     *
+     * <h5>An Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     *      jobScheduler.<MyService>schedule(id, CarbonAware.between(Instant.now(), Instant.now().plus(1, ChronoUnit.HOURS)), x -> x.doWork());
      * }</pre>
      *
      * @param id         the uuid with which to save the job
@@ -301,75 +325,6 @@ public class JobScheduler extends AbstractJobScheduler {
     public <S> JobId schedule(UUID id, Temporal scheduleAt, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(id, scheduleAt, jobDetails);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.scheduleCarbonAware(CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), () -> service.doWork());
-     * }</pre>
-     *
-     * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param jobLambda         the {@link JobLambda} which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
-        return scheduleCarbonAware(null, carbonAwarePeriod, jobLambda);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      MyService service = new MyService();
-     *      jobScheduler.scheduleCarbonAware(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), () -> service.doWork());
-     * }</pre>
-     *
-     * @param id                the uuid with which to save the job
-     * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param jobLambda         the {@link JobLambda} which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobLambda jobLambda) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
-        return scheduleCarbonAware(id, carbonAwarePeriod, jobDetails);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
-     * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      jobScheduler.<MyService>scheduleCarbonAware(CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), x -> x.doWork());
-     * }</pre>
-     *
-     * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param iocJob            the {@link JobLambda} which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public <S> JobId scheduleCarbonAware(CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleCarbonAware(null, carbonAwarePeriod, jobDetails);
-    }
-
-    /**
-     * Creates a new fire-and-forget job based on the given lambda that will be scheduled inside the given {@link CarbonAwarePeriod}, in a moment of low carbon emissions.
-     * If a job with that id already exists, JobRunr will not save it again.
-     * <h5>An example:</h5>
-     * <pre>{@code
-     *      jobScheduler.<MyService>scheduleCarbonAware(id, CarbonAwarePeriod.between(Instant.now(), Instant.now().plusHours(6)), x -> x.doWork());
-     * }</pre>
-     *
-     * @param id                the uuid with which to save the job
-     * @param carbonAwarePeriod the period in which the job will be scheduled
-     * @param iocJob            the {@link JobLambda} which defines the fire-and-forget job
-     * @return the id of the Job
-     */
-    public <S> JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, IocJobLambda<S> iocJob) {
-        JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
-        return scheduleCarbonAware(id, carbonAwarePeriod, jobDetails);
     }
 
     /**

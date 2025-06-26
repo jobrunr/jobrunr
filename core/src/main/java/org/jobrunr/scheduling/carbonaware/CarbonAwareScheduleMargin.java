@@ -1,4 +1,4 @@
-package org.jobrunr.scheduling;
+package org.jobrunr.scheduling.carbonaware;
 
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -6,6 +6,7 @@ import java.time.format.DateTimeParseException;
 import static java.lang.String.format;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.lastMatchedSubstringBetween;
+import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
 public class CarbonAwareScheduleMargin {
     static final String MARGIN_OPENING_TAG = "[";
@@ -26,8 +27,17 @@ public class CarbonAwareScheduleMargin {
         this.marginAfter = marginAfter;
     }
 
-    public static CarbonAwareScheduleMargin parse(String scheduleWithOptionalCarbonAwareScheduleMargin) {
-        String margin = getCarbonAwareMarginFromScheduleExpression(scheduleWithOptionalCarbonAwareScheduleMargin);
+    public static String getScheduleExpressionWithoutCarbonAwareMargin(String expressionWithOptionalMargin) {
+        if (isNullOrEmpty(expressionWithOptionalMargin)) {
+            return null;
+        } else if (expressionWithOptionalMargin.contains(MARGIN_OPENING_TAG) && expressionWithOptionalMargin.contains(MARGIN_DELIMITER) && expressionWithOptionalMargin.contains(MARGIN_CLOSING_TAG)) {
+            return substringBeforeLast(expressionWithOptionalMargin, MARGIN_OPENING_TAG).trim();
+        }
+        return expressionWithOptionalMargin;
+    }
+
+    public static CarbonAwareScheduleMargin getCarbonAwareMarginFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
+        String margin = getCarbonAwareMarginAsStringFromScheduleExpression(scheduleWithOptionalCarbonAwareScheduleMargin);
         if (isNullOrEmpty(margin)) return null;
         String[] splitMargin = margin.split(MARGIN_DELIMITER);
         if (splitMargin.length != 2) {
@@ -60,12 +70,12 @@ public class CarbonAwareScheduleMargin {
         return marginAfter;
     }
 
-    public String toScheduleExpression() {
-        return MARGIN_OPENING_TAG + marginBefore + MARGIN_DELIMITER + marginAfter + MARGIN_CLOSING_TAG;
-    }
-
     public String toScheduleExpression(String scheduleExpressionWithoutCarbonAwareMargin) {
         return scheduleExpressionWithoutCarbonAwareMargin + " " + toScheduleExpression();
+    }
+
+    public String toScheduleExpression() {
+        return MARGIN_OPENING_TAG + marginBefore + MARGIN_DELIMITER + marginAfter + MARGIN_CLOSING_TAG;
     }
 
     @Override
@@ -73,7 +83,7 @@ public class CarbonAwareScheduleMargin {
         return toScheduleExpression();
     }
 
-    private static String getCarbonAwareMarginFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
+    private static String getCarbonAwareMarginAsStringFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
         if (isNullOrEmpty(scheduleWithOptionalCarbonAwareScheduleMargin)) return null;
         return lastMatchedSubstringBetween(scheduleWithOptionalCarbonAwareScheduleMargin, MARGIN_OPENING_TAG, MARGIN_CLOSING_TAG);
     }
