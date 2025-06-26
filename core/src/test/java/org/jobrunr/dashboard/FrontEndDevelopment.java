@@ -86,7 +86,6 @@ public class FrontEndDevelopment {
                                  public void run() {
                                      dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
                                      dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
-                                     dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
                                      System.out.println("Saved ServerJobRunrException");
                                  }
                              },

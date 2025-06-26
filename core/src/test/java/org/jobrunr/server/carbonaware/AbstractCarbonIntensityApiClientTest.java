@@ -1,5 +1,9 @@
 package org.jobrunr.server.carbonaware;
 
+import ch.qos.logback.LoggerAssert;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Body;
+import org.jobrunr.JobRunrAssertions;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -7,9 +11,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.time.Duration;
 import java.time.Instant;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.lang.String.format;
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
-import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath;
 
 abstract class AbstractCarbonIntensityApiClientTest {
 
@@ -72,6 +80,23 @@ abstract class AbstractCarbonIntensityApiClientTest {
                 .hasError()
                 .hasErrorCode("FORECAST_NOT_AVAILABLE")
                 .hasErrorMessage("No forecast available for DataProvider ENTSO-E and area Germany.");
+    }
+
+    @Test
+    void fetchCarbonIntensityForecastWithResponseCode404SetsResponseStatus() {
+        var url = format(getCarbonIntensityForecastApiPath() + "?region=BE");
+        stubFor(WireMock.get(urlEqualTo(url)).willReturn(notFound().withResponseBody(new Body("<html><body>404 Not Found</body></html>"))));
+        var apiClient = createCarbonAwareApiClient("BE");
+        var logger =  LoggerAssert.initFor(apiClient);
+
+        var forecast = apiClient.fetchCarbonIntensityForecast();
+
+        assertThat(forecast)
+                .hasErrorCode("404")
+                .hasErrorMessage("HTTP Response Code 404");
+
+        JobRunrAssertions.assertThat(logger)
+                .hasErrorMessageContaining("Carbon Aware API call resulted in an error with code: '404' and message: '<html><body>404 Not Found</body></html>'");
     }
 
     @Test

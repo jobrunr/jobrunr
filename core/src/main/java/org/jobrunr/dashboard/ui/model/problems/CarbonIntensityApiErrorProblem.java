@@ -1,17 +1,23 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
-import java.time.Instant;
+import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.utils.InstantUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CarbonIntensityApiErrorProblem extends Problem {
 
     public static final String PROBLEM_TYPE = "carbon-intensity-api-error";
+    private final ArrayList<JobRunrMetadata> carbonIntensityApiErrorMetadata;
 
-    protected CarbonIntensityApiErrorProblem() {
-        super(PROBLEM_TYPE);
+    protected CarbonIntensityApiErrorProblem(List<JobRunrMetadata> metadataList) {
+        super(PROBLEM_TYPE, InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt)));
+        this.carbonIntensityApiErrorMetadata = new ArrayList<>(metadataList);
     }
 
-    protected CarbonIntensityApiErrorProblem(Instant createdAt) {
-        super(PROBLEM_TYPE, createdAt);
+    public List<JobRunrMetadata> getCarbonIntensityApiErrorMetadata() {
+        return carbonIntensityApiErrorMetadata;
     }
 
 }

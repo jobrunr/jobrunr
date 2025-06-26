@@ -26,7 +26,11 @@ public class CarbonIntensityForecast {
     }
 
     public static CarbonIntensityForecast fromException(Exception ex) {
-        return new CarbonIntensityForecast(new ApiResponseStatus("500", ex.getMessage()), null, null, null, null, null, null, null);
+        return new CarbonIntensityForecast(new ApiResponseStatus("500", "HTTP Internal Server Error"), null, null, null, null, null, null, null);
+    }
+
+    public static CarbonIntensityForecast fromException(CarbonIntensityApiClientException ex) {
+        return new CarbonIntensityForecast(new ApiResponseStatus(ex.getApiErrorCode() + "", "HTTP Response Code " + ex.getApiErrorCode()), null, null, null, null, null, null, null);
     }
 
     public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration forecastInterval, List<TimestampedCarbonIntensityForecast> intensityForecast) {

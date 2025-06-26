@@ -75,7 +75,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             updateNextRefreshTime();
             LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
             if (carbonIntensityForecast.hasError()) {
-                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification());
+                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
             }
         }
     }
@@ -120,9 +120,10 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private String getReasonForMissingForecast(CarbonAwareAwaitingState state) {
         if (carbonIntensityForecast.hasError()) {
-            return format("Could not retrieve carbon intensity forecast: %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonIntensityForecast.getApiResponseStatus().getMessage());
+            // Do not add error information here to reduce clutter; will be shown in full in the notification centre.
+            return "Error retrieving the carbon intensity forecast. The job will be scheduled at the preferred instant or immediately.";
         }
-        return format("No carbon intensity forecast available for region %s at period %s - %s. Job will be scheduled at pre-defined preferred instant or immediately.", carbonAwareJobProcessingConfiguration.getAreaCode(), state.getFrom(), state.getTo());
+        return format("No carbon intensity forecast available for region %s at period %s - %s. The job will be scheduled at the preferred instant or immediately.", carbonAwareJobProcessingConfiguration.getAreaCode(), state.getFrom(), state.getTo());
     }
 
     private void scheduleJobAt(Job job, Instant scheduleAt, CarbonAwareAwaitingState state, String reason) {

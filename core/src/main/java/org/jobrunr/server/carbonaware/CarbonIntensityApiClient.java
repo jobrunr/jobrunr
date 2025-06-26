@@ -2,7 +2,6 @@ package org.jobrunr.server.carbonaware;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
-import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +28,17 @@ public class CarbonIntensityApiClient {
         try {
             String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
+        } catch (CarbonIntensityApiClientException apiClientEx) {
+            LOGGER.error("Could not retrieve carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), apiClientEx.getMessage(), apiClientEx);
+            return CarbonIntensityForecast.fromException(apiClientEx);
         } catch (Exception e) {
-            LOGGER.error("Error processing energy prices for area code '{}'", carbonAwareJobProcessingConfiguration.getAreaCode(), e);
+            LOGGER.error("Error processing carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), e.getMessage(), e);
             return CarbonIntensityForecast.fromException(e);
         }
     }
 
     private String fetchLatestCarbonIntensityForecastAsStringWithRetries() {
-        return Exceptions.retryOnException(this::fetchLatestCarbonIntensityForecastAsString, carbonAwareJobProcessingConfiguration.getApiClientRetriesOnException(), 1000);
+        return fetchLatestCarbonIntensityForecastAsString();
     }
 
     private String fetchLatestCarbonIntensityForecastAsString() {

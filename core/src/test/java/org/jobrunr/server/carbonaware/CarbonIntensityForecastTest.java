@@ -23,7 +23,18 @@ class CarbonIntensityForecastTest {
     void fromExceptionHasError() {
         var forecast = CarbonIntensityForecast.fromException(new IllegalArgumentException("whoopsie"));
         assertThat(forecast.hasError()).isTrue();
+        assertThat(forecast.getApiResponseStatus().getCode()).isEqualTo("500");
+        assertThat(forecast.getApiResponseStatus().getMessage()).isEqualTo("HTTP Internal Server Error");
+
         assertThatCode(() -> forecast.hasNoForecastForPeriod(Instant.now(), Instant.now().plus(1, HOURS))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void fromExceptionForApiClientExceptionIngestsErrorCode() {
+        var forecast = CarbonIntensityForecast.fromException(new CarbonIntensityApiClientException(404, "Not Found"));
+        assertThat(forecast.hasError()).isTrue();
+        assertThat(forecast.getApiResponseStatus().getCode()).isEqualTo("404");
+        assertThat(forecast.getApiResponseStatus().getMessage()).isEqualTo("HTTP Response Code 404");
     }
 
     @Test
