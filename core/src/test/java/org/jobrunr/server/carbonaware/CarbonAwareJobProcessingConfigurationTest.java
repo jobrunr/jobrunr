@@ -73,12 +73,12 @@ class CarbonAwareJobProcessingConfigurationTest {
         CarbonAwareJobProcessingConfigurationReader reader = new CarbonAwareJobProcessingConfigurationReader(carbonAwareJobProcessingConfiguration);
 
         carbonAwareJobProcessingConfiguration.andAreaCode("IT-NO");
-        assertThat(reader.getCarbonIntensityForecastQueryString()).isEqualTo("?region=IT-NO");
+        assertThat(reader.getCarbonIntensityForecastQueryString()).isEqualTo("?areaCode=IT-NO");
 
         carbonAwareJobProcessingConfiguration.andDataProvider("ENTSO-E");
         assertThat(reader.getCarbonIntensityForecastQueryString().substring(1).split("&"))
                 .hasSize(2)
-                .containsExactlyInAnyOrder("region=IT-NO", "dataProvider=ENTSO-E");
+                .containsExactlyInAnyOrder("areaCode=IT-NO", "dataProvider=ENTSO-E");
 
         carbonAwareJobProcessingConfiguration.andAreaCode(null).andExternalCode("IT-North");
         assertThat(reader.getCarbonIntensityForecastQueryString().substring(1).split("&"))

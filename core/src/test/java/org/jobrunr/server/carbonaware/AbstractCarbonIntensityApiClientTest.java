@@ -84,7 +84,7 @@ abstract class AbstractCarbonIntensityApiClientTest {
 
     @Test
     void fetchCarbonIntensityForecastWithResponseCode404SetsResponseStatus() {
-        var url = format(getCarbonIntensityForecastApiPath() + "?region=BE");
+        var url = format(getCarbonIntensityForecastApiPath() + "?areaCode=BE");
         stubFor(WireMock.get(urlEqualTo(url)).willReturn(notFound().withResponseBody(new Body("<html><body>404 Not Found</body></html>"))));
         var apiClient = createCarbonAwareApiClient("BE");
         var logger =  LoggerAssert.initFor(apiClient);

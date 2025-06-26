@@ -76,7 +76,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     }
 
     public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        var url = format(getCarbonIntensityForecastApiPath() + "?region=%s", areaCode);
+        var url = format(getCarbonIntensityForecastApiPath() + "?areaCode=%s", areaCode);
         stubFor(WireMock.get(urlEqualTo(url))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")

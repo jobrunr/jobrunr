@@ -73,7 +73,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     @VisibleFor("testing")
     String getCarbonIntensityForecastQueryString() {
         StringJoiner sj = new StringJoiner("&");
-        Map<String, String> queryParams = mapOf("region", getAreaCode(), "dataProvider", getDataProvider(), "externalCode", getExternalCode(), "externalIdentifier", getExternalIdentifier());
+        Map<String, String> queryParams = mapOf("areaCode", getAreaCode(), "dataProvider", getDataProvider(), "externalCode", getExternalCode(), "externalIdentifier", getExternalIdentifier());
         queryParams.forEach((key, value) -> ofNullable(value).ifPresent(v -> sj.add(key + "=" + StringUtils.urlEncode(v))));
         return "?" + sj;
     }
