@@ -4,7 +4,6 @@ import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
-import org.jobrunr.utils.InstantUtils;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class CarbonIntensityApiErrorProblemHandler implements MetadataChangeList
         if (this.metadata == null || this.metadata.size() != metadataList.size()) {
             problems.removeProblemsOfType(CarbonIntensityApiErrorProblem.PROBLEM_TYPE);
             if (!metadataList.isEmpty()) {
-                problems.addProblem(new CarbonIntensityApiErrorProblem(metadataList, InstantUtils.max(metadataList.stream().map(JobRunrMetadata::getCreatedAt))));
+                problems.addProblem(new CarbonIntensityApiErrorProblem(metadataList));
             }
             this.metadata = metadataList;
         }
