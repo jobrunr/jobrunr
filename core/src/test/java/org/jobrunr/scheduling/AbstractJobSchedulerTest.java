@@ -65,7 +65,7 @@ class AbstractJobSchedulerTest {
     void scheduleCarbonAwareSavesJobInAwaitingState() {
         AbstractJobScheduler jobScheduler = jobScheduler();
 
-        jobScheduler.scheduleCarbonAware(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build());
+        jobScheduler.schedule(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build());
 
         assertThatJobs(storageProvider.getJobList(StateName.AWAITING, ascOnCreatedAt(10))).hasSize(1);
     }

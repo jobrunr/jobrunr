@@ -24,7 +24,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Box from "@mui/material/Box";
 import LoadingIndicator from "../LoadingIndicator";
-import {jobStateToHumanReadableName} from "../utils/job-utils";
+import {getJobMostRecentState, getJobPreviousState, jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
@@ -175,7 +175,7 @@ const JobView = (props) => {
                                         </Grid>
                                         <Grid item xs={12} style={{paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
-                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
+                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label} key={label}/>)}
                                             </Typography>
                                         </Grid>
                                     </Grid>
@@ -189,8 +189,8 @@ const JobView = (props) => {
                             {job.jobDetails.cacheable === false && <JobDetailsNotCacheableNotification job={job}/>}
                             {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
-                            {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
-                            {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
+                            {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification state={getJobPreviousState(job)}/>}
+                            {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification state={getJobMostRecentState(job)}/>}
 
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">

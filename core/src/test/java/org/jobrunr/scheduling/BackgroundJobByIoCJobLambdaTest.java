@@ -238,7 +238,7 @@ public class BackgroundJobByIoCJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.<TestService>scheduleCarbonAware(before(now().plus(1, DAYS)), x -> x.doWork());
+        JobId jobId = BackgroundJob.<TestService>schedule(before(now().plus(1, DAYS)), x -> x.doWork());
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 

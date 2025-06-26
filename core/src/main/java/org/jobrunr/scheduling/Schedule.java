@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import org.jobrunr.scheduling.carbonaware.CarbonAwareScheduleMargin;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
@@ -10,7 +11,6 @@ import java.time.ZoneOffset;
 import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
-import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 
 public abstract class Schedule implements Comparable<Schedule> {
     private final String expression;
@@ -24,12 +24,10 @@ public abstract class Schedule implements Comparable<Schedule> {
         if (isNullOrEmpty(scheduleWithOptionalCarbonAwareScheduleMargin)) {
             throw new IllegalArgumentException("Expected scheduleWithOptionalCarbonAwareScheduleMargin to be non-null and non-empty.");
         }
-        this.carbonAwareScheduleMargin = CarbonAwareScheduleMargin.parse(scheduleWithOptionalCarbonAwareScheduleMargin);
-        this.expression = this.carbonAwareScheduleMargin == null
-                ? scheduleWithOptionalCarbonAwareScheduleMargin
-                : substringBeforeLast(scheduleWithOptionalCarbonAwareScheduleMargin, CarbonAwareScheduleMargin.MARGIN_OPENING_TAG).trim();
+        this.carbonAwareScheduleMargin = CarbonAwareScheduleMargin.getCarbonAwareMarginFromScheduleExpression(scheduleWithOptionalCarbonAwareScheduleMargin);
+        this.expression = CarbonAwareScheduleMargin.getScheduleExpressionWithoutCarbonAwareMargin(scheduleWithOptionalCarbonAwareScheduleMargin);
     }
-    
+
     /**
      * Calculates the next occurrence based on the creation time and the provided base time.
      *

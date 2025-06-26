@@ -76,6 +76,7 @@ import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.between;
+import static org.jobrunr.scheduling.cron.Cron.daily;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
@@ -344,14 +345,14 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testScheduleCarbonAware() {
-        JobId jobId = BackgroundJob.scheduleCarbonAware(before(now().plus(1, DAYS)), TestService::doStaticWork);
+        JobId jobId = BackgroundJob.schedule(before(now().plus(1, DAYS)), TestService::doStaticWork);
         assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
     }
 
     @Test
     void testScheduleCarbonAwareIsScheduledAtTheLowestPossibleCarbonIntensityTime() {
         Instant now = now();
-        JobId jobId = BackgroundJob.scheduleCarbonAware(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
+        JobId jobId = BackgroundJob.schedule(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
                 .hasScheduledAt(now.plus(1, HOURS).truncatedTo(HOURS))
                 .hasStates(AWAITING, SCHEDULED)
@@ -641,7 +642,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testJobInheritance() {
-        SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(Cron.daily());
+        SomeSysoutJobClass someSysoutJobClass = new SomeSysoutJobClass(daily());
         assertThatCode(() -> someSysoutJobClass.schedule()).doesNotThrowAnyException();
     }
 

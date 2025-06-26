@@ -86,7 +86,7 @@ public class ProcessRecurringJobsTaskIntegrationTest {
 
     @Test
     void carbonAwareAwaitingJobCreatedAndScheduledBeforeIdealTimeNotRecreatedWhenServerReboots() {
-        BackgroundJob.scheduleRecurrently("recurring", CarbonAware.using(Duration.ofHours(1), Duration.ofHours(1), Duration.ZERO), () -> System.out.println("carbon job"));
+        BackgroundJob.scheduleRecurrently("recurring", CarbonAware.interval(Duration.ofHours(1), Duration.ofHours(1), Duration.ZERO), () -> System.out.println("carbon job"));
         await().atMost(ofSeconds(5)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         var job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

@@ -17,7 +17,6 @@ import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
 import java.util.List;
@@ -126,13 +125,10 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId schedule(UUID id, Temporal scheduleAt, JobDetails jobDetails) {
-        Instant scheduleInstant = toInstant(scheduleAt);
-        return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleInstant)));
-    }
-
-    JobId scheduleCarbonAware(UUID id, CarbonAwarePeriod carbonAwarePeriod, JobDetails jobDetails) {
-        Job carbonAwareJob = new Job(id, jobDetails, new CarbonAwareAwaitingState(carbonAwarePeriod));
-        return saveJob(carbonAwareJob);
+        return saveJob(new Job(id, jobDetails, scheduleAt instanceof CarbonAwarePeriod
+                ? new CarbonAwareAwaitingState((CarbonAwarePeriod) scheduleAt)
+                : new ScheduledState(toInstant(scheduleAt))
+        ));
     }
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
