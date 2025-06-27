@@ -174,12 +174,12 @@ public class JobTable extends Sql<Job> {
     public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) throws SQLException {
         if (areAllStateNames(states)) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId", pageRequestMapper.map(descOnScheduledAt(1)))
+                    .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId AND scheduledAt IS NOT NULL", pageRequestMapper.map(descOnScheduledAt(1)))
                     .map(rs -> rs.asInstant("scheduledAt"))
                     .findFirst().orElse(null);
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")", pageRequestMapper.map(descOnScheduledAt(1)))
+                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND scheduledAt IS NOT NULL AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")", pageRequestMapper.map(descOnScheduledAt(1)))
                 .map(rs -> rs.asInstant("scheduledAt"))
                 .findFirst().orElse(null);
     }
