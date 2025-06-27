@@ -8,6 +8,7 @@ import org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
+import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.tasks.AbstractTaskTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -22,6 +23,7 @@ import java.util.List;
 
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -77,6 +79,35 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             assertThatJob(job)
                     .hasStates(AWAITING, SCHEDULED)
                     .hasScheduledAt(now(), "Carbon aware scheduling is disabled, scheduling job at " + Instant.now());  // from is fallback instant
+        }
+    }
+
+    @Test
+    void runTaskWithUnexpectedCarbonIntensityForecastValuesStillSchedulesJobAtFallbackInstant() {
+        // GIVEN
+        ZonedDateTime currentTime = ZonedDateTime.now();
+        try (MockedStaticHolder ignored = mockTime(currentTime)) {
+            ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask("BE");
+            carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE", new CarbonIntensityForecast(
+                    new CarbonIntensityForecast.ApiResponseStatus("OK", "message"),
+                    "dataProvider",
+                    "dataIdentifier",
+                    "displayName",
+                    null,
+                    Instant.now().plus(1, DAYS),
+                    null, // Unexpected: this causes a NullPointerException
+                    List.of(new CarbonIntensityForecast.TimestampedCarbonIntensityForecast(Instant.now(), Instant.now().plus(1, HOURS), 123)))
+            );
+            var job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
+
+            // WHEN
+            runTask(task);
+
+            // THEN
+            verify(carbonIntensityApiClient(task)).fetchCarbonIntensityForecast();
+            assertThatJob(job)
+                    .hasStates(AWAITING, SCHEDULED)
+                    .hasScheduledAt(now(), "Unexpected problem scheduling the carbon aware job, scheduling at " + Instant.now()); // from is fallback instant
         }
     }
 

@@ -96,17 +96,21 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
         CarbonAwareAwaitingState state = job.getJobState();
         LOGGER.trace("Determining the best moment to schedule Job(id={}, jobName='{}') to minimize carbon impact", job.getId(), job.getJobName());
-
-        if (isCarbonAwareJobProcessingDisabled()) {
-            scheduleJobAt(job, state.getFallbackInstant(), state, "Carbon aware scheduling is disabled, scheduling job at " + state.getFallbackInstant());
-        } else if (isDeadlinePassed(state)) {
-            scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
-        } else if (hasTooSmallScheduleMargin(state)) {
-            scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");
-        } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
-            scheduleJobAt(job, state.getFallbackInstant(), state, getReasonForMissingForecast(state));
-        } else {
-            scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact in " + this.carbonIntensityForecast.getDisplayName());
+        try {
+            if (isCarbonAwareJobProcessingDisabled()) {
+                scheduleJobAt(job, state.getFallbackInstant(), state, "Carbon aware scheduling is disabled, scheduling job at " + state.getFallbackInstant());
+            } else if (isDeadlinePassed(state)) {
+                scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
+            } else if (hasTooSmallScheduleMargin(state)) {
+                scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");
+            } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
+                scheduleJobAt(job, state.getFallbackInstant(), state, getReasonForMissingForecast(state));
+            } else {
+                scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact in " + this.carbonIntensityForecast.getDisplayName());
+            }
+        } catch(Exception e) {
+            LOGGER.error("Error trying to move the carbon aware job to next state", e);
+            scheduleJobAt(job, state.getFallbackInstant(), state, "Unexpected problem scheduling the carbon aware job, scheduling at " + state.getFallbackInstant());
         }
     }
 
