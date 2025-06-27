@@ -1,10 +1,10 @@
-import {DismissibleClusterProblemNotification} from "./dismissible-notification";
+import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
 import TimeAgo from "react-timeago/lib";
 
 export const CarbonIntensityApiErrorProblem = ({problem, ...rest}) => {
     return (
         <DismissibleClusterProblemNotification
-            endpoint="/api/problems/carbon-intensity-api-error"
+            endpoint={getEndpointToDismissProblem(problem)}
             severity="warning"
             title="Carbon Aware API Warning"
             date={problem.createdAt}

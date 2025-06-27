@@ -4,6 +4,10 @@ import {Delete} from "mdi-material-ui";
 import ListItemText from "@mui/material/ListItemText";
 import {Notification} from "./notification";
 
+export const getEndpointToDismissProblem = (problem) => {
+    return `/api/problems/${problem.type}`;
+}
+
 export const DismissibleNotification = ({onDismiss, extraMenuItems, children, ...rest}) => {
     return (
         <Notification {...rest} extraMenuItems={

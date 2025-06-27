@@ -1,11 +1,11 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleClusterProblemNotification} from "./dismissible-notification";
+import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
 
 export const CPUAllocationIrregularityProblemNotification = ({problem, ...rest}) => {
     return (
         <DismissibleClusterProblemNotification
             title="CPU Allocation Irregularity"
-            endpoint="/api/problems/cpu-allocation-irregularity"
+            endpoint={getEndpointToDismissProblem(problem)}
             date={problem.createdAt}
             read={problem.read}
             {...rest}

@@ -1,6 +1,6 @@
 import {useContext, useEffect} from 'react';
 import {Typography} from "@mui/material";
-import {JobRunrInfoContext} from "../../JobRunrInfoContext";
+import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {useJobStats} from "../../hooks/useJobStats";
 
 export default function VersionFooter() {

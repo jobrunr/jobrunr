@@ -9,7 +9,7 @@ import JobView from "../components/jobs/job-view";
 import JobsView from "../components/jobs/jobs-view";
 import Sidebar from "../components/jobs/sidebar";
 import GithubStarPopup from "../components/utils/github-star-popup";
-import {DEFAULT_JOBRUNR_INFO, JobRunrInfoContext} from "../JobRunrInfoContext";
+import {DEFAULT_JOBRUNR_INFO, JobRunrInfoContext} from "../contexts/JobRunrInfoContext";
 import {useEffect, useState} from "react";
 import {setServers} from "../hooks/useServers";
 

@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
 import LoadingIndicator from "../LoadingIndicator";
-import JobsTable from "../utils/jobs-table";
+import JobsTable from "./jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";

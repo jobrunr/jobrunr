@@ -1,4 +1,3 @@
-import {useContext} from 'react';
 import {styled} from "@mui/material/styles";
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -7,8 +6,6 @@ import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import {Link as RouterLink} from 'react-router-dom';
 import logo from '../assets/jobrunr-logo-white.png';
-import {ProblemsContext} from "../ProblemsContext";
-import {Badge} from "@mui/material";
 import {StatChip} from "../components/ui/StatChip";
 import {useJobStats} from "../hooks/useJobStats";
 import {TopAppBarNotificationCenter} from "../components/notifications/top-app-bar-notification-center";
@@ -33,23 +30,10 @@ const Buttons = styled("div")(({theme}) => ({
     flexGrow: 1,
 }));
 
-const StyledBadge = styled(Badge)(() => ({
-    '& .MuiBadge-badge': {
-        right: -6,
-        top: 6,
-    },
-}));
-
 const OverviewButton = () => {
-    const {problems} = useContext(ProblemsContext);
-
-    const hasProblems = problems?.length > 0;
-
     return (
         <Button id="dashboard-btn" color="inherit" component={RouterLink} to="/dashboard/overview">
-            <StyledBadge color="info" variant="dot" badgeContent={hasProblems ? " " : 0}>
-                Dashboard
-            </StyledBadge>
+            Dashboard
         </Button>
     )
 }

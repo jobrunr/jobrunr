@@ -14,7 +14,7 @@ import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
 import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_NOTIFICATION} from "./jobrunr-api-notification";
-import {JobRunrInfoContext} from "../../JobRunrInfoContext";
+import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
 

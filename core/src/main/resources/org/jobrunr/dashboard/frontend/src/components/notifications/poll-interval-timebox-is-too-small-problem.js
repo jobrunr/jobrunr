@@ -1,10 +1,11 @@
 import TimeAgo from "react-timeago/lib";
-import {DismissibleClusterProblemNotification} from "./dismissible-notification";
+import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
 
 export const PollIntervalInSecondsIsTooSmallProblemNotification = ({problem, ...rest}) => {
     return (
         <DismissibleClusterProblemNotification
-            endpoint="/api/problems/poll-interval-in-seconds-is-too-small"
+            title="Poll Interval Exceeded"
+            endpoint={getEndpointToDismissProblem(problem)}
             date={problem.createdAt}
             read={problem.read}
             {...rest}
