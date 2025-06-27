@@ -452,7 +452,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testRecurringIntervalJobFromBuilder() {
         BackgroundJob.createRecurrently(aRecurringJob()
-                .withDuration(Duration.ofSeconds(1))
+                .withInterval(Duration.ofSeconds(1))
                 .withDetails(() -> testService.doWork(5)));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 

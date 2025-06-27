@@ -286,7 +286,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testRecurringIntervalJobFromBuilder() {
         BackgroundJobRequest.createRecurrently(aRecurringJob()
-                .withDuration(Duration.ofSeconds(1))
+                .withInterval(Duration.ofSeconds(1))
                 .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 

@@ -14,6 +14,7 @@ import org.jobrunr.scheduling.cron.CronExpression;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.ZoneId.systemDefault;
 import static java.util.Arrays.asList;
@@ -163,7 +164,7 @@ public class RecurringJobBuilder {
     /**
      * Allows to specify the {@link CronExpression} or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
      *
-     * @param cron the cron that will be used to create the recurringJobs.
+     * @param cron the cron expression that will be used to create the Recurring Job.
      * @return the same builder instance which provides a fluent api
      * @see CarbonAware for more info on how to create a carbon aware schedule expression
      */
@@ -172,18 +173,18 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the duration that will be used to create the recurringJobs.
+     * Allows to specify the interval that will be used between each instance of the recurring job. This interval mimicks the {@link java.util.concurrent.ScheduledExecutorService#scheduleAtFixedRate(Runnable, long, long, TimeUnit)}.
      *
-     * @param duration the duration that will be used to create the recurringJobs.
+     * @param duration the duration that will be used between each run of the Recurring Job
      * @return the same builder instance which provides a fluent api
      */
-    public RecurringJobBuilder withDuration(Duration duration) {
+    public RecurringJobBuilder withInterval(Duration duration) {
         return withScheduleExpression(duration.toString());
     }
 
     /**
      * Allows to specify a {@link CronExpression} (preferably use {@link RecurringJobBuilder#withCron(String)}),
-     * an ISO-8601 duration (preferably use {@link RecurringJobBuilder#withDuration(Duration)})
+     * an ISO-8601 duration (preferably use {@link RecurringJobBuilder#withInterval(Duration)})
      * or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
      *
      * <h5>Examples:</h5>

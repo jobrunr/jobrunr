@@ -160,9 +160,9 @@ class RecurringJobBuilderTest {
     }
 
     @Test
-    void testWithDuration() {
+    void testWithInterval() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDuration(Duration.ofMinutes(1))
+                .withInterval(Duration.ofMinutes(1))
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
@@ -255,13 +255,13 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withCron(every5Seconds)
-                        .withDuration(Duration.ofMinutes(1))
+                        .withInterval(Duration.ofMinutes(1))
                         .withJobRequest(jobRequest)
                         .build());
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDuration(Duration.ofMinutes(1))
+                        .withInterval(Duration.ofMinutes(1))
                         .withCron(every5Seconds)
                         .withJobRequest(jobRequest)
                         .build());
@@ -269,7 +269,7 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withScheduleExpression(CarbonAware.dailyBefore(10))
-                        .withDuration(Duration.ofMinutes(1))
+                        .withInterval(Duration.ofMinutes(1))
                         .withCron(every5Seconds)
                         .withJobRequest(jobRequest)
                         .build());
