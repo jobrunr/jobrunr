@@ -4,7 +4,7 @@ import {AspectRatio} from "@mui/icons-material";
 import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import Highlight from "../utils/highlighter";
-import {DismissibleClusterProblemNotification} from "./dismissible-notification";
+import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
 import Button from "@mui/material/Button";
 
 export const SevereJobRunrExceptionProblemNotification = ({problem, hasCpuAllocationIrregularity, ...rest}) => {
@@ -46,7 +46,7 @@ export const SevereJobRunrExceptionProblemNotification = ({problem, hasCpuAlloca
         <DismissibleClusterProblemNotification
             title="Severe JobRunr Exception"
             severity="error"
-            endpoint="/api/problems/severe-jobrunr-exception"
+            endpoint={getEndpointToDismissProblem(problem)}
             date={problem.createdAt}
             read={problem.read}
             {...rest}

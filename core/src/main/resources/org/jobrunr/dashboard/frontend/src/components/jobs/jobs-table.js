@@ -7,13 +7,13 @@ import TablePagination from '@mui/material/TablePagination';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import LoadingIndicator from "../LoadingIndicator";
-import JobLabel from "./job-label";
-import {ItemsNotFound} from "./items-not-found";
+import JobLabel from "../utils/job-label";
+import {ItemsNotFound} from "../utils/items-not-found";
 import {styled} from "@mui/material/styles";
-import {SwitchableTimeAgo} from "./time-ago";
+import {SwitchableTimeAgo} from "../utils/time-ago";
 import Tooltip from '@mui/material/Tooltip';
 import {EnergySavingsLeaf} from "@mui/icons-material";
-import {getJobMostRecentState, getJobPreviousState, isCarbonAwaitingState} from "./job-utils";
+import {getJobMostRecentState, getJobPreviousState, isCarbonAwaitingState} from "../utils/job-utils";
 
 const IdColumn = styled(TableCell)`
     width: 20%;
