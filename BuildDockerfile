@@ -1,7 +1,7 @@
 # build stage for Maven
 FROM maven:3.9.4-eclipse-temurin-21 AS maven-dist
 # build stage for Gradle
-FROM gradle:8.5-jdk21 AS gradle-dist
+FROM gradle:8.14.2-jdk21 AS gradle-dist
 
 # Main build stage
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'com.github.ben-manes.versions' version '0.52.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
@@ -18,9 +18,9 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 }
 
-tasks.named("dependencyUpdates").configure {
+dependencyUpdates {
     rejectVersionIf {
-        !it.candidate.version.startsWith('2.0')
+        it.candidate.group.startsWith('org.jetbrains.kotlin') && !it.candidate.version.startsWith('2.0')
     }
 }
 
