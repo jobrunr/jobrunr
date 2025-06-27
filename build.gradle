@@ -1,7 +1,6 @@
 import groovy.json.JsonSlurper
 
 plugins {
-    id 'com.github.ben-manes.versions' version '0.51.0'
     id 'org.sonarqube' version '4.4.1.3373'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
@@ -20,7 +19,7 @@ nexusPublishing {
 
 task nexusPushFromStagingToCentral {
     doLast {
-        if(System.getenv("SONATYPE_AUTH_HEADER") == null) {
+        if (System.getenv("SONATYPE_AUTH_HEADER") == null) {
             throw new GradleException("Cannot push Sonatype Nexus artifacts to Portal API: env var SONATYPE_AUTH_HEADER is not set")
         }
 
@@ -30,10 +29,10 @@ task nexusPushFromStagingToCentral {
         def resp = get.getInputStream().getText();
         def json = new JsonSlurper().parseText(resp)
 
-        if(!get.getResponseCode().equals(200)) {
+        if (!get.getResponseCode().equals(200)) {
             throw new GradleException("Cannot find repository key from Sonatype OSSRH Staging API: received code " + get.getResponseCode())
         }
-        if(json.repositories == null || json.repositories[0] == null) {
+        if (json.repositories == null || json.repositories[0] == null) {
             throw new GradleException("Cannot find repository key from Sonatype OSSRH Staging API: no key returned, is the publication done? received json " + json)
         }
         def repoKey = json.repositories[0].key
@@ -45,7 +44,7 @@ task nexusPushFromStagingToCentral {
         post.setRequestMethod("POST")
         post.setDoOutput(true)
 
-        if(!post.getResponseCode().equals(200)) {
+        if (!post.getResponseCode().equals(200)) {
             throw new GradleException("Cannot push artifacts from staging API to Portal API: received code " + post.getResponseCode() + " - please log into https://central.sonatype.com/ to investigate what went wrong.")
         }
         println("-- Successfully pushed Sonatype Nexus artifacts to Portal API: please log into https://central.sonatype.com/ to finish the release.")
@@ -65,13 +64,6 @@ def isNonStable = { String version ->
     def result = isPreview || !(isRelease || isVersionMatch)
     return result
 }
-
-tasks.named("dependencyUpdates").configure {
-    rejectVersionIf {
-        isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
-    }
-}
-
 
 sonar {
     properties {
