@@ -254,7 +254,7 @@ public class RecurringJobBuilder {
 
     private RecurringJob build(JobDetails jobDetails) {
         if (schedule == null) {
-            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration() or withScheduleExpression().");
+            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withInterval() or withScheduleExpression().");
         }
         if (zoneId == null) {
             zoneId = systemDefault();
