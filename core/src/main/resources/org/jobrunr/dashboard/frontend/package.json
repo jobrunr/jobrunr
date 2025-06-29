@@ -8,7 +8,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.17.1",
     "@mui/material": "^5.17.1",
-    "apexcharts": "^3.54.1",
+    "apexcharts": "^4.7.0",
     "cronstrue": "^2.57.0",
     "mdi-material-ui": "^7.9.4",
     "react": "^18.3.1",
