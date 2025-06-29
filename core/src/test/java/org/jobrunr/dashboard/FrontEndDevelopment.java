@@ -7,8 +7,6 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
-import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
-import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -54,11 +52,6 @@ public class FrontEndDevelopment {
         var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andAreaCode("BE");
 
-        var stubServer = new CarbonIntensityApiStubServer()
-                .andPort(10000)
-                .andBestIntensityMomentTodayAt(12)
-                .andCarbonAwareJobProcessingConfig(carbonConfig)
-                .start();
 
         JobRunr
                 .configure()
@@ -92,7 +85,7 @@ public class FrontEndDevelopment {
                 30000
         );
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
+        //Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();

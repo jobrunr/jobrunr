@@ -34,14 +34,14 @@ public class JobRunrApiHandler extends RestHttpHandler {
         this.storageProvider = storageProvider;
         this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
-        get("/jobs", findJobByState());
+        get("/metadata/:name", getMetadataByName());
+        get("/problems", getProblems());
+        delete("/problems/:type", deleteProblemByType());
 
+        get("/jobs", findJobByState());
         get("/jobs/:id", getJobById());
         delete("/jobs/:id", deleteJobById());
         post("/jobs/:id/requeue", requeueJobById());
-
-        get("/problems", getProblems());
-        delete("/problems/:type", deleteProblemByType());
 
         get("/recurring-jobs", getRecurringJobs());
         delete("/recurring-jobs/:id", deleteRecurringJob());
@@ -51,6 +51,25 @@ public class JobRunrApiHandler extends RestHttpHandler {
         get("/version", getVersion());
 
         withExceptionMapping(JobNotFoundException.class, (exc, resp) -> resp.statusCode(404));
+    }
+
+    private HttpRequestHandler getMetadataByName() {
+        return (request, response) -> {
+            response.asJson(storageProvider.getMetadata(request.param(":name", String.class)));
+        };
+    }
+
+    private HttpRequestHandler getProblems() {
+        return (request, response) -> {
+            response.asJson(problemsManager().getProblems());
+        };
+    }
+
+    private HttpRequestHandler deleteProblemByType() {
+        return (request, response) -> {
+            problemsManager().dismissProblemOfType(request.param(":type", String.class));
+            response.statusCode(204);
+        };
     }
 
     private HttpRequestHandler getJobById() {
@@ -82,19 +101,6 @@ public class JobRunrApiHandler extends RestHttpHandler {
                                 request.queryParam("state", StateName.class, StateName.ENQUEUED),
                                 request.fromQueryParams(OffsetBasedPageRequest.class)
                         ));
-    }
-
-    private HttpRequestHandler getProblems() {
-        return (request, response) -> {
-            response.asJson(problemsManager().getProblems());
-        };
-    }
-
-    private HttpRequestHandler deleteProblemByType() {
-        return (request, response) -> {
-            problemsManager().dismissProblemOfType(request.param(":type", String.class));
-            response.statusCode(204);
-        };
     }
 
     private HttpRequestHandler getRecurringJobs() {

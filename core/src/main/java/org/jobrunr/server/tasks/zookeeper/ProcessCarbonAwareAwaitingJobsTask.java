@@ -8,6 +8,7 @@ import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
@@ -24,6 +25,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
@@ -108,7 +110,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             } else {
                 scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact in " + this.carbonIntensityForecast.getDisplayName());
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Error trying to move the carbon aware job to next state", e);
             scheduleJobAt(job, state.getFallbackInstant(), state, "Unexpected problem scheduling the carbon aware job, scheduling at " + state.getFallbackInstant());
         }
@@ -152,6 +154,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             return;
         }
         this.carbonIntensityForecast = carbonIntensityForecast;
+        this.storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", METADATA_OWNER_CLUSTER, backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast)));
     }
 
     private void updateNextRefreshTime() {
