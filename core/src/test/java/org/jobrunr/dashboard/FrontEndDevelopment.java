@@ -85,7 +85,6 @@ public class FrontEndDevelopment {
                 30000
         );
 
-        //Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();

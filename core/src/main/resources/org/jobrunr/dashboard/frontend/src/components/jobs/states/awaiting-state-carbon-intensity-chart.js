@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 
 const hours = Array.from({length: 24}, (_, i) =>
     String(i).padStart(2, '0'),
@@ -10,67 +10,66 @@ const colors = [
     "#C83700", "#D32C00", "#DE2100", "#E91600", "#F30C00", "#FF0000"
 ]
 
+const getNormalizedHourlyRanks = (forecast) => {
+    // 1) bucket all points into hours → pick min rank per hour
+    const hourlyRanks = forecast.reduce((acc, {periodStartAt, rank}) => {
+        const hour = new Date(periodStartAt).getUTCHours()
+        const key = hour.toString().padStart(2, '0')
+        acc[key] = Math.min(rank, acc[key] ?? Infinity);
+        return acc;
+    }, {});
+
+    const dailyHoursRanks = hours.reduce((acc, key) => {
+        acc[key] = hourlyRanks[key] ? hourlyRanks[key] : null;
+        return acc;
+    }, {})
+
+    // 2) normalize rawRanks[h] from [rawMin..rawMax] → [0..colors.length-1]
+    const vals = Object.values(dailyHoursRanks).filter(v => v !== null);
+    const rankMin = Math.min(...vals);
+    const rankMax = Math.max(...vals);
+    const N = colors.length - 1;
+    return Object.keys(dailyHoursRanks).reduce((acc, hour) => {
+        const rank = dailyHoursRanks[hour];
+        if (rank === null) {
+            acc[hour] = null;
+        } else {
+            const t = (rank - rankMin) / (rankMax - rankMin)
+            acc[hour] = Math.round(t * N)
+        }
+        return acc;
+    }, {});
+}
+
+const isInTimeRange = (hour, [from, to]) => {
+    return from <= to
+        ? hour >= from && hour < to
+        : hour >= from || hour < to;
+}
+
+
+const getIdealMoment = (range, ranks) => {
+    if (!ranks) return;
+    return Object.keys(ranks).reduce((acc, key) => {
+        const rank = ranks[key];
+        if (rank === null) return acc;
+        const hour = parseInt(key, 10);
+        if (isInTimeRange(hour, range) && rank < acc.minimumRank) {
+            return {idealMoment: key, minimumRank: rank};
+        }
+        return acc;
+    }, {idealMoment: null, minimumRank: Infinity}).idealMoment;
+}
+
 const CarbonIntensityChart = ({jobState}) => {
     const [ranks, setRanks] = useState(null)   // { "00": 5, "01": 3, ... }
-    const [bestHour, setBestHour] = useState(null)
-    const [windowRange, setWindowRange] = useState([0, 0])
 
-    const buildForecastAndSetBestHour = (forecast) => {
-        // 1) bucket all points into hours → pick min rank per hour
-        const byHour = {}
-        forecast.forEach(({periodStartAt, rank}) => {
-            const h = new Date(periodStartAt).getUTCHours()
-            const key = String(h).padStart(2, '0')
-            if (!byHour[key]) byHour[key] = []
-            byHour[key].push(rank)
-        })
-        const rawRanks = {}
-        for (let i = 0; i < 24; i++) {
-            const key = String(i).padStart(2, '0')
-            rawRanks[key] = byHour[key]
-                ? Math.min(...byHour[key])
-                : null
-        }
+    const windowRange = useMemo(() =>
+            // TODO these from and to may be over different days
+            ([new Date(jobState.from).getUTCHours(), new Date(jobState.to).getUTCHours()]),
+        [jobState]);
 
-        // 2) normalize rawRanks[h] from [rawMin..rawMax] → [0..colors.length-1]
-        const vals = Object.values(rawRanks).filter(v => v !== null)
-        const rawMin = Math.min(...vals)
-        const rawMax = Math.max(...vals)
-        const N = colors.length - 1
-        const norm = {}
-        Object.entries(rawRanks).forEach(([h, r]) => {
-            if (r === null) {
-                norm[h] = null
-            } else {
-                const t = (r - rawMin) / (rawMax - rawMin)
-                norm[h] = Math.round(t * N)
-            }
-        })
-
-        // set the normalized ranks for coloring
-        setRanks(norm)
-
-        // 3) compute window bounds
-        const fromH = new Date(jobState.from).getUTCHours()
-        const toH = new Date(jobState.to).getUTCHours()
-        setWindowRange([fromH, toH])
-
-        // 4) find best hour by raw rank within the window
-        let best = null, bestR = Infinity
-        Object.entries(rawRanks).forEach(([h, r]) => {
-            if (r === null) return
-            const hi = Number(h)
-            const inside =
-                fromH <= toH
-                    ? hi >= fromH && hi < toH
-                    : hi >= fromH || hi < toH
-            if (inside && r < bestR) {
-                bestR = r
-                best = h
-            }
-        })
-        setBestHour(best);
-    }
+    const bestHour = useMemo(() => getIdealMoment(windowRange, ranks), [windowRange, ranks]);
 
     useEffect(() => {
         fetch('/api/metadata/carbon-intensity-forecast')
@@ -78,16 +77,15 @@ const CarbonIntensityChart = ({jobState}) => {
             .then(payload => {
                 const rawValue = payload[0].value;
                 const value = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue
-                console.log(value)
-                buildForecastAndSetBestHour(value.intensityForecast);
+                const normalizedHourlyRanks = getNormalizedHourlyRanks(value.intensityForecast);
+                setRanks(normalizedHourlyRanks);
             })
-    }, [jobState]);
+    }, []);
 
-    if (!ranks) return null;
-    const [fromH, toH] = windowRange;
+    if (!ranks) return;
 
     return (
-        <div style={{width: '100%', fontFamily: 'sans-serif', marginTop: '2.5em'}}>
+        <div style={{width: '100%', marginTop: '32px'}}>
             <div
                 style={{
                     display: 'grid',
@@ -100,17 +98,15 @@ const CarbonIntensityChart = ({jobState}) => {
             >
                 {hours.map((h, idx) => {
                     const rank = ranks[h];
-                    const inWindow = fromH <= toH
-                        ? idx >= fromH && idx < toH
-                        : idx >= fromH || idx < toH;
+                    const inWindow = isInTimeRange(idx, windowRange);
                     const isBest = h === bestHour;
-                    const baseCol = colors[rank];
+                    const color = colors[rank];
                     return (
                         <React.Fragment key={h}>
                             <div style={{background: inWindow ? 'transparent' : '#E53935'}}/>
                             <div style={{
                                 position: 'relative',
-                                background: baseCol,
+                                background: color,
                                 opacity: inWindow ? 1 : 0.6,
                                 transform: isBest ? 'scaleY(1.2)' : 'scaleY(1)',
                                 transformOrigin: 'center',
@@ -142,7 +138,7 @@ const CarbonIntensityChart = ({jobState}) => {
                 })}
             </div>
 
-            <div style={{display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px'}}>
+            <div style={{display: 'flex', gap: '16px', fontSize: '12px'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                     <div
                         style={{
