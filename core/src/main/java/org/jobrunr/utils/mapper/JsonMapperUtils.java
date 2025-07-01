@@ -27,5 +27,6 @@ public class JsonMapperUtils {
         public static final String FIELD_STATIC_FIELD_NAME = "staticFieldName";
         public static final String FIELD_METHOD_NAME = "methodName";
         public static final String FIELD_JOB_PARAMETERS = "jobParameters";
+        public static final String FIELD_JOB_PARAMETER_OBJECT = "object";
     }
 }

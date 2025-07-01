@@ -147,6 +147,8 @@ public class JobUtils {
     private static String getJobParameterValue(JobParameter jobParameter) {
         if (jobParameter.getClassName().equals(JobContext.class.getName())) {
             return JobContext.class.getSimpleName();
+        } else if (jobParameter.getObject() == null) {
+            return null;
         }
         return jobParameter.getObject().toString();
     }

@@ -164,6 +164,20 @@ public class BackgroundJobByJobLambdaTest {
     }
 
     @Test
+    void testEnqueueWithNullObject() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork((Runnable) null));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == FAILED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, FAILED);
+    }
+
+    @Test
+    void testEnqueueWithNullList() {
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWorkWithList(null));
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testEnqueueWithId() {
         UUID id = UUID.randomUUID();
         JobId jobId1 = BackgroundJob.enqueue(id, () -> testService.doWork());

@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public abstract class JobDetailsBuilder {
 
@@ -106,6 +107,9 @@ public abstract class JobDetailsBuilder {
     }
 
     public void setMethodName(String name) {
+        if (name.endsWith("$default") && classExists("kotlin.KotlinVersion")) {
+            throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
+        }
         jobDetailsMethodName = name;
     }
 

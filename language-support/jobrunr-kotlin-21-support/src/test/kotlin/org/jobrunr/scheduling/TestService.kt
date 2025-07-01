@@ -1,11 +1,16 @@
 package org.jobrunr.scheduling
 
 import org.jobrunr.jobs.annotations.Job
+import java.util.*
 
 class TestService {
 
     fun doWork(s: String) {
         println(s)
+    }
+
+    fun doWorkWithDefaultParameter(id: UUID = UUID.randomUUID(), myString: String = "Some test from me") {
+        println("id: $id / myString: $myString")
     }
 
     @Job(name = "Some neat Job Display Name")
