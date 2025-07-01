@@ -485,11 +485,11 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testRecurringCarbonAwareJob() {
-        BackgroundJob.scheduleRecurrently("theId", CarbonAware.dailyBefore(7), () -> testService.doWork(5));
-        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SCHEDULED) == 1);
+        BackgroundJob.scheduleRecurrently("theId", CarbonAware.dailyBefore(23), () -> testService.doWork(5));
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
-        final Job job = storageProvider.getJobList(SCHEDULED, ascOnUpdatedAt(1000)).get(0);
-        assertThat(job).hasStates(AWAITING, SCHEDULED);
+        final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
+        assertThat(job).hasStates(AWAITING, SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

@@ -42,7 +42,7 @@ class CarbonAwareTest {
 
     @Test
     void dailyBetween_returnsScheduleStringWithCarbonBounds() {
-        assertThat(CarbonAware.dailyBetween(11, 23)).isEqualTo("0 11 * * * [PT0S/PT12H]");
+        assertThat(CarbonAware.dailyBetween(11, 23)).isEqualTo("0 23 * * * [PT12H/PT0S]");
     }
 
 }
