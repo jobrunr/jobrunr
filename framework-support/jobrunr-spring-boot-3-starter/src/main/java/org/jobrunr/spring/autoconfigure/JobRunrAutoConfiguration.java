@@ -210,7 +210,7 @@ public class JobRunrAutoConfiguration {
     }
 
     @Configuration
-    @ConditionalOnClass(kotlinx.serialization.json.Json.class)
+    @ConditionalOnClass(value = {kotlinx.serialization.json.Json.class, KotlinxSerializationJsonMapper.class})
     public static class JobRunrKotlinxSerializationAutoConfiguration {
 
         @Bean(name = "jobRunrJsonMapper")

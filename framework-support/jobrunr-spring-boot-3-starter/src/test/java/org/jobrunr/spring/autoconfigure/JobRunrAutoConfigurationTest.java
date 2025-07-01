@@ -25,6 +25,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
@@ -86,6 +87,15 @@ public class JobRunrAutoConfigurationTest {
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(ObjectMapper.class, Gson.class))
                 .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(KotlinxSerializationJsonMapper.class));
+    }
+
+    @Test
+    void selectSomeJsonMapperIfMultipleCandidatesArePresent() {
+        // If multiple serializers are in the classpath, the first @ConditionalOnMissingBean will be hit
+        // Make sure we return at least an instance of something.
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(JsonMapper.class));
     }
 
     @Test
