@@ -8,6 +8,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.AsyncJobPostProcessor;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -215,11 +216,7 @@ public class JobRunrAutoConfiguration {
         @Bean(name = "jobRunrJsonMapper")
         @ConditionalOnMissingBean
         public JsonMapper kotlinxSerializationJsonMapper() {
-            try {
-                return (JsonMapper) Class.forName("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper").getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Detected kotlinx.serialization on classpath but cannot instantiate KotlinxSerializationJsonMapper. Did you add a dependency to jobrunr-kotlin-x-support?", e);
-            }
+            return new KotlinxSerializationJsonMapper();
         }
 
     }
