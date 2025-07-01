@@ -30,9 +30,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -55,11 +60,11 @@ class JobRunrExtensionProcessorTest {
     @Mock
     JobRunrBuildTimeConfiguration.DatabaseConfiguration databaseConfiguration;
 
-    JobRunrExtensionProcessor jobRunrExtensionProcessor;
+    JobRunrExtensionProcessorForTesting jobRunrExtensionProcessor;
 
     @BeforeEach
     void setUpExtensionProcessor() {
-        jobRunrExtensionProcessor = new JobRunrExtensionProcessor();
+        jobRunrExtensionProcessor = new JobRunrExtensionProcessorForTesting();
         lenient().when(jobRunrBuildTimeConfiguration.database()).thenReturn(databaseConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
         lenient().when(jobRunrBuildTimeConfiguration.dashboard()).thenReturn(dashboardConfiguration);
@@ -137,6 +142,24 @@ class JobRunrExtensionProcessorTest {
     }
 
     @Test
+    void jobRunrProducerUsesKotlinxSerializationIfPresent() {
+        jobRunrExtensionProcessor.setKotlinxSerializationWillBePresent(true);
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrProducer.JobRunrKotlinxSerializataionJsonMapperProducer.class.getName());
+    }
+
+    @Test
+    void kotlinxSerializationClassRetrievalIsInSyncWithKotlinLanguageSupportProject() throws IOException {
+        var kotlinSrc = new String(Files.readAllBytes(Paths.get("../../../language-support/jobrunr-kotlin-22-support/src/main/kotlin/org/jobrunr/kotlin/utils/mapper/KotlinxSerializationJsonMapper.kt")));
+        var processorSrc = new String(Files.readAllBytes(Paths.get("src/main/java/org/jobrunr/quarkus/extension/deployment/JobRunrExtensionProcessor.java")));
+
+        assertThat(kotlinSrc).contains("class KotlinxSerializationJsonMapper");
+        assertThat(processorSrc).contains("classExists(\"org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper\")");
+    }
+
+    @Test
     void jobRunrProducerUsesJacksonIfCapabilityPresent() {
         Mockito.reset(capabilities);
         lenient().when(capabilities.isPresent(Capability.JACKSON)).thenReturn(true);
@@ -144,6 +167,16 @@ class JobRunrExtensionProcessorTest {
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrProducer.JobRunrJacksonJsonMapperProducer.class.getName());
+    }
+
+    @Test
+    void jobRunrProducerThrowsIllegalStateWhenNoJsonCapabilityPresent() {
+        Mockito.reset(capabilities);
+        jobRunrExtensionProcessor.setKotlinxSerializationWillBePresent(false);
+        lenient().when(capabilities.isPresent(Capability.JACKSON)).thenReturn(false);
+        lenient().when(capabilities.isPresent(Capability.JSONB)).thenReturn(false);
+
+        assertThatCode(() -> jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

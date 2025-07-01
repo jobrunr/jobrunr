@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 import static org.jobrunr.server.configuration.BackgroundJobServerThreadType.VirtualThreads;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
+import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 /**
  * Class responsible for creating additional JobRunr beans in Quarkus.
@@ -215,12 +216,21 @@ class JobRunrExtensionProcessor {
     }
 
     private Class<?> jsonMapper(Capabilities capabilities) {
+        // Unfortunately, there is no Capability.KOTLIN_SERIALIZATION.
+        if(isKotlinxSerializationAndJobRunrKotlinSupportPresent()) {
+            return JobRunrProducer.JobRunrKotlinxSerializataionJsonMapperProducer.class;
+        }
+
         if (capabilities.isPresent(Capability.JACKSON)) {
             return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
         } else if (capabilities.isPresent(Capability.JSONB)) {
             return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
         }
-        throw new IllegalStateException("Either JSON-B or Jackson should be added via a Quarkus extension");
+        throw new IllegalStateException("Either kotlinx.serialization + jobrunr-kotlin-x-support should be in the classpath or JSON-B/Jackson should be added as a Quarkus extension");
+    }
+
+    protected boolean isKotlinxSerializationAndJobRunrKotlinSupportPresent() {
+        return classExists("kotlinx.serialization.json.Json") && classExists("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper");
     }
 
     private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
