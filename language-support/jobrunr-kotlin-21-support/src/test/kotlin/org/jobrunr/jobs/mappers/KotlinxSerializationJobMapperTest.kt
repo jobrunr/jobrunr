@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import org.assertj.core.api.Assertions.assertThat
 import org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob
 import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper
+import org.jobrunr.scheduling.JobBuilder
 import org.jobrunr.utils.mapper.JsonMapper
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test

@@ -8,6 +8,7 @@ import jakarta.inject.Singleton;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.storage.StorageProvider;
@@ -71,6 +72,16 @@ public class JobRunrProducer {
         @Singleton
         public JsonMapper jobRunrJsonMapper() {
             return new JacksonJsonMapper();
+        }
+
+    }
+
+    public static class JobRunrKotlinxSerializataionJsonMapperProducer {
+        @Produces
+        @DefaultBean
+        @Singleton
+        public JsonMapper jobRunrJsonMapper() {
+            return new KotlinxSerializationJsonMapper();
         }
 
     }

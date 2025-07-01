@@ -8,6 +8,7 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.AsyncJobPostProcessor;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -204,6 +205,18 @@ public class JobRunrAutoConfiguration {
         @ConditionalOnMissingBean
         public JsonMapper jacksonJsonMapper() {
             return new JacksonJsonMapper();
+        }
+
+    }
+
+    @Configuration
+    @ConditionalOnClass(value = {kotlinx.serialization.json.Json.class, KotlinxSerializationJsonMapper.class})
+    public static class JobRunrKotlinxSerializationAutoConfiguration {
+
+        @Bean(name = "jobRunrJsonMapper")
+        @ConditionalOnMissingBean
+        public JsonMapper kotlinxSerializationJsonMapper() {
+            return new KotlinxSerializationJsonMapper();
         }
 
     }
