@@ -14,7 +14,12 @@ public class JarUtils {
         String version = clazz.getPackage().getImplementationVersion();
         if (version != null) return version;
 
-        return getManifestAttributeValue(clazz, "Bundle-Version");
+        try {
+            return getManifestAttributeValue(clazz, "Bundle-Version");
+        } catch (Exception e) {
+            // Will happen in integration tests; this is covered in JobRunrDashboardWebServerTest.
+            return "unknown";
+        }
     }
 
     public static String getManifestAttributeValue(Class<?> clazz, String attributeName) {

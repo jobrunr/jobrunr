@@ -2,6 +2,7 @@ package org.jobrunr.dashboard;
 
 import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.dashboard.server.http.client.TeenyHttpClient;
+import org.jobrunr.dashboard.ui.model.VersionUIModel;
 import org.jobrunr.dashboard.ui.model.problems.SevereJobRunrExceptionProblem;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -14,6 +15,7 @@ import org.jobrunr.storage.Paging;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.FreePortFinder;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +62,17 @@ abstract class JobRunrDashboardWebServerTest {
     void stopWebServer() {
         dashboardWebServer.stop();
         storageProvider.close();
+    }
+
+    @Test
+    void testGetVersion() {
+        var getResponse = http.get("/api/version");
+        // Deserialization of UI objects is not supported in every mapper
+        // This tests whether the response body is valid JSON
+        var version = new JacksonJsonMapper().deserialize(getResponse.body(), VersionUIModel.class);
+
+        assertThat(getResponse.statusCode()).isEqualTo(200);
+        assertThat(version.isAllowAnonymousDataUsage()).isFalse();
     }
 
     @Test
