@@ -33,6 +33,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
+    compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
 
     compileOnly 'org.mongodb:mongodb-driver-sync'
 
@@ -41,6 +42,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
     testImplementation 'org.springframework.data:spring-data-redis'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'io.micrometer:micrometer-core'

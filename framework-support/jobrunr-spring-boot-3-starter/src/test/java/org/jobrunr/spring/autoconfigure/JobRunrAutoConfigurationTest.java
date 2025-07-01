@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
@@ -64,19 +65,27 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void gsonIsIgnoredIfLibraryIsNotPresent() {
+    void selectJacksonMapperIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withClassLoader(new FilteredClassLoader(Gson.class))
+                .withClassLoader(new FilteredClassLoader(Gson.class, kotlinx.serialization.json.Json.class))
                 .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(JacksonJsonMapper.class));
     }
 
     @Test
-    void jacksonIsIgnoredIfLibraryIsNotPresent() {
+    void selectGsonMapperIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withClassLoader(new FilteredClassLoader(ObjectMapper.class))
+                .withClassLoader(new FilteredClassLoader(ObjectMapper.class, kotlinx.serialization.json.Json.class))
                 .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(GsonJsonMapper.class));
+    }
+
+    @Test
+    void selectKotlinxSerializationIfNoOtherJsonSerializersPresent() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withClassLoader(new FilteredClassLoader(ObjectMapper.class, Gson.class))
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(KotlinxSerializationJsonMapper.class));
     }
 
     @Test

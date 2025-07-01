@@ -208,6 +208,22 @@ public class JobRunrAutoConfiguration {
 
     }
 
+    @Configuration
+    @ConditionalOnClass(kotlinx.serialization.json.Json.class)
+    public static class JobRunrKotlinxSerializationAutoConfiguration {
+
+        @Bean(name = "jobRunrJsonMapper")
+        @ConditionalOnMissingBean
+        public JsonMapper kotlinxSerializationJsonMapper() {
+            try {
+                return (JsonMapper) Class.forName("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper").getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Detected kotlinx.serialization on classpath but cannot instantiate KotlinxSerializationJsonMapper. Did you add a dependency to jobrunr-kotlin-x-support?", e);
+            }
+        }
+
+    }
+
     @ConditionalOnClass(Jsonb.class)
     @ConditionalOnResource(resources = {"classpath:META-INF/services/javax.json.bind.spi.JsonbProvider",
             "classpath:META-INF/services/javax.json.spi.JsonProvider"})

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import org.assertj.core.api.Assertions.assertThat
 import org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob
 import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper
+import org.jobrunr.scheduling.JobBuilder
 import org.jobrunr.utils.mapper.JsonMapper
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.Test
@@ -15,6 +16,44 @@ class KotlinxSerializationJobMapperTest : JobMapperTest() {
     override fun getJsonMapper(): JsonMapper {
         return KotlinxSerializationJsonMapper(testModule)
     }
+
+    @Test
+    fun `deserialize kotlinx json`() {
+        val string = "{\n" +
+                "  \"id\" : \"0197b0ae-41cb-70c6-a7ba-90742a3f5ceb\",\n" +
+                "  \"version\" : 1,\n" +
+                "  \"jobSignature\" : \"java.lang.System.out.println(java.lang.String)\",\n" +
+                "  \"jobName\" : \"java.lang.System.out.println(Hello!)\",\n" +
+                "  \"labels\" : [ ],\n" +
+                "  \"jobDetails\" : {\n" +
+                "    \"className\" : \"java.lang.System\",\n" +
+                "    \"staticFieldName\" : \"out\",\n" +
+                "    \"methodName\" : \"println\",\n" +
+                "    \"jobParameters\" : [ {\n" +
+                "      \"className\" : \"java.lang.Object\",\n" +
+                "      \"actualClassName\" : \"java.lang.String\",\n" +
+                "      \"object\" : \"Hello!\"\n" +
+                "    } ],\n" +
+                "    \"cacheable\" : true\n" +
+                "  },\n" +
+                "  \"jobHistory\" : [ {\n" +
+                "    \"@class\" : \"kotlin.collections.LinkedHashMap\",\n" +
+                "    \"state\" : \"ENQUEUED\",\n" +
+                "    \"createdAt\" : \"2025-06-27T09:18:19.595168Z\"\n" +
+                "  } ],\n" +
+                "  \"metadata\" : {\n" +
+                "    \"@class\" : \"java.util.concurrent.ConcurrentHashMap\"\n" +
+                "  }\n" +
+                "}"
+
+        JobBuilder.aJob().withDetails {
+            println("hi!")
+        }.
+
+        val job = jobMapper.deserializeJob(string)
+        assertThat(job.jobName).isEqualTo("java.lang.System.out.println(Hello!)")
+    }
+
 
     @Test
     fun `serialize job metadata with a Kotlin-specific custom class`() {
