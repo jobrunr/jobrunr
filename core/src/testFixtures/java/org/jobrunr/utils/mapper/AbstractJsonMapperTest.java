@@ -77,6 +77,19 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeEnqueuedJobWithNullObject() {
+        Job job = anEnqueuedJob()
+                .withJobDetails(() -> testService.doWork((TestService.Work) null))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-null-object-parameter.json"));
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
     void testSerializeAndDeserializeWithJobContext() {
         Job job = anEnqueuedJob()
                 .withJobDetails(() -> testService.doWork(5, JobContext.Null))

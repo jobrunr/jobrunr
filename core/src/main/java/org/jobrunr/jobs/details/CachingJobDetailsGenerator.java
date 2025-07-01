@@ -190,7 +190,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 while (fieldIterator.hasNext()) {
                     Field f = fieldIterator.next();
                     Object valueFromField = ReflectionUtils.getValueFromField(f, jobRunrJob);
-                    if (jp.getObject().equals(valueFromField)) {
+                    if ((jp.getObject() == null && valueFromField == null) || jp.getObject().equals(valueFromField)) {
                         MethodHandle e = lookup.unreflectGetter(f);
                         jobParameterRetriever = new MethodHandleJobParameterRetriever(jp, e.asType(e.type().generic()));
                         fieldIterator.remove();

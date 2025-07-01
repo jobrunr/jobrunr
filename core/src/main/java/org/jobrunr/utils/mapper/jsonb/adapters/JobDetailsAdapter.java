@@ -20,6 +20,7 @@ import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_N
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CACHEABLE;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETER_OBJECT;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
@@ -78,9 +79,11 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
                 Class<Object> objectClass = toClass(getActualClassName(methodClassName, actualClassName));
                 if (JobContext.class.equals(objectClass)) {
                     result.add(new JobParameter(methodClassName, JobContext.Null));
-                } else {
+                } else if (jsonObject.containsKey(FIELD_JOB_PARAMETER_OBJECT)) {
                     Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
                     result.add(new JobParameter(methodClassName, object));
+                } else {
+                    result.add(new JobParameter(methodClassName, null));
                 }
             } catch (Exception e) {
                 result.add(new JobParameter(methodClassName, actualClassName, jsonObject.get("object"), new JobParameterNotDeserializableException(methodClassName, e)));

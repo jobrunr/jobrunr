@@ -2,10 +2,10 @@ package org.jobrunr.scheduling
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
+import org.assertj.core.api.Assertions.assertThatCode
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
-import org.jobrunr.JobRunrAssertions.assertThatCode
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName.*
