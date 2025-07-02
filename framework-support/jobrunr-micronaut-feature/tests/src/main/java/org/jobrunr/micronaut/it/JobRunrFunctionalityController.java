@@ -28,7 +28,7 @@ public class JobRunrFunctionalityController {
     @Post("/jobs")
     @Produces(MediaType.TEXT_PLAIN)
     public String enqueueJob() {
-        final JobId enqueuedJobId = jobScheduler.enqueue(() -> System.out.println("Hello from Quarkus"));
+        final JobId enqueuedJobId = jobScheduler.enqueue(() -> System.out.println("Hello from Micronaut"));
         return "Job Enqueued: " + enqueuedJobId;
     }
 
