@@ -42,13 +42,7 @@ public class JobRunrFunctionalityTest {
         final HttpResponse<String> response = restApi.get("/jobrunr/recurring-jobs");
         assertThat(response)
                 .hasStatusCode(200)
-                .hasBodyContaining("id=my-recurring-job", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'")
-                .hasBodyContaining("id=another-recurring-job-with-jobContext", "jobSignature='org.jobrunr.quarkus.it.TestService.aRecurringJob()'");
-//                .hasJsonBody(json -> json.inPath("[1].id").isEqualTo("another-recurring-job-with-jobContext"))
-//                .hasJsonBody(json -> json.inPath("[1].name").isEqualTo("Doing some work with the job context"))
-//                .hasJsonBody(json -> json.inPath("[1].scheduleExpression").isEqualTo("PT10M"))
-//                .hasJsonBody(json -> json.inPath("[1].jobDetails.className").isEqualTo("org.jobrunr.quarkus.it.TestService"))
-//                .hasJsonBody(json -> json.inPath("[1].jobDetails.methodName").isEqualTo("aRecurringJob"))
-//                .hasJsonBody(json -> json.inPath("[1].jobDetails.methodName").isEqualTo("aRecurringJob"));
+                .hasBodyContaining("my-recurring-job", "org.jobrunr.micronaut.it.TestService.aRecurringJob()")
+                .hasBodyContaining("another-recurring-job-with-jobContext", "org.jobrunr.micronaut.it.TestService.anotherRecurringJob(org.jobrunr.jobs.context.JobContext)");
     }
 }

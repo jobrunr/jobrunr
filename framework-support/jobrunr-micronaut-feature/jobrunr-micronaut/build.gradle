@@ -26,7 +26,6 @@ dependencies {
     api platform(project(':platform'))
     api project(':core')
 
-    implementation 'io.micronaut:micronaut-runtime'
     implementation 'io.micronaut:micronaut-management'
     implementation 'io.micronaut.validation:micronaut-validation'
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
