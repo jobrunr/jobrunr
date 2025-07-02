@@ -1,0 +1,48 @@
+plugins {
+    id("io.micronaut.application") version "4.5.3"
+}
+
+micronaut {
+    version '4.8.2'
+    runtime("netty")
+    testRuntime("junit5")
+}
+
+dependencies {
+    annotationProcessor 'io.micronaut:micronaut-inject-java'
+    annotationProcessor project(':framework-support:jobrunr-micronaut-feature:jobrunr-micronaut-annotations')
+
+    implementation project(':core')
+    implementation project(':framework-support:jobrunr-micronaut-feature:jobrunr-micronaut')
+    implementation 'io.micronaut:micronaut-inject-java'
+    implementation 'io.micronaut:micronaut-jackson-databind'
+
+    runtimeOnly 'org.yaml:snakeyaml'
+    runtimeOnly 'ch.qos.logback:logback-classic'
+
+    testImplementation testFixtures(project(":core"))
+    testImplementation 'io.micronaut.test:micronaut-test-junit5'
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += [
+            "-XprintRounds",
+            "-XprintProcessorInfo"
+    ]
+}
+
+application {
+    mainClass.set("com.example.demo.Application")
+}

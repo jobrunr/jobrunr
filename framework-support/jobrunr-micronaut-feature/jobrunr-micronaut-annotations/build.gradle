@@ -1,0 +1,117 @@
+import java.text.SimpleDateFormat
+
+plugins {
+    id 'java-library'
+    id 'io.micronaut.minimal.library' version '4.5.4'
+    id 'maven-publish'
+    id 'signing'
+}
+
+micronaut {
+    version '4.8.3'
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    api project(':core')
+    implementation 'io.micronaut:micronaut-inject-java'
+
+    testImplementation 'io.micronaut.test:micronaut-test-junit5'
+    testImplementation 'io.micronaut:micronaut-inject-java'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name': 'org.jobrunr.micronaut.annotations'
+        attributes 'Built-By': 'build.jobrunr.io'
+        attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
+        attributes 'Build-Version': project.version
+        attributes 'Implementation-Version': project.version
+        attributes 'Bundle-Version': project.version
+        attributes 'Created-By': "Gradle ${gradle.gradleVersion}"
+        attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
+        attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-micronaut-annotations'
+            version = project.version
+            from components.java
+
+            pom {
+                name = 'JobRunr Micronaut Annotations'
+                description = 'An easy way to perform background processing in Micronaut. Backed by persistent storage. Open and free for commercial use.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                versionMapping {
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+
+                withXml {
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    pomNode.dependencies.'*'.findAll() {
+                        it.optional.text() == 'true'
+                    }.each() {
+                        it.parent().remove(it)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}
+
+sonar {
+    skipProject = true
+}

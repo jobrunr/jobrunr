@@ -8,11 +8,14 @@ import jakarta.inject.Singleton;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.scheduling.JobRunrRecurringJobScheduler;
 import org.jobrunr.scheduling.JobScheduler;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 @Requires(beans = {JobScheduler.class})
 public class RecurringMethodProcessor implements ExecutableMethodProcessor<Recurring> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecurringMethodProcessor.class);
 
     private final JobRunrRecurringJobScheduler jobScheduler;
 
@@ -22,6 +25,7 @@ public class RecurringMethodProcessor implements ExecutableMethodProcessor<Recur
 
     @Override
     public void process(BeanDefinition<?> beanDefinition, ExecutableMethod<?, ?> method) {
+        LOGGER.info("Registering Recurring Job {}.{}", method.getTargetMethod().getDeclaringClass().getName(), method.getTargetMethod().getName());
         jobScheduler.schedule(method);
     }
 }

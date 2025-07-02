@@ -1,0 +1,13 @@
+micronaut:
+  application:
+    name: test-jobrunr-micronaut
+
+jobrunr:
+  background-job-server:
+    enabled: true
+  dashboard:
+    enabled: true
+  job-scheduler:
+    enabled: true
+  jobs:
+    retry-back-off-time-seed: 2
