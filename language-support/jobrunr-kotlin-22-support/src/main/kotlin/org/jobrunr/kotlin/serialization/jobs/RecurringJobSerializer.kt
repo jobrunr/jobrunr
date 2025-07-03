@@ -32,7 +32,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
         element("jobDetails", JobDetailsSerializer.descriptor)
         element("scheduleExpression", String.serializer().descriptor)
         element("zoneId", String.serializer().descriptor)
-        element("createdBy", createdByDescriptor)
+        element("createdBy", createdByDescriptor, isOptional = true)
         element("createdAt", InstantSerializer.descriptor)
     }
 
@@ -54,7 +54,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
         encodeSerializableElement(descriptor, 6, JobDetailsSerializer, value.jobDetails)
         encodeStringElement(descriptor, 7, value.scheduleExpression)
         encodeStringElement(descriptor, 8, value.zoneId)
-        encodeStringElement(descriptor, 9, value.createdBy.name)
+        value.createdBy?.name?.let { encodeStringElement(descriptor, 9, it) }
         encodeSerializableElement(descriptor, 10, InstantSerializer, value.createdAt)
     }
 
