@@ -19,10 +19,12 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -72,6 +74,8 @@ public class FrontEndDevelopment {
 
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
         BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
+
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(3));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

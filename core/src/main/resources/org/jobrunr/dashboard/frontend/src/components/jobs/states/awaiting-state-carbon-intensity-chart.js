@@ -153,7 +153,11 @@ const CarbonIntensityChart = ({jobState}) => {
             </div>
             <div style={{display: 'flex', gap: '16px', fontSize: '12px'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                    <span>Dataprovider: {intensityData.dataProvider} ({intensityData.displayName})</span>
+                    {intensityData.dataProviderUrl
+                        ? <span>Dataprovider: <a href={intensityData.dataProviderUrl} target="_blank"
+                                                 rel="noopener">{intensityData.dataProvider} ({intensityData.displayName})</a></span>
+                        : <span>Dataprovider: {intensityData.dataProvider} ({intensityData.displayName})</span>
+                    }
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
                     <div style={{
