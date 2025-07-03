@@ -1,5 +1,5 @@
-import {useSyncExternalStore} from 'react';
 import TimeAgo from "react-timeago/lib";
+import {setDateStyle, useDateStyles} from "./date-styles";
 
 const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
 
@@ -26,26 +26,4 @@ export const SwitchableTimeAgo = ({date}) => {
     }
 
     return <span style={{cursor: "pointer"}}>{result}</span>;
-}
-
-let dateStyle = localStorage.getItem('switchableTimeAgoStyle');
-let dateStyleChangeListeners = [];
-
-const getSnapshot = () => dateStyle;
-
-const subscribe = (listener) => {
-    dateStyleChangeListeners = [...dateStyleChangeListeners, listener];
-    return () => {
-        dateStyleChangeListeners = dateStyleChangeListeners.filter(l => l !== listener);
-    };
-}
-
-const setDateStyle = (style) => {
-    localStorage.setItem('switchableTimeAgoStyle', style);
-    dateStyle = style;
-    dateStyleChangeListeners.forEach(listener => listener());
-}
-
-const useDateStyles = () => {
-    return useSyncExternalStore(subscribe, getSnapshot);
 }
