@@ -37,6 +37,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 
 public abstract class AbstractJsonMapperTest {
@@ -286,7 +287,7 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
-    @Because("https://github.com/jobrunr/jobrunr/issues/536")
+    @Because({"https://github.com/jobrunr/jobrunr/issues/536", "https://github.com/jobrunr/jobrunr/issues/1327"})
     void testSerializeAndDeserializeRecurringJobsComingFrom5() {
         // recurring jobs created in 5.0.0
         final String recurringJobAsStringFrom5 = contentOfResource("/org/jobrunr/utils/mapper/existing-recurring-job-github-714-input.json");
@@ -294,7 +295,8 @@ public abstract class AbstractJsonMapperTest {
         final RecurringJob actualRecurringJob = jsonMapper.deserialize(recurringJobAsStringFrom5, RecurringJob.class);
         assertThat(actualRecurringJob)
                 .isNotNull()
-                .hasLabels(emptyList());
+                .hasLabels(emptyList())
+                .hasCreatedBy(API); // we default to API if null
     }
 
     @Test

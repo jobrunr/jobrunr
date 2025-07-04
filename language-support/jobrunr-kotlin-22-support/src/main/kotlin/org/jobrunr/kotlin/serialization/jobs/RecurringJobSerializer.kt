@@ -68,8 +68,8 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
         lateinit var jobDetails: JobDetails
         lateinit var scheduleExpression: String
         lateinit var zoneId: String
-        var createdBy: RecurringJob.CreatedBy? = null
-        lateinit var createdAt: Instant
+        var createdBy: RecurringJob.CreatedBy = RecurringJob.CreatedBy.API
+        var createdAt: Instant = Instant.now()
 
         while (true) {
             when (val index = decodeElementIndex(descriptor)) {
@@ -83,7 +83,7 @@ object RecurringJobSerializer : KSerializer<RecurringJob>, ClassDiscriminatedCon
                 6 -> jobDetails = decodeSerializableElement(descriptor, 6, JobDetailsSerializer)
                 7 -> scheduleExpression = decodeStringElement(descriptor, 7)
                 8 -> zoneId = decodeStringElement(descriptor, 8)
-                9 -> createdBy = RecurringJob.CreatedBy.valueOf(decodeStringElement(createdByDescriptor, 9))
+                9 -> createdBy = decodeNullableSerializableElement(descriptor, 9, String.serializer())?.let(RecurringJob.CreatedBy::valueOf) ?: createdBy
                 10 -> createdAt = decodeSerializableElement(descriptor, 10, InstantSerializer)
                 else -> error("Unexpected index $index")
             }
