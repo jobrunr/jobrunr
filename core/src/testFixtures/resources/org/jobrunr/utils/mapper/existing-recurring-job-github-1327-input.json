@@ -1,0 +1,22 @@
+{
+  "version": 0,
+  "jobSignature": "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)",
+  "jobName": "some name",
+  "jobDetails": {
+    "cacheable": true,
+    "className": "org.jobrunr.stubs.TestService",
+    "staticFieldName": null,
+    "methodName": "doWork",
+    "jobParameters": [
+      {
+        "className": "java.lang.Integer",
+        "actualClassName": "java.lang.Integer",
+        "object": 5
+      }
+    ]
+  },
+  "id": "anId",
+  "scheduleExpression": "0 0 * * *",
+  "zoneId": "UTC",
+  "createdAt": "2023-03-07T10:00:00.000Z"
+}
