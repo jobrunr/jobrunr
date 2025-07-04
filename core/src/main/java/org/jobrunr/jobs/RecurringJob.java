@@ -36,7 +36,7 @@ public class RecurringJob extends AbstractJob {
     private String id;
     private String scheduleExpression;
     private String zoneId;
-    private CreatedBy createdBy;
+    private CreatedBy createdBy = CreatedBy.API;
     private Instant createdAt;
 
     private transient Schedule schedule;
