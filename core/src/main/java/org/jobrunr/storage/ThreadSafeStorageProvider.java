@@ -103,6 +103,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public void deleteMetadata(String name, String owner) {
+        storageProvider.deleteMetadata(name, owner);
+    }
+
+    @Override
     @LockingJob("locks the job so only one thread can save a job at the same time")
     public Job save(Job job) {
         try (Lock lock = job.lock()) {

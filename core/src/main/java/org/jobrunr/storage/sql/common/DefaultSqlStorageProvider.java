@@ -186,6 +186,17 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     }
 
     @Override
+    public void deleteMetadata(String name, String owner) {
+        try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
+            final int amountDeleted = metadataTable(conn).deleteByNameAndOwner(name, owner);
+            transaction.commit();
+            notifyMetadataChangeListeners(amountDeleted > 0);
+        } catch (SQLException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public Job save(Job jobToSave) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final Job savedJob = jobTable(conn).save(jobToSave);

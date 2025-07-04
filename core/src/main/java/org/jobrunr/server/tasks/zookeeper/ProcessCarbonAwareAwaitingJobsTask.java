@@ -14,6 +14,7 @@ import org.jobrunr.utils.annotations.VisibleFor;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,8 +26,6 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.METADATA_OWNER_CLUSTER;
-import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
@@ -70,15 +69,14 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private void updateCarbonIntensityForecastIfNecessary() {
         if (isCarbonAwareJobProcessingDisabled()) return;
+        if (nextRefreshTime.isAfter(now())) return;
 
-        if (isInstantBeforeOrEqualTo(nextRefreshTime, now())) {
-            LOGGER.trace("Updating carbon intensity forecast.");
-            updateCarbonIntensityForecast();
-            updateNextRefreshTime();
-            LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
-            if (carbonIntensityForecast.hasError()) {
-                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
-            }
+        LOGGER.trace("Updating carbon intensity forecast.");
+        updateCarbonIntensityForecast();
+        updateNextRefreshTime();
+        LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
+        if (carbonIntensityForecast.hasError()) {
+            dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
         }
     }
 
@@ -154,7 +152,24 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             return;
         }
         this.carbonIntensityForecast = carbonIntensityForecast;
-        this.storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", METADATA_OWNER_CLUSTER, backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast)));
+        updateForecastInStorageProvider(carbonIntensityForecast);
+    }
+
+    private void updateForecastInStorageProvider(CarbonIntensityForecast carbonIntensityForecast) {
+        if (carbonIntensityForecast.getForecastEndPeriod() == null) return;
+        
+        // delete old unnecessary forecasts
+        Duration jobCompletelyDeletedAfter = backgroundJobServerConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServerConfiguration().getPermanentlyDeleteDeletedJobsAfter());
+        String deleteJobsAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
+        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
+        allForecasts.stream()
+                .filter(metadata -> metadata.getOwner().compareTo(deleteJobsAfter) < 0)
+                .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
+
+        this.storageProvider.saveMetadata(new JobRunrMetadata(
+                "carbon-intensity-forecast",
+                carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString(),
+                backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast)));
     }
 
     private void updateNextRefreshTime() {
