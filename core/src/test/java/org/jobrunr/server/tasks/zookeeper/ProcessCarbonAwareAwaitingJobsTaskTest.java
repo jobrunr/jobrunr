@@ -10,6 +10,7 @@ import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReade
 import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.tasks.AbstractTaskTest;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStaticHolder;
@@ -19,7 +20,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
@@ -53,6 +56,40 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
 
     @RegisterExtension
     static CarbonAwareApiWireMockExtension carbonAwareApiMock = new CarbonAwareApiWireMockExtension();
+
+    @Test
+    void updateCarbonIntensityForecastDeletesOldForecastMetadataAndUpdatesNewlyFetchedOnes() {
+        var currentTime = ZonedDateTime.now();
+        var forecast = new CarbonIntensityForecast(
+                new CarbonIntensityForecast.ApiResponseStatus("OK", "message"),
+                "dataProvider",
+                "dataIdentifier",
+                "displayName",
+                null,
+                Instant.now().plus(1, DAYS),
+                Duration.of(1, HOURS),
+                List.of(new CarbonIntensityForecast.TimestampedCarbonIntensityForecast(Instant.now(), Instant.now().plus(1, HOURS), 123)));
+        carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE", forecast);
+
+        try (MockedStaticHolder ignored = mockTime(currentTime)) {
+            // stale data to delete
+            storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", currentTime.minus(10, DAYS).toLocalDate().toString(), backgroundJobServer.getJsonMapper().serialize(forecast)));
+            storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", currentTime.minus(8, DAYS).toLocalDate().toString(), backgroundJobServer.getJsonMapper().serialize(forecast)));
+            // still in use
+            storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", currentTime.minus(1, DAYS).toLocalDate().toString(), backgroundJobServer.getJsonMapper().serialize(forecast)));
+
+            var task = createProcessCarbonAwareAwaitingJobsTask("BE");
+
+            task.updateCarbonIntensityForecast();
+        }
+
+        var refreshedMetaData = storageProvider.getMetadata("carbon-intensity-forecast").stream()
+                .sorted(Comparator.comparing(JobRunrMetadata::getOwner))
+                .collect(Collectors.toList());
+        assertThat(refreshedMetaData).hasSize(2);
+        assertThat(refreshedMetaData.get(0).getOwner()).isEqualTo(currentTime.minus(1, DAYS).toLocalDate().toString());
+        assertThat(refreshedMetaData.get(1).getOwner()).isEqualTo(currentTime.toLocalDate().toString());
+    }
 
     @Test
     void runTaskWithCarbonAwareDisabledDoesNotUpdateCarbonIntensityForecast() {

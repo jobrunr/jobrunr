@@ -158,18 +158,21 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private void updateForecastInStorageProvider(CarbonIntensityForecast carbonIntensityForecast) {
         if (carbonIntensityForecast.getForecastEndPeriod() == null) return;
         
-        // delete old unnecessary forecasts
-        Duration jobCompletelyDeletedAfter = backgroundJobServerConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServerConfiguration().getPermanentlyDeleteDeletedJobsAfter());
-        String deleteJobsAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
-        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
-        allForecasts.stream()
-                .filter(metadata -> metadata.getOwner().compareTo(deleteJobsAfter) < 0)
-                .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
+        deleteOldUnnecessaryForecasts();
 
         this.storageProvider.saveMetadata(new JobRunrMetadata(
                 "carbon-intensity-forecast",
                 carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString(),
                 backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast)));
+    }
+
+    private void deleteOldUnnecessaryForecasts() {
+        Duration jobCompletelyDeletedAfter = backgroundJobServer.getConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServer.getConfiguration().getPermanentlyDeleteDeletedJobsAfter());
+        String deleteJobsAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
+        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
+        allForecasts.stream()
+                .filter(metadata -> metadata.getOwner().compareTo(deleteJobsAfter) < 0)
+                .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
     }
 
     private void updateNextRefreshTime() {
