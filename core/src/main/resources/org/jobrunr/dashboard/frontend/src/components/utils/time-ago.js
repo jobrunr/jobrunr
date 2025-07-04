@@ -5,30 +5,57 @@ const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} $
 
 export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
 
-export const SwitchableTimeRangeFormatter = ({from, to}) => {
-    // if format == human readable && if from compare to now > 24h || to compare to now > 24h
-    // then show only value closest to now => text will be: this job is scheduled at 3 days from now
-    // else if format == human readable && if date1 compare to now < 24h && date 2 compare < now < 24h
-    // then show as now
-    // else if format == readableStyle && from && to hebben zelfde datum
-    // then show as Sat Jul 05 2025 between 12:00:00 GMT+0200 and 18:00:00 GMT+0200
-    // else if different dates
-    // then show as now
-    // else if UTC format
-    // then show as now
+const possibleStyles = {
+    defaultStyle: 'defaultStyle',
+    readableStyle: 'readableStyle',
+    iso8601Style: 'iso8601Style'
+};
 
+const setNewStyle = (e, style) => {
+    e.stopPropagation();
+    setDateStyle(style);
+}
+
+export const SwitchableTimeRangeFormatter = ({from, to}) => {
+    const style = useDateStyles();
+    const hourDiff = (a, b) => Math.floor(Math.abs(a - b) / 1000 / 60 / 60)
+    const now = new Date()
+
+    const hourDiffFrom = hourDiff(now, from)
+    const hourDiffTo = hourDiff(now, to)
+    if (style === possibleStyles.defaultStyle && (hourDiffFrom > 24 || hourDiffTo > 24)) {
+        // One of the two dates is more than 24h in the future resulting in ... day(s) from now: only display the nearest one
+        const date = hourDiffFrom < hourDiffTo ? from : to
+        return <span>
+            at <SwitchableTimeAgo date={date}/>
+            </span>
+    }
+
+    if (style === possibleStyles.readableStyle && hourDiff(from, to) < 24) {
+        const fromTime = from.toString().replace(from.toDateString(), "").split(" ")
+        const toTime = to.toString().replace(to.toDateString(), "").split(" ")
+
+        if (fromTime[2] === toTime[2]) {
+            // Timezones are equal: return "at Sat Jul 05 2025 between 12:00:00 18:00:00 (GMT+0200)"
+            return <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                at {from.toDateString()} between {fromTime[1]} and {toTime[1]} ({fromTime[2]})
+            </span>
+        } else {
+            // Timezones differ: return "at Sat Jul 05 2025 between 12:00:00 GMT+0200 and 18:00:00 GMT+0200"
+            return <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                at {from.toDateString()} between {fromTime[1]} {fromTime[2]} and {toTime[1]} {fromTime[2]}
+            </span>
+        }
+    }
+
+    // In all other cases, make use of the default SwitchableTimeAgo implementation.
+    return <span>
+        between <SwitchableTimeAgo date={from} /> and <SwitchableTimeAgo date={to} />
+    </span>
 }
 
 export const SwitchableTimeAgo = ({date}) => {
-
-    const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
-
     const style = useDateStyles();
-
-    const setNewStyle = (e, style) => {
-        e.stopPropagation();
-        setDateStyle(style);
-    }
 
     let result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={date} title={date.toString()}/>;
     if (style === possibleStyles.readableStyle) {

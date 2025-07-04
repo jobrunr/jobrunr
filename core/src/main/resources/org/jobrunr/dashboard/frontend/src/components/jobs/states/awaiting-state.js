@@ -1,5 +1,5 @@
 import {JobState} from "./job-state";
-import {SwitchableTimeAgo} from "../../utils/time-ago";
+import {SwitchableTimeRangeFormatter} from "../../utils/time-ago";
 import CarbonIntensityChart from "./awaiting-state-carbon-intensity-chart";
 
 const Awaiting = ({jobState}) => {
@@ -7,8 +7,7 @@ const Awaiting = ({jobState}) => {
 
     return (
         <JobState state="awaiting" title={title} date={new Date(jobState.createdAt)}>
-            Job is awaiting optimal low-carbon execution window between <SwitchableTimeAgo date={new Date(jobState.from)}/> and <SwitchableTimeAgo
-            date={new Date(jobState.to)}/>.
+            Job is awaiting optimal low-carbon execution window <SwitchableTimeRangeFormatter from={new Date(jobState.from)} to={new Date(jobState.to)}/>.
             <CarbonIntensityChart jobState={jobState}/>
         </JobState>
     )
