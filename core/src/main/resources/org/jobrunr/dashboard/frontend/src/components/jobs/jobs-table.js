@@ -27,14 +27,14 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
     const navigate = useNavigate();
 
     let column;
-    let columnFunction = (job) => getJobMostRecentState(job).createdAt;
+    let columnFunction = (job) => getJobMostRecentState(job).createdAt || new Date().toISOString();
     switch (jobState) {
         case 'AWAITING':
             column = "Created";
             break;
         case 'SCHEDULED':
             column = "Scheduled";
-            columnFunction = (job) => getJobMostRecentState(job).scheduledAt;
+            columnFunction = (job) => getJobMostRecentState(job).scheduledAt || new Date().toISOString();
             break;
         case 'ENQUEUED':
             column = "Enqueued";

@@ -5,6 +5,20 @@ const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} $
 
 export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
 
+export const SwitchableTimeRangeFormatter = ({from, to}) => {
+    // if format == human readable && if from compare to now > 24h || to compare to now > 24h
+    // then show only value closest to now => text will be: this job is scheduled at 3 days from now
+    // else if format == human readable && if date1 compare to now < 24h && date 2 compare < now < 24h
+    // then show as now
+    // else if format == readableStyle && from && to hebben zelfde datum
+    // then show as Sat Jul 05 2025 between 12:00:00 GMT+0200 and 18:00:00 GMT+0200
+    // else if different dates
+    // then show as now
+    // else if UTC format
+    // then show as now
+
+}
+
 export const SwitchableTimeAgo = ({date}) => {
 
     const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
