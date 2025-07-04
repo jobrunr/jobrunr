@@ -27,6 +27,7 @@ const CarbonIntensityChart = ({jobState}) => {
             .then(payload => {
                 const raw = payload[0].value;
                 const value = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                console.log(value);
                 setIntensityData(value);
             });
     }, [useUTC]);

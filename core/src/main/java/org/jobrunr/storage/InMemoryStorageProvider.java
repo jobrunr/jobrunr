@@ -208,13 +208,21 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public void deleteMetadata(String key) {
+    public void deleteMetadata(String name) {
         List<String> metadataToRemove = this.metadata.values().stream()
-                .filter(metadata -> metadata.getName().equals(key))
+                .filter(metadata -> metadata.getName().equals(name))
                 .map(JobRunrMetadata::getId)
                 .collect(toList());
         if (!metadataToRemove.isEmpty()) {
             this.metadata.keySet().removeAll(metadataToRemove);
+            notifyMetadataChangeListeners();
+        }
+    }
+
+    @Override
+    public void deleteMetadata(String name, String owner) {
+        JobRunrMetadata oldValue = this.metadata.remove(JobRunrMetadata.toId(name, owner));
+        if (oldValue != null) {
             notifyMetadataChangeListeners();
         }
     }

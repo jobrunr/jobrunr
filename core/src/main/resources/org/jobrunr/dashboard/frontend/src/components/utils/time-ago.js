@@ -11,12 +11,11 @@ export const SwitchableTimeRangeFormatter = ({from, to}) => {
     // else if format == human readable && if date1 compare to now < 24h && date 2 compare < now < 24h
     // then show as now
     // else if format == readableStyle && from && to hebben zelfde datum
-    // then show as Sat Jul 05 2025 between 12:00:00 GMT+0200 and 18:00:00 GMT+0200
+    // then show as Sat Jul 05 2025 between 12:00:00 and 18:00:00 (GMT+0200)
     // else if different dates
     // then show as now
     // else if UTC format
     // then show as now
-
 }
 
 export const SwitchableTimeAgo = ({date}) => {
