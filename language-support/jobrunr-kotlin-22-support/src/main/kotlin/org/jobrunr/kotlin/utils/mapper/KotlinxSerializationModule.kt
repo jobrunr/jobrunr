@@ -1,5 +1,6 @@
 package org.jobrunr.kotlin.utils.mapper
 
+import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.modules.SerializersModule
@@ -55,7 +56,7 @@ internal val jobRunrSerializersModule = SerializersModule {
     contextual(VersionUIModelSerializer)
     contextual(JobRunrMetadataSerializer)
     @Suppress("UNCHECKED_CAST")
-    contextual(Problems::class as KClass<Queue<Problem>>, QueueSerializer(AnyInlineSerializer()))
+    contextual(Problems::class as KClass<Queue<Problem>>, QueueSerializer(PolymorphicSerializer(Problem::class)))
     polymorphic(Problem::class) {
         subclass(CpuAllocationIrregularityProblemSerializer)
         subclass(PollIntervalInSecondsTimeBoxIsTooSmallProblemSerializer)
