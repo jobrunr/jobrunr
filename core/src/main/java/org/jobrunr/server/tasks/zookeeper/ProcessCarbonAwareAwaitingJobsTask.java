@@ -13,6 +13,7 @@ import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -26,7 +27,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Stream.of;
+import static java.util.stream.LongStream.range;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
@@ -165,10 +166,11 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
         deleteOldUnnecessaryForecasts(allForecasts);
 
-        String startPeriodOwner = carbonIntensityForecast.getForecastStartPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString();
-        String endPeriodOwner = carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString();
+        LocalDate startPeriodOwner = carbonIntensityForecast.getForecastStartPeriod().atZone(ZoneOffset.UTC).toLocalDate();
+        LocalDate endPeriodOwner = carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate();
         Predicate<String> hasNoDataForDate = dateAsString -> allForecasts.stream().noneMatch(m -> m.getOwner().equals(dateAsString));
-        of(startPeriodOwner, endPeriodOwner)
+        range(0, DAYS.between(startPeriodOwner, endPeriodOwner) + 1)
+                .mapToObj(l -> startPeriodOwner.plusDays(l).toString())
                 .distinct()
                 .filter(hasNoDataForDate)
                 .forEach(owner -> storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", owner, backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast))));

@@ -421,7 +421,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @Test
     void taskUpdateCarbonIntensityForecastAddsOlderForecastIfNotAvailable() {
         var currentTime = ZonedDateTime.now();
-        List<TimestampedCarbonIntensityForecast> hourlyForecast = buildForecastSlots(currentTime.minusDays(1), currentTime.plusDays(1).truncatedTo(DAYS), HOURS, i -> i);
+        List<TimestampedCarbonIntensityForecast> hourlyForecast = buildForecastSlots(currentTime.minusDays(1).truncatedTo(DAYS), currentTime.plusDays(1).truncatedTo(DAYS), HOURS, i -> i);
 
         carbonAwareApiMock.mockResponseWhenRequestingAreaCode("BE", createCarbonIntensityForecast(hourlyForecast, Duration.ofHours(1)));
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
@@ -432,9 +432,10 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
         var refreshedMetaData = storageProvider.getMetadata("carbon-intensity-forecast").stream()
                 .sorted(Comparator.comparing(JobRunrMetadata::getOwner))
                 .collect(toList());
-        assertThat(refreshedMetaData).hasSize(2);
-        assertThat(refreshedMetaData.get(0).getOwner()).isEqualTo(currentTime.minus(1, DAYS).toLocalDate().toString());
-        assertThat(refreshedMetaData.get(1).getOwner()).isEqualTo(currentTime.toLocalDate().toString());
+        assertThat(refreshedMetaData)
+                .hasSizeGreaterThanOrEqualTo(2)
+                .anyMatch(x -> x.getOwner().equals(currentTime.minusDays(1).toLocalDate().toString()))
+                .anyMatch(x -> x.getOwner().equals(currentTime.toLocalDate().toString()));
     }
 
 
