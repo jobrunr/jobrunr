@@ -66,8 +66,17 @@ public class CollectionUtils {
         return result;
     }
 
+    public static <T> Optional<T> findFirst(List<T> items) {
+        return ofNullable(getFirst(items));
+    }
+
     public static <T> Optional<T> findLast(List<T> items) {
         return ofNullable(getLast(items));
+    }
+
+    public static <T> T getFirst(List<T> items) {
+        if (isNullOrEmpty(items)) return null;
+        return items.get(0);
     }
 
     public static <T> T getLast(List<T> items) {

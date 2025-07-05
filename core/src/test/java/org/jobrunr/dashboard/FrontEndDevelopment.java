@@ -7,8 +7,6 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
-import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
-import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -21,10 +19,13 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -52,13 +53,8 @@ public class FrontEndDevelopment {
         storageProvider.save(aJob().withEnqueuedState(now()).withName("A job").build());
 
         var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
-                .andAreaCode("BE");
+                .andAreaCode("DE");
 
-        var stubServer = new CarbonIntensityApiStubServer()
-                .andPort(10000)
-                .andBestIntensityMomentTodayAt(12)
-                .andCarbonAwareJobProcessingConfig(carbonConfig)
-                .start();
 
         JobRunr
                 .configure()
@@ -80,6 +76,11 @@ public class FrontEndDevelopment {
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
         BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
 
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(4, HOURS), Duration.ofHours(4)), x -> x.doWork(4));
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(48, HOURS), Duration.ofHours(4)), x -> x.doWork(52));
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(72));
+
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
                                  @Override
@@ -92,7 +93,6 @@ public class FrontEndDevelopment {
                 30000
         );
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stubServer.stop(), "carbon stub server shutdown"));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> Thread.currentThread().interrupt()));
 
         Thread.currentThread().join();

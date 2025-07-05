@@ -192,8 +192,10 @@ public abstract class StorageProviderTest {
         // CREATE
         JobRunrMetadata metadata1 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("bad!")));
         JobRunrMetadata metadata2 = new JobRunrMetadata("shouldNotHappenException", UUID.randomUUID().toString(), Exceptions.getStackTraceAsString(shouldNotHappenException("Really bad!")));
+        JobRunrMetadata metadata3 = new JobRunrMetadata("someMetadata", "someKey", Exceptions.getStackTraceAsString(shouldNotHappenException("Really bad!")));
         storageProvider.saveMetadata(metadata1);
         storageProvider.saveMetadata(metadata2);
+        storageProvider.saveMetadata(metadata3);
 
         // LIST
         List<JobRunrMetadata> metadataListAfterCreate = storageProvider.getMetadata("shouldNotHappenException");
@@ -202,6 +204,7 @@ public abstract class StorageProviderTest {
         // GET
         assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata1.getOwner())).isEqualTo(metadata1);
         assertThat(storageProvider.getMetadata("shouldNotHappenException", metadata2.getOwner())).isEqualTo(metadata2);
+        assertThat(storageProvider.getMetadata("someMetadata", "someKey")).isEqualTo(metadata3);
         assertThat(storageProvider.getMetadata("somethingThatDoesNotExist", UUID.randomUUID().toString())).isNull();
 
         // UPDATE
@@ -213,12 +216,18 @@ public abstract class StorageProviderTest {
         List<JobRunrMetadata> metadataListAfterUpdate = storageProvider.getMetadata("shouldNotHappenException");
         assertThat(metadataListAfterUpdate).hasSize(2);
 
-        // DEL
+        // DELETE by name
         storageProvider.deleteMetadata("shouldNotHappenException");
 
         // LIST
         List<JobRunrMetadata> metadataListAfterDelete = storageProvider.getMetadata("shouldNotHappenException");
         assertThat(metadataListAfterDelete).isEmpty();
+
+        // DELETE by name and owner
+        storageProvider.deleteMetadata("someMetadata", "someKey");
+
+        // GET
+        assertThat(storageProvider.getMetadata("someMetadata", "someKey")).isNull();
     }
 
     @Test

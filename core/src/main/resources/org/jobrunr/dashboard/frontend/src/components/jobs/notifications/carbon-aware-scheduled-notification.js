@@ -1,5 +1,5 @@
 import {EnergySavingsLeaf} from "@mui/icons-material";
-import {SwitchableTimeAgo} from "../../utils/time-ago";
+import {SwitchableTimeRangeFormatter} from "../../utils/time-ago";
 import {isCarbonAwaitingState} from "../../utils/job-utils";
 import {JobNotification} from "./job-notification";
 
@@ -11,8 +11,7 @@ const CarbonAwareScheduledNotification = ({state}) => {
             severity="info"
             icon={<EnergySavingsLeaf fontSize="small" color="success"/>}
         >
-            This job is scheduled Carbon Aware between <SwitchableTimeAgo date={new Date(state.from)}/> and <SwitchableTimeAgo
-            date={new Date(state.to)}/> to minimize carbon impact.
+            This job is scheduled Carbon Aware <SwitchableTimeRangeFormatter from={new Date(state.from)} to={new Date(state.to)}/> to minimize carbon impact.
         </JobNotification>
     )
 };

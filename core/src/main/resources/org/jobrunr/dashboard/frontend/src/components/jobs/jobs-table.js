@@ -10,7 +10,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
 import {styled} from "@mui/material/styles";
-import {SwitchableTimeAgo} from "../utils/time-ago";
+import {SwitchableTimeFormatter, SwitchableTimeRangeFormatter} from "../utils/time-ago";
 import Tooltip from '@mui/material/Tooltip';
 import {EnergySavingsLeaf} from "@mui/icons-material";
 import {getJobMostRecentState, getJobPreviousState, isCarbonAwaitingState} from "../utils/job-utils";
@@ -27,14 +27,14 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
     const navigate = useNavigate();
 
     let column;
-    let columnFunction = (job) => getJobMostRecentState(job).createdAt;
+    let columnFunction = (job) => getJobMostRecentState(job).createdAt || new Date().toISOString();
     switch (jobState) {
         case 'AWAITING':
             column = "Created";
             break;
         case 'SCHEDULED':
             column = "Scheduled";
-            columnFunction = (job) => getJobMostRecentState(job).scheduledAt;
+            columnFunction = (job) => getJobMostRecentState(job).scheduledAt || new Date().toISOString();
             break;
         case 'ENQUEUED':
             column = "Enqueued";
@@ -105,9 +105,9 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                                 {isInAwaitingViewAndJobIsCarbonAware(job) &&
                                                     <Tooltip title={
                                                         <>
-                                                            This is a Carbon Aware job that may be scheduled between <SwitchableTimeAgo
-                                                            date={new Date(getJobMostRecentState(job).from)}/> and <SwitchableTimeAgo
-                                                            date={new Date(getJobMostRecentState(job).to)}/>
+                                                            This is a Carbon Aware job that may be scheduled <SwitchableTimeRangeFormatter
+                                                            from={new Date(getJobMostRecentState(job).from)}
+                                                            to={new Date(getJobMostRecentState(job).to)}/>
                                                         </>
                                                     }>
                                                         <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
@@ -118,7 +118,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                                         <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
                                                     </Tooltip>
                                                 }
-                                                <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
+                                                <SwitchableTimeFormatter date={new Date(columnFunction(job))}/>
                                             </div>
                                         </TableCell>
                                     </TableRow>

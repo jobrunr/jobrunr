@@ -10,7 +10,9 @@ import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.utils.CollectionUtils.findFirst;
 import static org.jobrunr.utils.CollectionUtils.findLast;
+import static org.jobrunr.utils.CollectionUtils.getFirst;
 import static org.jobrunr.utils.CollectionUtils.getLast;
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.CollectionUtils.isNullOrEmpty;
@@ -64,6 +66,24 @@ class CollectionUtilsTest {
     }
 
     @Test
+    void findFirstOfCollection() {
+        assertThat(findFirst(null)).isEmpty();
+        assertThat(findFirst(Collections.emptyList())).isEmpty();
+        assertThat(findFirst(List.of("A"))).isEqualTo(Optional.of("A"));
+        assertThat(findFirst(List.of("A", "B"))).isEqualTo(Optional.of("A"));
+        assertThat(findFirst(List.of("A", "B", "C"))).isEqualTo(Optional.of("A"));
+    }
+
+    @Test
+    void getFirstOfCollection() {
+        assertThat((Object) getFirst(null)).isNull();
+        assertThat((Object) getFirst(Collections.emptyList())).isNull();
+        assertThat(getFirst(List.of("A"))).isEqualTo("A");
+        assertThat(getFirst(List.of("A", "B"))).isEqualTo("A");
+        assertThat(getFirst(List.of("A", "B", "C"))).isEqualTo("A");
+    }
+
+    @Test
     void findLastOfCollection() {
         assertThat(findLast(null)).isEmpty();
         assertThat(findLast(Collections.emptyList())).isEmpty();
@@ -73,7 +93,7 @@ class CollectionUtilsTest {
     }
 
     @Test
-    void findGetOfCollection() {
+    void getLastOfCollection() {
         assertThat((Object) getLast(null)).isNull();
         assertThat((Object) getLast(Collections.emptyList())).isNull();
         assertThat(getLast(List.of("A"))).isEqualTo("A");
