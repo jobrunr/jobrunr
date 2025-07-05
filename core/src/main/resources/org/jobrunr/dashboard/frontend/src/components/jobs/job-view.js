@@ -212,14 +212,13 @@ const JobView = (props) => {
                                     jobStates.map((jobState, index) => {
                                         switch (jobState.state) {
                                             case 'AWAITING':
-                                                return <Awaiting key={index} jobState={jobState}/>;
+                                                return <Awaiting key={index} job={job} jobState={jobState}/>;
                                             case 'SCHEDULED':
                                                 return <Scheduled key={index} jobState={jobState}/>;
                                             case 'ENQUEUED':
                                                 return <Enqueued key={index} jobState={jobState}/>;
                                             case 'PROCESSING':
-                                                return <Processing key={index} index={index} job={job}
-                                                                   jobState={jobState}/>;
+                                                return <Processing key={index} index={index} job={job} jobState={jobState}/>;
                                             case 'FAILED':
                                                 return <Failed key={index} jobState={jobState}/>;
                                             case 'SUCCEEDED':

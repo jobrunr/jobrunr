@@ -18,6 +18,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
@@ -25,7 +26,9 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Stream.of;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
+import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
 public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask {
 
@@ -69,14 +72,15 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private void updateCarbonIntensityForecastIfNecessary() {
         if (isCarbonAwareJobProcessingDisabled()) return;
-        if (nextRefreshTime.isAfter(now())) return;
 
-        LOGGER.trace("Updating carbon intensity forecast.");
-        updateCarbonIntensityForecast();
-        updateNextRefreshTime();
-        LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
-        if (carbonIntensityForecast.hasError()) {
-            dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
+        if (isInstantBeforeOrEqualTo(nextRefreshTime, now())) {
+            LOGGER.trace("Updating carbon intensity forecast.");
+            updateCarbonIntensityForecast();
+            updateNextRefreshTime();
+            LOGGER.trace("Carbon intensity forecast updated. Next update is planned for {}", nextRefreshTime);
+            if (carbonIntensityForecast.hasError()) {
+                dashboardNotificationManager.notify(new CarbonIntensityApiErrorNotification(carbonIntensityForecast.getApiResponseStatus()));
+            }
         }
     }
 
@@ -157,21 +161,24 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     private void updateForecastInStorageProvider(CarbonIntensityForecast carbonIntensityForecast) {
         if (carbonIntensityForecast.getForecastEndPeriod() == null) return;
-        
-        deleteOldUnnecessaryForecasts();
 
-        this.storageProvider.saveMetadata(new JobRunrMetadata(
-                "carbon-intensity-forecast",
-                carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString(),
-                backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast)));
+        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
+        deleteOldUnnecessaryForecasts(allForecasts);
+
+        String startPeriodOwner = carbonIntensityForecast.getForecastStartPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString();
+        String endPeriodOwner = carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate().toString();
+        Predicate<String> hasNoDataForDate = dateAsString -> allForecasts.stream().noneMatch(m -> m.getOwner().equals(dateAsString));
+        of(startPeriodOwner, endPeriodOwner)
+                .distinct()
+                .filter(hasNoDataForDate)
+                .forEach(owner -> storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", owner, backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast))));
     }
 
-    private void deleteOldUnnecessaryForecasts() {
+    private void deleteOldUnnecessaryForecasts(List<JobRunrMetadata> allForecasts) {
         Duration jobCompletelyDeletedAfter = backgroundJobServer.getConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServer.getConfiguration().getPermanentlyDeleteDeletedJobsAfter());
-        String deleteJobsAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
-        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
+        String deleteForecastAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
         allForecasts.stream()
-                .filter(metadata -> metadata.getOwner().compareTo(deleteJobsAfter) < 0)
+                .filter(metadata -> metadata.getOwner().compareTo(deleteForecastAfter) < 0)
                 .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
     }
 

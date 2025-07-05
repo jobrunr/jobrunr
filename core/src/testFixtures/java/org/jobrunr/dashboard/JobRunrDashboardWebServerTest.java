@@ -21,10 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -73,6 +72,50 @@ abstract class JobRunrDashboardWebServerTest {
 
         assertThat(getResponse.statusCode()).isEqualTo(200);
         assertThat(version.isAllowAnonymousDataUsage()).isFalse();
+    }
+
+    @Test
+    void testGetMetadata() {
+        JobRunrMetadata metadata1 = new JobRunrMetadata("my-name", "owner-1", "value-1", now(), now().minusMillis(10));
+        JobRunrMetadata metadata2 = new JobRunrMetadata("my-name", "owner-2", "value-2", now(), now().minusMillis(5));
+        JobRunrMetadata metadata3 = new JobRunrMetadata("my-other-name", "my-other-owner", "{\"key\": \"value\"}", now(), now());
+
+        storageProvider.saveMetadata(metadata1);
+        storageProvider.saveMetadata(metadata2);
+        storageProvider.saveMetadata(metadata3);
+
+        HttpResponse<String> getAllByNameResponse = http.get("/api/metadata/%s", "my-name");
+        assertThat(getAllByNameResponse)
+                .hasStatusCode(200)
+                .hasJsonBody(
+                        json -> json.inPath("[0].name").isEqualTo("my-name"),
+                        json -> json.inPath("[0].owner").isEqualTo("owner-1"),
+                        json -> json.inPath("[0].value").isEqualTo("value-1"),
+                        json -> json.inPath("[1].name").isEqualTo("my-name"),
+                        json -> json.inPath("[1].owner").isEqualTo("owner-2"),
+                        json -> json.inPath("[1].value").isEqualTo("value-2"));
+
+        HttpResponse<String> getByNameAndOwnerResponse = http.get("/api/metadata/%s?owner=%s&format=jsonValue", "my-other-name", "my-other-owner");
+        assertThat(getByNameAndOwnerResponse)
+                .hasStatusCode(200)
+                .hasJsonBody("{\"key\": \"value\"}");
+
+        HttpResponse<String> getByNameAndOwnerAsJsonValueResponse = http.get("/api/metadata/%s?owner=%s", "my-name", "owner-2");
+        assertThat(getByNameAndOwnerAsJsonValueResponse)
+                .hasStatusCode(200)
+                .hasJsonBody(
+                        json -> json.inPath("name").isEqualTo("my-name"),
+                        json -> json.inPath("owner").isEqualTo("owner-2"),
+                        json -> json.inPath("value").isEqualTo("value-2"));
+
+        HttpResponse<String> getUnavailableByNameResponse = http.get("/api/metadata/%s", "unavailable");
+        assertThat(getUnavailableByNameResponse)
+                .hasStatusCode(200)
+                .hasJsonBody("[]");
+
+        HttpResponse<String> getUnavailableByNameAndOwnerResponse = http.get("/api/metadata/%s?owner=%s", "unavailable", "unavailable");
+        assertThat(getUnavailableByNameAndOwnerResponse)
+                .hasStatusCode(404);
     }
 
     @Test
@@ -149,7 +192,7 @@ abstract class JobRunrDashboardWebServerTest {
 
     @Test
     void testGetProblems() {
-        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(Instant.now().plus(1, DAYS))).build());
+        storageProvider.save(aJob().withJobDetails(methodThatDoesNotExistJobDetails()).withState(new ScheduledState(now().plus(1, DAYS))).build());
 
         HttpResponse<String> getResponse = http.get("/api/problems");
         assertThat(getResponse)

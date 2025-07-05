@@ -199,7 +199,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public List<JobRunrMetadata> getMetadata(String key) {
-        return this.metadata.values().stream().filter(m -> m.getName().equals(key)).collect(toList());
+        return this.metadata.values().stream()
+                .filter(m -> m.getName().equals(key))
+                .sorted(comparing(JobRunrMetadata::getUpdatedAt))
+                .collect(toList());
     }
 
     @Override

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+
 public class JobRunrApiHandler extends RestHttpHandler {
 
     private final StorageProvider storageProvider;
@@ -55,7 +57,21 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private HttpRequestHandler getMetadataByName() {
         return (request, response) -> {
-            response.asJson(storageProvider.getMetadata(request.param(":name", String.class)));
+            String name = request.param(":name");
+            String owner = request.queryParam("owner", String.class, null);
+            if (isNotNullOrEmpty(name) && isNotNullOrEmpty(owner)) {
+                String format = request.queryParam("format", String.class, null);
+                JobRunrMetadata metadata = storageProvider.getMetadata(name, owner);
+                if (metadata == null) {
+                    response.statusCode(404);
+                } else if ("jsonValue" .equals(format)) {
+                    response.fromJsonString(metadata.getValue());
+                } else {
+                    response.asJson(metadata);
+                }
+            } else {
+                response.asJson(storageProvider.getMetadata(name));
+            }
         };
     }
 

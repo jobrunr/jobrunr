@@ -1,5 +1,5 @@
 import Alert from '@mui/material/Alert';
-import {SwitchableTimeAgo} from "../../utils/time-ago";
+import {SwitchableTimeFormatter} from "../../utils/time-ago";
 import Icon from "@mui/material/Icon";
 import Typography from "@mui/material/Typography";
 import {Schedule} from "@mui/icons-material";
@@ -99,7 +99,7 @@ const JobStateHeading = ({state, title, date, canExpand = true}) => {
                 </Typography>
             </Alert>
             <Typography style={{alignSelf: 'center', marginLeft: 'auto'}}>
-                <SwitchableTimeAgo date={new Date(date)}/>
+                <SwitchableTimeFormatter date={new Date(date)}/>
             </Typography>
         </StyledAccordionSummary>
     )

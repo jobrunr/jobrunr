@@ -1,5 +1,5 @@
 import {EnergySavingsLeaf} from "@mui/icons-material";
-import {SwitchableTimeAgo, SwitchableTimeRangeFormatter} from "../../utils/time-ago";
+import {SwitchableTimeRangeFormatter} from "../../utils/time-ago";
 import {isCarbonAwaitingState} from "../../utils/job-utils";
 import {JobNotification} from "./job-notification";
 

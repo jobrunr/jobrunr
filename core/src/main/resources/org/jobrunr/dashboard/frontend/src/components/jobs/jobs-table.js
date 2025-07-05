@@ -10,7 +10,7 @@ import LoadingIndicator from "../LoadingIndicator";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
 import {styled} from "@mui/material/styles";
-import {SwitchableTimeAgo, SwitchableTimeRangeFormatter} from "../utils/time-ago";
+import {SwitchableTimeFormatter, SwitchableTimeRangeFormatter} from "../utils/time-ago";
 import Tooltip from '@mui/material/Tooltip';
 import {EnergySavingsLeaf} from "@mui/icons-material";
 import {getJobMostRecentState, getJobPreviousState, isCarbonAwaitingState} from "../utils/job-utils";
@@ -118,7 +118,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                                         <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
                                                     </Tooltip>
                                                 }
-                                                <SwitchableTimeAgo date={new Date(columnFunction(job))}/>
+                                                <SwitchableTimeFormatter date={new Date(columnFunction(job))}/>
                                             </div>
                                         </TableCell>
                                     </TableRow>
