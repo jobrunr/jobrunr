@@ -6,6 +6,7 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.spring.autoconfigure.JobRunrAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +14,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Primary;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
-@SpringBootTest(classes = { JobRunrAutoConfiguration.class, TestApplication.JobRunrStorageProviderTestContextConfiguration.class})
+@SpringBootTest(classes = {JobRunrAutoConfiguration.class, TestApplication.JobRunrStorageProviderTestContextConfiguration.class})
 public class TestApplication {
 
     @Autowired
@@ -31,10 +33,17 @@ public class TestApplication {
     @TestConfiguration
     @ComponentScan("org.jobrunr.spring.aot")
     static class JobRunrStorageProviderTestContextConfiguration {
+
         @Bean
-        public StorageProvider storageProvider() {
+        @Primary
+        public JsonMapper jsonMapper() {
+            return new JacksonJsonMapper();
+        }
+
+        @Bean
+        public StorageProvider storageProvider(JsonMapper jsonMapper) {
             InMemoryStorageProvider inMemoryStorageProvider = new InMemoryStorageProvider();
-            inMemoryStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
+            inMemoryStorageProvider.setJobMapper(new JobMapper(jsonMapper));
             return inMemoryStorageProvider;
         }
     }

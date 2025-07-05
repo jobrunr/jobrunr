@@ -206,7 +206,6 @@ public class JobRunrAutoConfiguration {
         public JsonMapper jacksonJsonMapper() {
             return new JacksonJsonMapper();
         }
-
     }
 
     @Configuration
@@ -218,7 +217,6 @@ public class JobRunrAutoConfiguration {
         public JsonMapper kotlinxSerializationJsonMapper() {
             return new KotlinxSerializationJsonMapper();
         }
-
     }
 
     @ConditionalOnClass(Jsonb.class)
