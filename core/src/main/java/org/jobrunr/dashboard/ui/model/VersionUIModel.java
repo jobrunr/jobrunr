@@ -34,6 +34,10 @@ public class VersionUIModel {
         return clusterId;
     }
 
+    public String getStorageProviderType() {
+        return storageProviderType;
+    }
+
     public static VersionUIModel withAnonymousDataUsage(String clusterId, String storageProviderType) {
         return new VersionUIModel(clusterId, storageProviderType);
     }

@@ -9,5 +9,5 @@ object VersionUIModelSerializer : FieldBasedSerializer<VersionUIModel>(
     Field("version", String.serializer()) { it.version },
     Field("allowAnonymousDataUsage", Boolean.serializer()) { it.isAllowAnonymousDataUsage },
     Field("clusterId", String.serializer(), true) { it.clusterId },
-    Field("storageProviderType", String.serializer(), true) { it.clusterId },
+    Field("storageProviderType", String.serializer(), true) { it.storageProviderType },
 )

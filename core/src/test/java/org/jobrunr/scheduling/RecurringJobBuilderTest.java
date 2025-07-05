@@ -180,7 +180,7 @@ class RecurringJobBuilderTest {
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression("0 0 * * * [PT0S/PT7H]");
+                .hasScheduleExpression("0 7 * * * [PT7H/PT0S]");
     }
 
     @Test
