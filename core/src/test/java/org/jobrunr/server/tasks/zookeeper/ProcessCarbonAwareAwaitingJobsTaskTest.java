@@ -210,7 +210,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             verify(carbonIntensityApiClient(task)).fetchCarbonIntensityForecast();
             assertThatJob(job)
                     .hasStates(AWAITING, SCHEDULED)
-                    .hasScheduledAt(now(), "Passed its deadline, scheduling now.");
+                    .hasScheduledAt(now().minus(8, HOURS), "Passed its deadline, scheduling immediately.");
         }
     }
 
@@ -244,7 +244,7 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
 
             List<Job> jobs = storageProvider.save(List.of(
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(4, HOURS))).build(),
-                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(2, HOURS), now().plus(4, HOURS)), "schedule margin too small").build(),
+                    aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(2, HOURS), now().plus(3, HOURS)), "schedule margin too small").build(),
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(4, HOURS), now().plus(8, HOURS))).build(),
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(12, HOURS), now().plus(16, HOURS))).build(),
                     aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now().plus(36, HOURS), now().plus(48, HOURS)), "scheduled carbon-aware too far in the future").build()

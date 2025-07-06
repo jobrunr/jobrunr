@@ -20,6 +20,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,7 +54,7 @@ public class FrontEndDevelopment {
         storageProvider.save(aJob().withEnqueuedState(now()).withName("A job").build());
 
         var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
-                .andAreaCode("DE");
+                .andAreaCode("BE");
 
 
         JobRunr
@@ -80,6 +81,8 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(48, HOURS), Duration.ofHours(4)), x -> x.doWork(52));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(72));
+        BackgroundJob.<TestService>schedule(CarbonAware.between(LocalDate.now().atTime(20, 0), LocalDate.now().atTime(22, 0)), x -> x.doWork(72));
+        BackgroundJob.<TestService>schedule(CarbonAware.at(now().minus(10, DAYS), Duration.ofHours(4)), x -> x.doWork(-240));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

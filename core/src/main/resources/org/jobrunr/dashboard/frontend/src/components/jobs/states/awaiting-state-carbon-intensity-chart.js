@@ -139,13 +139,14 @@ const CarbonIntensityChart = ({job, jobState}) => {
         return new Date(Math.max(...times));
     }, [intensityData]);
 
-    if (!normalized) return null;
     if (notFound) {
         return (
-            <div style={{padding: '16px', color: '#b71c1c', fontSize: '14px'}}>
-                No forecast available for this date; it has been purged.
+            <div style={{paddingTop: '12px'}}>
+                No forecast available anymore for this date - it has been purged.
             </div>
         );
+    } else if (!normalized) {
+        return null;
     }
 
     return (

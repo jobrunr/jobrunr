@@ -105,7 +105,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             if (isCarbonAwareJobProcessingDisabled()) {
                 scheduleJobAt(job, state.getFallbackInstant(), state, "Carbon aware scheduling is disabled, scheduling job at " + state.getFallbackInstant());
             } else if (isDeadlinePassed(state)) {
-                scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
+                scheduleJobAt(job, state.getFallbackInstant(), state, "Passed its deadline, scheduling immediately.");
             } else if (hasTooSmallScheduleMargin(state)) {
                 scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");
             } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
@@ -146,7 +146,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState state) {
         if (carbonIntensityForecast.hasNoForecast()) return false;
         Duration margin = state.getMarginDuration();
-        return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
+        return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(2)) < 0;
     }
 
     @VisibleFor("testing")
