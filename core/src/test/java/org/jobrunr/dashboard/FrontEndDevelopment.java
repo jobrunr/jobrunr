@@ -56,7 +56,6 @@ public class FrontEndDevelopment {
         var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andAreaCode("BE");
 
-
         JobRunr
                 .configure()
                 .useJsonMapper(new JacksonJsonMapper())
