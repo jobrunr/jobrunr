@@ -18,6 +18,8 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic'
 
     testImplementation project(':core')
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+    testImplementation project(':language-support:jobrunr-kotlin-22-support')
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
