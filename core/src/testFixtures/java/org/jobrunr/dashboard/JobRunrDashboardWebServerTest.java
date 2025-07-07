@@ -84,23 +84,7 @@ abstract class JobRunrDashboardWebServerTest {
         storageProvider.saveMetadata(metadata2);
         storageProvider.saveMetadata(metadata3);
 
-        HttpResponse<String> getAllByNameResponse = http.get("/api/metadata/%s", "my-name");
-        assertThat(getAllByNameResponse)
-                .hasStatusCode(200)
-                .hasJsonBody(
-                        json -> json.inPath("[0].name").isEqualTo("my-name"),
-                        json -> json.inPath("[0].owner").isEqualTo("owner-1"),
-                        json -> json.inPath("[0].value").isEqualTo("value-1"),
-                        json -> json.inPath("[1].name").isEqualTo("my-name"),
-                        json -> json.inPath("[1].owner").isEqualTo("owner-2"),
-                        json -> json.inPath("[1].value").isEqualTo("value-2"));
-
-        HttpResponse<String> getByNameAndOwnerResponse = http.get("/api/metadata/%s?owner=%s&format=jsonValue", "my-other-name", "my-other-owner");
-        assertThat(getByNameAndOwnerResponse)
-                .hasStatusCode(200)
-                .hasJsonBody("{\"key\": \"value\"}");
-
-        HttpResponse<String> getByNameAndOwnerAsJsonValueResponse = http.get("/api/metadata/%s?owner=%s", "my-name", "owner-2");
+        HttpResponse<String> getByNameAndOwnerAsJsonValueResponse = http.get("/api/metadata/%s/%s", "my-name", "owner-2");
         assertThat(getByNameAndOwnerAsJsonValueResponse)
                 .hasStatusCode(200)
                 .hasJsonBody(
@@ -108,12 +92,12 @@ abstract class JobRunrDashboardWebServerTest {
                         json -> json.inPath("owner").isEqualTo("owner-2"),
                         json -> json.inPath("value").isEqualTo("value-2"));
 
-        HttpResponse<String> getUnavailableByNameResponse = http.get("/api/metadata/%s", "unavailable");
-        assertThat(getUnavailableByNameResponse)
+        HttpResponse<String> getByNameAndOwnerResponse = http.get("/api/metadata/%s/%s?format=jsonValue", "my-other-name", "my-other-owner");
+        assertThat(getByNameAndOwnerResponse)
                 .hasStatusCode(200)
-                .hasJsonBody("[]");
+                .hasJsonBody("{\"key\": \"value\"}");
 
-        HttpResponse<String> getUnavailableByNameAndOwnerResponse = http.get("/api/metadata/%s?owner=%s", "unavailable", "unavailable");
+        HttpResponse<String> getUnavailableByNameAndOwnerResponse = http.get("/api/metadata/%s/%s", "unavailable", "unavailable");
         assertThat(getUnavailableByNameAndOwnerResponse)
                 .hasStatusCode(404);
     }

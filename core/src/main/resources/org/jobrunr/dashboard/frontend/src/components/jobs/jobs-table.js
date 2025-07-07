@@ -105,7 +105,7 @@ const JobsTable = ({jobPage, jobState, isLoading}) => {
                                                 {isInAwaitingViewAndJobIsCarbonAware(job) &&
                                                     <Tooltip title={
                                                         <>
-                                                            This is a Carbon Aware job that may be scheduled <SwitchableTimeRangeFormatter
+                                                            This is a Carbon Aware job that will be scheduled <SwitchableTimeRangeFormatter
                                                             from={new Date(getJobMostRecentState(job).from)}
                                                             to={new Date(getJobMostRecentState(job).to)}/>
                                                         </>
