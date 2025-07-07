@@ -5,8 +5,6 @@ import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 
-import java.time.Instant;
-
 import static java.time.Instant.now;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobThatEventuallySucceeded;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
@@ -26,8 +24,7 @@ public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer
     protected void loadDefaultData(StorageProvider storageProvider) {
         final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus()
                 .withPollIntervalInSeconds(10)
-                .withFirstHeartbeat(Instant.now())
-                .withLastHeartbeat(Instant.now())
+                .withIsStarted()
                 .build();
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33; i++) {
