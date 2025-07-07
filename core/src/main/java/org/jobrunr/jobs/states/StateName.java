@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 
 public enum StateName {
 
+    AWAITING,
     SCHEDULED,
     ENQUEUED,
     PROCESSING,
@@ -18,5 +19,9 @@ public enum StateName {
             return StateName.values();
         }
         return stateNames;
+    }
+
+    public static boolean areAllStateNames(StateName... stateNames) {
+        return stateNames.length < 1 || stateNames.length == StateName.values().length;
     }
 }

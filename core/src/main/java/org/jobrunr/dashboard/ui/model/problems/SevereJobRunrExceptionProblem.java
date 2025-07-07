@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard.ui.model.problems;
 
 import org.jobrunr.storage.JobRunrMetadata;
+import org.jobrunr.utils.InstantUtils;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class SevereJobRunrExceptionProblem extends Problem {
     private final int githubIssueBodyLength;
 
     public SevereJobRunrExceptionProblem(List<JobRunrMetadata> jobRunrMetadataSetWithSevereJobRunrExceptions) {
-        super(PROBLEM_TYPE);
+        super(PROBLEM_TYPE, InstantUtils.max(jobRunrMetadataSetWithSevereJobRunrExceptions.stream().map(JobRunrMetadata::getCreatedAt)));
         this.githubIssueTitle = "Severe JobRunr Exception";
         this.githubIssueBody = jobRunrMetadataSetWithSevereJobRunrExceptions.stream().map(JobRunrMetadata::getValue).collect(joining("\n\n\n"));
         this.githubIssueBodyLength = githubIssueBody.length();

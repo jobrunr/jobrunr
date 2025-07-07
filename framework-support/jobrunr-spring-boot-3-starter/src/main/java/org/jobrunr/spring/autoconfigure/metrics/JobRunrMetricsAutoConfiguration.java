@@ -21,14 +21,14 @@ import org.springframework.context.annotation.Bean;
 public class JobRunrMetricsAutoConfiguration {
 
     @Bean
-    @ConditionalOnProperty(prefix = "org.jobrunr.jobs.metrics", name = "enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "jobrunr.jobs.metrics", name = "enabled", havingValue = "true")
     public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
         return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
     }
 
     @Bean
     @ConditionalOnBean({BackgroundJobServer.class})
-    @ConditionalOnProperty(prefix = "org.jobrunr.background-job-server.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "jobrunr.background-job-server.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
     public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(BackgroundJobServer backgroundJobServer, MeterRegistry meterRegistry) {
         return new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);
     }

@@ -19,7 +19,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsGeneratorUtils {
 
-    private static Pattern PARAM_TYPES_PATTERN = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]"); //Regex for desc \[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
+    private static final Pattern PARAM_TYPES_PATTERN = Pattern.compile("\\[*L[^;]+;|\\[[ZBCSIFDJ]|[ZBCSIFDJ]"); //Regex for desc \[*L[^;]+;|\[[ZBCSIFDJ]|[ZBCSIFDJ]
 
     private JobDetailsGeneratorUtils() {
     }

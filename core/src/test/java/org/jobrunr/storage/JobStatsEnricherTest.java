@@ -177,7 +177,7 @@ class JobStatsEnricherTest {
     }
 
     private JobStats getJobStats(Instant instant, long enqueued, long processing, long failed, long succeeded) {
-        return new JobStats(instant, 0L, 0L, enqueued, processing, failed, succeeded, 0L, 0L, 1, 1);
+        return new JobStats(instant, 0L, 0L, 0L, enqueued, processing, failed, succeeded, 0L, 0L, 1, 1);
     }
 
 }

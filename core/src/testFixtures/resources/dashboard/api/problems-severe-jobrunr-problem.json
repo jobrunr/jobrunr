@@ -1,0 +1,10 @@
+[
+  {
+    "@class": "${json-unit.ignore-element}",
+    "githubIssueBody": "some value",
+    "githubIssueBodyLength": 10,
+    "githubIssueTitle": "Severe JobRunr Exception",
+    "type": "severe-jobrunr-exception",
+    "createdAt": "${json-unit.ignore-element}"
+  }
+]

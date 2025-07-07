@@ -9,17 +9,22 @@ import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.filters.JobFilterUtils;
 import org.jobrunr.jobs.mappers.MDCMapper;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
+import static org.jobrunr.utils.InstantUtils.toInstant;
 
 public abstract class AbstractJobScheduler {
 
@@ -29,14 +34,16 @@ public abstract class AbstractJobScheduler {
     private final JobFilterUtils jobFilterUtils;
 
     /**
-     * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters that will be used for every background job
+     * Creates a new AbstractJobScheduler using the provided storageProvider and the list of JobFilters
+     * that will be used for every background job
      *
      * @param storageProvider the storageProvider to use
      * @param jobFilters      list of jobFilters that will be used for every job
      */
     protected AbstractJobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        if (storageProvider == null)
+        if (storageProvider == null) {
             throw new IllegalArgumentException("A JobStorageProvider is required to use the JobScheduler. Please see the documentation on how to setup a JobStorageProvider.");
+        }
         this.storageProvider = storageProvider;
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
@@ -117,20 +124,23 @@ public abstract class AbstractJobScheduler {
         return saveJob(new Job(id, jobDetails));
     }
 
-    JobId schedule(UUID id, Instant scheduleAt, JobDetails jobDetails) {
-        return saveJob(new Job(id, jobDetails, new ScheduledState(scheduleAt)));
+    JobId schedule(UUID id, Temporal scheduleAt, JobDetails jobDetails) {
+        return saveJob(new Job(id, jobDetails, scheduleAt instanceof CarbonAwarePeriod
+                ? new CarbonAwareAwaitingState((CarbonAwarePeriod) scheduleAt)
+                : new ScheduledState(toInstant(scheduleAt))
+        ));
     }
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
 
     String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, API);
         return scheduleRecurrently(recurringJob);
     }
 
     String scheduleRecurrently(RecurringJob recurringJob) {
         jobFilterUtils.runOnCreatingFilter(recurringJob);
-        storageProvider.validateRecurringJobInterval(recurringJob.durationBetweenRecurringJobInstances());
+        validateRecurringJobSchedule(recurringJob);
         RecurringJob savedRecurringJob = this.storageProvider.saveRecurringJob(recurringJob);
         jobFilterUtils.runOnCreatedFilter(recurringJob);
         return savedRecurringJob.getId();
@@ -155,5 +165,11 @@ public abstract class AbstractJobScheduler {
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
         return savedJobs;
+    }
+
+    private void validateRecurringJobSchedule(RecurringJob recurringJob) {
+        Schedule schedule = recurringJob.getSchedule();
+        schedule.validate();
+        storageProvider.validateRecurringJobInterval(schedule.durationBetweenSchedules());
     }
 }

@@ -3,16 +3,11 @@ package org.jobrunr.storage;
 import org.jobrunr.storage.navigation.PageRequest;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.jobrunr.utils.CollectionUtils.isNotNullOrEmpty;
 
 public class Page<T> {
-
-    public static Page emptyPage() {
-        return new Page(0, Collections.emptyList(), null, null, null);
-    }
 
     private final Long total;
     private final int currentPage;
@@ -21,24 +16,24 @@ public class Page<T> {
     private final long offset;
     private final boolean hasPrevious;
     private final boolean hasNext;
-    private final String previousPage;
-    private final String nextPage;
+    private final String previousPageRequest;
+    private final String nextPageRequest;
     private final ArrayList<T> items;
 
-    public Page(long total, List<T> items, PageRequest currentPage, PageRequest previousPage, PageRequest nextPage) {
-        this(total, items, -1, -1, currentPage, previousPage, nextPage);
+    public Page(long total, List<T> items, PageRequest currentPage, PageRequest previousPageRequest, PageRequest nextPageRequest) {
+        this(total, items, -1, -1, currentPage, previousPageRequest, nextPageRequest);
     }
 
-    public Page(long total, List<T> items, long offset, int currentPageNo, PageRequest currentPage, PageRequest previousPage, PageRequest nextPage) {
+    public Page(long total, List<T> items, long offset, int currentPageNo, PageRequest currentPage, PageRequest previousPageRequest, PageRequest nextPageRequest) {
         this.total = total;
         this.totalPages = calculateTotalPages(total, currentPage);
         this.limit = calculateLimit(currentPage);
         this.offset = offset;
         this.currentPage = currentPageNo;
-        this.hasPrevious = previousPage != null;
-        this.hasNext = nextPage != null;
-        this.previousPage = (hasPrevious) ? previousPage.asString() : null;
-        this.nextPage = (hasNext) ? nextPage.asString() : null;
+        this.hasPrevious = previousPageRequest != null;
+        this.hasNext = nextPageRequest != null;
+        this.previousPageRequest = (hasPrevious) ? previousPageRequest.asString() : null;
+        this.nextPageRequest = (hasNext) ? nextPageRequest.asString() : null;
         this.items = new ArrayList<>(items);
     }
 
@@ -62,12 +57,12 @@ public class Page<T> {
         return offset;
     }
 
-    public String getPreviousPage() {
-        return previousPage;
+    public String getPreviousPageRequest() {
+        return previousPageRequest;
     }
 
-    public String getNextPage() {
-        return nextPage;
+    public String getNextPageRequest() {
+        return nextPageRequest;
     }
 
     public List<T> getItems() {

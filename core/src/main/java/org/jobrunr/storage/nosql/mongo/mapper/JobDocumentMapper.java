@@ -8,17 +8,15 @@ import org.bson.conversions.Bson;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.StorageProviderUtils.RecurringJobs;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
 import static org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider.toMongoId;
+import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 
 public class JobDocumentMapper {
     private final JobMapper jobMapper;
@@ -36,8 +34,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_CREATED_AT, toMicroSeconds(job.getCreatedAt()));
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.hasState(StateName.SCHEDULED)) {
-            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(job.<ScheduledState>getJobState().getScheduledAt()));
+        if (job.getJobState() instanceof SchedulableState) {
+            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((SchedulableState) job.getJobState()).getScheduledAt()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return document;
@@ -49,8 +47,8 @@ public class JobDocumentMapper {
         document.put(Jobs.FIELD_JOB_AS_JSON, jobMapper.serializeJob(job));
         document.put(Jobs.FIELD_STATE, job.getState().name());
         document.put(Jobs.FIELD_UPDATED_AT, toMicroSeconds(job.getUpdatedAt()));
-        if (job.hasState(StateName.SCHEDULED)) {
-            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((ScheduledState) job.getJobState()).getScheduledAt()));
+        if (job.getJobState() instanceof SchedulableState) {
+            document.put(Jobs.FIELD_SCHEDULED_AT, toMicroSeconds(((SchedulableState) job.getJobState()).getScheduledAt()));
         }
         job.getRecurringJobId().ifPresent(recurringJobId -> document.put(Jobs.FIELD_RECURRING_JOB_ID, recurringJobId));
         return new Document("$set", document);
@@ -59,7 +57,7 @@ public class JobDocumentMapper {
     public UpdateOneModel<Document> toUpdateOneModel(Job job) {
         Document filterDocument = new Document();
         filterDocument.append(toMongoId(Jobs.FIELD_ID), job.getId());
-        filterDocument.append(Jobs.FIELD_VERSION, (job.getVersion() -1));
+        filterDocument.append(Jobs.FIELD_VERSION, (job.getVersion() - 1));
 
         //Update doc
         Document updateDocument = toUpdateDocument(job);
@@ -90,9 +88,5 @@ public class JobDocumentMapper {
 
     public RecurringJob toRecurringJob(Document document) {
         return jobMapper.deserializeRecurringJob(document.get(RecurringJobs.FIELD_JOB_AS_JSON).toString());
-    }
-
-    private long toMicroSeconds(Instant instant) {
-        return ChronoUnit.MICROS.between(Instant.EPOCH, instant);
     }
 }

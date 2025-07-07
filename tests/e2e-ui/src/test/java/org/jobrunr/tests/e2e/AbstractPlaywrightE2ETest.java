@@ -57,12 +57,20 @@ public class AbstractPlaywrightE2ETest {
         return page.getByTitle(title, new Page.GetByTitleOptions().setExact(true));
     }
 
+    protected Locator dashboardTabBtn() {
+        return page.locator("#dashboard-btn");
+    }
+
     protected Locator jobTabButton() {
         return page.locator("#jobs-btn");
     }
 
     protected Locator title(String name) {
         return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(name));
+    }
+
+    protected Locator awaitingMenuBtn() {
+        return page.locator("#awaiting-menu-btn");
     }
 
     protected Locator scheduledMenuBtn() {

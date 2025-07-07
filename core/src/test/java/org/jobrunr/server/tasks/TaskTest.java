@@ -19,11 +19,12 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class TaskTest extends AbstractTaskTest {
 
@@ -44,8 +45,8 @@ class TaskTest extends AbstractTaskTest {
         Job jobInProgress = aJobInProgress().build();
         Job deletedJob = aCopyOf(jobInProgress).withDeletedState().build();
 
-        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(jobInProgress));
-        when(storageProvider.getJobById(jobInProgress.getId())).thenReturn(deletedJob);
+        doThrow(new ConcurrentJobModificationException(jobInProgress)).when(storageProvider).save(anyList());
+        doReturn(deletedJob).when(storageProvider).getJobById(jobInProgress.getId());
 
         assertThatCode(() -> task.saveAndRunJobFilters(singletonList(jobInProgress))).doesNotThrowAnyException();
     }
@@ -55,8 +56,8 @@ class TaskTest extends AbstractTaskTest {
         Job jobInProgress = aJobInProgress().build();
         Job enqueuedJob = aCopyOf(jobInProgress).withEnqueuedState(now()).build();
 
-        when(storageProvider.save(anyList())).thenThrow(new ConcurrentJobModificationException(jobInProgress));
-        when(storageProvider.getJobById(jobInProgress.getId())).thenReturn(enqueuedJob);
+        doThrow(new ConcurrentJobModificationException(jobInProgress)).when(storageProvider).save(anyList());
+        doReturn(enqueuedJob).when(storageProvider).getJobById(jobInProgress.getId());
 
         assertThatCode(() -> task.saveAndRunJobFilters(singletonList(jobInProgress)))
                 .isInstanceOf(SevereJobRunrException.class)
@@ -75,6 +76,7 @@ class TaskTest extends AbstractTaskTest {
         assertThat(logAllStateChangesFilter.onProcessingIsCalled(aJobInProgress)).isFalse();
         assertThat(logAllStateChangesFilter.onProcessingSucceededIsCalled(aJobInProgress)).isFalse();
     }
+
     @Test
     void ifStateChangeHappensStateChangeFiltersAreInvoked() {
         Job aJobInProgress = aJobInProgress().build();

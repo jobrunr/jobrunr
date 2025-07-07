@@ -6,7 +6,7 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.utils.CollectionUtils.asArrayList;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
@@ -25,7 +25,7 @@ public class JobDetails {
     }
 
     public JobDetails(JobRequest jobRequest) {
-        this(jobRequest.getJobRequestHandler().getName(), null, "run", asList(new JobParameter(jobRequest)));
+        this(jobRequest.getJobRequestHandler().getName(), null, "run", singletonList(new JobParameter(jobRequest)));
         assertJobExists(this);
         this.cacheable = true;
     }
@@ -60,7 +60,7 @@ public class JobDetails {
 
     public Class[] getJobParameterTypes() {
         return jobParameters.stream()
-                .map(JobParameter::getClassName)
+                .map(this::getJobParameterDeserializableClassName)
                 .map(ReflectionUtils::toClass)
                 .toArray(Class[]::new);
     }
@@ -77,5 +77,9 @@ public class JobDetails {
 
     public void setCacheable(boolean cacheable) {
         this.cacheable = cacheable;
+    }
+
+    private String getJobParameterDeserializableClassName(JobParameter jobParameter) {
+        return jobParameter.isNotDeserializable() ? jobParameter.getException().getClass().getName() : jobParameter.getClassName();
     }
 }

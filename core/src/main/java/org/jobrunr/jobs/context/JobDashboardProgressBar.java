@@ -38,12 +38,23 @@ public class JobDashboardProgressBar {
     /**
      * Allows to increase the progress bar in the dashboard for a normal job using the {@link JobContext}
      */
-    public void increaseByOne() {
-        jobDashboardProgress.increaseByOne();
+    public void incrementSucceeded() {
+        jobDashboardProgress.incrementSucceeded();
     }
 
-    public int getProgress() {
-        return jobDashboardProgress.getProgress();
+    /**
+     * Allows to increase the failed count of the progress bar in the dashboard for a normal job using the {@link JobContext}
+     */
+    public void incrementFailed() {
+        jobDashboardProgress.incrementFailed();
+    }
+
+    public int getProgressAsPercentage() {
+        return jobDashboardProgress.getProgressAsPercentage();
+    }
+
+    public double getProgressAsRatio() {
+        return jobDashboardProgress.getProgressAsRatio();
     }
 
     public long getSucceededAmount() {
@@ -60,6 +71,7 @@ public class JobDashboardProgressBar {
 
     /**
      * Sets the progress for the ProgressBar on the dashboard and returns if it has changes.
+     *
      * @param succeededAmount the amount of succeeded items
      * @return true if the progress has changed, false otherwise
      */
@@ -81,7 +93,7 @@ public class JobDashboardProgressBar {
         return JOBRUNR_PROGRESSBAR_KEY + "-" + jobStateNbr;
     }
 
-    private static class JobDashboardProgress implements JobContext.Metadata {
+    public static class JobDashboardProgress implements JobContext.Metadata {
 
         private Long totalAmount;
         private Long succeededAmount;
@@ -102,12 +114,20 @@ public class JobDashboardProgressBar {
             }
         }
 
-        public void increaseByOne() {
+        public void incrementSucceeded() {
             setProgress(succeededAmount + 1);
         }
 
+        public void incrementFailed() {
+            setProgress(this.succeededAmount, failedAmount + 1);
+        }
+
         public boolean setProgress(Long succeededAmount) {
-            return setProgress(this.totalAmount, succeededAmount, this.failedAmount);
+            return setProgress(succeededAmount, this.failedAmount);
+        }
+
+        public boolean setProgress(Long succeededAmount, Long failedAmount) {
+            return setProgress(this.totalAmount, succeededAmount, failedAmount);
         }
 
         public boolean setProgress(long totalAmount, long succeededAmount, long failedAmount) {
@@ -127,8 +147,12 @@ public class JobDashboardProgressBar {
             return failedAmount;
         }
 
-        public int getProgress() {
+        public int getProgressAsPercentage() {
             return progress;
+        }
+
+        public double getProgressAsRatio() {
+            return totalAmount > 0 ? (double) succeededAmount / totalAmount : 1.0;
         }
 
         public boolean hasSucceeded() {

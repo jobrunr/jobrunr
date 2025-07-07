@@ -3,7 +3,15 @@ package org.jobrunr.utils;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.utils.StringUtils.*;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullEmptyOrBlank;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
+import static org.jobrunr.utils.StringUtils.substringAfter;
+import static org.jobrunr.utils.StringUtils.substringAfterLast;
+import static org.jobrunr.utils.StringUtils.substringBefore;
+import static org.jobrunr.utils.StringUtils.substringBeforeLast;
+import static org.jobrunr.utils.StringUtils.substringBetween;
 
 class StringUtilsTest {
 
@@ -19,6 +27,14 @@ class StringUtilsTest {
         assertThat(isNotNullOrEmpty(null)).isFalse();
         assertThat(isNotNullOrEmpty("")).isFalse();
         assertThat(isNotNullOrEmpty("bla")).isTrue();
+    }
+
+    @Test
+    void testIsNullEmptyOrBlank() {
+        assertThat(isNullEmptyOrBlank(null)).isTrue();
+        assertThat(isNullEmptyOrBlank("\n")).isTrue();
+        assertThat(isNullEmptyOrBlank("   \n")).isTrue();
+        assertThat(isNullEmptyOrBlank("bla")).isFalse();
     }
 
     @Test

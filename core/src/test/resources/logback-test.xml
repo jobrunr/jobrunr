@@ -7,7 +7,10 @@
     </appender>
 
     <!-- Change the level in the following line to have more debugging (DEBUG, TRACE) -->
-    <logger name="org.jobrunr" level="DEBUG"/>
+    <logger name="org.jobrunr" level="INFO"/>
+    <logger name="com.github.tomakehurst.wiremock" level="WARN"/>
+    <logger name="wiremock.org" level="ERROR"/>
+    <logger name="WireMock" level="WARN"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

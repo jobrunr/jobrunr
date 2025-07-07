@@ -24,7 +24,28 @@ class JobDashboardProgressBarTest {
         jobDashboardProgressBar.setProgress(3);
 
         assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(3);
-        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(30);
+        assertThat(jobDashboardProgressBar.getProgressAsPercentage()).isEqualTo(30);
+        assertThat(jobDashboardProgressBar.getProgressAsRatio()).isEqualTo(0.3);
+    }
+
+    @Test
+    void canIncrementSucceeded() {
+        jobDashboardProgressBar.incrementSucceeded();
+
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(1);
+        assertThat(jobDashboardProgressBar.getFailedAmount()).isEqualTo(0);
+        assertThat(jobDashboardProgressBar.getProgressAsPercentage()).isEqualTo(10);
+        assertThat(jobDashboardProgressBar.getProgressAsRatio()).isEqualTo(0.1);
+    }
+
+    @Test
+    void canIncrementFailed() {
+        jobDashboardProgressBar.incrementFailed();
+
+        assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(0);
+        assertThat(jobDashboardProgressBar.getFailedAmount()).isEqualTo(1);
+        assertThat(jobDashboardProgressBar.getProgressAsPercentage()).isEqualTo(0);
+        assertThat(jobDashboardProgressBar.getProgressAsRatio()).isEqualTo(0);
     }
 
     @Test
@@ -34,7 +55,8 @@ class JobDashboardProgressBarTest {
         JobDashboardProgressBar jobDashboardProgressBar = new JobDashboardProgressBar(job, 0L);
         assertThat(jobDashboardProgressBar.getTotalAmount()).isEqualTo(0L);
         assertThat(jobDashboardProgressBar.getSucceededAmount()).isEqualTo(0L);
-        assertThat(jobDashboardProgressBar.getProgress()).isEqualTo(100);
+        assertThat(jobDashboardProgressBar.getProgressAsPercentage()).isEqualTo(100);
+        assertThat(jobDashboardProgressBar.getProgressAsRatio()).isEqualTo(1);
     }
 
     @Test

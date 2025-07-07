@@ -1,8 +1,10 @@
 package org.jobrunr.utils.mapper.jackson.modules;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.jobrunr.utils.DurationUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -16,10 +18,10 @@ public class DurationDeserializer extends StdDeserializer<Duration> {
 
     @Override
     public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+        if (jsonParser.getCurrentToken() == JsonToken.VALUE_STRING) {
+            return Duration.parse(jsonParser.getText());
+        }
         final BigDecimal durationAsSecAndNanoSec = jsonParser.getDecimalValue();
-        return Duration.ofSeconds(
-                durationAsSecAndNanoSec.longValue(),
-                durationAsSecAndNanoSec.remainder(BigDecimal.ONE).movePointRight(durationAsSecAndNanoSec.scale()).abs().longValue()
-        );
+        return DurationUtils.fromBigDecimal(durationAsSecAndNanoSec);
     }
 }

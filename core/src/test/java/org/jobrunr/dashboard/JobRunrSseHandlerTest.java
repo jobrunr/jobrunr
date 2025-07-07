@@ -4,10 +4,11 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayOutputStream;
@@ -17,19 +18,27 @@ import java.util.Timer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrSseHandlerTest {
 
+    @Spy
+    private InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
     private JobRunrSseHandler jobRunrSseHandler;
-    private InMemoryStorageProvider storageProvider;
 
     @BeforeEach
     void setUpSseHandler() {
-        storageProvider = Mockito.spy(new InMemoryStorageProvider());
         jobRunrSseHandler = new JobRunrSseHandler(storageProvider, new JacksonJsonMapper());
+    }
+
+    @AfterEach
+    void tearDown() {
+        storageProvider.close();
     }
 
     @Test

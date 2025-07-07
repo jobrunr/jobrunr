@@ -103,6 +103,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public void deleteMetadata(String name, String owner) {
+        storageProvider.deleteMetadata(name, owner);
+    }
+
+    @Override
     @LockingJob("locks the job so only one thread can save a job at the same time")
     public Job save(Job job) {
         try (Lock lock = job.lock()) {
@@ -144,6 +149,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest) {
+        return storageProvider.getCarbonAwareJobList(deadlineBefore, amountRequest);
+    }
+
+    @Override
     public List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest) {
         return storageProvider.getScheduledJobs(scheduledBefore, amountRequest);
     }
@@ -164,8 +174,8 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
-    public boolean recurringJobExists(String recurringJobId, StateName... states) {
-        return storageProvider.recurringJobExists(recurringJobId, states);
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) {
+        return storageProvider.getRecurringJobLatestScheduledInstant(recurringJobId, states);
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
@@ -12,13 +13,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static java.time.ZoneId.systemDefault;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 
 class RecurringJobBuilderTest {
@@ -41,13 +43,14 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestService.class, "doWork");
+                .hasJobDetails(TestService.class, "doWork")
+                .hasCreatedBy(API);
     }
 
     @Test
     void testDefaultJobWithIoCJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .<TestService>withDetails(x -> x.doWork())
+                .<TestService>withDetails(TestService::doWork)
                 .withCron(every5Seconds)
                 .build(jobDetailsGenerator);
 
@@ -67,7 +70,8 @@ class RecurringJobBuilderTest {
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
-                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest);
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest)
+                .hasCreatedBy(API);
     }
 
     @Test
@@ -124,13 +128,13 @@ class RecurringJobBuilderTest {
     @Test
     void testWithLabels() {
         RecurringJob recurringJob = aRecurringJob()
-                .withLabels(Set.of("TestLabel", "Email"))
+                .withLabels(List.of("TestLabel", "Email"))
                 .withCron(every5Seconds)
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
-                .hasLabels(Set.of("TestLabel", "Email"))
+                .hasLabels(List.of("TestLabel", "Email"))
                 .hasId()
                 .hasScheduleExpression(every5Seconds);
     }
@@ -156,15 +160,27 @@ class RecurringJobBuilderTest {
     }
 
     @Test
-    void testWithDuration() {
+    void testWithInterval() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDuration(Duration.ofMinutes(1))
+                .withInterval(Duration.ofMinutes(1))
                 .withDetails(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId()
                 .hasScheduleExpression(duration1Minute);
+    }
+
+    @Test
+    void testWithScheduleExpression() {
+        RecurringJob recurringJob = aRecurringJob()
+                .withScheduleExpression(CarbonAware.dailyBefore(7))
+                .withDetails(() -> testService.doWork())
+                .build(jobDetailsGenerator);
+
+        assertThat(recurringJob)
+                .hasId()
+                .hasScheduleExpression("0 7 * * * [PT7H/PT0S]");
     }
 
     @Test
@@ -239,13 +255,21 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withCron(every5Seconds)
-                        .withDuration(Duration.ofMinutes(1))
+                        .withInterval(Duration.ofMinutes(1))
                         .withJobRequest(jobRequest)
                         .build());
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDuration(Duration.ofMinutes(1))
+                        .withInterval(Duration.ofMinutes(1))
+                        .withCron(every5Seconds)
+                        .withJobRequest(jobRequest)
+                        .build());
+
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> aRecurringJob()
+                        .withScheduleExpression(CarbonAware.dailyBefore(10))
+                        .withInterval(Duration.ofMinutes(1))
                         .withCron(every5Seconds)
                         .withJobRequest(jobRequest)
                         .build());

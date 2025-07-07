@@ -1,11 +1,12 @@
 package org.jobrunr.tests.e2e;
 
 import com.microsoft.playwright.assertions.LocatorAssertions.ContainsTextOptions;
-import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.tests.server.AbstractSimpleBackgroundJobServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.regex.Pattern;
 
 import static org.jobrunr.tests.e2e.PlaywrightAssertions.assertThat;
 
@@ -26,12 +27,12 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobTabButton()).containsText("33", new ContainsTextOptions().setTimeout(20_000));
     }
 
-    @RepeatedIfExceptionsTest(repeats = 3)
+    @Test
     void canOpenTheJobsDashboardPage() {
         assertThat(jobTabButton()).containsText("33");
         assertThat(title("Enqueued jobs")).isVisible();
 
-        assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows()).hasCount(20);
         assertThat(jobTableRows().first()).containsText("an enqueued job");
 
         assertThat(jobsTablePagination()).containsText("1–20 of 33");
@@ -39,6 +40,16 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobsTablePaginationPrevButton()).hasAccessibleDescription("Go to previous page");
         assertThat(jobsTablePaginationNextButton()).isEnabled();
         assertThat(jobsTablePaginationNextButton()).hasAccessibleDescription("Go to next page");
+    }
+
+    @Test
+    void canNavigateToAwaitingJobs() {
+        assertThat(awaitingMenuBtn()).containsText("0");
+        awaitingMenuBtn().click();
+        assertThat(title("Pending jobs")).isVisible();
+
+        assertThat(noJobsFoundMessage()).isVisible();
+        assertThat(jobTable()).not().isVisible();
     }
 
     @Test
@@ -50,7 +61,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Scheduled jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("the job");
-        assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows()).hasCount(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -64,7 +75,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Enqueued jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("an enqueued job");
-        assertThat(jobTableRows().count()).isEqualTo(20);
+        assertThat(jobTableRows()).hasCount(20);
     }
 
     @Test
@@ -88,7 +99,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Succeeded jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("a succeeded job");
-        assertThat(jobTableRows().count()).isEqualTo(2);
+        assertThat(jobTableRows()).hasCount(2);
 
         assertThat(jobsTablePagination()).containsText("1–2 of 2");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -104,7 +115,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(title("Failed jobs")).isVisible();
 
         assertThat(jobTableRows().first()).containsText("failed job");
-        assertThat(jobTableRows().count()).isEqualTo(1);
+        assertThat(jobTableRows()).hasCount(1);
 
         assertThat(jobsTablePagination()).containsText("1–1 of 1");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
@@ -125,7 +136,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         assertThat(jobNameTitle()).containsText("failed job");
         assertThat(jobHistoryPanel()).isVisible();
 
-        assertThat(jobHistoryPanelItems().count()).isEqualTo(44);
+        assertThat(jobHistoryPanelItems()).hasCount(44);
         assertThat(jobHistoryPanelItems().first()).containsText("Job scheduled");
         jobHistorySortDescBtn().click();
         assertThat(jobHistoryPanelItems().first()).containsText("Job processing failed");
@@ -136,7 +147,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         recurringJobsTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(recurringJobsTabBtn()).containsText("2");
+        assertThat(recurringJobsTabBtn()).containsText("3");
     }
 
     @Test
@@ -145,5 +156,37 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         page.waitForLoadState();
 
         assertThat(serversTabBtn()).containsText("1");
+    }
+
+    @Test
+    void canNavigateToDashboardPageAndOpenNotificationCenter() {
+        dashboardTabBtn().click();
+        page.waitForLoadState();
+
+        assertThat(title("Dashboard")).isVisible();
+
+        var notificationsCenterButton = page.locator("#notifications-center-button");
+        assertThat(notificationsCenterButton).hasText(Pattern.compile("[12]")); // the unread notifications count (could be 2 because of JobRunr.io notification)
+        notificationsCenterButton.click();
+
+        var notificationsCenter = page.locator("#notifications-center-container");
+        assertThat(notificationsCenter).isVisible();
+
+        var newVersionNotification = notificationsCenter.locator("#jobrunr-version-available");
+        assertThat(newVersionNotification).isVisible();
+
+        var newVersionNotificationTitleContainer = newVersionNotification.locator(".MuiTypography-body1");
+        assertThat(newVersionNotificationTitleContainer.locator(".MuiTypography-subtitle2"))
+                .hasText("New JobRunr Version Available");
+
+        var newVersionNotificationMenuButton = newVersionNotificationTitleContainer.locator("button");
+        assertThat(newVersionNotificationMenuButton).isVisible();
+        newVersionNotificationMenuButton.click();
+
+        var newVersionNotificationMenu = page.locator(".MuiMenu-root");
+        assertThat(newVersionNotificationMenu).isVisible();
+        newVersionNotificationMenu.locator("li").all().get(1).click();
+
+        assertThat(newVersionNotification).isHidden();
     }
 }

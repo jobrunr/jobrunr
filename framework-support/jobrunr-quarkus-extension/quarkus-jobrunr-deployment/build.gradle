@@ -19,7 +19,7 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.20.0')
+    api platform('io.quarkus:quarkus-bom:3.24.1')
 
     api project(':core')
     implementation project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')

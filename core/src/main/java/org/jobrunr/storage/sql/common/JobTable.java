@@ -5,7 +5,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.navigation.AmountRequest;
@@ -30,6 +30,8 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
+import static org.jobrunr.jobs.states.StateName.areAllStateNames;
+import static org.jobrunr.storage.Paging.AmountBasedList.descOnScheduledAt;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_JOB_AS_JSON;
@@ -38,10 +40,15 @@ import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.sql.common.db.ConcurrentSqlModificationException.concurrentDatabaseModificationException;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class JobTable extends Sql<Job> {
+
+    protected static final String INSERT_STATEMENT = "into jobrunr_jobs (id, version, jobAsJson, jobSignature, state, createdAt, updatedAt, scheduledAt, recurringJobId) " +
+            "values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)";
+    private static final String UPDATE_STATEMENT = "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion";
 
     private final JobMapper jobMapper;
     private final SqlJobPageRequestMapper pageRequestMapper;
@@ -54,7 +61,7 @@ public class JobTable extends Sql<Job> {
                 .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
-                .with(FIELD_SCHEDULED_AT, job -> job.hasState(StateName.SCHEDULED) ? job.<ScheduledState>getJobState().getScheduledAt() : null)
+                .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));
     }
 
@@ -151,9 +158,10 @@ public class JobTable extends Sql<Job> {
                 .collect(toList());
     }
 
-    public List<Job> selectJobsScheduledBefore(Instant scheduledBefore, AmountRequest amountRequest) {
-        return withScheduledAt(scheduledBefore)
-                .selectJobs("jobAsJson from jobrunr_jobs where state = 'SCHEDULED' and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
+    public List<Job> selectJobsWithStateBefore(StateName state, Instant scheduledBefore, AmountRequest amountRequest) {
+        return withState(state)
+                .withScheduledAt(scheduledBefore)
+                .selectJobs("jobAsJson from jobrunr_jobs where state = :state and scheduledAt <= :scheduledAt", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 
@@ -163,13 +171,17 @@ public class JobTable extends Sql<Job> {
                 .collect(Collectors.toSet());
     }
 
-    public boolean recurringJobExists(String recurringJobId, StateName... states) throws SQLException {
-        if (states.length < 1) {
+    public Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states) throws SQLException {
+        if (areAllStateNames(states)) {
             return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                    .selectExists("from jobrunr_jobs where recurringJobId = :recurringJobId");
+                    .select("scheduledAt from jobrunr_jobs where recurringJobId = :recurringJobId AND scheduledAt IS NOT NULL", pageRequestMapper.map(descOnScheduledAt(1)))
+                    .map(rs -> rs.asInstant("scheduledAt"))
+                    .findFirst().orElse(null);
         }
         return with(FIELD_RECURRING_JOB_ID, recurringJobId)
-                .selectExists("from jobrunr_jobs where state in (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ") AND recurringJobId = :recurringJobId");
+                .select("scheduledAt FROM jobrunr_jobs WHERE recurringJobId = :recurringJobId AND scheduledAt IS NOT NULL AND state IN (" + stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")) + ")", pageRequestMapper.map(descOnScheduledAt(1)))
+                .map(rs -> rs.asInstant("scheduledAt"))
+                .findFirst().orElse(null);
     }
 
     public int deletePermanently(UUID... ids) throws SQLException {
@@ -183,11 +195,25 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertOneJob(Job jobToSave) throws SQLException {
-        insert(jobToSave, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
+        try {
+            insert(jobToSave, INSERT_STATEMENT);
+        } catch (SQLException e) {
+            if (dialect.isUniqueConstraintException(e)) {
+                throw concurrentDatabaseModificationException(jobToSave, 0);
+            }
+            throw e;
+        }
     }
 
     void updateOneJob(Job jobToSave) throws SQLException {
-        update(jobToSave, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        try {
+            update(jobToSave, UPDATE_STATEMENT);
+        } catch (SQLException e) {
+            if (dialect.isUniqueConstraintException(e)) {
+                throw concurrentDatabaseModificationException(jobToSave, 0);
+            }
+            throw e;
+        }
     }
 
     void insertAllJobs(List<Job> jobs) throws SQLException {

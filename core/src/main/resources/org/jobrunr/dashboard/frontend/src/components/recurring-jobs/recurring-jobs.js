@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
 import Checkbox from '@mui/material/Checkbox';
@@ -11,10 +11,11 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Grid from '@mui/material/Grid';
+import Tooltip from '@mui/material/Tooltip';
 import TimeAgo from "react-timeago/lib";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
-import {Snackbar} from "@mui/material";
+import {Dialog, DialogActions, DialogContent, DialogTitle, Snackbar} from "@mui/material";
 import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
@@ -23,6 +24,32 @@ import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {humanReadableISO8601Duration, parseScheduleExpression} from "../../utils/helper-functions";
+import {EnergySavingsLeaf} from "@mui/icons-material";
+
+const Schedule = ({recurringJob}) => {
+    const {scheduleExpression, marginBefore, marginAfter} = parseScheduleExpression(recurringJob.scheduleExpression);
+    const humanReadableMarginBefore = marginBefore && humanReadableISO8601Duration(marginBefore);
+    const humanReadableMarginAfter = marginAfter && humanReadableISO8601Duration(marginAfter);
+
+    let tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginBefore} earlier or ${humanReadableMarginAfter} later to minimize carbon impact.`;
+    if (!humanReadableMarginAfter) {
+        tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginBefore} earlier to minimize carbon impact.`;
+    } else if (!humanReadableMarginBefore) {
+        tooltipTitle = `This recurring job may be scheduled ${humanReadableMarginAfter} later to minimize carbon impact.`;
+    }
+
+    return (
+        <div style={{display: 'flex'}}>
+            {marginBefore && <Tooltip title={tooltipTitle}>
+                <EnergySavingsLeaf fontSize="small" color="success" style={{marginRight: "4px"}}/>
+            </Tooltip>}
+            {scheduleExpression.startsWith('P')
+                ? scheduleExpression
+                : cronstrue.toString(scheduleExpression)}
+        </div>
+    )
+}
 
 const RecurringJobs = () => {
     const navigate = useNavigate();
@@ -34,6 +61,9 @@ const RecurringJobs = () => {
     const [recurringJobPage, setRecurringJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
     const [recurringJobs, setRecurringJobs] = useState([{}]);
     const [apiStatus, setApiStatus] = useState(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    const amountOfSelectedRecurringJobs = useMemo(() => recurringJobs.filter(recurringJob => recurringJob.selected).length, [recurringJobs])
 
     useEffect(() => {
         getRecurringJobs();
@@ -78,7 +108,7 @@ const RecurringJobs = () => {
         }))
     };
 
-    const handleCloseAlert = (event, reason) => {
+    const handleCloseAlert = () => {
         setApiStatus(null);
     };
 
@@ -99,7 +129,9 @@ const RecurringJobs = () => {
                     message: 'Error deleting recurring jobs - please refresh the page'
                 });
             }
-        })
+        }).finally(() => {
+            setShowDeleteDialog(false);
+        });
     };
 
     const triggerSelectedRecurringJobs = () => {
@@ -124,6 +156,10 @@ const RecurringJobs = () => {
             }
         })
     };
+
+    const toggleDeleteDialog = () => {
+        setShowDeleteDialog(prev => !prev);
+    }
 
     return (
         <div>
@@ -153,7 +189,7 @@ const RecurringJobs = () => {
                                             Trigger
                                         </Button>
                                         <Button variant="outlined" color="primary"
-                                                onClick={deleteSelectedRecurringJobs}>
+                                                onClick={toggleDeleteDialog}>
                                             Delete
                                         </Button>
                                     </ButtonGroup>
@@ -185,13 +221,11 @@ const RecurringJobs = () => {
                                                         {recurringJob.id}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {recurringJob.labels?.map((label) => <JobLabel text={label}/>)}
+                                                        {recurringJob.labels?.map((label) => <JobLabel key={label} text={label}/>)}
                                                         {recurringJob.jobName}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {recurringJob.scheduleExpression.startsWith('P')
-                                                            ? recurringJob.scheduleExpression
-                                                            : cronstrue.toString(recurringJob.scheduleExpression)}
+                                                        <Schedule recurringJob={recurringJob}/>
                                                     </TableCell>
                                                     <TableCell>
                                                         {recurringJob.zoneId}
@@ -231,6 +265,24 @@ const RecurringJobs = () => {
                     </Alert>
                 </Snackbar>
             }
+            <Dialog fullWidth maxWidth="sm" scroll="paper" onClose={toggleDeleteDialog}
+                    aria-labelledby="customized-dialog-title" open={showDeleteDialog}>
+                <DialogTitle id="customized-dialog-title">
+                    Delete selected recurrent jobs?
+                </DialogTitle>
+                <DialogContent dividers>
+                    <p>Are you sure you want to delete {amountOfSelectedRecurringJobs} recurrent job(s)?</p>
+                    <p><b>Note:</b> The recurring jobs may have scheduled jobs, they'll be processed by JobRunr unless deleted manually.</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={toggleDeleteDialog} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={deleteSelectedRecurringJobs} color="primary">
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 };

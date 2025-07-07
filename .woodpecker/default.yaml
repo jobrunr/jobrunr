@@ -5,7 +5,9 @@ when:
       - pull_request
     branch:
       - master
+      - v8
   - event: manual
+
 
 workspace:
   path: jobrunr/src

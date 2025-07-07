@@ -8,6 +8,7 @@ import jakarta.json.bind.JsonbConfig;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.dashboard.ui.model.RecurringJobUIModel;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.RecurringJob.CreatedBy;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobDetailsAdapter;
 import org.jobrunr.utils.mapper.jsonb.adapters.JobLabelsAdapter;
 import org.jobrunr.utils.mapper.jsonb.serializer.DurationTypeDeserializer;
@@ -16,6 +17,8 @@ import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.FileTypeSerializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeDeserializer;
 import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
+
+import java.time.Instant;
 
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 
@@ -48,6 +51,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .add("scheduleExpression", recurringJob.getScheduleExpression())
                 .add("zoneId", recurringJob.getZoneId())
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(recurringJob.getJobDetails()))
+                .add("createdBy", recurringJob.getCreatedBy().toString())
                 .add("createdAt", recurringJob.getCreatedAt().toString());
 
         if (recurringJob instanceof RecurringJobUIModel) {
@@ -58,12 +62,14 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
 
     @Override
     public RecurringJob adaptFromJson(JsonObject jsonObject) throws Exception {
+        String createdBy = jsonObject.getString("createdBy", CreatedBy.API.name());
         final RecurringJob recurringJob = new RecurringJob(
                 jsonObject.getString("id"),
                 jobDetailsAdapter.adaptFromJson(jsonObject.getJsonObject("jobDetails")),
                 jsonObject.getString("scheduleExpression"),
                 jsonObject.getString("zoneId"),
-                jsonObject.getString("createdAt")
+                CreatedBy.valueOf(createdBy),
+                Instant.parse(jsonObject.getString("createdAt"))
         );
         recurringJob.setJobName(jsonObject.getString("jobName"));
         recurringJob.setLabels(jobLabelsAdapter.adaptFromJson(jsonObject.getJsonArray("labels")));

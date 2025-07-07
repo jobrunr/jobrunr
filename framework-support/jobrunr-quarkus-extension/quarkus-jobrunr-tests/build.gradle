@@ -1,0 +1,49 @@
+plugins {
+    id 'java-library'
+    id 'io.quarkus' version '3.24.1'
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
+}
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
+}
+
+dependencies {
+    api platform(project(':platform'))
+    api platform('io.quarkus:quarkus-bom:3.24.1')
+
+    api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
+    api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr-deployment')
+    implementation 'io.quarkus:quarkus-core'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
+
+    testImplementation testFixtures(project(":core"))
+    testImplementation 'io.quarkus:quarkus-junit5'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+normalization {
+    runtimeClasspath {
+        ignore '**/MANIFEST.MF'
+        ignore '**/frontend/**'
+    }
+}
+
+sonar {
+    skipProject = true
+}

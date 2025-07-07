@@ -20,6 +20,10 @@ public class StringUtils {
         return !isNullOrEmpty(s);
     }
 
+    public static boolean isNullEmptyOrBlank(String s) {
+        return isNullOrEmpty(s) || isNullOrEmpty(s.trim());
+    }
+
     public static String capitalize(String s) {
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
@@ -48,6 +52,21 @@ public class StringUtils {
     public static String substringBetween(String s, String open, String close) {
         if (s.contains(open) && s.contains(close)) {
             return substringBefore(substringAfter(s, open), close);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the last matched String between the given open and close String.
+     *
+     * @param s     the String containing the substring, may be null
+     * @param open  the String before the substring, may not be null
+     * @param close the String after the substring, may not be null
+     * @return Returns the last matched String between the given open and close String when possible or null.
+     */
+    public static String lastMatchedSubstringBetween(String s, String open, String close) {
+        if (s.contains(open) && s.contains(close)) {
+            return substringBefore(substringAfterLast(s, open), close);
         }
         return null;
     }

@@ -5,6 +5,7 @@ import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.FailedState;
@@ -12,29 +13,30 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.resilience.Lock;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
-import static org.jobrunr.utils.CollectionUtils.asSet;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
@@ -53,7 +55,7 @@ public class JobTestBuilder {
     private String name;
     private Integer amountOfRetries;
     private String recurringJobId;
-    private Set<String> labels;
+    private List<String> labels;
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
@@ -106,6 +108,13 @@ public class JobTestBuilder {
         return anEnqueuedJob().withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME));
     }
 
+    public static JobTestBuilder aCarbonAwaitingJob() {
+        return aJob()
+                .withName("a carbon aware awaiting job")
+                .withJobDetails(systemOutPrintLnJobDetails("a carbon aware awaiting job"))
+                .withState(new CarbonAwareAwaitingState(CarbonAwarePeriod.between(now().minusSeconds(200), now().plus(10, HOURS))));
+    }
+
     public static JobTestBuilder aScheduledJob() {
         return aJob()
                 .withName("a scheduled job")
@@ -125,7 +134,7 @@ public class JobTestBuilder {
                 .withName("a succeeded job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
                 .withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME))
-                .withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.ofSeconds(10L, 7345L)));
+                .withState(new SucceededState(Duration.of(230, SECONDS), Duration.ofSeconds(10L, 7345L)));
     }
 
     public static JobTestBuilder aDeletedJob() {
@@ -150,7 +159,7 @@ public class JobTestBuilder {
                 jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
-        jobTestBuilder.withState(new SucceededState(Duration.of(230, ChronoUnit.SECONDS), Duration.of(10, ChronoUnit.SECONDS)));
+        jobTestBuilder.withState(new SucceededState(Duration.of(230, SECONDS), Duration.of(10, SECONDS)));
 
         return jobTestBuilder;
     }
@@ -209,10 +218,10 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
-    public JobTestBuilder withLabels(Set<String> labels) {
+    public JobTestBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }
@@ -259,6 +268,14 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period) {
+        return withCarbonAwareAwaitingState(period, "carbon state for job test builder");
+    }
+
+    public JobTestBuilder withCarbonAwareAwaitingState(CarbonAwarePeriod period, String reason) {
+        return withState(new CarbonAwareAwaitingState(null, period.getFrom(), period.getTo(), reason));
+    }
+
     public JobTestBuilder withScheduledState() {
         return withState(new ScheduledState(now().minusSeconds(10)));
     }
@@ -269,6 +286,10 @@ public class JobTestBuilder {
 
     public JobTestBuilder withProcessingState(UUID backgroundJobServerId) {
         return withState(new ProcessingState(backgroundJobServerId, DEFAULT_SERVER_NAME));
+    }
+
+    public JobTestBuilder withProcessingState(Instant createdAt) {
+        return withState(new ProcessingState(UUID.randomUUID(), DEFAULT_SERVER_NAME), createdAt);
     }
 
     public JobTestBuilder withSucceededState() {
@@ -321,7 +342,7 @@ public class JobTestBuilder {
         job.setJobName(name);
         job.setRecurringJobId(recurringJobId);
 
-        if(withoutStateChanges) {
+        if (withoutStateChanges) {
             job.getStateChangesForJobFilters(); // reset state changes
         }
         return job;

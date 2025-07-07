@@ -8,15 +8,17 @@ import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
+import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
 
 import java.time.Duration;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.ZoneId.systemDefault;
-import static org.jobrunr.utils.CollectionUtils.asSet;
+import static java.util.Arrays.asList;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
 
 /**
@@ -42,7 +44,7 @@ public class RecurringJobBuilder {
     private String jobId;
     private String jobName;
     private Integer retries;
-    private Set<String> labels;
+    private List<String> labels;
     private JobRunrJob jobRunrJob;
     private JobRequest jobRequest;
     private Schedule schedule;
@@ -62,7 +64,7 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to set the id of the recurringJob. If a recurringJob with that id already exists, JobRunr will not save it again.
+     * Allows to set the id of the recurringJob. If a {@link RecurringJob} with that id already exists, JobRunr will not save it again.
      *
      * @param jobId the recurringJob of the recurringJob
      * @return the same builder instance which provides a fluent api
@@ -102,17 +104,17 @@ public class RecurringJobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public RecurringJobBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
     /**
      * Allows to provide a set of labels to be shown in the dashboard.
      * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
      *
-     * @param labels the set of labels to be added to the recurringJob
+     * @param labels the list of labels to be added to the recurringJob
      * @return the same builder instance which provides a fluent api
      */
-    public RecurringJobBuilder withLabels(Set<String> labels) {
+    public RecurringJobBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }
@@ -160,30 +162,53 @@ public class RecurringJobBuilder {
     }
 
     /**
-     * Allows to specify the cron that will be used to create the recurringJobs.
+     * Allows to specify the {@link CronExpression} or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
      *
-     * @param cron the cron that will be used to create the recurringJobs.
+     * @param cron the cron expression that will be used to create the Recurring Job.
      * @return the same builder instance which provides a fluent api
+     * @see CarbonAware for more info on how to create a carbon aware schedule expression
      */
     public RecurringJobBuilder withCron(String cron) {
-        if (this.schedule != null) {
-            throw new IllegalArgumentException("A schedule has already been provided.");
-        }
-        this.schedule = CronExpression.create(cron);
-        return this;
+        return withScheduleExpression(cron);
     }
 
     /**
-     * Allows to specify the duration that will be used to create the recurringJobs.
+     * Allows to specify the interval that will be used between each instance of the recurring job. This interval mimicks the {@link java.util.concurrent.ScheduledExecutorService#scheduleAtFixedRate(Runnable, long, long, TimeUnit)}.
      *
-     * @param duration the duration that will be used to create the recurringJobs.
+     * @param duration the duration that will be used between each run of the Recurring Job
      * @return the same builder instance which provides a fluent api
      */
-    public RecurringJobBuilder withDuration(Duration duration) {
+    public RecurringJobBuilder withInterval(Duration duration) {
+        return withScheduleExpression(duration.toString());
+    }
+
+    /**
+     * Allows to specify a {@link CronExpression} (preferably use {@link RecurringJobBuilder#withCron(String)}),
+     * an ISO-8601 duration (preferably use {@link RecurringJobBuilder#withInterval(Duration)})
+     * or a carbon aware schedule expression (see {@link CarbonAware}) that will be used to create the recurringJobs.
+     *
+     * <h5>Examples:</h5>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression(CarbonAware.dailyBefore(7))
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
+     *
+     * <pre>{@code
+     *      aRecurringJob()
+     *          .withScheduleExpression("0 0 * * * [PT0H/PT7H]")
+     *          .withDetails(() -> service.doWork());
+     * }</pre>
+     *
+     * @param scheduleExpression the schedule expression that will be used to create the recurringJobs.
+     * @return the same builder instance which provides a fluent api
+     */
+    public RecurringJobBuilder withScheduleExpression(String scheduleExpression) {
         if (this.schedule != null) {
             throw new IllegalArgumentException("A schedule has already been provided.");
         }
-        this.schedule = new Interval(duration);
+        this.schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
         return this;
     }
 
@@ -229,12 +254,12 @@ public class RecurringJobBuilder {
 
     private RecurringJob build(JobDetails jobDetails) {
         if (schedule == null) {
-            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withDuration().");
+            throw new IllegalArgumentException("A schedule must be present. Please call withCron() or withInterval() or withScheduleExpression().");
         }
         if (zoneId == null) {
             zoneId = systemDefault();
         }
-        RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, zoneId);
+        RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, zoneId, API);
         setJobName(recurringJob);
         setAmountOfRetries(recurringJob);
         setLabels(recurringJob);

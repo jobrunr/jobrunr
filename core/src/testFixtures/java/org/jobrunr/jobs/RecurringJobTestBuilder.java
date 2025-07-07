@@ -1,20 +1,19 @@
 package org.jobrunr.jobs;
 
+import org.jobrunr.jobs.RecurringJob.CreatedBy;
 import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.cron.Cron;
-import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.interval.Interval;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Set;
+import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.scheduling.ScheduleExpressionType.createScheduleFromString;
 
 public class RecurringJobTestBuilder {
 
@@ -24,7 +23,8 @@ public class RecurringJobTestBuilder {
     private JobDetails jobDetails;
     private Schedule schedule;
     private ZoneId zoneId;
-    private Set<String> labels;
+    private List<String> labels;
+    private CreatedBy createdBy = CreatedBy.API;
     private Instant createdAt = Instant.now();
 
     private RecurringJobTestBuilder() {
@@ -85,7 +85,7 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withCronExpression(String cronExpression) {
-        this.schedule = CronExpression.create(cronExpression);
+        this.schedule = createScheduleFromString(cronExpression);
         return this;
     }
 
@@ -99,18 +99,27 @@ public class RecurringJobTestBuilder {
     }
 
     public RecurringJobTestBuilder withIntervalExpression(String intervalExpression, Instant createdAt) {
-        this.schedule = new Interval(Duration.parse(intervalExpression));
+        this.schedule = createScheduleFromString(intervalExpression);
         this.createdAt = createdAt;
         return this;
     }
 
+    public RecurringJobTestBuilder withScheduleExpression(String scheduleExpression) {
+        return withCronExpression(scheduleExpression);
+    }
+
     public RecurringJobTestBuilder withLabels(String... labels) {
-        this.labels = asSet(labels);
+        this.labels = asList(labels);
+        return this;
+    }
+
+    public RecurringJobTestBuilder withCreatedBy(CreatedBy createdBy) {
+        this.createdBy = createdBy;
         return this;
     }
 
     public RecurringJob build() {
-        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdAt);
+        final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, createdBy, createdAt);
         if (amountOfRetries != null) {
             recurringJob.setAmountOfRetries(amountOfRetries);
         }

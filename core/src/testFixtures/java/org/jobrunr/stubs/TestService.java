@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -45,6 +46,7 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("Doing some work from a static method... ");
     }
 
+    @Job(retries = 0)
     public void doWork(Runnable runnable) throws Exception {
         runnable.run();
     }
@@ -60,6 +62,10 @@ public class TestService implements TestServiceInterface {
 
     public void doWorkWithPath(Path path) throws Exception {
         LOGGER.debug("Doing some work... " + path.toFile().getAbsolutePath());
+    }
+
+    public void doWorkWithList(List<String> list) throws Exception {
+        LOGGER.warn("Doing some work with {} ", list);
     }
 
     public void doWork(Work work) throws Exception {
@@ -477,6 +483,14 @@ public class TestService implements TestServiceInterface {
         public Void doWork() {
             LOGGER.debug("Simple Command " + string + " " + integer);
             return null;
+        }
+
+        public String getString() {
+            return string;
+        }
+
+        public int getInteger() {
+            return integer;
         }
     }
 

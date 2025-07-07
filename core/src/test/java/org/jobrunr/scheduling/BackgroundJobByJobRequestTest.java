@@ -4,6 +4,7 @@ import org.assertj.core.api.Condition;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.cron.Cron;
@@ -38,6 +39,7 @@ import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static java.time.Instant.now;
 import static java.time.ZoneId.systemDefault;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -47,6 +49,7 @@ import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.AWAITING;
 import static org.jobrunr.jobs.states.StateName.DELETED;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
@@ -55,6 +58,7 @@ import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.scheduling.JobBuilder.aJob;
 import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
+import static org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod.before;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
@@ -215,8 +219,20 @@ public class BackgroundJobByJobRequestTest {
     }
 
     @Test
+    void testScheduleCarbonAware() {
+        JobId jobId = BackgroundJobRequest.schedule(before(now().plus(1, DAYS)), new TestJobRequest("from testScheduleCarbonAware"));
+        assertThat(storageProvider.getJobById(jobId)).hasState(AWAITING);
+    }
+
+    @Test
     void testRecurringCronJob() {
-        BackgroundJobRequest.scheduleRecurrently(everySecond, new TestJobRequest("from testRecurringJob"));
+        TestJobRequest testJobRequest = new TestJobRequest("from testRecurringJob");
+        BackgroundJobRequest.scheduleRecurrently(everySecond, testJobRequest);
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", testJobRequest)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -254,7 +270,13 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringIntervalJob() {
-        BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(1), new TestJobRequest("from testRecurringJob"));
+        TestJobRequest testJobRequest = new TestJobRequest("from testRecurringJob");
+        BackgroundJobRequest.scheduleRecurrently(Duration.ofSeconds(1), testJobRequest);
+        RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
+        assertThat(recurringJob)
+                .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", testJobRequest)
+                .hasCreatedBy(RecurringJob.CreatedBy.API);
+
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -264,7 +286,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testRecurringIntervalJobFromBuilder() {
         BackgroundJobRequest.createRecurrently(aRecurringJob()
-                .withDuration(Duration.ofSeconds(1))
+                .withInterval(Duration.ofSeconds(1))
                 .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(15)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 

@@ -20,16 +20,24 @@ public class Paging {
         public static AmountRequest ascOnCreatedAt(int amount) {
             return new AmountRequest(StorageProviderUtils.Jobs.FIELD_CREATED_AT + ":ASC", amount);
         }
+
+        public static AmountRequest ascOnScheduledAt(int amount) {
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":ASC", amount);
+        }
+
+        public static AmountRequest descOnScheduledAt(int amount) {
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":DESC", amount);
+        }
     }
 
     public static class OffsetBasedPage {
 
         public static OffsetBasedPageRequest next(Page page) {
-            return OffsetBasedPageRequest.fromString(page.getNextPage());
+            return OffsetBasedPageRequest.fromString(page.getNextPageRequest());
         }
 
         public static OffsetBasedPageRequest previous(Page page) {
-            return OffsetBasedPageRequest.fromString(page.getPreviousPage());
+            return OffsetBasedPageRequest.fromString(page.getPreviousPageRequest());
         }
 
         public static OffsetBasedPageRequest ascOnUpdatedAt(int amount) {

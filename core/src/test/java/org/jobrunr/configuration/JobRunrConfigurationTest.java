@@ -22,10 +22,14 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -147,6 +151,34 @@ class JobRunrConfigurationTest {
 
         assertThat(configurationResult.getJobScheduler()).isNotNull();
         assertThat(configurationResult.getJobRequestScheduler()).isNotNull();
+    }
+
+    @Test
+    void carbonAwareJobProcessingConfigurationIsAlwaysAvailableAndDisabled() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(4)
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getConfiguration().getCarbonAwareJobProcessingConfiguration()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getConfiguration().getCarbonAwareJobProcessingConfiguration().isEnabled()).isFalse();
+    }
+
+    @Test
+    void initializeWithCarbonAwareSchedulingEnabled() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
+                        .andWorkerCount(4)
+                        .andCarbonAwareJobProcessingConfiguration(usingStandardCarbonAwareJobProcessingConfiguration()
+                                .andAreaCode("DE")
+                                .andApiClientConnectTimeout(Duration.ofMillis(1000))
+                                .andApiClientReadTimeout(Duration.ofMillis(1000))))
+                .initialize();
+
+        assertThat(configurationResult.getJobScheduler()).isNotNull();
+        assertThat(JobRunr.getBackgroundJobServer().getConfiguration().getCarbonAwareJobProcessingConfiguration().isEnabled()).isTrue();
     }
 
     @Test

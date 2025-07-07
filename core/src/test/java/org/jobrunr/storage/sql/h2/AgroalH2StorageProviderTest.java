@@ -4,13 +4,12 @@ import io.agroal.api.AgroalDataSource;
 import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
 import io.agroal.api.security.NamePrincipal;
 import io.agroal.api.security.SimplePassword;
-import org.jobrunr.storage.sql.SqlStorageProviderTest;
 import org.junit.jupiter.api.AfterAll;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
+class AgroalH2StorageProviderTest extends AbstractH2StorageProviderTest {
 
     private static AgroalDataSource dataSource;
 
@@ -38,6 +37,7 @@ class AgroalH2StorageProviderTest extends SqlStorageProviderTest {
 
     @AfterAll
     public static void destroyDatasource() throws SQLException {
+        shutdownDatabase(dataSource);
         dataSource.close();
         dataSource = null;
     }

@@ -3,6 +3,7 @@ package org.jobrunr.jobs;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -53,13 +54,18 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
         return this;
     }
 
+    public JobDetailsAssert hasArgSize(int size) {
+        Assertions.assertThat(actual.getJobParameterValues().length).isEqualTo(size);
+        return this;
+    }
+
     public JobDetailsAssert hasArgs(Object... args) {
         Object[] jobParameterValues = actual.getJobParameterValues();
         for (int i = 0; i < args.length; i++) {
             if (args[i] == JobContext.Null) {
                 Assertions.assertThat(actual.getJobParameterTypes()[i]).isEqualTo(JobContext.class);
             } else {
-                Assertions.assertThat(jobParameterValues[i]).isEqualTo(args[i]);
+                Assertions.assertThat(jobParameterValues[i]).usingRecursiveComparison().isEqualTo(args[i]);
             }
         }
         return this;
@@ -71,6 +77,12 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
         return this;
     }
 
+    public JobDetailsAssert hasArgComparingStringFormat(String arg) {
+        Object[] jobParameterValues = actual.getJobParameterValues();
+        Assertions.assertThat(Stream.of(jobParameterValues).map(Object::toString)).anyMatch(a -> a.equals(arg));
+        return this;
+    }
+
     public JobDetailsAssert hasNoArgs() {
         Assertions.assertThat(actual.getJobParameters()).isEmpty();
         return this;
@@ -79,6 +91,13 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
     public JobDetailsAssert hasJobContextArg() {
         Assertions.assertThat(actual.getJobParameters()).isNotEmpty();
         Assertions.assertThat(actual.getJobParameters().stream().filter(jobParameter -> jobParameter.getClassName().equals(JobContext.class.getName())).findAny()).isPresent();
+        return this;
+    }
+
+    public JobDetailsAssert hasNotDeserializableExceptionEqualTo(JobParameterNotDeserializableException exception) {
+        var actualException = actual.getJobParameters().stream().filter(JobParameter::isNotDeserializable).map(JobParameter::getException).findAny();
+        Assertions.assertThat(actualException).isPresent();
+        Assertions.assertThat(actualException.get()).usingRecursiveComparison().isEqualTo(exception);
         return this;
     }
 }

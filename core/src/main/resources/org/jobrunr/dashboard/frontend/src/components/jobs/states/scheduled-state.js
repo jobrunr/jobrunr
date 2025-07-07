@@ -2,7 +2,7 @@ import {JobState} from "./job-state";
 
 const Scheduled = ({jobState}) => {
     const scheduledDate = new Date(jobState.scheduledAt);
-    const title = "Job scheduled " + (jobState.reason ? `- ${jobState.reason}` : "");
+    const title = "Job Scheduled " + (jobState.reason ? `- ${jobState.reason}` : "");
 
     return (
         <JobState state="scheduled" title={title} date={jobState.scheduledAt}>

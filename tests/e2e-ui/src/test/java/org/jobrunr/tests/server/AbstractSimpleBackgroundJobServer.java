@@ -2,15 +2,12 @@ package org.jobrunr.tests.server;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.configuration.JobRunrConfiguration;
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
-
-import java.util.Calendar;
-
-import static java.util.Arrays.asList;
 
 public abstract class AbstractSimpleBackgroundJobServer {
 
@@ -19,6 +16,11 @@ public abstract class AbstractSimpleBackgroundJobServer {
 
     public AbstractSimpleBackgroundJobServer withGsonMapper() {
         this.jsonMapper = new GsonJsonMapper();
+        return this;
+    }
+
+    public AbstractSimpleBackgroundJobServer withKotlinSerializationMapper() {
+        this.jsonMapper = new KotlinxSerializationJsonMapper();
         return this;
     }
 

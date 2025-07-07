@@ -1,19 +1,23 @@
 package org.jobrunr.server.tasks.startup;
 
-import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 import static org.jobrunr.utils.CollectionUtils.asSet;
+import static org.jobrunr.utils.JobUtils.getRecurringAnnotation;
 import static org.jobrunr.utils.JobUtils.jobExists;
+import static org.jobrunr.utils.OptionalUtils.isNotPresent;
 
 public class CheckIfAllJobsExistTask implements Runnable {
 
@@ -47,10 +51,21 @@ public class CheckIfAllJobsExistTask implements Runnable {
     }
 
     private Set<String> getDistinctRecurringJobSignaturesThatDoNotExistAnymore() {
-        return storageProvider.getRecurringJobs().stream()
-                .map(AbstractJob::getJobSignature)
-                .filter(jobSignature -> !jobExists(jobSignature))
-                .collect(toSet());
+        Set<String> missingRecurringJobSignatures = new HashSet<>();
+        for (RecurringJob recurringJob : storageProvider.getRecurringJobs()) {
+            if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
+                if (!jobExists(recurringJob.getJobSignature())) {
+                    storageProvider.deleteRecurringJob(recurringJob.getId());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                } else if (isNotPresent(getRecurringAnnotation(recurringJob.getJobDetails()))) {
+                    storageProvider.deleteRecurringJob(recurringJob.getId());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                }
+            } else if (!jobExists(recurringJob.getJobSignature())) {
+                missingRecurringJobSignatures.add(recurringJob.getJobSignature());
+            }
+        }
+        return missingRecurringJobSignatures;
     }
 
     private Set<String> getDistinctScheduledJobSignaturesThatDoNotExistAnymore() {

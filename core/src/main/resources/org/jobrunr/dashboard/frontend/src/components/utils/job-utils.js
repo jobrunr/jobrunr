@@ -1,5 +1,7 @@
 export function jobStateToHumanReadableName(jobState) {
     switch (jobState.toUpperCase()) {
+        case 'AWAITING':
+            return "Pending jobs";
         case 'SCHEDULED':
             return "Scheduled jobs";
         case 'ENQUEUED':
@@ -13,6 +15,13 @@ export function jobStateToHumanReadableName(jobState) {
         case 'DELETED':
             return "Deleted jobs";
         default:
-            return 'Unknown state'
+            return 'Unknown state';
     }
+}
+
+export const getJobPreviousState = (job) => job?.jobHistory[job.jobHistory.length - 2];
+export const getJobMostRecentState = (job) => job?.jobHistory[job.jobHistory.length - 1];
+
+export const isCarbonAwaitingState = (state) => {
+    return !!state?.["@class"]?.endsWith("CarbonAwareAwaitingState");
 }

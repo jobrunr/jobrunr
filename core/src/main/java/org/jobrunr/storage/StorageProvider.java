@@ -86,6 +86,8 @@ public interface StorageProvider extends AutoCloseable {
 
     void deleteMetadata(String name);
 
+    void deleteMetadata(String name, String owner);
+
     /**
      * Save the {@link Job} and increases the version if saving succeeded.
      *
@@ -175,6 +177,15 @@ public interface StorageProvider extends AutoCloseable {
         }
     }
 
+    /**
+     * Returns all carbon aware jobs with a deadline before the given {@link Instant}.
+     *
+     * @param deadlineBefore the Instant to test each carbon aware {@link Job} against
+     * @param amountRequest  the amount and the order in which to return the {@link Job jobs}.
+     * @return a list of carbon aware jobs.
+     */
+    List<Job> getCarbonAwareJobList(Instant deadlineBefore, AmountRequest amountRequest);
+
     List<Job> getScheduledJobs(Instant scheduledBefore, AmountRequest amountRequest);
 
     default Page<Job> getScheduledJobs(Instant scheduledBefore, PageRequest pageRequest) {
@@ -196,13 +207,13 @@ public interface StorageProvider extends AutoCloseable {
     Set<String> getDistinctJobSignatures(StateName... states);
 
     /**
-     * Returns true when a {@link Job} created by the {@link RecurringJob} with the given id exists with one of the given states.
+     * Returns the scheduled instant of the last {@link Job}, in one of the given states, created by the {@link RecurringJob} with the given recurringJobId.
      *
-     * @param recurringJobId the id of the RecurringJob for which the check whether a Job exists
-     * @param states         the possible states for the Job (can be empty)
-     * @return true if a Job exists created by a RecurringJob with the given id.
+     * @param recurringJobId the id of the RecurringJob for which to get the latest scheduled instant
+     * @param states         the possible states for the {@link Job} (can be empty, then match against all possible states)
+     * @return the scheduled instant of the last created {@link Job}
      */
-    boolean recurringJobExists(String recurringJobId, StateName... states);
+    Instant getRecurringJobLatestScheduledInstant(String recurringJobId, StateName... states);
 
     /**
      * Saves a {@link RecurringJob} to the database. If a {@link RecurringJob} with the same id exists, it will be overwritten

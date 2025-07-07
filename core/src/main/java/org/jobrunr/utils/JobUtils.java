@@ -3,6 +3,7 @@ package org.jobrunr.utils;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
@@ -79,6 +80,10 @@ public class JobUtils {
         return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst());
     }
 
+    public static Optional<Recurring> getRecurringAnnotation(JobDetails jobDetails) {
+        return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Recurring.class)).findFirst());
+    }
+
     public static String getJobSignature(org.jobrunr.jobs.Job job) {
         return getJobSignature(job.getJobDetails());
     }
@@ -142,6 +147,8 @@ public class JobUtils {
     private static String getJobParameterValue(JobParameter jobParameter) {
         if (jobParameter.getClassName().equals(JobContext.class.getName())) {
             return JobContext.class.getSimpleName();
+        } else if (jobParameter.getObject() == null) {
+            return null;
         }
         return jobParameter.getObject().toString();
     }

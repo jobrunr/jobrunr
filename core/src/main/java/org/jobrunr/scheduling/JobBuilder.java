@@ -8,16 +8,26 @@ import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.jobs.states.AbstractJobState;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.JobUtils;
 
-import java.time.Duration;
 import java.time.Instant;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
+import java.util.List;
 import java.util.UUID;
 
-import static org.jobrunr.utils.CollectionUtils.asSet;
+import static java.util.Arrays.asList;
+import static org.jobrunr.utils.InstantUtils.toInstant;
 
 /**
  * This class is used to build a {@link Job} using a job lambda or a {@link JobRequest}.
@@ -49,9 +59,9 @@ public class JobBuilder {
 
     private UUID jobId;
     private String jobName;
-    private Instant scheduleAt;
+    private Temporal scheduleAt;
     private Integer retries;
-    private Set<String> labels;
+    private List<String> labels;
     private JobRunrJob jobLambda;
     private JobRequest jobRequest;
 
@@ -87,23 +97,46 @@ public class JobBuilder {
     }
 
     /**
-     * Allows to specify the duration after which the job should be enqueued.
+     * Schedules the job to run after the specified duration from now.
      *
-     * @param duration the duration after which the job should be enqueued
+     * @param duration the delay, expressed as a {@link TemporalAmount}, after which the job should be scheduled
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder scheduleIn(Duration duration) {
+    public JobBuilder scheduleIn(TemporalAmount duration) {
         this.scheduleAt = Instant.now().plus(duration);
         return this;
     }
 
     /**
-     * Allows to specify the instant on which the job will be enqueued.
+     * Specifies the moment at which the job should be scheduled.
      *
-     * @param scheduleAt the instant on which the job will be enqueued
+     * <h5>Supported {@link Temporal} implementations:</h5>
+     * <ul>
+     *     <li>{@link CarbonAwarePeriod} to schedule a Carbon Aware job</li>
+     *     <li>{@link Instant}</li>
+     *     <li>{@link ChronoLocalDateTime} (e.g., {@link LocalDateTime}): converted to {@link Instant} using {@link ZoneId#systemDefault()}</li>
+     *     <li>{@link ChronoZonedDateTime} (e.g., {@link ZonedDateTime})</li>
+     *     <li>{@link OffsetDateTime}</li>
+     * </ul>
+     *
+     * <h5>Example with {@code Instant}:</h5>
+     * <pre>{@code
+     * aJob()
+     *     .scheduleAt(Instant.now().plusSeconds(60))
+     *     .withDetails(...)
+     * }</pre>
+     *
+     * <h5>Example with {@code CarbonAwarePeriod}:</h5>
+     * <pre>{@code
+     * aJob()
+     *     .scheduleAt(CarbonAware.before(Instant.now().plus(2, DAYS))
+     *     .withDetails(...)
+     * }</pre>
+     *
+     * @param scheduleAt the moment on which the job will be scheduled
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder scheduleAt(Instant scheduleAt) {
+    public JobBuilder scheduleAt(Temporal scheduleAt) {
         this.scheduleAt = scheduleAt;
         return this;
     }
@@ -127,17 +160,17 @@ public class JobBuilder {
      * @return the same builder instance which provides a fluent api
      */
     public JobBuilder withLabels(String... labels) {
-        return withLabels(asSet(labels));
+        return withLabels(asList(labels));
     }
 
     /**
      * Allows to provide a set of labels to be shown in the dashboard.
      * A maximum of 3 labels can be provided per job. Each label has a max length of 45 characters.
      *
-     * @param labels an array of labels to be added to the recurring job
+     * @param labels a list of labels to be added to the recurring job
      * @return the same builder instance which provides a fluent api
      */
-    public JobBuilder withLabels(Set<String> labels) {
+    public JobBuilder withLabels(List<String> labels) {
         this.labels = labels;
         return this;
     }
@@ -241,10 +274,12 @@ public class JobBuilder {
     }
 
     private AbstractJobState getState() {
-        if (this.scheduleAt != null) {
-            return new ScheduledState(this.scheduleAt);
-        } else {
+        if (this.scheduleAt == null) {
             return new EnqueuedState();
         }
+
+        return this.scheduleAt instanceof CarbonAwarePeriod ?
+                new CarbonAwareAwaitingState((CarbonAwarePeriod) this.scheduleAt) :
+                new ScheduledState(toInstant(scheduleAt));
     }
 }

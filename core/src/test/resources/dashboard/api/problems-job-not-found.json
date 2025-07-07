@@ -1,9 +1,0 @@
-[
-  {
-    "@class": "${json-unit.ignore-element}",
-    "type": "jobs-not-found",
-    "jobsNotFound": [
-      "org.jobrunr.stubs.TestService.doWorkThatDoesNotExist(java.lang.Integer)"
-    ]
-  }
-]

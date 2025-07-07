@@ -51,7 +51,7 @@ public class JobRunrMetricsAutoConfigurationTest {
     void backgroundJobServerMetricsAreAutoConfiguredAndStorageProviderMetricsAreDisabled() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withBean(SimpleMeterRegistry.class)
                 .run((context) -> {
                     assertThat(context).doesNotHaveBean(StorageProviderMetricsBinder.class);
@@ -63,7 +63,7 @@ public class JobRunrMetricsAutoConfigurationTest {
     void backgroundJobServerMetricsBinderIsIgnoredIfBackgroundJobServerIsNotPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=false")
+                .withPropertyValues("jobrunr.background-job-server.enabled=false")
                 .withBean(SimpleMeterRegistry.class)
                 .run((context) -> {
                     assertThat(context).doesNotHaveBean(BackgroundJobServerMetricsBinder.class);
@@ -74,8 +74,8 @@ public class JobRunrMetricsAutoConfigurationTest {
     void storageProviderMetricsBinderAreAutoConfiguredIfJobsMetricsAreEnabled() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withPropertyValues("org.jobrunr.jobs.metrics.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.jobs.metrics.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withBean(SimpleMeterRegistry.class)
                 .run((context) -> {
                     assertThat(context).hasSingleBean(StorageProviderMetricsBinder.class);
@@ -87,8 +87,8 @@ public class JobRunrMetricsAutoConfigurationTest {
     void backgroundJobServerMetricsBinderIsIgnoredIfBackgroundJobServerMetricsAreDisabled() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withPropertyValues("org.jobrunr.background-job-server.enabled=true")
-                .withPropertyValues("org.jobrunr.background-job-server.metrics.enabled=false")
+                .withPropertyValues("jobrunr.background-job-server.enabled=true")
+                .withPropertyValues("jobrunr.background-job-server.metrics.enabled=false")
                 .withBean(SimpleMeterRegistry.class)
                 .run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);

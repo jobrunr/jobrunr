@@ -26,10 +26,18 @@ public class ProcessingState extends AbstractJobState {
     }
 
     public ProcessingState(UUID serverId, String serverName) {
-        super(StateName.PROCESSING);
+        this(serverId, serverName, Instant.now());
+    }
+
+    protected ProcessingState(UUID serverId, String serverName, Instant createdAt) {
+        this(serverId, serverName, createdAt, createdAt);
+    }
+
+    public ProcessingState(UUID serverId, String serverName, Instant createdAt, Instant updatedAt) {
+        super(StateName.PROCESSING, createdAt);
         this.serverId = serverId;
         this.serverName = serverName;
-        this.updatedAt = getCreatedAt();
+        this.updatedAt = updatedAt;
     }
 
     public UUID getServerId() {

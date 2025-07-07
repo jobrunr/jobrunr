@@ -8,8 +8,8 @@ import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
@@ -20,6 +20,7 @@ import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_N
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CACHEABLE;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETERS;
+import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_JOB_PARAMETER_OBJECT;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
@@ -78,12 +79,14 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
                 Class<Object> objectClass = toClass(getActualClassName(methodClassName, actualClassName));
                 if (JobContext.class.equals(objectClass)) {
                     result.add(new JobParameter(methodClassName, JobContext.Null));
-                } else {
+                } else if (jsonObject.containsKey(FIELD_JOB_PARAMETER_OBJECT)) {
                     Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
                     result.add(new JobParameter(methodClassName, object));
+                } else {
+                    result.add(new JobParameter(methodClassName, null));
                 }
             } catch (Exception e) {
-                result.add(new JobParameter(new JobParameterNotDeserializableException(getActualClassName(methodClassName, actualClassName), e.getMessage())));
+                result.add(new JobParameter(methodClassName, actualClassName, jsonObject.get("object"), new JobParameterNotDeserializableException(methodClassName, e)));
             }
         }
         return result;

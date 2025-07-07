@@ -1,0 +1,82 @@
+{
+  "version": 0,
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithEnum(org.jobrunr.stubs.TestService$Task$1)",
+  "jobName": "an enqueued job",
+  "amountOfRetries": 6,
+  "labels": [],
+  "jobDetails": {
+    "className": "org.jobrunr.stubs.TestService",
+    "methodName": "doWorkWithEnum",
+    "jobParameters": [
+      {
+        "className": "org.jobrunr.stubs.TestService$Task",
+        "actualClassName": "org.jobrunr.stubs.TestService$Task",
+        "object": "PROGRAMMING"
+      }
+    ],
+    "cacheable": true
+  },
+  "id": "${json-unit.ignore}",
+  "jobHistory": [
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}",
+      "serverName": "test-server-name",
+      "updatedAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.FailedState",
+      "state": "FAILED",
+      "createdAt": "${json-unit.ignore}",
+      "message": "Exception",
+      "exceptionType": "java.lang.Exception",
+      "stackTrace": "${json-unit.ignore}",
+      "doNotRetry": false
+    },
+    {
+      "@class" : "org.jobrunr.jobs.states.CarbonAwareAwaitingState",
+      "state" : "AWAITING",
+      "createdAt" : "${json-unit.ignore}",
+      "from" : "${json-unit.ignore}",
+      "to" : "${json-unit.ignore}",
+      "reason": "carbon state for job test builder"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ScheduledState",
+      "state": "SCHEDULED",
+      "createdAt": "${json-unit.ignore}",
+      "scheduledAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.EnqueuedState",
+      "state": "ENQUEUED",
+      "createdAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.ProcessingState",
+      "state": "PROCESSING",
+      "createdAt": "${json-unit.ignore}",
+      "serverId": "${json-unit.ignore}",
+      "serverName": "test-server-name",
+      "updatedAt": "${json-unit.ignore}"
+    },
+    {
+      "@class": "org.jobrunr.jobs.states.SucceededState",
+      "state": "SUCCEEDED",
+      "createdAt": "${json-unit.ignore}",
+      "latencyDuration": 0.010000000,
+      "processDuration": 0.003000000
+    }
+  ],
+  "metadata": {
+    "@class": "java.util.concurrent.ConcurrentHashMap"
+  },
+  "recurringJobId": "my-recurring-job"
+}

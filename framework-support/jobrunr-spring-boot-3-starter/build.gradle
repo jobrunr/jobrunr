@@ -19,8 +19,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:3.4.4')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.4.4')
+    api platform('org.springframework.boot:spring-boot-dependencies:3.5.0')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.5.0')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
@@ -33,23 +33,20 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
+    compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+    compileOnly project(':language-support:jobrunr-kotlin-22-support')
 
-    compileOnly 'org.springframework.data:spring-data-redis'
-    compileOnly 'redis.clients:jedis'
-    compileOnly 'io.lettuce:lettuce-core'
     compileOnly 'org.mongodb:mongodb-driver-sync'
-    compileOnly 'co.elastic.clients:elasticsearch-java'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+    testImplementation project(':language-support:jobrunr-kotlin-22-support')
     testImplementation 'org.springframework.data:spring-data-redis'
-    testImplementation 'redis.clients:jedis'
-    testImplementation 'io.lettuce:lettuce-core'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    testImplementation 'co.elastic.clients:elasticsearch-java'
     testImplementation 'io.micrometer:micrometer-core'
 }
 

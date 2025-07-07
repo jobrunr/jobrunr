@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 
+import Awaiting from "./states/awaiting-state";
 import Scheduled from "./states/scheduled-state";
 import Enqueued from "./states/enqueued-state";
 import Processing from "./states/processing-state";
@@ -23,10 +24,11 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Box from "@mui/material/Box";
 import LoadingIndicator from "../LoadingIndicator";
-import {jobStateToHumanReadableName} from "../utils/job-utils";
+import {getJobMostRecentState, getJobPreviousState, jobStateToHumanReadableName} from "../utils/job-utils";
 import SucceededNotification from "./notifications/succeeded-notification";
 import DeletedNotification from "./notifications/deleted-notification";
 import JobDetailsNotCacheableNotification from "./notifications/job-details-not-cacheable-notification";
+import CarbonAwareScheduledNotification from "./notifications/carbon-aware-scheduled-notification";
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
@@ -173,7 +175,7 @@ const JobView = (props) => {
                                         </Grid>
                                         <Grid item xs={12} style={{paddingTop: 0}}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
-                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label}/>)}
+                                                {job.jobName} {job.labels?.map((label) => <JobLabel text={label} key={label}/>)}
                                             </Typography>
                                         </Grid>
                                     </Grid>
@@ -187,6 +189,8 @@ const JobView = (props) => {
                             {job.jobDetails.cacheable === false && <JobDetailsNotCacheableNotification job={job}/>}
                             {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
+                            {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification state={getJobPreviousState(job)}/>}
+                            {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification state={getJobMostRecentState(job)}/>}
 
                             <Grid item xs={12}>
                                 <Typography variant="h5" component="h2">
@@ -207,13 +211,14 @@ const JobView = (props) => {
                                 {
                                     jobStates.map((jobState, index) => {
                                         switch (jobState.state) {
+                                            case 'AWAITING':
+                                                return <Awaiting key={index} job={job} jobState={jobState}/>;
                                             case 'SCHEDULED':
                                                 return <Scheduled key={index} jobState={jobState}/>;
                                             case 'ENQUEUED':
                                                 return <Enqueued key={index} jobState={jobState}/>;
                                             case 'PROCESSING':
-                                                return <Processing key={index} index={index} job={job}
-                                                                   jobState={jobState}/>;
+                                                return <Processing key={index} index={index} job={job} jobState={jobState}/>;
                                             case 'FAILED':
                                                 return <Failed key={index} jobState={jobState}/>;
                                             case 'SUCCEEDED':

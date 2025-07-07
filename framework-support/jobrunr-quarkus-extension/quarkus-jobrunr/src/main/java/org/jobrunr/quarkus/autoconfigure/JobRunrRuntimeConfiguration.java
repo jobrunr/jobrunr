@@ -67,8 +67,8 @@ public interface JobRunrRuntimeConfiguration {
         Optional<String> datasource();
 
         /**
-         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an Elastic RestHighLevelClient), this setting allows to specify the type of database for JobRunr to use.
-         * Valid values are 'sql', 'mongodb', 'documentdb', and 'elasticsearch'.
+         * If multiple types of databases are available in the Spring Context (e.g. a DataSource and an MongoDB Client), this setting allows to specify the type of database for JobRunr to use.
+         * Valid values are 'sql', 'mongodb' and 'documentdb'.
          */
         Optional<String> type();
     }
@@ -92,7 +92,7 @@ public interface JobRunrRuntimeConfiguration {
     }
 
     interface JobSchedulerConfiguration {
-        
+
         /**
          * Enables the scheduling of jobs.
          */
@@ -130,6 +130,11 @@ public interface JobRunrRuntimeConfiguration {
          * By default, this will be determined by the Java version (VirtualThreads as of Java 21).
          */
         Optional<BackgroundJobServerThreadType> threadType();
+
+        /**
+         * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
+         */
+        Optional<Integer> carbonAwaitingJobsRequestSize();
 
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
@@ -175,6 +180,11 @@ public interface JobRunrRuntimeConfiguration {
          * Configures MicroMeter metrics related to the background job server
          */
         MetricsConfiguration metrics();
+
+        /**
+         * Configures carbon-aware job processing properties
+         */
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration();
     }
 
     interface DashboardConfiguration {
@@ -209,6 +219,37 @@ public interface JobRunrRuntimeConfiguration {
         @WithDefault("true")
         boolean allowAnonymousDataUsage();
     }
+
+    interface CarbonAwareJobProcessingConfiguration {
+        /**
+         * Enables the carbon aware configuration to schedule jobs optimally.
+         */
+        @WithDefault("false")
+        boolean isEnabled();
+
+        /**
+         * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
+         * areaCode is a 2-character country code (ISO 3166-1 alpha-2) or an ENTSO-E area code.
+         */
+        Optional<String> areaCode();
+
+        Optional<String> dataProvider();
+
+        Optional<String> externalIdentifier();
+
+        Optional<String> externalCode();
+
+        /**
+         * Allows to set the connect timeout for the carbon api client
+         */
+        Optional<Integer> apiClientConnectTimeoutMs();
+
+        /**
+         * Allows to set the read timeout for the carbon api client
+         */
+        Optional<Integer> apiClientReadTimeoutMs();
+    }
+
 
     interface MetricsConfiguration {
 

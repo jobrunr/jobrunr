@@ -22,7 +22,10 @@ public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer
 
     @Override
     protected void loadDefaultData(StorageProvider storageProvider) {
-        final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus().withPollIntervalInSeconds(10).build();
+        final BackgroundJobServerStatus backgroundJobServerStatus = aDefaultBackgroundJobServerStatus()
+                .withPollIntervalInSeconds(10)
+                .withIsStarted()
+                .build();
         storageProvider.announceBackgroundJobServer(backgroundJobServerStatus);
         for (int i = 0; i < 33; i++) {
             storageProvider.save(anEnqueuedJob().build());
@@ -33,5 +36,6 @@ public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer
         storageProvider.save(aSucceededJob().build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("import-sales-data").withName("Import all sales data at midnight").build());
         storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("generate-sales-reports").withName("Generate sales report at 3am").withCronExpression("0 3 * * *").build());
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("carbon-aware-generate-sales-reports").withName("Generate sales report at 3am with some margin for carbon aware scheduling").withCronExpression("0 3 * * * [PT2H/PT3H]").build());
     }
 }

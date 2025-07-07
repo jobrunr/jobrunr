@@ -26,7 +26,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,11 +38,13 @@ import static java.lang.Thread.sleep;
 import static java.time.Instant.now;
 import static java.time.Instant.parse;
 import static java.time.temporal.ChronoUnit.MICROS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.utils.StringUtils.isNullEmptyOrBlank;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseCreator {
@@ -135,16 +136,17 @@ public class DatabaseCreator {
         try (final Connection conn = getConnection()) {
             List<String> allTableNames = new ArrayList<>();
             String catalog = conn.getCatalog();
-            ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null);
-            while (tables.next()) {
-                if (tablePrefixStatementUpdater.getSchema() != null) {
-                    String tableSchema = tables.getString("TABLE_SCHEM");
-                    String tableName = tables.getString("TABLE_NAME");
-                    String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
-                    allTableNames.add(completeTableName);
-                } else {
-                    String tableName = tables.getString("TABLE_NAME").toUpperCase();
-                    allTableNames.add(tableName);
+            try (ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null)) {
+                while (tables.next()) {
+                    if (tablePrefixStatementUpdater.getSchema() != null) {
+                        String tableSchema = tables.getString("TABLE_SCHEM");
+                        String tableName = tables.getString("TABLE_NAME");
+                        String completeTableName = Stream.of(tableSchema, tableName).filter(StringUtils::isNotNullOrEmpty).map(String::toUpperCase).collect(joining("."));
+                        allTableNames.add(completeTableName);
+                    } else {
+                        String tableName = tables.getString("TABLE_NAME").toUpperCase();
+                        allTableNames.add(tableName);
+                    }
                 }
             }
             return allTableNames;
@@ -196,10 +198,11 @@ public class DatabaseCreator {
         return migration.getMigrationSql().startsWith("-- Empty migration");
     }
 
-
     protected void runMigrationStatement(Connection connection, SqlMigration migration) throws IOException, SQLException {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";")) {
+            if (isNullEmptyOrBlank(statement)) continue;
+
             try (final Statement stmt = connection.createStatement()) {
                 String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
                 stmt.execute(updatedStatement);
@@ -371,7 +374,7 @@ public class DatabaseCreator {
                 if (rs.next()) {
                     // why: we want to confirm that the migrations are still running, see also this::startMigrationsTableLockUpdateTimer()
                     Instant lastTableLockUpdate = parse(rs.getString("installedOn"));
-                    if (now().isAfter(lastTableLockUpdate.plus(20, ChronoUnit.SECONDS))) {
+                    if (now().isAfter(lastTableLockUpdate.plus(20, SECONDS))) {
                         throw new IllegalStateException("Database migrations have timed out.");
                     }
                     return true;
@@ -386,7 +389,8 @@ public class DatabaseCreator {
                 pSt.setString(2, TABLE_LOCKER_SCRIPT);
                 pSt.setString(3, now().truncatedTo(MICROS).toString());
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw new IllegalStateException("Another DatabaseCreator is performing the migrations table.");
+                if (updateCount == 0)
+                    throw new IllegalStateException("Another DatabaseCreator is performing the migrations table.");
             }
         }
 
@@ -397,7 +401,8 @@ public class DatabaseCreator {
                 pSt.setString(2, TABLE_LOCKER_UUID);
                 pSt.setString(3, TABLE_LOCKER_SCRIPT);
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator is performing the migrations table."));
+                if (updateCount == 0)
+                    throw shouldNotHappenException(new IllegalStateException("Another DatabaseCreator is performing the migrations table."));
             }
         }
 
@@ -405,7 +410,8 @@ public class DatabaseCreator {
             try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
-                if (updateCount == 0) throw shouldNotHappenException(new IllegalStateException("The migrations table lock has already been removed."));
+                if (updateCount == 0)
+                    throw shouldNotHappenException(new IllegalStateException("The migrations table lock has already been removed."));
             }
             LOGGER.debug("The lock has been removed from migrations table.");
         }

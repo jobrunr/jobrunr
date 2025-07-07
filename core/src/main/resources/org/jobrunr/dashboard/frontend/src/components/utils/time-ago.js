@@ -1,16 +1,86 @@
-import {useSyncExternalStore} from 'react';
 import TimeAgo from "react-timeago/lib";
+import {setDateStyle, useDateStyles} from "./date-styles";
 
-const SwitchableTimeAgo = ({date}) => {
+const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
 
-    const possibleStyles = {defaultStyle: 'defaultStyle', readableStyle: 'readableStyle', iso8601Style: 'iso8601Style'};
+export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
 
+const possibleStyles = {
+    defaultStyle: 'defaultStyle',
+    readableStyle: 'readableStyle',
+    iso8601Style: 'iso8601Style'
+};
+
+const setNewStyle = (e, style) => {
+    e.stopPropagation();
+    setDateStyle(style);
+}
+
+export const extractDateFromISOString = (dateAsISOString, useUTC) => {
+    const date = new Date(dateAsISOString);
+    return extractDateFromDate(date, useUTC);
+};
+
+export const extractDateFromDate = (date, useUTC) => {
+    const year = useUTC ? date.getUTCFullYear() : date.getFullYear();
+    const month = String((useUTC ? date.getUTCMonth() : date.getMonth()) + 1).padStart(2, '0');
+    const day = String(useUTC ? date.getUTCDate() : date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+export const extractTimeFromDate = (date, useUTC) => {
+    return useUTC
+        ? [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()]
+        : [date.getHours(), date.getMinutes(), date.getSeconds()];
+};
+
+export const formatTime = (h, m) => {
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+export const SwitchableTimeRangeFormatter = ({from, to}) => {
     const style = useDateStyles();
+    const hourDiff = (a, b) => Math.floor(Math.abs(a - b) / 1000 / 60 / 60);
+    const now = new Date();
 
-    const setNewStyle = (e, style) => {
-        e.stopPropagation();
-        setDateStyle(style);
+    const hourDiffFrom = hourDiff(now, from);
+    const hourDiffTo = hourDiff(now, to);
+
+    if (style === possibleStyles.defaultStyle && (hourDiffFrom > 24 || hourDiffTo > 24)) {
+        // One of the two dates is more than 24h in the future resulting in ... day(s) from now: only display the nearest one
+        const date = hourDiffFrom < hourDiffTo ? from : to;
+        return (
+            <SwitchableTimeFormatter date={date}/>
+        )
+    } else if (style === possibleStyles.readableStyle && hourDiff(from, to) < 24) {
+        const fromTime = from.toString().replace(from.toDateString(), "").split(" ")
+        const toTime = to.toString().replace(to.toDateString(), "").split(" ")
+
+        if (fromTime[2] === toTime[2]) {
+            // Timezones are equal: return "at Sat Jul 05 2025 between 12:00:00 18:00:00 (GMT+0200)"
+            return (
+                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                    at {from.toDateString()} between {fromTime[1]} and {toTime[1]} ({fromTime[2]})
+                </span>
+            )
+        } else {
+            // Timezones differ: return "at Sat Jul 05 2025O between 12:00:00 GMT+0200 and 18:00:00 GMT+0200"
+            return (
+                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                    at {from.toDateString()} between {fromTime[1]} {fromTime[2]} and {toTime[1]} {fromTime[2]}
+                </span>
+            )
+        }
     }
+
+    // In all other cases, make use of the default SwitchableTimeAgo implementation.
+    return (
+        <span>between <SwitchableTimeFormatter date={from}/> and <SwitchableTimeFormatter date={to}/></span>
+    )
+}
+
+export const SwitchableTimeFormatter = ({date}) => {
+    const style = useDateStyles();
 
     let result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={date} title={date.toString()}/>;
     if (style === possibleStyles.readableStyle) {
@@ -22,29 +92,4 @@ const SwitchableTimeAgo = ({date}) => {
     }
 
     return <span style={{cursor: "pointer"}}>{result}</span>;
-}
-
-export default SwitchableTimeAgo;
-
-
-let dateStyle = localStorage.getItem('switchableTimeAgoStyle');
-let dateStyleChangeListeners = [];
-
-const getSnapshot = () => dateStyle;
-
-const subscribe = (listener) => {
-    dateStyleChangeListeners = [...dateStyleChangeListeners, listener];
-    return () => {
-        dateStyleChangeListeners = dateStyleChangeListeners.filter(l => l !== listener);
-    };
-}
-
-const setDateStyle = (style) => {
-    localStorage.setItem('switchableTimeAgoStyle', style);
-    dateStyle = style;
-    dateStyleChangeListeners.forEach(listener => listener());
-}
-
-const useDateStyles = () => {
-    return useSyncExternalStore(subscribe, getSnapshot);
 }

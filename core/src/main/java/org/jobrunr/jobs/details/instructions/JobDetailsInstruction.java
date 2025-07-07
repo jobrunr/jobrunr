@@ -109,7 +109,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
 
     private JobParameter toJobParameter(Class<?> paramType, Object param) {
         if (param == null) {
-            throw new NullPointerException("You are passing null as a parameter to your background job for type " + paramType.getName() + " - JobRunr prevents this to fail fast.");
+            return new JobParameter(paramType, null);
         }
 
         if (isClassAssignableToObject(paramType, param)) {

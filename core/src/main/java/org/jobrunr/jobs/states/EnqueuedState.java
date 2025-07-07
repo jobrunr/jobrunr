@@ -10,6 +10,10 @@ public class EnqueuedState extends AbstractJobState {
         super(ENQUEUED);
     }
 
+    public EnqueuedState(Instant createdAt) {
+        super(ENQUEUED, createdAt);
+    }
+
     public Instant getEnqueuedAt() {
         return getCreatedAt();
     }

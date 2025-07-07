@@ -7,9 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
 
@@ -62,6 +64,24 @@ public class CollectionUtils {
             result.addAll(existingCollection);
         }
         return result;
+    }
+
+    public static <T> Optional<T> findFirst(List<T> items) {
+        return ofNullable(getFirst(items));
+    }
+
+    public static <T> Optional<T> findLast(List<T> items) {
+        return ofNullable(getLast(items));
+    }
+
+    public static <T> T getFirst(List<T> items) {
+        if (isNullOrEmpty(items)) return null;
+        return items.get(0);
+    }
+
+    public static <T> T getLast(List<T> items) {
+        if (isNullOrEmpty(items)) return null;
+        return items.get(items.size() - 1);
     }
 
     public static <K, V> Map<K, V> mapOf(K key1, V value1) {

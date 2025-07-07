@@ -1,6 +1,7 @@
 package org.jobrunr.quarkus.autoconfigure;
 
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
@@ -15,17 +17,21 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 class JobRunrProducerTest {
 
     JobRunrProducer jobRunrProducer;
-
+    @Mock
+    JobRunrRuntimeConfiguration.JobsConfiguration jobsRunTimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
     @Mock
     JobRunrRuntimeConfiguration.JobSchedulerConfiguration jobSchedulerRunTimeConfiguration;
     @Mock
     StorageProvider storageProvider;
+    @Mock
+    JsonMapper jsonMapper;
 
     @BeforeEach
     void setUp() {
-        when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
+        lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
 
         jobRunrProducer = new JobRunrProducer();
         setInternalState(jobRunrProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
