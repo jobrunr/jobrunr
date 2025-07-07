@@ -8,14 +8,18 @@ import org.jobrunr.server.carbonaware.CarbonIntensityApiClient;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.time.Instant.now;
@@ -23,6 +27,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.LongStream.range;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnScheduledAt;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 
@@ -100,7 +105,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             if (isCarbonAwareJobProcessingDisabled()) {
                 scheduleJobAt(job, state.getFallbackInstant(), state, "Carbon aware scheduling is disabled, scheduling job at " + state.getFallbackInstant());
             } else if (isDeadlinePassed(state)) {
-                scheduleJobAt(job, now(), state, "Passed its deadline, scheduling now.");
+                scheduleJobAt(job, state.getFallbackInstant(), state, "Passed its deadline, scheduling immediately.");
             } else if (hasTooSmallScheduleMargin(state)) {
                 scheduleJobAt(job, state.getFallbackInstant(), state, "Not enough margin (" + state.getMarginDuration() + ") to be scheduled carbon aware.");
             } else if (carbonIntensityForecast.hasNoForecastForPeriod(state.getFrom(), state.getTo())) {
@@ -108,7 +113,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             } else {
                 scheduleJobAt(job, idealMoment(state), state, "At the best moment to minimize carbon impact in " + this.carbonIntensityForecast.getDisplayName());
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Error trying to move the carbon aware job to next state", e);
             scheduleJobAt(job, state.getFallbackInstant(), state, "Unexpected problem scheduling the carbon aware job, scheduling at " + state.getFallbackInstant());
         }
@@ -141,7 +146,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private boolean hasTooSmallScheduleMargin(CarbonAwareAwaitingState state) {
         if (carbonIntensityForecast.hasNoForecast()) return false;
         Duration margin = state.getMarginDuration();
-        return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(3)) < 0;
+        return margin.compareTo(carbonIntensityForecast.getForecastInterval().multipliedBy(2)) < 0;
     }
 
     @VisibleFor("testing")
@@ -152,6 +157,31 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
             return;
         }
         this.carbonIntensityForecast = carbonIntensityForecast;
+        updateForecastInStorageProvider(carbonIntensityForecast);
+    }
+
+    private void updateForecastInStorageProvider(CarbonIntensityForecast carbonIntensityForecast) {
+        if (carbonIntensityForecast.getForecastEndPeriod() == null) return;
+
+        List<JobRunrMetadata> allForecasts = this.storageProvider.getMetadata("carbon-intensity-forecast");
+        deleteOldUnnecessaryForecasts(allForecasts);
+
+        LocalDate startPeriodOwner = carbonIntensityForecast.getForecastStartPeriod().atZone(ZoneOffset.UTC).toLocalDate();
+        LocalDate endPeriodOwner = carbonIntensityForecast.getForecastEndPeriod().atZone(ZoneOffset.UTC).toLocalDate();
+        Predicate<String> hasNoDataForDate = dateAsString -> allForecasts.stream().noneMatch(m -> m.getOwner().equals(dateAsString));
+        range(0, DAYS.between(startPeriodOwner, endPeriodOwner) + 1)
+                .mapToObj(l -> startPeriodOwner.plusDays(l).toString())
+                .distinct()
+                .filter(hasNoDataForDate)
+                .forEach(owner -> storageProvider.saveMetadata(new JobRunrMetadata("carbon-intensity-forecast", owner, backgroundJobServer.getJsonMapper().serialize(carbonIntensityForecast))));
+    }
+
+    private void deleteOldUnnecessaryForecasts(List<JobRunrMetadata> allForecasts) {
+        Duration jobCompletelyDeletedAfter = backgroundJobServer.getConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServer.getConfiguration().getPermanentlyDeleteDeletedJobsAfter());
+        String deleteForecastAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
+        allForecasts.stream()
+                .filter(metadata -> metadata.getOwner().compareTo(deleteForecastAfter) < 0)
+                .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
     }
 
     private void updateNextRefreshTime() {

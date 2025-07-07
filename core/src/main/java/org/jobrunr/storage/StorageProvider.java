@@ -86,6 +86,8 @@ public interface StorageProvider extends AutoCloseable {
 
     void deleteMetadata(String name);
 
+    void deleteMetadata(String name, String owner);
+
     /**
      * Save the {@link Job} and increases the version if saving succeeded.
      *

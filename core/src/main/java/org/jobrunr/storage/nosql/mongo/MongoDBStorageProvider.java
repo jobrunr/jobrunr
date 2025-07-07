@@ -284,6 +284,17 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public void deleteMetadata(String name, String owner) {
+        try {
+            final DeleteResult deleteResult = metadataCollection.deleteOne(eq(toMongoId(Metadata.FIELD_ID), JobRunrMetadata.toId(name, owner)));
+            long deletedCount = deleteResult.getDeletedCount();
+            notifyMetadataChangeListeners(deletedCount > 0);
+        } catch (MongoException e) {
+            throw new StorageException(e);
+        }
+    }
+
+    @Override
     public Job save(Job job) {
         try (JobVersioner jobVersioner = new JobVersioner(job)) {
             if (jobVersioner.isNewJob()) {

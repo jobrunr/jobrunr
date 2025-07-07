@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
+import static org.jobrunr.utils.CollectionUtils.findFirst;
 import static org.jobrunr.utils.CollectionUtils.findLast;
 import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
 
@@ -74,6 +75,12 @@ public class CarbonIntensityForecast {
 
     public boolean hasNoForecast() {
         return intensityForecast == null || intensityForecast.isEmpty();
+    }
+
+    public Instant getForecastStartPeriod() {
+        return findFirst(intensityForecast)
+                .map(TimestampedCarbonIntensityForecast::getPeriodStartAt)
+                .orElse(null);
     }
 
     public Instant getForecastEndPeriod() {

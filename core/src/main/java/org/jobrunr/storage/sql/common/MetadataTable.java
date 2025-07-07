@@ -15,7 +15,12 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
-import static org.jobrunr.storage.StorageProviderUtils.Metadata.*;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_CREATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_NAME;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_OWNER;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_UPDATED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Metadata.FIELD_VALUE;
 import static org.jobrunr.utils.CollectionUtils.asSet;
 
 public class MetadataTable extends Sql<JobRunrMetadata> {
@@ -81,6 +86,11 @@ public class MetadataTable extends Sql<JobRunrMetadata> {
     public int deleteByName(String name) throws SQLException {
         return with(FIELD_NAME, name)
                 .delete("from jobrunr_metadata where name = :name");
+    }
+
+    public int deleteByNameAndOwner(String name, String owner) throws SQLException {
+        return withId(JobRunrMetadata.toId(name, owner))
+                .delete("from jobrunr_metadata where id = :id");
     }
 
     private JobRunrMetadata toJobRunrMetadata(SqlResultSet resultSet) {
