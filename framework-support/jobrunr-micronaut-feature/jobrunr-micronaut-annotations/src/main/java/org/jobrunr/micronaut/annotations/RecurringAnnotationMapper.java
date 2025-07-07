@@ -10,16 +10,6 @@ import java.util.List;
 
 public class RecurringAnnotationMapper implements TypedAnnotationMapper<Recurring> {
 
-    static {
-        // WHY: to see if it is loaded when running ./gradlew compileJava --rerun-tasks --info
-        System.err.println(">>> RecurringAnnotationMapper loaded");
-    }
-
-    public RecurringAnnotationMapper() {
-        // WHY: to see if it is loaded when running ./gradlew compileJava --rerun-tasks --info
-        System.err.println(">>> RecurringAnnotationMapper constructor called");
-    }
-
     @Override
     public Class<Recurring> annotationType() {
         return Recurring.class;
