@@ -31,7 +31,7 @@ const CarbonIntensityChart = ({job, jobState}) => {
 
     useEffect(() => {
         const ownerDate = extractDateFromISOString(scheduledState.scheduledAt, useUTC);
-        fetch(`/api/metadata/carbon-intensity-forecast?owner=${ownerDate}&format=jsonValue`)
+        fetch(`/api/metadata/carbon-intensity-forecast/${ownerDate}?format=jsonValue`)
             .then(async r => {
                 if (r.status === 404 && new Date(ownerDate) < new Date()) {
                     setNotFound(true);
