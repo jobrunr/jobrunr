@@ -10,6 +10,7 @@ val JOB_STATS_SERIALIZER_FIELDS: List<Field<JobStats, out Any>> = listOf(
 	Field("timeStamp", InstantSerializer) { it.timeStamp },
 	Field("queryDurationInMillis", Long.serializer()) { it.queryDurationInMillis },
 	Field("total", Long.serializer()) { it.total },
+	Field("awaiting", Long.serializer()) { it.awaiting },
 	Field("scheduled", Long.serializer()) { it.scheduled },
 	Field("enqueued", Long.serializer()) { it.enqueued },
 	Field("processing", Long.serializer()) { it.processing },
