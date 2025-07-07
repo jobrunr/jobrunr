@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class JobRunrApiHandler extends RestHttpHandler {
 
@@ -36,7 +36,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         this.storageProvider = storageProvider;
         this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
-        get("/metadata/:name", getMetadataByName());
+        get("/metadata/:name/:owner", getMetadataByNameAndOwner());
         get("/problems", getProblems());
         delete("/problems/:type", deleteProblemByType());
 
@@ -55,22 +55,26 @@ public class JobRunrApiHandler extends RestHttpHandler {
         withExceptionMapping(JobNotFoundException.class, (exc, resp) -> resp.statusCode(404));
     }
 
-    private HttpRequestHandler getMetadataByName() {
+    private HttpRequestHandler getMetadataByNameAndOwner() {
         return (request, response) -> {
             String name = request.param(":name");
-            String owner = request.queryParam("owner", String.class, null);
-            if (isNotNullOrEmpty(name) && isNotNullOrEmpty(owner)) {
+            String owner = request.param(":owner");
+
+            if (isNullOrEmpty(name) || isNullOrEmpty(owner)) {
+                response.statusCode(404);
+                return;
+            }
+
+            JobRunrMetadata metadata = storageProvider.getMetadata(name, owner);
+            if (metadata == null) {
+                response.statusCode(404);
+            } else {
                 String format = request.queryParam("format", String.class, null);
-                JobRunrMetadata metadata = storageProvider.getMetadata(name, owner);
-                if (metadata == null) {
-                    response.statusCode(404);
-                } else if ("jsonValue" .equals(format)) {
+                if ("jsonValue" .equals(format)) {
                     response.fromJsonString(metadata.getValue());
                 } else {
                     response.asJson(metadata);
                 }
-            } else {
-                response.asJson(storageProvider.getMetadata(name));
             }
         };
     }
