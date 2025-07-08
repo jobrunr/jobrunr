@@ -5,14 +5,20 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.scheduling.cron.CronExpression;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Duration;
+import java.util.stream.Stream;
 
 import static java.time.Duration.ofDays;
+import static java.time.Duration.ofHours;
 import static java.time.Duration.ofMillis;
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ScheduleTest {
 
@@ -31,7 +37,7 @@ class ScheduleTest {
 
         assertThat(schedule.getExpression()).isEqualTo("0 0 * * *");
         assertThat(schedule.isCarbonAware()).isTrue();
-        assertThat(carbonAwareScheduleMargin.getMarginBefore()).isEqualTo(Duration.ofHours(3));
+        assertThat(carbonAwareScheduleMargin.getMarginBefore()).isEqualTo(ofHours(3));
         assertThat(carbonAwareScheduleMargin.getMarginAfter()).isZero();
     }
 
@@ -47,15 +53,29 @@ class ScheduleTest {
     }
 
     @Test
-    void durationBetweenSchedules() {
-        assertThat(new CronExpression("* * * * * *").durationBetweenSchedules()).isEqualTo(ofSeconds(1));
-        assertThat(new CronExpression("*/5 * * * * *").durationBetweenSchedules()).isEqualTo(ofSeconds(5));
-        assertThat(new CronExpression("0 0 * * *").durationBetweenSchedules()).isEqualTo(ofDays(1));
-
+    void durationBetweenSchedulesWithIntervals() {
         assertThat(new Interval(ofMillis(200)).durationBetweenSchedules()).isEqualTo(ofMillis(200));
         assertThat(new Interval(ofSeconds(1)).durationBetweenSchedules()).isEqualTo(ofSeconds(1));
         assertThat(new Interval(ofSeconds(5)).durationBetweenSchedules()).isEqualTo(ofSeconds(5));
+    }
 
+    @ParameterizedTest
+    @MethodSource("durationBetweenSchedulesCronExpressions")
+    void durationBetweenSchedulesWithCronExpressions(String cron, Duration duration) {
+        assertThat(new CronExpression(cron).durationBetweenSchedules()).isEqualTo(duration);
+    }
+
+    static Stream<Arguments> durationBetweenSchedulesCronExpressions() {
+        return Stream.of(
+                arguments("* * * * * *", ofSeconds(1)),
+                arguments("*/5 * * * * *", ofSeconds(5)),
+                arguments("0 0 * * *", ofDays(1)),
+                arguments("0 1,5,20 * * *", ofHours(15)),
+                arguments("0 0 1 1-8 *", ofDays(28)),
+                arguments("9 23 2 * 3", ofDays(5)),
+                arguments("0 0 */5 * 2", ofDays(84)),
+                arguments("0 0 29 2 */4", ofDays(7305))
+        );
     }
 
     @Test

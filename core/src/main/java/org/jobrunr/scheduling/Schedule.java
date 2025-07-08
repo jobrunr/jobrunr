@@ -59,7 +59,14 @@ public abstract class Schedule implements Comparable<Schedule> {
         Instant base = Instant.EPOCH.plusSeconds(3600);
         Instant run1 = this.next(base, base, ZoneOffset.UTC);
         Instant run2 = this.next(base, run1, ZoneOffset.UTC);
-        return between(run1, run2);
+        if (run2 == null) return Duration.ZERO;
+
+        Duration between = between(run1, run2);
+        if (!this.next(base, run1.minusMillis(1), ZoneOffset.UTC).equals(run1)) {
+            throw new IllegalArgumentException(String.format("Incorrect Schedule interface implementation: expected %s for input %s but was %s. Your schedule must use currentInstant to determine the nextInstant.",
+                    run1, run1.minus(between.dividedBy(2)), this.next(base, run1.minus(between.dividedBy(2)), ZoneOffset.UTC)));
+        }
+        return between;
     }
 
     public void validate() {
