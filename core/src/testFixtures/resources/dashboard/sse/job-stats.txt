@@ -1,0 +1,2 @@
+event
+data: {"timeStamp":"2022-12-13T14:00:15Z","queryDurationInMillis":0,"total":9,"awaiting":0,"scheduled":1,"enqueued":0,"processing":1,"failed":2,"succeeded":1,"allTimeSucceeded":0,"deleted":4,"recurringJobs":0,"backgroundJobServers":0}
