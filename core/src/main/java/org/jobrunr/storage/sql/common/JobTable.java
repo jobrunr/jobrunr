@@ -191,7 +191,7 @@ public class JobTable extends Sql<Job> {
     public int deleteJobsByStateAndUpdatedBefore(StateName state, Instant updatedBefore) throws SQLException {
         return withState(state)
                 .withUpdatedBefore(updatedBefore)
-                .delete("from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore");
+                .delete("from jobrunr_jobs where state = :state AND updatedAt <= :updatedBefore limit 100");
     }
 
     void insertOneJob(Job jobToSave) throws SQLException {

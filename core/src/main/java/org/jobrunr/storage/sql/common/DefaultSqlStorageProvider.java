@@ -323,8 +323,23 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     @Override
     public int deleteJobsPermanently(StateName state, Instant updatedBefore) {
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
-            final int amountDeleted = jobTable(conn).deleteJobsByStateAndUpdatedBefore(state, updatedBefore);
-            transaction.commit();
+            int amountDeleted = 0;
+
+            // Batched deletion to avoid overwhelming the database with a single large delete operation. Smaller commits
+            // require less resources to maintain and operate.
+            while (true) {
+                final int currentAmountDeleted = jobTable(conn).deleteJobsByStateAndUpdatedBefore(state, updatedBefore);
+                if (currentAmountDeleted > 0) {
+                    transaction.commit();
+                }
+
+                amountDeleted += currentAmountDeleted;
+
+                if (currentAmountDeleted < 100) {
+                    break;
+                }
+            }
+
             notifyJobStatsOnChangeListenersIf(amountDeleted > 0);
             return amountDeleted;
         } catch (SQLException e) {
