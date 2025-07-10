@@ -99,7 +99,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert hasMetadata(String key, String value) {
+    public JobAssert hasMetadata(String key, Object value) {
         Assertions.assertThat(actual.getMetadata()).containsEntry(key, value);
         return this;
     }

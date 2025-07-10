@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.context;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -12,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.utils.SleepUtils.sleep;
@@ -90,6 +92,84 @@ public class JobContextTest {
     }
 
     @Test
+    void jobContextRunsStepOnlyOnceRunnableCanThrowException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        jobContext.runStepOnce("my-step", () -> doSomethingThatCanThrowAnException(counter));
+        jobContext.runStepOnce("my-step", () -> doSomethingThatCanThrowAnException(counter));
+
+        assertThat(counter).hasValue(1);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void jobContextRunsStepOnlyOnceRunnableCanThrowExceptionWhichIsTransformedToAStepExecutionException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .isInstanceOf(StepExecutionException.class)
+                .hasMessageContaining("Exception during execution of step 'my-step'");
+
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .doesNotThrowAnyException();
+
+        assertThat(counter).hasValue(2);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void jobContextRunsStepOnlyOnceCanReturnObject() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        String resultA = jobContext.runStepOnce("my-step", () -> getSomethingWithCounter(counter));
+        String resultB = jobContext.runStepOnce("my-step", () -> getSomethingWithCounter(counter));
+
+        assertThat(resultA).isEqualTo(resultB);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void jobContextRunsStepOnlyOnceSupplierCanThrowException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        String resultA = jobContext.runStepOnce("my-step", () -> getSomethingThatCanThrowAnException(counter));
+        String resultB = jobContext.runStepOnce("my-step", () -> getSomethingThatCanThrowAnException(counter));
+
+        assertThat(resultA).isEqualTo(resultB);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void jobContextRunsStepOnlyOnceSupplierCanThrowExceptionWhichIsTransformedToAStepExecutionException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> getSomethingThatThrowsAnException(counter)))
+                .isInstanceOf(StepExecutionException.class)
+                .hasMessageContaining("Exception during execution of step 'my-step'");
+
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> getSomethingThatThrowsAnException(counter)))
+                .doesNotThrowAnyException();
+
+        assertThat(counter).hasValue(2);
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
     void jobContextIsThreadSafeUsingJackson() throws InterruptedException {
         jobContextIsThreadsafe(new JobMapper(new JacksonJsonMapper()));
     }
@@ -149,5 +229,35 @@ public class JobContextTest {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    private void doSomethingThatCanThrowAnException(AtomicInteger counter) throws InterruptedException {
+        Thread.sleep(1);
+        counter.incrementAndGet();
+    }
+
+    private void doSomethingThatThrowsAnException(AtomicInteger counter) throws Exception {
+        counter.incrementAndGet();
+        if (counter.get() == 1) {
+            throw new Exception("Something went wrong");
+        }
+    }
+
+    private String getSomethingWithCounter(AtomicInteger counter) {
+        return "test-" + counter.incrementAndGet();
+    }
+
+    private String getSomethingThatCanThrowAnException(AtomicInteger counter) throws InterruptedException {
+        Thread.sleep(1);
+        counter.incrementAndGet();
+        return "test-" + counter.incrementAndGet();
+    }
+
+    private String getSomethingThatThrowsAnException(AtomicInteger counter) throws Exception {
+        counter.incrementAndGet();
+        if (counter.get() == 1) {
+            throw new Exception("Something went wrong");
+        }
+        return "test-" + counter.get();
     }
 }

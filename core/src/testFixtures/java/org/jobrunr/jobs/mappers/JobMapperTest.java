@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.UUID;
 
+import static java.time.Instant.now;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
@@ -141,13 +142,20 @@ public abstract class JobMapperTest {
                 .build();
         job.startProcessingOn(backgroundJobServer);
         job.failed("exception", new Exception("Test"));
+        job.scheduleAt(Instant.now(), "Retry 1");
         job.enqueue();
-        job.succeeded();
+        job.startProcessingOn(backgroundJobServer);
 
         String jobAsJson = jobMapper.serializeJob(job);
         Job actualJob = jobMapper.deserializeJob(jobAsJson);
 
-        assertThat(actualJob).isEqualTo(job);
+        assertThat(actualJob)
+                .isEqualTo(job)
+                .hasMetadata("metadata1")
+                .hasMetadata("metadata2", "a string")
+                .hasMetadata("metadata3", 15.1)
+                .hasMetadata("metadata6", 16.0)
+                .hasMetadata("metadata7", true);
     }
 
     @Test
@@ -186,6 +194,28 @@ public abstract class JobMapperTest {
                 .hasNotDeserializableExceptionEqualTo(new JobParameterNotDeserializableException("i.dont.exist.Class", "java.lang.IllegalArgumentException", "Class not found: i.dont.exist.Class"));
     }
 
+    @Test
+    void canSerializeAndDeserializeWithStepResult() {
+        // GIVEN
+        Job job = anEnqueuedJob().build();
+        job.startProcessingOn(backgroundJobServer);
+        RunnerJobContext jobContext = new RunnerJobContext(job);
+        String inputString = jobContext.runStepOnce("step-1", () -> "result-1");
+        UUID inputUUID = jobContext.runStepOnce("step-2", UUID::randomUUID);
+        TestMetadata testMetadata = jobContext.runStepOnce("step-3", () -> new TestMetadata("some input"));
+
+        // WHEN
+        String jobAsJson = jobMapper.serializeJob(job);
+        Job actualJob = jobMapper.deserializeJob(jobAsJson);
+
+        // THEN
+        assertThat(actualJob).isEqualTo(job);
+        RunnerJobContext actualJobContext = new RunnerJobContext(job);
+        assertThat(actualJobContext.runStepOnce("step-1", () -> "result-2")).isEqualTo(inputString);
+        assertThat(actualJobContext.runStepOnce("step-2", UUID::randomUUID)).isEqualTo(inputUUID);
+        assertThat(actualJobContext.runStepOnce("step-3", () -> new TestMetadata("some other input"))).isEqualTo(testMetadata);
+    }
+
     public static class TestMetadata implements JobContext.Metadata {
         private String input;
         private Instant instant;
@@ -196,10 +226,14 @@ public abstract class JobMapperTest {
         }
 
         public TestMetadata(String input) {
+            this(input, now(), Paths.get("/tmp"), new File("/tmp"));
+        }
+
+        public TestMetadata(String input, Instant instant, Path path, File file) {
             this.input = input;
-            this.instant = Instant.now();
-            this.path = Paths.get("/tmp");
-            this.file = new File("/tmp");
+            this.instant = instant;
+            this.path = path;
+            this.file = file;
         }
 
         public String getInput() {
