@@ -1,7 +1,12 @@
 package org.jobrunr.jobs.context;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.utils.exceptions.Exceptions.ThrowingRunnable;
+import org.jobrunr.utils.exceptions.Exceptions.ThrowingSupplier;
+import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
 import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
 import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
+import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -26,6 +32,8 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class JobContext {
 
     private static final String JOBRUNR_STEP_PREFIX = "jr_step_";
+    private static final String JOBRUNR_STEP_RESULT_PREFIX = "jr_step_result_";
+    private static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = "jr_step_result_class_";
 
     public static final JobContext Null = new JobContext(null);
 
@@ -162,6 +170,55 @@ public class JobContext {
     }
 
     /**
+     * Run the supplied task exactly once (i.e. only if it hasn’t already completed).
+     * If the task throws any {@link Exception}, the step won’t be marked completed.
+     *
+     * @param step the name of the step
+     * @param task the step to execute as a Runnable
+     * @throws StepExecutionException when an exception happens during the execution of this step
+     */
+    public void runStepOnce(String step, ThrowingRunnable task) throws StepExecutionException {
+        if (!hasCompletedStep(step)) {
+            try {
+                task.run();
+                markStepCompleted(step);
+            } catch (Exception e) {
+                throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
+            }
+        }
+    }
+
+    /**
+     * Run the supplied task exactly once (i.e. only if it hasn’t already completed) and allow to return a result (only java classes supported by the {@link Autoboxer} or an implementation of {@link StepResult} due to JSON Serialization).
+     * If the task throws, the step won’t be marked completed.
+     *
+     * @param step the name of the step
+     * @param task the step to execute as a Runnable
+     * @return the object returned by the {@link ThrowingSupplier<T>} (only java classes supported by the {@link Autoboxer} or an implementation of {@link StepResult} is supported due to JSON Serialization)
+     * @throws StepExecutionException when an exception happens during the execution of this step
+     */
+    public <T> T runStepOnce(String step, ThrowingSupplier<T> task) throws StepExecutionException {
+        if (!hasCompletedStep(step)) {
+            try {
+                T result = task.get();
+                saveStepResult(step, result);
+                markStepCompleted(step);
+                return result;
+            } catch (Exception e) {
+                throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
+            }
+        } else {
+            String stepResultClassName = getMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step);
+            Class<T> stepResultClass = ReflectionUtils.toClass(stepResultClassName);
+            if (Metadata.class.isAssignableFrom(stepResultClass)) {
+                return getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
+            }
+            String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
+            return autobox(stepResultAsString, stepResultClass);
+        }
+    }
+
+    /**
      * Marks the given step as completed (so it won’t run again if a job retries due to an exception).
      */
     void markStepCompleted(String stepName) {
@@ -169,13 +226,18 @@ public class JobContext {
     }
 
     /**
-     * Run the supplied task exactly once (i.e. only if it hasn’t already completed).
-     * If the task throws, the step won’t be marked completed.
+     * Marks the given step as completed (so it won’t run again if a job retries due to an exception).
      */
-    public void runStepOnce(String step, Runnable task) {
-        if (!hasCompletedStep(step)) {
-            task.run();
-            markStepCompleted(step);
+    <T> void saveStepResult(String stepName, T result) {
+        if (result == null) return;
+        if (result instanceof Metadata) {
+            saveMetadata(JOBRUNR_STEP_RESULT_PREFIX + stepName, result);
+            saveMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + stepName, result.getClass().getName());
+        } else if (Autoboxer.supports(result.getClass())) {
+            saveMetadata(JOBRUNR_STEP_RESULT_PREFIX + stepName, String.valueOf(result));
+            saveMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + stepName, result.getClass().getName());
+        } else {
+            throw new IllegalStateException("Result of step '" + stepName + "' must be supported by the Autoboxer or a class implementing StepResult and was '" + result.getClass().getName() + "'");
         }
     }
 
@@ -187,6 +249,11 @@ public class JobContext {
 
     // marker interface for Json Serialization
     public interface Metadata {
+
+    }
+
+    // marker interface for Json Serialization
+    public interface StepResult extends Metadata {
 
     }
 }

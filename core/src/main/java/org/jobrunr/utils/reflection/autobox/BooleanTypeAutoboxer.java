@@ -18,6 +18,8 @@ public class BooleanTypeAutoboxer implements TypeAutoboxer<Boolean> {
             return cast(!BigDecimal.ZERO.equals(value));
         } else if (value instanceof Integer) {
             return cast(((Integer) value) != 0);
+        } else if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
         }
         throw new UnsupportedOperationException(String.format("Cannot autobox %s of type %s to %s", value, value.getClass().getName(), Boolean.class.getName()));
     }

@@ -46,6 +46,7 @@ import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.ITALY_2025_0
 import static org.jobrunr.server.carbonaware.CarbonApiMockResponses.UNKNOWN_AREA;
 import static org.jobrunr.server.carbonaware.CarbonAwareApiWireMockExtension.buildForecastSlots;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
@@ -60,12 +61,13 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     static CarbonAwareApiWireMockExtension carbonAwareApiMock = new CarbonAwareApiWireMockExtension();
 
     @Test
-    void runTaskWithCarbonAwareDisabledDoesNotUpdateCarbonIntensityForecast() {
+    void runTaskWithCarbonAwareDisabledDoesNotUpdateCarbonIntensityForecastButFetchesDataToMoveCarbonAwareJobsToNextStateIfUsedByAccident() {
         ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareJobProcessingConfiguration());
 
         runTask(task);
 
         verify(carbonIntensityApiClient(task), times(0)).fetchCarbonIntensityForecast();
+        verify(storageProvider, times(1)).getCarbonAwareJobList(any(), any());
     }
 
     @Test
