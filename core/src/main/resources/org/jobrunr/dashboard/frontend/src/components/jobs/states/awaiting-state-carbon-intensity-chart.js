@@ -24,12 +24,11 @@ const CarbonIntensityChart = ({job, jobState}) => {
         [job.jobHistory]
     );
 
-    if (!scheduledState) return null;
-
     const [intensityData, setIntensityData] = useState(null);
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
+        if (!scheduledState) return;
         const ownerDate = extractDateFromISOString(scheduledState.scheduledAt, useUTC);
         fetch(`/api/metadata/carbon-intensity-forecast/${ownerDate}?format=jsonValue`)
             .then(async r => {
@@ -148,6 +147,8 @@ const CarbonIntensityChart = ({job, jobState}) => {
     } else if (!normalized) {
         return null;
     }
+
+    if (!scheduledState) return <div/>;
 
     return (
         <div style={{width: '100%', marginTop: '32px'}}>
