@@ -7,17 +7,23 @@ import org.jobrunr.jobs.JobAssert;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.tasks.AbstractTaskTest;
+import org.jobrunr.storage.Paging;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
+import org.mockito.MockedStaticHolder;
 import org.mockito.verification.VerificationMode;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
@@ -31,6 +37,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.InstantMocker.FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR;
 import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR;
 import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE;
 import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_ON_THE_MINUTE;
@@ -95,12 +102,9 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         storageProvider.saveRecurringJob(recurringJob);
 
-        Instant scheduledAt;
-
         // FIRST RUN - No Jobs scheduled yet.
-        try (MockedStatic<Instant> ignored = mockTime(now)) {
-            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
-
+        Instant expectedScheduledAt = Instant.parse("2025-05-27T11:12:55Z");
+        try (MockedStatic<Instant> ignored = mockTime(now)) { // at second 52
             runTask(task);
 
             // THEN
@@ -108,26 +112,21 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
                     .singleElement()
                     .hasState(SCHEDULED)
                     .hasRecurringJobId(recurringJob.getId())
-                    .hasScheduledAt(Instant.parse("2025-05-27T11:12:55Z"));
-
-            scheduledAt = Instant.parse("2025-05-27T11:12:55Z");
+                    .hasScheduledAt(expectedScheduledAt);
         }
 
-
         // SECOND RUN - the 1 job scheduled in the first run is still active.
-        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) {
-            clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(scheduledAt);
-
+        clearStorageProviderInvocationsAndCaptors();
+        try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval()))) { // at second 57
             runTask(task);
 
-            verify(storageProvider, times(0)).save(jobsToSaveArgumentCaptor.capture());
+            verify(storageProvider, never()).save(jobsToSaveArgumentCaptor.capture());
         }
 
         // THIRD RUN - the 1 scheduled job is no longer active
+        clearStorageProviderInvocationsAndCaptors();
         try (MockedStatic<Instant> ignored = mockTime(now.plus(pollInterval().multipliedBy(2)))) {
-            clearStorageProviderInvocationsAndCaptors();
-            when(storageProvider.getRecurringJobLatestScheduledInstant(recurringJob.getId(), AWAITING, SCHEDULED, ENQUEUED, PROCESSING)).thenReturn(null);
+            runScheduledJobInstanceOfRecurringJob(recurringJob.getId());
 
             runTask(task);
 
@@ -136,17 +135,90 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     }
 
     @Test
-    void taskSchedulesOneExtraJobAheadOfTime() {
-        RecurringJob recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
+    void testTaskSchedulesOneJobExtraAheadOfTimeForRecurringJobsUsingCronExpressionThatRunLessThanOncePerMinute() {
+        ZonedDateTime zonedDateTime = FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.atZone(ZoneId.systemDefault());
+        RecurringJob recurringJob;
+        try (MockedStaticHolder ignored = mockTime(zonedDateTime)) {
+            // GIVEN
+            recurringJob = aDefaultRecurringJob().withCronExpression(Cron.daily()).build();
+            storageProvider.saveRecurringJob(recurringJob);
 
-        storageProvider.saveRecurringJob(recurringJob);
+            // WHEN
+            runTask(task);
 
-        runTask(task);
+            // THEN recurringJob is scheduled ahead of time
+            assertThatSavedScheduledJobs()
+                    .singleElement()
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(zonedDateTime.plusDays(1).truncatedTo(DAYS).toInstant())
+                    .hasRecurringJobId(recurringJob.getId());
+        }
 
-        assertThatSavedScheduledJobs()
-                .singleElement()
-                .hasState(SCHEDULED)
-                .hasRecurringJobId(recurringJob.getId());
+        // WHEN next run
+        clearStorageProviderInvocationsAndCaptors();
+        try (MockedStaticHolder ignored = mockTime(zonedDateTime.plusMinutes(1).withSecond(52))) {
+            runTask(task);
+
+            // THEN no recurring job is scheduled
+            verify(storageProvider, never()).save(anyList());
+        }
+
+        // WHEN scheduled job instance is processed
+        clearStorageProviderInvocationsAndCaptors();
+        ZonedDateTime midnight = zonedDateTime.plusDays(1).truncatedTo(DAYS);
+        try (MockedStaticHolder ignored = mockTime(midnight)) {
+            runScheduledJobInstanceOfRecurringJob(recurringJob.getId());
+        }
+
+        // WHEN next run
+        clearStorageProviderInvocationsAndCaptors();
+        try (MockedStaticHolder ignored = mockTime(midnight.withSecond(52))) {
+            runTask(task);
+
+            // THEN recurringJob is scheduled ahead of time again
+            assertThatSavedScheduledJobs()
+                    .singleElement()
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(midnight.plusDays(1).toInstant())
+                    .hasRecurringJobId(recurringJob.getId());
+        }
+    }
+
+    @Test
+    void testTaskSchedulesOneJobExtraAheadOfTimeForRecurringJobsUsingIntervalExpressionThatRunLessThanOncePerMinute() {
+        ZonedDateTime zonedDateTime = FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.atZone(ZoneId.systemDefault());
+        RecurringJob recurringJob;
+        try (MockedStaticHolder ignored = mockTime(zonedDateTime)) {
+            // GIVEN
+            recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
+            storageProvider.saveRecurringJob(recurringJob);
+
+            // WHEN
+            runTask(task);
+
+            // THEN recurringJob is scheduled instantly
+            assertThatSavedScheduledJobs()
+                    .singleElement()
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR)
+                    .hasRecurringJobId(recurringJob.getId());
+
+            // job instance is processed immediately in case of interval
+            runScheduledJobInstanceOfRecurringJob(recurringJob.getId());
+        }
+
+        // WHEN next run
+        clearStorageProviderInvocationsAndCaptors();
+        try (MockedStaticHolder ignored = mockTime(zonedDateTime.plusMinutes(1).withSecond(52))) {
+            runTask(task);
+
+            // THEN recurringJob is scheduled ahead of time
+            assertThatSavedScheduledJobs()
+                    .singleElement()
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.plus(24, HOURS))
+                    .hasRecurringJobId(recurringJob.getId());
+        }
     }
 
     @Test
@@ -277,6 +349,18 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
     private void clearStorageProviderInvocationsAndCaptors() {
         clearInvocations(storageProvider);
         jobsToSaveArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    }
+
+    private void runScheduledJobInstanceOfRecurringJob(String recurringJobId) {
+        var job = storageProvider.getJobList(SCHEDULED, Paging.AmountBasedList.ascOnUpdatedAt(10))
+                .stream()
+                .filter(j -> j.getRecurringJobId().map(recurringJobId::equals).orElse(false))
+                .findFirst()
+                .orElseThrow();
+        job.enqueue();
+        job.startProcessingOn(backgroundJobServer);
+        job.succeeded();
+        storageProvider.save(job);
     }
 
     private void mockStorageProvider(List<RecurringJob> recurringJobs, List<String> runningRecurringJobs) {

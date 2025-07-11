@@ -8,6 +8,7 @@ import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.recurringjobs.insomeverylongpackagename.with.nestedjobrequests.SimpleJobRequest;
 import org.junit.jupiter.api.Test;
+import org.mockito.InstantMocker;
 import org.mockito.MockedStatic;
 
 import java.time.Duration;
@@ -20,10 +21,13 @@ import static java.time.Instant.now;
 import static java.time.Instant.parse;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.data.Index.atIndex;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
+import static org.mockito.InstantMocker.FIXED_INSTANT_RIGHT_AT_THE_HOUR;
 import static org.mockito.InstantMocker.mockTime;
 
 class RecurringJobTest {
@@ -33,9 +37,9 @@ class RecurringJobTest {
         assertThatCode(() -> aDefaultRecurringJob().withoutId().build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this-is-allowed-with-a-1").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
-        assertThatCode(() -> aDefaultRecurringJob().withId("some-id".repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
+        assertThatCode(() -> aDefaultRecurringJob().withId("some-id" .repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withoutId().withJobDetails(new JobDetails(new SimpleJobRequest())).build()).doesNotThrowAnyException();
-        assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id".repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id" .repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this-is-also-not-allowed-because-of-$").build()).isInstanceOf(IllegalArgumentException.class);
     }
@@ -58,6 +62,39 @@ class RecurringJobTest {
 
         final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobDetails((JobLambda) testService::doWork).build();
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
+    }
+
+    @Test
+    void testToScheduledJobsGetsOneJobBetweenFromAndUpFromIsInclusiveAndEndIsExclusive() {
+        try (MockedStatic<Instant> ignored = mockTime(InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
+            final RecurringJob recurringJob = aDefaultRecurringJob()
+                    .withCronExpression("* * * * *")
+                    .build();
+
+            final List<Job> jobs = recurringJob.toScheduledJobs(FIXED_INSTANT_RIGHT_AT_THE_HOUR, FIXED_INSTANT_RIGHT_AT_THE_HOUR.plusSeconds(60));
+
+            assertThatJobs(jobs)
+                    .singleElement()
+                    .hasState(SCHEDULED)
+                    .hasScheduledAt(FIXED_INSTANT_RIGHT_AT_THE_HOUR);
+        }
+    }
+
+    @Test
+    void testToScheduledJobsGetsOneJobBetweenFromAndUpFromIsInclusiveAndEndIsExclusiveThreeIntervals() {
+        try (MockedStatic<Instant> ignored = mockTime(InstantMocker.FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR)) {
+            final RecurringJob recurringJob = aDefaultRecurringJob()
+                    .withCronExpression("* * * * *")
+                    .build();
+
+            final List<Job> jobs = recurringJob.toScheduledJobs(FIXED_INSTANT_RIGHT_AT_THE_HOUR, FIXED_INSTANT_RIGHT_AT_THE_HOUR.plusSeconds(130));
+
+            assertThatJobs(jobs)
+                    .hasSize(3)
+                    .satisfies(job -> assertThat(job).hasState(SCHEDULED).hasScheduledAt(FIXED_INSTANT_RIGHT_AT_THE_HOUR), atIndex(0))
+                    .satisfies(job -> assertThat(job).hasState(SCHEDULED).hasScheduledAt(FIXED_INSTANT_RIGHT_AT_THE_HOUR.plusSeconds(60)), atIndex(1))
+                    .satisfies(job -> assertThat(job).hasState(SCHEDULED).hasScheduledAt(FIXED_INSTANT_RIGHT_AT_THE_HOUR.plusSeconds(120)), atIndex(2));
+        }
     }
 
 

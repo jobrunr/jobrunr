@@ -9,6 +9,8 @@ import java.time.ZonedDateTime;
 public class InstantMocker {
 
     public static final Instant FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR = Instant.parse("2022-12-13T13:59:58Z");
+    public static final Instant FIXED_INSTANT_RIGHT_AT_THE_HOUR = Instant.parse("2022-12-13T14:00:00Z");
+    public static final Instant FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR = Instant.parse("2022-12-13T14:00:55.500Z");
     public static final Instant FIXED_INSTANT_RIGHT_BEFORE_THE_MINUTE = Instant.parse("2022-12-14T08:35:55.500Z");
     public static final Instant FIXED_INSTANT_RIGHT_ON_THE_MINUTE = Instant.parse("2022-12-14T08:36:00.005Z");
     public static final Instant FIXED_INSTANT_RIGHT_AFTER_THE_HOUR = Instant.parse("2022-12-13T14:00:15Z");
