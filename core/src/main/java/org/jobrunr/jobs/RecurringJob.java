@@ -106,6 +106,12 @@ public class RecurringJob extends AbstractJob {
 
         List<Job> jobs = new ArrayList<>();
         Instant nextRun = getNextRun(from);
+
+        // add from inclusive
+        if (from.equals(getNextRun(from.minusMillis(1)))) {
+            jobs.add(toJob(getNextState(from, "By recurring job '" + getJobName() + "'")));
+        }
+
         while (nextRun.isBefore(upTo)) {
             jobs.add(toJob(getNextState(nextRun, "By recurring job '" + getJobName() + "'")));
             nextRun = getNextRun(nextRun);

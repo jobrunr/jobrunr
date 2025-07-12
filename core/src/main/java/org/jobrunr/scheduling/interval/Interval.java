@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 
+import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualTo;
+
 public class Interval extends Schedule {
 
     private final Duration duration;
@@ -22,8 +24,8 @@ public class Interval extends Schedule {
 
     @Override
     public Instant next(Instant createdAtInstant, Instant currentInstant, ZoneId zoneId) {
-        if (createdAtInstant.isAfter(currentInstant)) return createdAtInstant;
-        
+        if (isInstantAfterOrEqualTo(createdAtInstant, currentInstant)) return createdAtInstant.plus(duration);
+
         Duration durationUntilNow = Duration.between(createdAtInstant, currentInstant);
         long amountOfDurationsUntilNow = durationUntilNow.toNanos() / duration.toNanos();
         return createdAtInstant.plusNanos(duration.toNanos() * (amountOfDurationsUntilNow + 1));

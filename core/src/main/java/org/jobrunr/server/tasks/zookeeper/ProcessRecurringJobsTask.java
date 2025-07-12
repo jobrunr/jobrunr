@@ -100,9 +100,15 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
     }
 
     private List<Job> createJobsToSchedule(RecurringJob recurringJob, Instant runStartTime, Instant upUntil) {
-        Instant lastRun = recurringJobRuns.getOrDefault(recurringJob.getId(), runStartTime);
-        if (lastRun.isAfter(runStartTime)) return emptyList(); // already scheduled ahead of time
-        return recurringJob.toScheduledJobs(lastRun, upUntil);
+        //Instant lastRun = recurringJobRuns.getOrDefault(recurringJob.getId(), runStartTime);
+        Instant lastRun = recurringJobRuns.get(recurringJob.getId());
+        if (lastRun == null) {
+            return recurringJob.toScheduledJobs(runStartTime, upUntil);
+        } else if (lastRun.isAfter(runStartTime)) {
+            return emptyList(); // already scheduled ahead of time
+        } else {
+            return recurringJob.toScheduledJobs(lastRun.plusMillis(1), upUntil); // as recurringJob.toScheduledJobs from is inclusive
+        }
     }
 
     private boolean hasJobInQueueOrProcessing(Instant latestScheduledAt) {
