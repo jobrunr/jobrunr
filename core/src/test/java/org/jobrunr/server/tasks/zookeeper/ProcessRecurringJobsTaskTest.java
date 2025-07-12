@@ -23,7 +23,6 @@ import java.util.List;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
@@ -165,21 +164,21 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
 
         // WHEN scheduled job instance is processed
         clearStorageProviderInvocationsAndCaptors();
-        ZonedDateTime midnight = zonedDateTime.plusDays(1).truncatedTo(DAYS);
-        try (MockedStaticHolder ignored = mockTime(midnight)) {
+        ZonedDateTime jobRunTime = zonedDateTime.plusDays(1).truncatedTo(DAYS);
+        try (MockedStaticHolder ignored = mockTime(jobRunTime)) {
             runScheduledJobInstanceOfRecurringJob(recurringJob.getId());
         }
 
         // WHEN next run
         clearStorageProviderInvocationsAndCaptors();
-        try (MockedStaticHolder ignored = mockTime(midnight.withSecond(52))) {
+        try (MockedStaticHolder ignored = mockTime(jobRunTime.withSecond(52))) {
             runTask(task);
 
             // THEN recurringJob is scheduled ahead of time again
             assertThatSavedScheduledJobs()
                     .singleElement()
                     .hasState(SCHEDULED)
-                    .hasScheduledAt(midnight.plusDays(1).toInstant())
+                    .hasScheduledAt(jobRunTime.plusDays(1).toInstant())
                     .hasRecurringJobId(recurringJob.getId());
         }
     }
@@ -190,7 +189,7 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
         RecurringJob recurringJob;
         try (MockedStaticHolder ignored = mockTime(zonedDateTime)) {
             // GIVEN
-            recurringJob = aDefaultRecurringJob().withIntervalExpression("PT24H").build();
+            recurringJob = aDefaultRecurringJob().withIntervalExpression("P1D").build();
             storageProvider.saveRecurringJob(recurringJob);
 
             // WHEN
@@ -200,23 +199,27 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
             assertThatSavedScheduledJobs()
                     .singleElement()
                     .hasState(SCHEDULED)
-                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR)
+                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.plus(1, DAYS))
                     .hasRecurringJobId(recurringJob.getId());
+        }
 
-            // job instance is processed immediately in case of interval
+        // WHEN scheduled job instance is processed
+        clearStorageProviderInvocationsAndCaptors();
+        ZonedDateTime jobRunTime = zonedDateTime.plusDays(1);
+        try (MockedStaticHolder ignored = mockTime(jobRunTime)) {
             runScheduledJobInstanceOfRecurringJob(recurringJob.getId());
         }
 
         // WHEN next run
         clearStorageProviderInvocationsAndCaptors();
-        try (MockedStaticHolder ignored = mockTime(zonedDateTime.plusMinutes(1).withSecond(52))) {
+        try (MockedStaticHolder ignored = mockTime(jobRunTime.plusMinutes(1).withSecond(52))) {
             runTask(task);
 
             // THEN recurringJob is scheduled ahead of time
             assertThatSavedScheduledJobs()
                     .singleElement()
                     .hasState(SCHEDULED)
-                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.plus(24, HOURS))
+                    .hasScheduledAt(FIXED_INSTANT_ONE_MINUTE_AFTER_THE_HOUR.plus(2, DAYS))
                     .hasRecurringJobId(recurringJob.getId());
         }
     }
@@ -282,7 +285,6 @@ class ProcessRecurringJobsTaskTest extends AbstractTaskTest {
                     .allMatch(j -> j.getRecurringJobId().orElse("").equals(recurringJob.getId()))
                     .allMatch(j -> j.getState() == SCHEDULED);
         }
-
 
         try (MockedStatic<Instant> ignored = mockTime(FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR.plus(pollInterval()))) {
             clearStorageProviderInvocationsAndCaptors();
