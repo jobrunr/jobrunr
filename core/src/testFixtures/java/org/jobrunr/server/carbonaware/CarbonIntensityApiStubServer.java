@@ -25,8 +25,8 @@ public class CarbonIntensityApiStubServer {
 
     private int port = 10000;
     private List<IntensityMoment> intensityMoments = new ArrayList<>();
-    private static final int CARBON_LOW = 1;
-    private static final int CARBON_HIGH = 5;
+    public static final int CARBON_LOW_INTENSITY = 1;
+    public static final int CARBON_HIGH_INTENSITY = 5;
 
     public CarbonIntensityApiStubServer andCarbonAwareJobProcessingConfig(CarbonAwareJobProcessingConfiguration carbonConfig) {
         Whitebox.setInternalState(carbonConfig, "carbonIntensityApiUrl", getCarbonIntensityForecastApiRootUrl("http://localhost:" + port));
@@ -39,7 +39,7 @@ public class CarbonIntensityApiStubServer {
         private int rank;
 
         private IntensityMoment(int i) {
-            this(Instant.now().plus(i, ChronoUnit.HOURS), CARBON_HIGH);
+            this(Instant.now().plus(i, ChronoUnit.HOURS), CARBON_HIGH_INTENSITY);
         }
 
         private int getHour() {
@@ -86,7 +86,7 @@ public class CarbonIntensityApiStubServer {
 
         for (int i = 0; i < 24; i++) {
             IntensityMoment intensityMoment = new IntensityMoment(i);
-            intensityMoment.rank = intensityMoment.getHour() == hourInLocalTime ? CARBON_LOW : CARBON_HIGH;
+            intensityMoment.rank = intensityMoment.getHour() == hourInLocalTime ? CARBON_LOW_INTENSITY : CARBON_HIGH_INTENSITY;
             intensityMoments.add(intensityMoment);
         }
         return this;
