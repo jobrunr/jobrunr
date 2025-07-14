@@ -6,7 +6,7 @@ import org.jobrunr.tests.server.AbstractSimpleBackgroundJobServer;
 import org.jobrunr.tests.server.SimpleCarbonAwareBackgroundJobServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -38,13 +38,26 @@ public class DashboardCarbonIntensityChartE2ETest extends AbstractPlaywrightE2ET
         server.stop();
     }
 
-    @Test
+    @RepeatedTest(10)
     void carbonIntensityChartIsRenderedInScheduledJobDetail() {
         page.navigate("http://localhost:8000/dashboard/jobs");
         page.waitForLoadState();
         assertThat(scheduledMenuBtn()).containsText("1", new LocatorAssertions.ContainsTextOptions().setTimeout(20_000));
 
         scheduledMenuBtn().click();
+
+        for (int i = 0; i < 3; i++) {
+            System.out.println("--- jobs table count: " + jobTableRows().count());
+            System.out.println("--- scheduled btn content: " + scheduledMenuBtn().innerHTML());
+            page.reload();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        assertThat(jobTableRows()).hasCount(1);
         jobTableRowsClickOnFirstJob();
         title("Job Pending - Ahead of time by recurring job 'carbon aware job every 3h'").click();
 
