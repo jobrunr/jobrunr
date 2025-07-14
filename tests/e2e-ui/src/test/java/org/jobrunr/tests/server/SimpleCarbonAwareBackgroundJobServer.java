@@ -3,7 +3,6 @@ package org.jobrunr.tests.server;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer;
 import org.jobrunr.storage.BackgroundJobServerStatus;
-import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.LocalTime;
@@ -47,7 +46,7 @@ public class SimpleCarbonAwareBackgroundJobServer extends AbstractSimpleBackgrou
 
     @Override
     protected StorageProvider initStorageProvider() {
-        return new InMemoryStorageProvider();
+        throw new UnsupportedOperationException("use withStorageProvider() instead");
     }
 
     public SimpleCarbonAwareBackgroundJobServer andBestIntensityMomentToday(int hour) {

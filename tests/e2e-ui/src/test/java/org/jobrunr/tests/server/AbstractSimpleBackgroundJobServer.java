@@ -21,6 +21,7 @@ public abstract class AbstractSimpleBackgroundJobServer {
     protected boolean paused;
     protected CarbonAwareJobProcessingConfiguration carbonAwareConfig;
     protected UUID id;
+    protected StorageProvider storageProvider;
 
     public AbstractSimpleBackgroundJobServer withId(UUID id) {
         this.id = id;
@@ -57,13 +58,20 @@ public abstract class AbstractSimpleBackgroundJobServer {
         return this;
     }
 
+    public AbstractSimpleBackgroundJobServer withStorageProvider(StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
+        return this;
+    }
+
     public void stop() {
         JobRunr.destroy();
     }
 
     public void start() {
         try {
-            StorageProvider storageProvider = initStorageProvider();
+            if (storageProvider == null) {
+                storageProvider = initStorageProvider();
+            }
 
             JobRunrConfiguration jobRunrConfiguration = JobRunr
                     .configure()
