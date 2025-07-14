@@ -25,6 +25,7 @@ class IntervalTest {
 
     private static final String FIVE_SECONDS = "PT5S";
     private static final String TEN_SECONDS = "PT10S";
+    private static final String TEN_HOURS = "PT10H";
     private static final String FORTY_EIGHT_HOURS = "PT48H";
     private static final String EIGHT_DAYS = "P8D";
 
@@ -32,9 +33,9 @@ class IntervalTest {
     @MethodSource("startInstantDurationAndResultInstant")
     void testInterval(String durationExpression, String baseDateTime, String currentDateTime, String expectedDateTime) {
         try {
-            Instant baseInstant = LocalDateTime.parse(baseDateTime, dateTimeFormatter).toInstant(UTC);
-            Instant currentInstant = LocalDateTime.parse(currentDateTime, dateTimeFormatter).toInstant(UTC);
-            Instant expectedInstant = LocalDateTime.parse(expectedDateTime, dateTimeFormatter).toInstant(UTC);
+            Instant baseInstant = baseDateTime.contains("T") ? Instant.parse(baseDateTime) : LocalDateTime.parse(baseDateTime, dateTimeFormatter).toInstant(UTC);
+            Instant currentInstant = currentDateTime.contains("T") ? Instant.parse(currentDateTime) : LocalDateTime.parse(currentDateTime, dateTimeFormatter).toInstant(UTC);
+            Instant expectedInstant = expectedDateTime.contains("T") ? Instant.parse(expectedDateTime) : LocalDateTime.parse(expectedDateTime, dateTimeFormatter).toInstant(UTC);
 
             Interval interval = new Interval(durationExpression);
             Duration duration = Duration.parse(durationExpression);
@@ -101,68 +102,36 @@ class IntervalTest {
                 .isLessThan(interval2);
     }
 
-    @Test
-    void intervalIsIdempotent1() {
-        Instant now = Instant.parse("2024-11-20T14:34:07.000Z");
-        Instant createdAt = Instant.parse("2024-11-19T04:01:57.000Z");
-
-        Interval interval = new Interval(Duration.ofHours(10));
-
-        Instant nextRun1 = interval.next(createdAt, now, UTC);
-        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-20T20:01:57.000Z"));
-
-        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
-        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
-
-        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
-        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
-        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T10:01:57.000Z"));
-
-        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
-    }
-
-    @Test
-    void intervalIsIdempotent2() {
-        Instant now = Instant.parse("2024-11-20T14:34:07.000Z");
-        Instant createdAt = Instant.parse("2024-11-20T04:01:57.000Z");
-
-        Interval interval = new Interval(Duration.ofHours(10));
-
-        Instant nextRun1 = interval.next(createdAt, now, UTC);
-        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-21T00:01:57.000Z"));
-
-        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
-        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
-
-        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
-        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
-        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T14:01:57.000Z"));
-
-        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
-    }
-
-    @Test
-    void intervalIsIdempotent3() {
-        Instant now = Instant.parse("2024-11-20T14:04:07.000Z");
-        Instant createdAt = Instant.parse("2024-11-20T14:01:57.000Z");
-
-        Interval interval = new Interval(Duration.ofHours(10));
-
-        Instant nextRun1 = interval.next(createdAt, now, UTC);
-        assertThat(nextRun1).isEqualTo(Instant.parse("2024-11-21T00:01:57.000Z"));
-
-        Instant nextRun2 = interval.next(createdAt, nextRun1, UTC);
-        assertThat(nextRun2).isEqualTo(nextRun1.plus(10, HOURS));
-
-        Instant currentInstant = nextRun1.minus(Duration.between(nextRun1, nextRun2)).minusSeconds(5);
-        Instant lastRun = interval.next(createdAt, currentInstant, UTC);
-        assertThat(lastRun).isEqualTo(Instant.parse("2024-11-20T14:01:57.000Z"));
-
-        assertThat(interval.next(createdAt, lastRun, UTC)).isEqualTo(nextRun1);
-    }
-
     static Stream<Arguments> startInstantDurationAndResultInstant() {
+        Instant createdAt1 = Instant.parse("2024-11-19T04:01:57Z");
+        Instant createdAt2 = Instant.parse("2024-11-20T04:01:57Z");
+        Instant createdAt3 = createdAt2.plus(Duration.ofHours(10));
+
         return Stream.of(
+                // TEST IDEMPOTENCY 1
+                arguments(TEN_HOURS, createdAt1.toString(), createdAt1.toString(), createdAt1.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt1.toString(), createdAt1.minusSeconds(5).toString(), createdAt1.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt1.toString(), "2024-11-20T14:34:07Z", "2024-11-20T20:01:57Z"),
+                arguments(TEN_HOURS, createdAt1.toString(), "2024-11-20T20:01:57Z", "2024-11-21T06:01:57Z"),
+                arguments(TEN_HOURS, createdAt1.toString(), "2024-11-20T10:01:52Z", "2024-11-20T10:01:57Z"),
+                arguments(TEN_HOURS, createdAt1.toString(), "2024-11-20T10:01:57Z", "2024-11-20T20:01:57Z"),
+
+                // TEST IDEMPOTENCY 2
+                arguments(TEN_HOURS, createdAt2.toString(), createdAt2.toString(), createdAt2.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt2.toString(), createdAt2.minus(5, HOURS).toString(), createdAt2.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt2.toString(), "2024-11-20T14:34:07Z", "2024-11-21T00:01:57Z"),
+                arguments(TEN_HOURS, createdAt2.toString(), "2024-11-21T00:01:57Z", "2024-11-21T10:01:57Z"),
+                arguments(TEN_HOURS, createdAt2.toString(), "2024-11-20T14:01:52Z", "2024-11-20T14:01:57Z"),
+                arguments(TEN_HOURS, createdAt2.toString(), "2024-11-20T14:01:57Z", "2024-11-21T00:01:57Z"),
+
+                // TEST IDEMPOTENCY 3
+                arguments(TEN_HOURS, createdAt3.toString(), createdAt3.toString(), createdAt3.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt3.toString(), createdAt3.minus(5, HOURS).toString(), createdAt3.plus(10, HOURS).toString()),
+                arguments(TEN_HOURS, createdAt3.toString(), "2024-11-20T14:04:07Z", "2024-11-21T00:01:57Z"),
+                arguments(TEN_HOURS, createdAt3.toString(), "2024-11-21T00:01:57Z", "2024-11-21T10:01:57Z"),
+                arguments(TEN_HOURS, createdAt3.toString(), "2024-11-20T14:01:52Z", "2024-11-21T00:01:57Z"),
+                arguments(TEN_HOURS, createdAt3.toString(), "2024-11-21T00:01:57Z", "2024-11-21T10:01:57Z"),
+
                 arguments(FIVE_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:01", "2019-01-01 00:00:05"),
                 arguments(TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:00:00", "2019-01-01 00:00:10"),
                 arguments(TEN_SECONDS, "2019-01-01 00:00:00", "2019-01-01 00:20:05", "2019-01-01 00:20:10"),
