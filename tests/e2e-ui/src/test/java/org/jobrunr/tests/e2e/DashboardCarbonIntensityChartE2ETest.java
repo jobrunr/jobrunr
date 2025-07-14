@@ -46,6 +46,7 @@ public class DashboardCarbonIntensityChartE2ETest extends AbstractPlaywrightE2ET
 
         scheduledMenuBtn().click();
 
+        page.reload();
         assertThat(jobTableRows()).hasCount(1);
         jobTableRowsClickOnFirstJob();
         title("Job Pending - Ahead of time by recurring job 'carbon aware job every 3h'").click();
