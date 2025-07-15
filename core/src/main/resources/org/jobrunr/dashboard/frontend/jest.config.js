@@ -4,7 +4,7 @@ export default {
     reporters: [
         'default',
         ['jest-html-reporter', {
-            outputPath: '/tmp/reports/jobrunr/jest-report.html',
+            outputPath: '/tmp/reports/core/index-jest.html',
             pageTitle: 'JobRunr Core Dashboard Jest Reports'
         }]
     ],
