@@ -1,4 +1,4 @@
-import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from '../helper-functions';
+import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from './helper-functions.js';
 
 describe('humanFileSize', () => {
     it('returns bytes correctly for small numbers', () => {
