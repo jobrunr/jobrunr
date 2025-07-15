@@ -2,6 +2,7 @@ import {render, screen} from '@testing-library/react'
 import AwaitingStateCarbonIntensityChart from "./awaiting-state-carbon-intensity-chart.js";
 import {jest} from '@jest/globals';
 import CarbonIntensityDataMock from "./__mocks__/carbon-intensity-data-mock.js";
+import {setDateStyle} from "../../utils/date-styles.js";
 
 describe('carbon aware intensity chart', () => {
     let _fetch;
@@ -14,6 +15,10 @@ describe('carbon aware intensity chart', () => {
             })
         );
     }
+
+    beforeEach(() => {
+        setDateStyle("iso8601Style") // ensure we're running this in UTC mode
+    })
 
     afterEach(() => {
         global.fetch = _fetch;
@@ -60,7 +65,7 @@ describe('carbon aware intensity chart', () => {
 
         const time0000 = await screen.findByTitle("Time 00:00 — no data");
         const time0100 = await screen.findByTitle("Time 01:00 — no data");
-        const time0200 = await screen.findByTitle("Time 02:00 — Intensity: 25 (0 = best)");
+        const time0200 = await screen.findByTitle("Time 02:00 — Intensity: 19 (0 = best)");
         expect(time0000).toBeInTheDocument()
         expect(time0100).toBeInTheDocument()
         expect(time0200).toBeInTheDocument()

@@ -13,16 +13,6 @@ export default function CarbonIntensityDataMock() {
         "forecastInterval": 3600,
         "intensityForecast": [
         {
-            "periodStartAt": "2025-07-15T00:00:00Z",
-            "periodEndAt": "2025-07-15T01:00:00Z",
-            "rank": 25
-        },
-        {
-            "periodStartAt": "2025-07-15T01:00:00Z",
-            "periodEndAt": "2025-07-15T02:00:00Z",
-            "rank": 22
-        },
-        {
             "periodStartAt": "2025-07-15T02:00:00Z",
             "periodEndAt": "2025-07-15T03:00:00Z",
             "rank": 19
