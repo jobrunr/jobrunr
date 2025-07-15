@@ -38,13 +38,3 @@ steps:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:
         from_secret: BUILD_CACHE_PASSWORD
-
-  - name: junit-reports
-    image: ghcr.io/rohit-gohri/drone-junit:v0
-    settings:
-      paths: /tmp/reports/**/*.xml
-    when:
-      status: [
-        'success',
-        'failure',
-      ]
