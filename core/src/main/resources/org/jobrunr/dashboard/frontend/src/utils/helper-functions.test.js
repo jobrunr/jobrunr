@@ -1,6 +1,10 @@
-import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from './helper-functions.js';
+import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from './helper-functions';
 
 describe('humanFileSize', () => {
+    it('expect the build to fail', () => {
+        expect(true).toBe(false);
+    });
+
     it('returns bytes correctly for small numbers', () => {
         expect(humanFileSize(500)).toBe('500 B');
         expect(humanFileSize(1023, false)).toBe('1023 B');
