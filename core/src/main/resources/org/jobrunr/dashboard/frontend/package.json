@@ -22,7 +22,7 @@
   "scripts": {
     "start": "rsbuild dev",
     "build": "rsbuild build",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "eject": "react-scripts eject",
     "owasp": "owasp-dependency-check --project \"JobRunr\" -f HTML JSON"
   },
