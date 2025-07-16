@@ -2,20 +2,21 @@
 FROM maven:3.9.4-eclipse-temurin-21 AS maven-dist
 # build stage for Gradle
 FROM gradle:8.14.2-jdk21 AS gradle-dist
-
 # Main build stage
 FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
+
+ARG NODE_VERSION=23.11.0
 
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 RUN source /root/.bashrc
-RUN nvm install 18.17.1
+RUN nvm install $NODE_VERSION
 RUN npm -v
-RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npm /usr/bin/npm
-RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/node /usr/bin/node
-RUN ln -s /root/.nvm/versions/node/v18.17.1/bin/npx /usr/bin/npx
+RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npm /usr/bin/npm
+RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/node /usr/bin/node
+RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npx /usr/bin/npx
 RUN npx playwright@1.52.0 install-deps
 RUN npx playwright@1.52.0 install
 
