@@ -2,8 +2,7 @@ export default {
     testEnvironment: 'jest-environment-jsdom',
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     reporters: [
-        'default',
-         'jest-junit'
+        'default'
     ],
     transform: {
         '^.+\\.(t|j)sx?$': [
