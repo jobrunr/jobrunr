@@ -3,9 +3,8 @@ export default {
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     reporters: [
         'default',
-        ['jest-html-reporter', {
-            outputPath: '/tmp/reports/core/index-jest.html',
-            pageTitle: 'JobRunr Core Dashboard Jest Reports'
+        ['jest-junit', {
+            outputDirectory: '/tmp/reports/core/frontend'
         }]
     ],
     transform: {
