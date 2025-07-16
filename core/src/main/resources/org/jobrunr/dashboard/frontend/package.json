@@ -22,9 +22,12 @@
   "scripts": {
     "start": "rsbuild dev",
     "build": "rsbuild build",
-    "test": "jest",
+    "test": "jest --ci",
     "eject": "react-scripts eject",
     "owasp": "owasp-dependency-check --project \"JobRunr\" -f HTML JSON"
+  },
+  "jest-junit": {
+    "outputDirectory": "/tmp/reports/core/dashboard"
   },
   "eslintConfig": {
     "extends": "react-app"

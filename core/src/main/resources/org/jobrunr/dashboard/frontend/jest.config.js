@@ -2,8 +2,9 @@ export default {
     testEnvironment: 'jest-environment-jsdom',
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     reporters: [
-        'default'
+        'default',
     ],
+    testResultsProcessor: "jest-junit", // doesn't work on CI as reporter, see https://github.com/jest-community/jest-junit
     transform: {
         '^.+\\.(t|j)sx?$': [
             '@swc/jest',
