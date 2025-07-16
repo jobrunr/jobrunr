@@ -3,8 +3,11 @@ export default {
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     reporters: [
         'default',
+        ['jest-junit', {
+            outputDirectory: '/tmp/reports/core/frontend',
+            reportTestSuiteErrors: true
+        }]
     ],
-    testResultsProcessor: "jest-junit", // doesn't work on CI as reporter, see https://github.com/jest-community/jest-junit
     transform: {
         '^.+\\.(t|j)sx?$': [
             '@swc/jest',

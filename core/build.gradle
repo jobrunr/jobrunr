@@ -138,6 +138,7 @@ task npmRunTest() {
     }
 }
 
+npmRunTest.dependsOn npmRunBuild
 test.dependsOn npmRunTest
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
