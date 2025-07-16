@@ -3,7 +3,7 @@ export default {
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     reporters: [
         'default',
-        ['jest-junit']
+         'jest-junit'
     ],
     transform: {
         '^.+\\.(t|j)sx?$': [
