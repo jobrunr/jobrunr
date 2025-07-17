@@ -301,11 +301,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
-        JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this,
-                new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper recurringAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper carbonAwareZooKeeper = new JobZooKeeper(this, new ProcessCarbonAwareAwaitingJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(carbonAwareZooKeeper, delay, configuration.getCarbonAwareJobProcessingPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
     }
