@@ -43,6 +43,10 @@ public class BackgroundJobServerConfigurationReader {
         return configuration.pollInterval;
     }
 
+    public Duration getCarbonAwareJobProcessingPollInterval() {
+        return configuration.carbonAwareJobProcessingPollInterval;
+    }
+
     public Integer getServerTimeoutPollIntervalMultiplicand() {
         return configuration.serverTimeoutPollIntervalMultiplicand;
     }

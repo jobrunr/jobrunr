@@ -257,6 +257,10 @@ public class JobRunrProperties {
          */
         private Integer pollIntervalInSeconds = 15;
         /**
+         * Set the carbonAwareJobProcessingPollIntervalInMinutes for the BackgroundJobServer to see whether pending carbon aware jobs need to be scheduled
+         */
+        private Integer carbonAwareJobProcessingPollIntervalInMinutes = 5;
+        /**
          * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
          */
         private Integer carbonAwaitingJobsRequestSize = 1000;
@@ -350,6 +354,14 @@ public class JobRunrProperties {
 
         public void setPollIntervalInSeconds(Integer pollIntervalInSeconds) {
             this.pollIntervalInSeconds = pollIntervalInSeconds;
+        }
+
+        public Integer getCarbonAwareJobProcessingPollIntervalInMinutes() {
+            return carbonAwareJobProcessingPollIntervalInMinutes;
+        }
+
+        public void setCarbonAwareJobProcessingPollIntervalInMinutes(Integer pollIntervalInMinutes) {
+            this.carbonAwareJobProcessingPollIntervalInMinutes = pollIntervalInMinutes;
         }
 
         public Integer getCarbonAwaitingJobsRequestSize() {

@@ -94,6 +94,7 @@ class JobRunrBackgroundJobServerProducerTest {
         when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
         when(backgroundJobServerRunTimeConfiguration.threadType()).thenReturn(Optional.of(BackgroundJobServerThreadType.PlatformThreads));
         when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
+        when(backgroundJobServerRunTimeConfiguration.getCarbonAwareJobProcessingPollIntervalInMinutes()).thenReturn(Optional.of(15));
         when(backgroundJobServerRunTimeConfiguration.serverTimeoutPollIntervalMultiplicand()).thenReturn(Optional.of(10));
         when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
         when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
@@ -108,6 +109,7 @@ class JobRunrBackgroundJobServerProducerTest {
                 .hasName("test")
                 .hasWorkerCount(25)
                 .hasPollIntervalInSeconds(5)
+                .hasCarbonAwareJobProcessingPollIntervalInMinutes(15)
                 .hasServerTimeoutPollIntervalMultiplicand(10)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
