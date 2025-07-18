@@ -43,6 +43,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private final int pageRequestSize;
     private CarbonIntensityForecast carbonIntensityForecast;
     private Instant nextRefreshTime;
+    private Instant runTaskTime;
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
@@ -52,14 +53,19 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareAwaitingJobsRequestSize();
         this.carbonIntensityForecast = new CarbonIntensityForecast();
         this.nextRefreshTime = now();
+        this.runTaskTime = now();
     }
 
     @Override
     protected void runTask() {
-        updateCarbonIntensityForecastIfNecessary();
-        processManyJobs(this::getCarbonAwareAwaitingJobs,
-                this::moveCarbonAwareJobToNextState,
-                amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
+        if (isInstantBeforeOrEqualTo(runTaskTime, now())) {
+            updateCarbonIntensityForecastIfNecessary();
+            processManyJobs(this::getCarbonAwareAwaitingJobs,
+                    this::moveCarbonAwareJobToNextState,
+                    amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
+
+            runTaskTime = runTaskTime.plus(backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingPollInterval());
+        }
     }
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
