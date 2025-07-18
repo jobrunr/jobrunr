@@ -172,7 +172,7 @@ class BackgroundJobServerTest {
 
         // WHEN we shutdown the server
         backgroundJobServer.stop();
-        assertThat(logger).hasInfoMessageContaining("BackgroundJobServer - stopping (may take about PT10S)", 1);
+        assertThat(logger).hasInfoMessageContaining("stopping (may take about PT10S)", 1);
 
         // THEN no running backgroundjob threads should exist
         await().atMost(TEN_SECONDS)
@@ -412,7 +412,7 @@ class BackgroundJobServerTest {
         backgroundJobServer.start();
 
         await().atMost(10, SECONDS)
-                .untilAsserted(() -> assertThat(logger).hasErrorMessage("JobRunr BackgroundJobServer failed to start"));
+                .untilAsserted(() -> assertThat(logger).hasErrorMessageContaining("failed to start"));
     }
 
     private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {

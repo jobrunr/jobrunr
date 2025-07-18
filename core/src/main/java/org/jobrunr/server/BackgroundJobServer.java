@@ -117,6 +117,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     @Override
+    public String toString() {
+        return String.format("BackgroundJobServer (%s - %s)", configuration.getName(), configuration.getId());
+    }
+
+    @Override
     public void start() {
         start(true);
     }
@@ -139,7 +144,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
             if (isPaused()) return;
             stopWorkers();
-            LOGGER.info("Paused job processing");
+            LOGGER.info("{} Paused job processing", this);
             lifecycleChange.succeeded();
         }
     }
@@ -150,7 +155,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
             if (isProcessing()) return;
             startWorkers();
-            LOGGER.info("Resumed job processing");
+            LOGGER.info("{} Resumed job processing", this);
             lifecycleChange.succeeded();
         }
     }
@@ -160,12 +165,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (isStopping()) return;
         try (LifecycleChangeLock lifecycleChange = lifecycle.goTo(STOP)) {
             if (isStopped()) return;
-            LOGGER.info("BackgroundJobServer - stopping (may take about {})", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
+            LOGGER.info("{} stopping (may take about {})", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
             isMaster = null;
             stopWorkers();
             stopZooKeepers();
             firstHeartbeat = null;
-            LOGGER.info("BackgroundJobServer and BackgroundJobPerformers stopped");
+            LOGGER.info("{} BackgroundJobServer and BackgroundJobPerformers stopped", this);
             lifecycleChange.succeeded();
         }
     }
@@ -210,13 +215,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
         this.isMaster = isMaster;
         if (isMaster != null) {
-            LOGGER.info("JobRunr BackgroundJobServer ({}) using {} and {} BackgroundJobPerformers started successfully", getId(), storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
+            LOGGER.info("JobRunr {} using {} and {} BackgroundJobPerformers started successfully", this, storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if (isMaster) {
                 startJobZooKeepers();
                 runStartupTasks();
             }
         } else {
-            LOGGER.error("JobRunr BackgroundJobServer failed to start");
+            LOGGER.error("JobRunr {} failed to start", this);
         }
     }
 
@@ -323,7 +328,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopWorkers() {
         if (jobExecutor == null) return;
-        LOGGER.info("BackgroundJobPerformers - stopping (waiting at most {} for jobs to finish)", configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
+        LOGGER.info("{} BackgroundJobPerformers stopping (waiting at most {} for jobs to finish)", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         jobExecutor.stop(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         this.jobExecutor = null;
     }

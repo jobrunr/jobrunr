@@ -54,7 +54,7 @@ public class ServerZooKeeper implements Runnable {
                 signalBackgroundJobServerAliveAndDoZooKeeping();
             }
         } catch (Exception shouldNotHappen) {
-            LOGGER.error("An unrecoverable error occurred. Shutting server down...", shouldNotHappen);
+            LOGGER.error("An unrecoverable error occurred. Shutting down {}...", backgroundJobServer, shouldNotHappen);
             if (masterId == null) backgroundJobServer.setIsMaster(null);
             new Thread(this::stopServer).start();
         }
@@ -64,7 +64,7 @@ public class ServerZooKeeper implements Runnable {
         try {
             storageProvider.signalBackgroundJobServerStopped(backgroundJobServer.getServerStatus());
         } catch (Exception e) {
-            LOGGER.error("Error when signalling that BackgroundJobServer stopped", e);
+            LOGGER.error("Error when signalling that {} stopped", backgroundJobServer, e);
         } finally {
             masterId = null;
         }
@@ -84,11 +84,11 @@ public class ServerZooKeeper implements Runnable {
             determineIfCurrentBackgroundJobServerIsMaster();
         } catch (ServerTimedOutException e) {
             if (restartAttempts.getAndIncrement() < 3) {
-                LOGGER.error("SEVERE ERROR - Server timed out while it's still alive. Are all servers using NTP and in the same timezone? Are you having long GC cycles? Restart attempt {} out of 3", restartAttempts);
+                LOGGER.error("SEVERE ERROR - {} timed out while it's still alive. Are all servers using NTP and in the same timezone? Are you having long GC cycles? Restart attempt {} out of 3", backgroundJobServer, restartAttempts, e);
                 new Thread(this::resetServer).start();
             } else {
-                LOGGER.error("FATAL - Server restarted 3 times but still times out by other servers. Shutting down.");
-                new Thread(this::stopServer).start();
+                LOGGER.error("FATAL - {} restarted 3 times but still times out by other servers. Shutting down.", backgroundJobServer, e);
+                new Thread(() -> this.stopServer()).start();
             }
         }
     }
