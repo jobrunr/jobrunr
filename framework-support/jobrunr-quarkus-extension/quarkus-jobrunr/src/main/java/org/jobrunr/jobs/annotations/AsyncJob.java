@@ -1,9 +1,16 @@
 package org.jobrunr.jobs.annotations;
 
-import java.lang.annotation.*;
+import jakarta.interceptor.InterceptorBinding;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
-* Allows scheduling a method to be executed as a background job.
+ * Allows scheduling a method to be executed as a background job.
  *
  * <h5>An example:</h5>
  * <pre>
@@ -15,9 +22,9 @@ import java.lang.annotation.*;
  *         }
  *     }
  * </pre>
- *
-*/
+ */
 
+@InterceptorBinding
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
