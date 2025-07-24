@@ -151,7 +151,7 @@ const CarbonIntensityChart = ({job, jobState}) => {
     if (!scheduledState) return <div/>;
 
     return (
-        <div style={{width: '100%', marginTop: '32px'}}>
+        <div style={{width: '100%', marginTop: '32px'}} className={"carbon-intensity-chart"}>
             <div
                 style={{
                     display: 'grid',
@@ -171,6 +171,7 @@ const CarbonIntensityChart = ({job, jobState}) => {
                         <React.Fragment key={slot}>
                             <div style={{background: inWindow ? 'transparent' : '#E53935'}}/>
                             <div
+                                className={isBest ? "carbon-intensity-chart-block-best" : "carbon-intensity-chart-block"}
                                 style={{
                                     background: color,
                                     opacity: inWindow ? 1 : 0.6,
@@ -181,7 +182,9 @@ const CarbonIntensityChart = ({job, jobState}) => {
                                     height: '100%',
                                     position: 'relative',
                                 }}
-                                title={`Time ${slot} — ${rank !== null ? `Intensity: ${rank} (0 = best)` : 'no data'}`}
+                                title={isBest ?
+                                    `${slot}: Optimal execution window — Intensity: ${rank}` :
+                                    `Time ${slot} — ${rank !== null ? `Intensity: ${rank} (0 = best)` : 'no data'}`}
                             >
                                 {isBest && (
                                     <div
