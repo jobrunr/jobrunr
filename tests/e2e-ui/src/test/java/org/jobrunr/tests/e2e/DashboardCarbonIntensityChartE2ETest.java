@@ -11,14 +11,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 
 import static java.time.Duration.ofSeconds;
 import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
-import static org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer.CARBON_HIGH_INTENSITY;
+import static org.jobrunr.server.carbonaware.CarbonIntensityApiStubServer.CARBON_LOW_INTENSITY;
 import static org.jobrunr.tests.e2e.PlaywrightAssertions.assertThat;
 
 public class DashboardCarbonIntensityChartE2ETest extends AbstractPlaywrightE2ETest {
@@ -62,15 +62,12 @@ public class DashboardCarbonIntensityChartE2ETest extends AbstractPlaywrightE2ET
         assertThat(carbonIntensityChart()).isVisible();
         var optimalTimeInUI = carbonIntensityChart().locator(".carbon-intensity-chart-block-best").getAttribute("title");
 
-        // TODO this is not 100% correct; we expect this:
-        // assertThat(optimalTimeInUI).isEqualTo(optimalTime().format(ofPattern("HH:00")) + ": Optimal execution window — Intensity: " + CARBON_LOW_INTENSITY);
-        // but get this:
-        assertThat(optimalTimeInUI).isEqualTo(optimalTime().plus(1, ChronoUnit.HOURS).format(ofPattern("HH:00")) + ": Optimal execution window — Intensity: " + CARBON_HIGH_INTENSITY);
-        // see GitHub Product Roadmap issue "Improvement to carbon aware recurring job scheduling logic"
+        assertThat(optimalTimeInUI).isEqualTo(optimalTime().format(ofPattern("HH:00")) + ": Optimal execution window — Intensity: " + CARBON_LOW_INTENSITY);
     }
 
     private static LocalTime optimalTime() {
-        return LocalTime.now().plus(2, ChronoUnit.HOURS);
+        // If it's 12:04, [12:00-13:00] will not be considered so add another hour.
+        return LocalTime.now().truncatedTo(HOURS).plus(3, HOURS);
     }
 
 }
