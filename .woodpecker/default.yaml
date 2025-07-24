@@ -38,3 +38,14 @@ steps:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:
         from_secret: BUILD_CACHE_PASSWORD
+
+  - name: junit-reports
+    image: ghcr.io/wgroeneveld/woodpecker-ascii-junit:main
+    settings:
+      log-level: debug
+      path: /tmp/reports/**/*.xml
+    when:
+      status: [
+        'success',
+        'failure',
+      ]

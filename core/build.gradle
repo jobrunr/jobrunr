@@ -129,6 +129,17 @@ task npmRunBuild() {
     }
 }
 
+task npmRunTest() {
+    doLast {
+        exec {
+            workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
+            commandLine 'sh', '-c', 'npm run test'
+        }
+    }
+}
+
+npmRunTest.dependsOn npmRunBuild
+test.dependsOn npmRunTest
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
