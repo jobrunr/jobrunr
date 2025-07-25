@@ -72,6 +72,7 @@ public class JobRunrFactory {
 
         configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingPollIntervalInMinutes().ifPresent(backgroundJobServerConfiguration::andCarbonAwareJobProcessingPollIntervalInMinutes);
         configuration.getBackgroundJobServer().getServerTimeoutPollIntervalMultiplicand().ifPresent(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
         configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
         configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);

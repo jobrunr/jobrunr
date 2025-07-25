@@ -217,15 +217,17 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void backgroundJobServerAutoConfigurationTakesPollIntervalInSecondsAndServerTimeoutPollIntervalMultiplicand() {
+    void backgroundJobServerAutoConfigurationTakesAllBackgroundServerPollIntervals() {
         this.contextRunner
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("jobrunr.background-job-server.poll-interval-in-seconds=5")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing-poll-interval-in-minutes=15")
                 .withPropertyValues("jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasPollIntervalInSeconds(5)
+                            .hasCarbonAwareJobProcessingPollIntervalInMinutes(15)
                             .hasServerTimeoutPollIntervalMultiplicand(10);
                 });
     }

@@ -29,6 +29,11 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
         return this;
     }
 
+    public BackgroundJobServerConfigurationAssert hasCarbonAwareJobProcessingPollIntervalInMinutes(int pollIntervalInMinutes) {
+        Assertions.assertThat(actual.getCarbonAwareJobProcessingPollInterval()).isEqualTo(Duration.ofMinutes(pollIntervalInMinutes));
+        return this;
+    }
+
     public BackgroundJobServerConfigurationAssert hasPollInterval(Duration pollInterval) {
         Assertions.assertThat(actual.getPollInterval()).isEqualTo(pollInterval);
         return this;

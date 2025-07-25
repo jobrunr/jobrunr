@@ -126,11 +126,13 @@ class JobRunrFactoryTest {
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     @Property(name = "jobrunr.background-job-server.poll-interval-in-seconds", value = "5")
+    @Property(name = "jobrunr.background-job-server.carbon-aware-job-processing-poll-interval-in-minutes", value = "15")
     @Property(name = "jobrunr.background-job-server.server-timeout-poll-interval-multiplicand", value = "10")
-    void backgroundJobServerAutoConfigurationTakesIntoPollIntervalAndServerTimeoutPollIntervalMultiplicand() {
+    void backgroundJobServerAutoConfigurationTakesAllPollIntervalPropertiesIntoAccount() {
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
         assertThat(backgroundJobServerConfiguration)
                 .hasPollIntervalInSeconds(5)
+                .hasCarbonAwareJobProcessingPollIntervalInMinutes(15)
                 .hasServerTimeoutPollIntervalMultiplicand(10);
     }
 
