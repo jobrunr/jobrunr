@@ -127,8 +127,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     test {
         finalizedBy jacocoTestReport
-        reports.junitXml.destination = file("/tmp/reports/$project.name")
-        reports.html.destination = file("/tmp/reports/$project.name")
+        reports.junitXml.outputLocation = file("/tmp/reports/$project.name")
+        reports.html.outputLocation = file("/tmp/reports/$project.name")
 
         useJUnitPlatform()
         testLogging {
@@ -154,7 +154,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     jacocoTestReport {
         reports {
             xml.required = true
-            xml.destination = file("/tmp/reports/$project.name/jacocoTestCoverage.xml")
+            xml.outputLocation = file("/tmp/reports/$project.name/jacocoTestCoverage.xml")
             csv.required = false
             html.required = false
         }

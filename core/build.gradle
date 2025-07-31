@@ -146,8 +146,9 @@ processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
 jar {
-    var asmJar = configurations.compileClasspath.fileCollection { it.group == 'org.ow2.asm' && it.name == 'asm' }.singleFile.name
-    var asmVersion = asmJar.substring(asmJar.lastIndexOf("-") + 1).replace(".jar", "")
+    def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
+        it.moduleVersion?.group == 'org.ow2.asm' && it.moduleVersion.name == 'asm'
+    }?.moduleVersion?.version
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'

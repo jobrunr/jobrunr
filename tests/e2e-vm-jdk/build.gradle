@@ -31,8 +31,8 @@ dependencies {
 
 test.dependsOn(':core:publishToMavenLocal')
 test {
-    reports.junitXml.destination = file("/tmp/reports/$project.name")
-    reports.html.destination = file("/tmp/reports/$project.name")
+    reports.junitXml.outputLocation = file("/tmp/reports/$project.name")
+    reports.html.outputLocation = file("/tmp/reports/$project.name")
 
     useJUnitPlatform()
     testLogging {
