@@ -129,7 +129,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
 
         assertThat(title("Failed jobs")).isVisible();
 
-        jobTableRows().first().locator("td a").first().click();
+        jobTableRowsClickOnFirstJob();
         assertThat(jobIdTitle()).isVisible();
 
         assertThat(breadcrumb()).containsText("Failed jobs");
