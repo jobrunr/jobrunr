@@ -63,4 +63,10 @@ public class CarbonAwareJobProcessingConfigurationAssert extends AbstractAssert<
         Assertions.assertThat(actual.getApiClientReadTimeout()).isEqualTo(readTimeout);
         return this;
     }
+
+    public CarbonAwareJobProcessingConfigurationAssert hasPollIntervalInMinutes(int pollIntervalInMinutes) {
+        Assertions.assertThat(actual.getPollInterval()).isEqualTo(Duration.ofMinutes(pollIntervalInMinutes));
+        return this;
+    }
+
 }

@@ -157,11 +157,6 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> pollIntervalInSeconds();
 
         /**
-         * Set the carbonAwareJobProcessingPollIntervalInMinutes for the BackgroundJobServer to process carbon aware jobs
-         */
-        Optional<Integer> getCarbonAwareJobProcessingPollIntervalInMinutes();
-
-        /**
          * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
          */
         Optional<Integer> serverTimeoutPollIntervalMultiplicand();
@@ -253,6 +248,11 @@ public interface JobRunrRuntimeConfiguration {
          * Allows to set the read timeout for the carbon api client
          */
         Optional<Integer> apiClientReadTimeoutMs();
+
+        /**
+         * Set the carbon aware poll interval in minutes for the BackgroundJobServer to process carbon aware jobs
+         */
+        Optional<Integer> pollIntervalInMinutes();
     }
 
 
