@@ -38,6 +38,10 @@ public class CarbonAwareJobProcessingConfigurationReader {
         return "/carbon-intensity/forecast";
     }
 
+    public Duration getPollInterval() {
+        return carbonAwareJobProcessingConfiguration.pollInterval;
+    }
+
     URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
         return new URL(getCarbonIntensityApiBaseUrl() + getCarbonIntensityForecastQueryString());
     }

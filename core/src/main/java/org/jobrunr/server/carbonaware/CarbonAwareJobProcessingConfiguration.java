@@ -1,5 +1,7 @@
 package org.jobrunr.server.carbonaware;
 
+import org.jobrunr.server.BackgroundJobServerConfiguration;
+
 import java.time.Duration;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -13,6 +15,7 @@ public class CarbonAwareJobProcessingConfiguration {
     public static final Duration DEFAULT_API_CLIENT_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static final Duration DEFAULT_API_CLIENT_READ_TIMEOUT = Duration.ofSeconds(3);
     public static final Integer DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION = 3;
+    public static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMinutes(5);
 
     boolean enabled = false;
     String carbonIntensityApiUrl = DEFAULT_CARBON_INTENSITY_API_URL;
@@ -23,6 +26,7 @@ public class CarbonAwareJobProcessingConfiguration {
     Integer apiClientRetriesOnException = DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION;
     Duration apiClientConnectTimeout = DEFAULT_API_CLIENT_CONNECT_TIMEOUT;
     Duration apiClientReadTimeout = DEFAULT_API_CLIENT_READ_TIMEOUT;
+    Duration pollInterval = DEFAULT_POLL_INTERVAL;
 
     private CarbonAwareJobProcessingConfiguration() {
     }
@@ -34,6 +38,29 @@ public class CarbonAwareJobProcessingConfiguration {
      */
     public static CarbonAwareJobProcessingConfiguration usingStandardCarbonAwareJobProcessingConfiguration() {
         return new CarbonAwareJobProcessingConfiguration().andCarbonAwareSchedulingEnabled(true);
+    }
+
+    /**
+     * Allows to set the pollInterval for carbon aware job processing on the BackgroundJobServer
+     * This should typically be in minutes and longer than {@link BackgroundJobServerConfiguration#andPollInterval(Duration)} for tasks because of the nature of carbon aware job procesing.
+     *
+     * @param pollInterval the pollInterval duration
+     * @return the same configuration instance which provides a fluent api
+     */
+    public CarbonAwareJobProcessingConfiguration andPollInterval(Duration pollInterval) {
+        this.pollInterval = pollInterval;
+        return this;
+    }
+
+    /**
+     * Allows to set the pollInterval in minutes for carbon aware job processing on the BackgroundJobServer
+     * This can be a much longer interval than {@code pollInterval} for tasks because of the nature of carbon aware job procesing.
+     *
+     * @param minutes the pollInterval duration in minutes
+     * @return the same configuration instance which provides a fluent api
+     */
+    public CarbonAwareJobProcessingConfiguration andPollIntervalInMinutes(int minutes) {
+        return andPollInterval(Duration.ofMinutes(minutes));
     }
 
     /**

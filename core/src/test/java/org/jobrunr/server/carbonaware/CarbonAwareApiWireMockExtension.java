@@ -26,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.lang.String.format;
+import static java.time.Duration.ofMillis;
 import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
@@ -62,6 +63,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     public CarbonAwareJobProcessingConfiguration getCarbonAwareJobProcessingConfigurationForAreaCode(String areaCode) {
         var config = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andApiClientRetriesOnException(1)
+                .andPollInterval(ofMillis(200))
                 .andAreaCode(areaCode);
         Whitebox.setInternalState(config, "carbonIntensityApiUrl", getCarbonIntensityForecastApiRootUrl(carbonIntensityApiBaseUrl));
         return config;

@@ -94,7 +94,6 @@ class JobRunrBackgroundJobServerProducerTest {
         when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
         when(backgroundJobServerRunTimeConfiguration.threadType()).thenReturn(Optional.of(BackgroundJobServerThreadType.PlatformThreads));
         when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
-        when(backgroundJobServerRunTimeConfiguration.getCarbonAwareJobProcessingPollIntervalInMinutes()).thenReturn(Optional.of(15));
         when(backgroundJobServerRunTimeConfiguration.serverTimeoutPollIntervalMultiplicand()).thenReturn(Optional.of(10));
         when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
         when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
@@ -109,7 +108,6 @@ class JobRunrBackgroundJobServerProducerTest {
                 .hasName("test")
                 .hasWorkerCount(25)
                 .hasPollIntervalInSeconds(5)
-                .hasCarbonAwareJobProcessingPollIntervalInMinutes(15)
                 .hasServerTimeoutPollIntervalMultiplicand(10)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
@@ -141,6 +139,7 @@ class JobRunrBackgroundJobServerProducerTest {
         when(carbonAwareJobProcessingRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
         when(carbonAwareJobProcessingRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
         when(carbonAwareJobProcessingRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
+        when(carbonAwareJobProcessingRunTimeConfiguration.pollIntervalInMinutes()).thenReturn(Optional.of(15));
 
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
         CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
@@ -148,6 +147,7 @@ class JobRunrBackgroundJobServerProducerTest {
         assertThat(carbonAwareJobProcessingConfiguration)
                 .hasAreaCode("DE")
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasPollIntervalInMinutes(15)
                 .hasApiClientReadTimeout(Duration.ofMillis(1000));
     }
 
