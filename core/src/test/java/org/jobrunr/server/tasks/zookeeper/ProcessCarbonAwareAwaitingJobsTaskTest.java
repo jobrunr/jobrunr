@@ -73,9 +73,9 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
     @Test
     void runTaskWithCarbonAwareDisabledSchedulesCarbonAwaitingJobsAtBeginningOfCarbonAwarePeriod() {
         // GIVEN
-        ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareJobProcessingConfiguration());
         ZonedDateTime currentTime = ZonedDateTime.now().truncatedTo(MINUTES);
         try (MockedStaticHolder ignored = mockTime(currentTime)) {
+            ProcessCarbonAwareAwaitingJobsTask task = createProcessCarbonAwareAwaitingJobsTask(usingDisabledCarbonAwareJobProcessingConfiguration());
             Job job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
 
             // WHEN
@@ -115,6 +115,37 @@ class ProcessCarbonAwareAwaitingJobsTaskTest extends AbstractTaskTest {
             assertThatJob(job)
                     .hasStates(AWAITING, SCHEDULED)
                     .hasScheduledAt(now(), "Unexpected problem scheduling the carbon aware job, scheduling at " + Instant.now()); // from is fallback instant
+        }
+    }
+
+    @Test
+    void taskDoesNotScheduleCarbonAwaitingTaskYetIfRunTaskTimeIsInFuture() {
+        // GIVEN
+        ZonedDateTime currentTime = ZonedDateTime.now();
+        Job job;
+        ProcessCarbonAwareAwaitingJobsTask task;
+
+        try (MockedStaticHolder ignored = mockTime(currentTime)) {
+            task = createProcessCarbonAwareAwaitingJobsTask("BE");
+            carbonAwareApiMock.mockDefaultResponseWhenRequestingAreaCode("BE");
+
+            // WHEN it is the first time we run: set to wait for the carbonAwareJobProcessingPollInterval duration
+            runTask(task);
+            job = storageProvider.save(aJob().withCarbonAwareAwaitingState(CarbonAwarePeriod.between(now(), now().plus(6, HOURS))).build());
+
+            // WHEN pollInterval time for this task has not yet passed now
+            runTask(task);
+
+            // THEN
+            assertThatJob(job).hasStates(AWAITING);
+        }
+
+        try (MockedStaticHolder ignored = mockTime(currentTime.plus(POLL_INTERVAL_IN_SECONDS + 1, SECONDS))) {
+            // WHEN pollInterval time for this task has passed
+            runTask(task);
+
+            // THEN
+            assertThatJob(job).hasStates(AWAITING, SCHEDULED);
         }
     }
 

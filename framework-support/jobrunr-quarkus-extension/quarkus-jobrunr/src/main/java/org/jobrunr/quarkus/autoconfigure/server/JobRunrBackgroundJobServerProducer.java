@@ -54,6 +54,7 @@ public class JobRunrBackgroundJobServerProducer {
 
             jobRunrRuntimeConfiguration.backgroundJobServer().name().ifPresent(backgroundJobServerConfiguration::andName);
             jobRunrRuntimeConfiguration.backgroundJobServer().pollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
+            jobRunrRuntimeConfiguration.backgroundJobServer().getCarbonAwareJobProcessingPollIntervalInMinutes().ifPresent(backgroundJobServerConfiguration::andCarbonAwareJobProcessingPollIntervalInMinutes);
             jobRunrRuntimeConfiguration.backgroundJobServer().serverTimeoutPollIntervalMultiplicand().ifPresent(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
             jobRunrRuntimeConfiguration.backgroundJobServer().deleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
             jobRunrRuntimeConfiguration.backgroundJobServer().permanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);

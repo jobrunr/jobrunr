@@ -3,16 +3,30 @@ package org.jobrunr.tests.server;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.configuration.JobRunrConfiguration;
 import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
+import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 
+import java.util.UUID;
+
+import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+
 public abstract class AbstractSimpleBackgroundJobServer {
 
-    private JsonMapper jsonMapper;
-    private boolean paused;
+    protected JsonMapper jsonMapper;
+    protected boolean paused;
+    protected CarbonAwareJobProcessingConfiguration carbonAwareConfig;
+    protected UUID id;
+    protected StorageProvider storageProvider;
+
+    public AbstractSimpleBackgroundJobServer withId(UUID id) {
+        this.id = id;
+        return this;
+    }
 
     public AbstractSimpleBackgroundJobServer withGsonMapper() {
         this.jsonMapper = new GsonJsonMapper();
@@ -29,13 +43,23 @@ public abstract class AbstractSimpleBackgroundJobServer {
         return this;
     }
 
+    public AbstractSimpleBackgroundJobServer withCarbonAwareJobProcessing(CarbonAwareJobProcessingConfiguration config) {
+        this.carbonAwareConfig = config;
+        return this;
+    }
+
     public AbstractSimpleBackgroundJobServer withJsonBMapper() {
         this.jsonMapper = new JsonbJsonMapper();
         return this;
     }
-    
+
     public AbstractSimpleBackgroundJobServer withPaused() {
         this.paused = true;
+        return this;
+    }
+
+    public AbstractSimpleBackgroundJobServer withStorageProvider(StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
         return this;
     }
 
@@ -45,7 +69,9 @@ public abstract class AbstractSimpleBackgroundJobServer {
 
     public void start() {
         try {
-            StorageProvider storageProvider = initStorageProvider();
+            if (storageProvider == null) {
+                storageProvider = initStorageProvider();
+            }
 
             JobRunrConfiguration jobRunrConfiguration = JobRunr
                     .configure()
@@ -53,39 +79,25 @@ public abstract class AbstractSimpleBackgroundJobServer {
                     .useStorageProvider(storageProvider);
             loadDefaultData(storageProvider);
 
+            BackgroundJobServerConfiguration bgServerConfiguration = usingStandardBackgroundJobServerConfiguration();
+            if (id != null) {
+                bgServerConfiguration.andId(id);
+            }
+            if (carbonAwareConfig != null) {
+                bgServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareConfig);
+            }
+
+            jobRunrConfiguration.useBackgroundJobServer(bgServerConfiguration, !paused);
+
             jobRunrConfiguration
-                    .useBackgroundJobServerIf(!paused)
                     .useDashboard()
                     .initialize();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     protected abstract StorageProvider initStorageProvider() throws Exception;
-
-    protected void startBackgroundJobServerInRunningState(JsonMapper jsonMapper) throws Exception {
-        startBackgroundJobServer(jsonMapper, true);
-    }
-
-    protected void startBackgroundJobServerInPausedState(JsonMapper jsonMapper) throws Exception {
-        startBackgroundJobServer(jsonMapper, false);
-    }
-
-    private void startBackgroundJobServer(JsonMapper jsonMapper, boolean startRunning) throws Exception {
-        StorageProvider storageProvider = initStorageProvider();
-
-        JobRunrConfiguration jobRunrConfiguration = JobRunr
-                .configure()
-                .useJsonMapper(jsonMapper)
-                .useStorageProvider(storageProvider);
-        loadDefaultData(storageProvider);
-
-        jobRunrConfiguration
-                .useBackgroundJobServerIf(startRunning)
-                .useDashboard()
-                .initialize();
-    }
 
     protected void loadDefaultData(StorageProvider storageProvider) {
         // hook that can be implemented by subclasses

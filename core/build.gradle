@@ -130,6 +130,9 @@ task npmRunBuild() {
 }
 
 task npmRunTest() {
+    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir('/tmp/reports/core/frontend')
+    outputs.cacheIf { true }
     doLast {
         exec {
             workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
@@ -139,13 +142,13 @@ task npmRunTest() {
 }
 
 npmRunTest.dependsOn npmRunBuild
-test.dependsOn npmRunTest
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
 
 jar {
-    var asmJar = configurations.compileClasspath.fileCollection { it.group == 'org.ow2.asm' && it.name == 'asm' }.singleFile.name
-    var asmVersion = asmJar.substring(asmJar.lastIndexOf("-") + 1).replace(".jar", "")
+    def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
+        it.moduleVersion?.group == 'org.ow2.asm' && it.moduleVersion.name == 'asm'
+    }?.moduleVersion?.version
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'
