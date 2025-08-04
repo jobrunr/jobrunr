@@ -64,7 +64,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
                     this::moveCarbonAwareJobToNextState,
                     amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
 
-            nextRunTaskTime = nextRunTaskTime.plus(backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingPollInterval());
+            nextRunTaskTime = nextRunTaskTime.plus(getCarbonAwareJobProcessingConfiguration(backgroundJobServer).getPollInterval());
         }
     }
 
