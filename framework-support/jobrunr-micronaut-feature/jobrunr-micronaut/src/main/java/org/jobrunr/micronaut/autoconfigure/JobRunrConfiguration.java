@@ -203,7 +203,7 @@ public interface JobRunrConfiguration {
             /**
              * Set the poll interval in minutes for the BackgroundJobServer to process carbon aware jobs
              */
-            Optional<Integer> PollIntervalInMinutes();
+            Optional<Integer> getPollIntervalInMinutes();
         }
     }
 
