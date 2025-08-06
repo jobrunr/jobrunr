@@ -105,7 +105,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     dependencies {
         implementation platform(project(':platform'))
-        implementation 'org.apache.groovy:groovy-json:4.0.27'
+
+        compileOnly 'org.apache.groovy:groovy-json:4.0.27'
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
