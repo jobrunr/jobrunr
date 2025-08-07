@@ -30,7 +30,12 @@ public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAwar
         return bean;
     }
 
-    public Object applyJobEnhancement(Object bean) {
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.jobInterceptor = new JobInterceptor(beanFactory);
+    }
+
+    private Object applyJobEnhancement(Object bean) {
         if (jobInterceptor == null) {
             throw new IllegalStateException("Bean Factory was not set and JobInterceptor could not be created");
         }
@@ -38,11 +43,6 @@ public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAwar
         proxyFactory.setProxyTargetClass(true);
         proxyFactory.addAdvice(jobInterceptor);
         return proxyFactory.getProxy();
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.jobInterceptor = new JobInterceptor(beanFactory);
     }
 
     private static class AsyncJobMethodValidator implements ReflectionUtils.MethodCallback {
