@@ -1,6 +1,8 @@
 package org.jobrunr.quarkus.scheduling;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,8 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 @QuarkusTest
-public class AsyncJobTest {
+@TestProfile(AsyncJobTest.class) // prevents conflict with other tests by starting with a clean context
+public class AsyncJobTest implements QuarkusTestProfile {
 
     @Inject
     AsyncJobTestService asyncJobTestService;
