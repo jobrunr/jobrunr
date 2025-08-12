@@ -9,7 +9,11 @@ import org.jobrunr.jobs.annotations.Job;
 public class AsyncJobTestService {
 
     @Job
-    public void createSomeJob() {
+    public void runSomeJob() {
         System.out.println("async job example");
+    }
+
+    public int classicMethod() {
+        return 2;
     }
 }

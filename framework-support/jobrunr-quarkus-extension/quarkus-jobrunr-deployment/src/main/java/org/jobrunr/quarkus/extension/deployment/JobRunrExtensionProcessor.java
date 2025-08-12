@@ -226,10 +226,10 @@ class JobRunrExtensionProcessor {
         if (isKotlinxSerializationAndJobRunrKotlinSupportPresent()) {
             return JobRunrProducer.JobRunrKotlinxSerializataionJsonMapperProducer.class;
         }
-
         if (capabilities.isPresent(Capability.JACKSON)) {
             return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
-        } else if (capabilities.isPresent(Capability.JSONB)) {
+        }
+        if (capabilities.isPresent(Capability.JSONB)) {
             return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;
         }
         throw new IllegalStateException("Either kotlinx.serialization + jobrunr-kotlin-x-support should be in the classpath or JSON-B/Jackson should be added as a Quarkus extension");

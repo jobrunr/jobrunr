@@ -26,7 +26,7 @@ public class AsyncJobInterceptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncJobInterceptor.class);
 
     @Inject
-    private JobScheduler jobScheduler;
+    JobScheduler jobScheduler;
 
     @AroundInvoke
     public Object intercept(InvocationContext ctx) throws Exception {
