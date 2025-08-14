@@ -2,14 +2,17 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
-import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.storage.Paging;
+import org.jobrunr.micronaut.scheduling.AsyncJobTestService;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.Test;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
+import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
-@MicronautTest
+@MicronautTest(rebuildContext = true)
 public class AsyncJobTest {
 
     @Inject
@@ -17,18 +20,20 @@ public class AsyncJobTest {
 
     @Inject
     private StorageProvider storageProvider;
-    
+
     @Test
-    void JobEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
-        asyncJobTestService.createSomeJob();
+    void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
+        asyncJobTestService.runSomeJob();
 
-        // In case the build takes a bit longer: should be in any of these states.
-        var jobsFromDb = storageProvider.getJobList(StateName.ENQUEUED, Paging.AmountBasedList.ascOnUpdatedAt(10));
-        jobsFromDb.addAll(storageProvider.getJobList(StateName.PROCESSING, Paging.AmountBasedList.ascOnUpdatedAt(10)));
-        jobsFromDb.addAll(storageProvider.getJobList(StateName.SUCCEEDED, Paging.AmountBasedList.ascOnUpdatedAt(10)));
-
-        assertThat(jobsFromDb).hasSizeGreaterThan(0);
-        assertThat(jobsFromDb.get(0)).hasJobDetails(AsyncJobTestService.class, "createSomeJob");
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) > 0);
+        assertThat(storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(10)).get(0))
+                .hasJobDetails(AsyncJobTestService.class, "runSomeJob");
     }
 
+    @Test
+    void methodIsNormallyInvokedWhenNotAnnotationWithJob() {
+        int res = asyncJobTestService.classicMethod();
+
+        assertThat(res).isEqualTo(2);
+    }
 }
