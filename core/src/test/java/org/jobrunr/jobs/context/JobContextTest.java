@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.context;
 
+import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -8,6 +9,7 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.utils.SleepUtils.sleep;
 
@@ -62,6 +65,30 @@ public class JobContextTest {
 
         assertThat((String) jobContext.getMetadata("my-key")).isEqualTo("my-string");
         assertThat((String) jobContext.getMetadata("only-once-key")).isEqualTo("my-only-once-string");
+    }
+
+    @Test
+    void jobContextNbrOfRetries() {
+        final Job job = aFailedJobWithRetries(2) // 0 based
+                .withEnqueuedState(Instant.now())
+                .withProcessingState()
+                .build();
+
+        JobContext jobContext = new JobContext(job);
+
+        Assertions.assertThat(jobContext.currentRetry()).isEqualTo(3);
+    }
+
+    @Test
+    void jobContextAmountOfFailures() {
+        final Job job = aFailedJobWithRetries(2) // 0 based
+                .withEnqueuedState(Instant.now())
+                .withProcessingState()
+                .build();
+
+        JobContext jobContext = new JobContext(job);
+
+        Assertions.assertThat(jobContext.amountOfFailures()).isEqualTo(3);
     }
 
     @Test

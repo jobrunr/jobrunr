@@ -2,6 +2,7 @@ package org.jobrunr.jobs.context;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
+import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingRunnable;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingSupplier;
@@ -83,6 +84,14 @@ public class JobContext {
 
     public String getJobSignature() {
         return job.getJobSignature();
+    }
+
+    public int currentRetry() {
+        return amountOfFailures();
+    }
+
+    public int amountOfFailures() {
+        return (int) job.getJobStatesOfType(FailedState.class).count();
     }
 
     public JobDashboardLogger logger() {
