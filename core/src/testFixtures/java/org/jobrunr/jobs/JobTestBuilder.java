@@ -165,18 +165,23 @@ public class JobTestBuilder {
     }
 
     public static JobTestBuilder aFailedJobWithRetries() {
+        return aFailedJobWithRetries(10);
+    }
+
+    public static JobTestBuilder aFailedJobWithRetries(int amount) {
         final JobTestBuilder jobTestBuilder = aJob()
                 .withName("failed job")
                 .withJobDetails(systemOutPrintLnJobDetails("a test"))
-                .withState(new ScheduledState(now().minusSeconds(11 * 60 * 60)));
+                .withScheduledState(now().minusSeconds(11 * 60 * 60));
 
-        UUID serverId = UUID.randomUUID();
-        for (int i = 0; i < 11; i++) {
-            jobTestBuilder.withState(new EnqueuedState());
-            jobTestBuilder.withState(new ProcessingState(serverId, DEFAULT_SERVER_NAME));
-            jobTestBuilder.withState(new FailedState("An exception occurred", new IllegalStateException()));
-            if (i < 10) {
-                jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60), "Retry attempt " + (i + 1) + " of " + 10));
+        for (int i = 0; i <= amount; i++) {
+            jobTestBuilder
+                    .withEnqueuedState()
+                    .withProcessingState()
+                    .withFailedState("An exception occurred", new IllegalStateException());
+
+            if (i < amount) {
+                jobTestBuilder.withState(new ScheduledState(now().minusSeconds((10 - i) * 60 * 60L), "Retry attempt " + (i + 1) + " of " + 10));
             }
         }
 
@@ -263,6 +268,11 @@ public class JobTestBuilder {
         return this;
     }
 
+    public JobTestBuilder withEnqueuedState() {
+        withState(new EnqueuedState());
+        return this;
+    }
+
     public JobTestBuilder withEnqueuedState(Instant createdAt) {
         withState(new EnqueuedState(), createdAt);
         return this;
@@ -277,7 +287,11 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withScheduledState() {
-        return withState(new ScheduledState(now().minusSeconds(10)));
+        return withScheduledState(now().minusSeconds(10));
+    }
+
+    public JobTestBuilder withScheduledState(Instant instant) {
+        return withState(new ScheduledState(instant));
     }
 
     public JobTestBuilder withProcessingState() {
@@ -301,7 +315,15 @@ public class JobTestBuilder {
     }
 
     public JobTestBuilder withFailedState() {
-        return withState(new FailedState("Exception", new Exception()));
+        return withFailedState("Exception");
+    }
+
+    public JobTestBuilder withFailedState(String message) {
+        return withFailedState(message, new Exception());
+    }
+
+    public JobTestBuilder withFailedState(String message, Exception exception) {
+        return withState(new FailedState(message, exception));
     }
 
     public JobTestBuilder withDeletedState() {
