@@ -17,7 +17,7 @@ public class AsyncJobTestServiceWithNestedJobService {
         this.asyncJobTestService = asyncJobTestService;
     }
 
-    @Job(name = "my async spring job with nested jobs")
+    @Job(name = "my async job with nested jobs")
     public void testMethodThatCreatesOtherJobsAsAsyncJob() {
         LOGGER.info("Running AsyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob in a job. It will create another job.");
         asyncJobTestService.testMethodAsAsyncJob();
