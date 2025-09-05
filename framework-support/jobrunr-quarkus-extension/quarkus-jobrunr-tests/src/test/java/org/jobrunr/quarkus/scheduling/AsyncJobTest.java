@@ -19,17 +19,25 @@ public class AsyncJobTest implements QuarkusTestProfile {
 
     @Inject
     AsyncJobTestService asyncJobTestService;
+    @Inject
+    AsyncJobTestServiceWithNestedJobService asyncJobTestServiceWithNestedJobService;
 
     @Inject
     StorageProvider storageProvider;
 
     @Test
     void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
-        asyncJobTestService.runSomeJob();
+        asyncJobTestService.testMethodAsAsyncJob();
 
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) > 0);
         assertThat(storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(10)).get(0))
-                .hasJobDetails(AsyncJobTestService.class, "runSomeJob");
+                .hasJobDetails(AsyncJobTestService.class, "testMethodAsAsyncJob");
+    }
+
+    @Test
+    void testNestedAsyncJob() {
+        asyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob();
+        await().atMost(30, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
     }
 
     @Test

@@ -34,9 +34,6 @@ public class AsyncJobInterceptor {
         var method = ctx.getMethod();
 
         if (!method.isAnnotationPresent(Job.class) || isRunningActualJob(jobDetails)) return ctx.proceed();
-        if (!method.getReturnType().equals(Void.TYPE)) {
-            throw new IllegalArgumentException("An @AsyncJob cannot have a return value. " + method + " is defined as an @AsyncJob but has a return value.");
-        }
 
         LOGGER.info("Enqueuing job via @AsyncJob {}", getJobSignature(jobDetails));
         jobScheduler.enqueue(null, jobDetails);

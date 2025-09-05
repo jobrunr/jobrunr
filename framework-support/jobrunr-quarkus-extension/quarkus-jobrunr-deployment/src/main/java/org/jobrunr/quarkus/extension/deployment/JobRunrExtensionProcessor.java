@@ -42,6 +42,7 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderP
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
 import org.jobrunr.scheduling.AsyncJobInterceptor;
+import org.jobrunr.scheduling.AsyncJobValidationRecorder;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
@@ -75,6 +76,12 @@ class JobRunrExtensionProcessor {
     @BuildStep
     AdditionalBeanBuildItem asyncJobInterceptor() {
         return AdditionalBeanBuildItem.unremovableOf(AsyncJobInterceptor.class);
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void validateAsyncJobAnnotations(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, AsyncJobValidationRecorder recorder) throws NoSuchMethodException {
+        new AsyncJobPostProcessor(recorderContext, index, beanContainer, recorder).validate();
     }
 
     @BuildStep
