@@ -575,6 +575,11 @@ public class JobRunrProperties {
         @DurationUnit(MILLIS)
         Duration apiClientReadTimeout;
 
+        /**
+         * Set the carbonAwareJobProcessingPollIntervalInMinutes for the BackgroundJobServer to see whether pending carbon aware jobs need to be scheduled
+         */
+        Integer pollIntervalInMinutes = 5;
+
         public boolean isEnabled() {
             return enabled;
         }
@@ -629,6 +634,14 @@ public class JobRunrProperties {
 
         public void setApiClientReadTimeout(Duration apiClientReadTimeout) {
             this.apiClientReadTimeout = apiClientReadTimeout;
+        }
+
+        public Integer getPollIntervalInMinutes() {
+            return pollIntervalInMinutes;
+        }
+
+        public void setPollIntervalInMinutes(Integer pollIntervalInMinutes) {
+            this.pollIntervalInMinutes = pollIntervalInMinutes;
         }
 
     }

@@ -17,7 +17,7 @@ public class RecurringAnnotationMapper implements TypedAnnotationMapper<Recurrin
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Recurring> annotation, VisitorContext visitorContext) {
-        visitorContext.warn("mapping annotation: " + annotation, null);
+        visitorContext.warn("Mapping annotation: " + annotation, null);
         AnnotationValue<Executable> executable = AnnotationValue.builder(Executable.class)
                 .member("processOnStartup", true)
                 .build();

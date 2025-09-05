@@ -16,7 +16,7 @@ import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aDefaultB
 
 public class SimpleBackgroundJobServer extends AbstractSimpleBackgroundJobServer {
     @Override
-    protected StorageProvider initStorageProvider() throws Exception {
+    protected StorageProvider initStorageProvider() {
         return new InMemoryStorageProvider();
     }
 

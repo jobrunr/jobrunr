@@ -71,7 +71,8 @@ public abstract class AbstractTaskTest {
 
     protected void setUpTaskDependencies(StorageProvider storageProvider) {
         logAllStateChangesFilter = new LogAllStateChangesFilter();
-        BackgroundJobServerConfiguration configuration = usingStandardBackgroundJobServerConfiguration().andPollIntervalInSeconds(POLL_INTERVAL_IN_SECONDS);
+        BackgroundJobServerConfiguration configuration = usingStandardBackgroundJobServerConfiguration()
+                .andPollIntervalInSeconds(POLL_INTERVAL_IN_SECONDS);
         setUpBackgroundJobServerConfiguration(configuration);
         backgroundJobServer = createBackgroundJobServerSpy(storageProvider, configuration);
         backgroundJobServer.setJobFilters(List.of(logAllStateChangesFilter));

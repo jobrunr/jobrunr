@@ -199,6 +199,11 @@ public interface JobRunrConfiguration {
             Optional<Integer> getApiClientConnectTimeoutMs();
 
             Optional<Integer> getApiClientReadTimeoutMs();
+
+            /**
+             * Set the poll interval in minutes for the BackgroundJobServer to process carbon aware jobs
+             */
+            Optional<Integer> getPollIntervalInMinutes();
         }
     }
 

@@ -248,6 +248,11 @@ public interface JobRunrRuntimeConfiguration {
          * Allows to set the read timeout for the carbon api client
          */
         Optional<Integer> apiClientReadTimeoutMs();
+
+        /**
+         * Set the carbon aware poll interval in minutes for the BackgroundJobServer to process carbon aware jobs
+         */
+        Optional<Integer> pollIntervalInMinutes();
     }
 
 

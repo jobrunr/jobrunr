@@ -89,6 +89,7 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getExternalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getApiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getApiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+        configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getPollIntervalInMinutes().ifPresent(carbonAwareJobProcessingConfiguration::andPollIntervalInMinutes);
         backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
         return backgroundJobServerConfiguration;
     }

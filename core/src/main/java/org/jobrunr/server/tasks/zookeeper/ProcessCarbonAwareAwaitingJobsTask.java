@@ -43,6 +43,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private final int pageRequestSize;
     private CarbonIntensityForecast carbonIntensityForecast;
     private Instant nextRefreshTime;
+    private Instant nextRunTaskTime;
 
     public ProcessCarbonAwareAwaitingJobsTask(BackgroundJobServer backgroundJobServer) {
         super(backgroundJobServer);
@@ -52,14 +53,19 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
         this.pageRequestSize = backgroundJobServer.getConfiguration().getCarbonAwareAwaitingJobsRequestSize();
         this.carbonIntensityForecast = new CarbonIntensityForecast();
         this.nextRefreshTime = now();
+        this.nextRunTaskTime = now();
     }
 
     @Override
     protected void runTask() {
-        updateCarbonIntensityForecastIfNecessary();
-        processManyJobs(this::getCarbonAwareAwaitingJobs,
-                this::moveCarbonAwareJobToNextState,
-                amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
+        if (isInstantBeforeOrEqualTo(nextRunTaskTime, runStartTime())) {
+            updateCarbonIntensityForecastIfNecessary();
+            processManyJobs(this::getCarbonAwareAwaitingJobs,
+                    this::moveCarbonAwareJobToNextState,
+                    amountProcessed -> LOGGER.debug("Moved {} carbon aware jobs to next state", amountProcessed));
+
+            nextRunTaskTime = nextRunTaskTime.plus(getCarbonAwareJobProcessingConfiguration(backgroundJobServer).getPollInterval());
+        }
     }
 
     private List<Job> getCarbonAwareAwaitingJobs(List<Job> previousResults) {
@@ -74,7 +80,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     private void updateCarbonIntensityForecastIfNecessary() {
         if (isCarbonAwareJobProcessingDisabled()) return;
 
-        if (isInstantBeforeOrEqualTo(nextRefreshTime, now())) {
+        if (isInstantBeforeOrEqualTo(nextRefreshTime, runStartTime())) {
             LOGGER.trace("Updating carbon intensity forecast.");
             updateCarbonIntensityForecast();
             updateNextRefreshTime();
