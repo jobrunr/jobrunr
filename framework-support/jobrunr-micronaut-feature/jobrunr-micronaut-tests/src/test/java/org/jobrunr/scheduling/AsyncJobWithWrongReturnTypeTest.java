@@ -18,7 +18,7 @@ public class AsyncJobWithWrongReturnTypeTest {
                 context.getBean(AsyncJobTestServiceWithWrongReturnType.class);
             })
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("An @AsyncJob cannot have a return value. int testMethodAsAsyncJob() is defined as an @AsyncJob but has a return value.");
+                    .hasMessage("An @AsyncJob cannot have a return value. int testMethodAsAsyncJobWithSomeReturnType() is defined as an @AsyncJob but has a return value.");
         }
     }
 }
