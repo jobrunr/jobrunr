@@ -4,7 +4,9 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -23,7 +25,12 @@ public class AsyncJobTest implements QuarkusTestProfile {
     AsyncJobTestServiceWithNestedJobService asyncJobTestServiceWithNestedJobService;
 
     @Inject
-    StorageProvider storageProvider;
+    private StorageProvider storageProvider;
+
+    @BeforeEach
+    void setUp() {
+        ((InMemoryStorageProvider) this.storageProvider).clear();
+    }
 
     @Test
     void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
@@ -42,8 +49,6 @@ public class AsyncJobTest implements QuarkusTestProfile {
 
     @Test
     void methodIsNormallyInvokedWhenNotAnnotationWithJob() {
-        int res = asyncJobTestService.classicMethod();
-
-        assertThat(res).isEqualTo(2);
+        assertThat(asyncJobTestService.classicMethod()).isEqualTo(2);
     }
 }
