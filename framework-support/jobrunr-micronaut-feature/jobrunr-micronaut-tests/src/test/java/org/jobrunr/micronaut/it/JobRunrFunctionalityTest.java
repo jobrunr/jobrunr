@@ -13,7 +13,7 @@ import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.StringUtils.substringAfter;
 
-@MicronautTest
+@MicronautTest(rebuildContext = true)
 public class JobRunrFunctionalityTest {
 
     TeenyHttpClient restApi;

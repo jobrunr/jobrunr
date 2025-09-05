@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.lang.reflect.InvocationTargetException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -57,13 +56,6 @@ class AsyncJobInterceptorTest {
 
         verify(invocationContext, times(1)).proceed();
         verify(jobScheduler, times(0)).enqueue(Mockito.isNull(), Mockito.any(JobDetails.class));
-    }
-
-    @Test
-    void interceptThrowsIllegalArgumentIfMethodIsNotVoid() throws Exception {
-        var invocationContext = invocationContextMockFor("someMethodThatIsNotVoid");
-        assertThatCode(() -> interceptor.intercept(invocationContext)).isInstanceOf(IllegalArgumentException.class);
-        verify(invocationContext, times(0)).proceed();
     }
 
     @Test

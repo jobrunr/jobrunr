@@ -2,9 +2,13 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.micronaut.scheduling.AsyncJobTestService;
+import org.jobrunr.micronaut.scheduling.AsyncJobTestServiceWithNestedJobService;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -17,23 +21,31 @@ public class AsyncJobTest {
 
     @Inject
     private AsyncJobTestService asyncJobTestService;
+    @Inject
+    private AsyncJobTestServiceWithNestedJobService asyncJobTestServiceWithNestedJobService;
 
     @Inject
     private StorageProvider storageProvider;
 
     @Test
-    void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
-        asyncJobTestService.runSomeJob();
+    void testAsyncJob() {
+        asyncJobTestService.testMethodAsAsyncJob();
 
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) > 0);
         assertThat(storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(10)).get(0))
-                .hasJobDetails(AsyncJobTestService.class, "runSomeJob");
+                .hasJobDetails(AsyncJobTestService.class, "testMethodAsAsyncJob");
     }
 
     @Test
-    void methodIsNormallyInvokedWhenNotAnnotationWithJob() {
-        int res = asyncJobTestService.classicMethod();
+    public void testNestedAsyncJob() {
+        asyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
+    }
 
-        assertThat(res).isEqualTo(2);
+    @Test
+    void testMethodIsNormallyInvokedWhenNotAnnotationWithJob() {
+        var result = asyncJobTestService.classicMethod();
+        assertThat(result).isEqualTo(2);
     }
 }
+

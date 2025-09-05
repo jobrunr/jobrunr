@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 
 @SpringBootTest(classes = {JobRunrAutoConfiguration.class, AsyncJobTest.AsyncJobTestContextConfiguration.class})
 public class AsyncJobTest {
@@ -50,13 +51,22 @@ public class AsyncJobTest {
         await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
     }
 
-
+    @Test
+    void testMethodIsNormallyInvokedWhenNotAnnotationWithJob() {
+        var result = asyncJobTestService.classicMethod();
+        assertThat(result).isEqualTo(2);
+    }
+    
     @AsyncJob
     public static class AsyncJobTestService {
 
         @Job(name = "my async spring job")
         public void testMethodAsAsyncJob() {
             LOGGER.info("Running AsyncJobService.testMethodAsAsyncJob in a job");
+        }
+
+        public int classicMethod() {
+            return 2;
         }
     }
 
