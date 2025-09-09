@@ -2,8 +2,11 @@ package org.jobrunr.scheduling;
 
 import io.quarkus.runtime.annotations.Recorder;
 
-// why: Quarkus expects to inject a method parameter whose type is annoated with @Recorder for @Record build steps
-// Logic is implemented in AsyncJobPostProcessor
 @Recorder
 public class AsyncJobValidationRecorder {
+    public void validate(boolean hasAsyncJobAnnotation, boolean hasVoidAsReturnType, String methodName) {
+        if (hasAsyncJobAnnotation && !hasVoidAsReturnType) {
+            throw new IllegalArgumentException("An @AsyncJob cannot have a return value. " + methodName + " is defined as an @AsyncJob but has a return value.");
+        }
+    }
 }

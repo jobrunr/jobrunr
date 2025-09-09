@@ -80,8 +80,8 @@ class JobRunrExtensionProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    void validateAsyncJobAnnotations(RecorderContext recorderContext, CombinedIndexBuildItem index, BeanContainerBuildItem beanContainer, AsyncJobValidationRecorder recorder) throws NoSuchMethodException {
-        new AsyncJobPostProcessor(recorderContext, index, beanContainer, recorder).validate();
+    void validateAsyncJobAnnotations(RecorderContext recorderContext, CombinedIndexBuildItem index, AsyncJobValidationRecorder recorder) {
+        new AsyncJobPostProcessor(recorderContext, index, recorder).validate();
     }
 
     @BuildStep

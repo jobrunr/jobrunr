@@ -1,6 +1,5 @@
 package org.jobrunr.quarkus.extension.deployment;
 
-import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.recording.RecorderContext;
 import org.jboss.jandex.AnnotationInstance;
@@ -11,6 +10,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
 import org.jobrunr.jobs.annotations.AsyncJob;
+import org.jobrunr.scheduling.AsyncJobValidationRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,8 +32,6 @@ class AsyncJobPostProcessorTest {
     @Mock
     CombinedIndexBuildItem combinedIndexBuildItem;
     @Mock
-    BeanContainerBuildItem beanContainerBuildItem;
-    @Mock
     IndexView indexView;
 
     AsyncJobPostProcessor postProcessor;
@@ -41,7 +39,7 @@ class AsyncJobPostProcessorTest {
     @BeforeEach
     public void setup() {
         when(combinedIndexBuildItem.getIndex()).thenReturn(indexView);
-        this.postProcessor = new AsyncJobPostProcessor(recorderContext, combinedIndexBuildItem, beanContainerBuildItem, null);
+        this.postProcessor = new AsyncJobPostProcessor(recorderContext, combinedIndexBuildItem, new AsyncJobValidationRecorder());
     }
 
     @Test

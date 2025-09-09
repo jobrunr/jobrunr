@@ -23,7 +23,6 @@ public class AsyncJobTest implements QuarkusTestProfile {
     AsyncJobTestService asyncJobTestService;
     @Inject
     AsyncJobTestServiceWithNestedJobService asyncJobTestServiceWithNestedJobService;
-
     @Inject
     private StorageProvider storageProvider;
 
