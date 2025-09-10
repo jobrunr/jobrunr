@@ -169,6 +169,7 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.area-code=FR")
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout=500")
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout=300")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.poll-interval-in-minutes=15")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
                     CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
@@ -176,6 +177,7 @@ public class JobRunrAutoConfigurationTest {
                             .hasEnabled(true)
                             .hasApiClientConnectTimeout(Duration.ofMillis(500))
                             .hasApiClientReadTimeout(Duration.ofMillis(300))
+                            .hasPollIntervalInMinutes(15)
                             .hasAreaCode("FR");
                 });
     }
@@ -221,13 +223,11 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("jobrunr.background-job-server.poll-interval-in-seconds=5")
-                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing-poll-interval-in-minutes=15")
                 .withPropertyValues("jobrunr.background-job-server.server-timeout-poll-interval-multiplicand=10")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context.getBean(BackgroundJobServerConfiguration.class))
                             .hasPollIntervalInSeconds(5)
-                            .hasCarbonAwareJobProcessingPollIntervalInMinutes(15)
                             .hasServerTimeoutPollIntervalMultiplicand(10);
                 });
     }
