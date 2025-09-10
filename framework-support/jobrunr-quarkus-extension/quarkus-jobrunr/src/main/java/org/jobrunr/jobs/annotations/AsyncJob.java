@@ -1,5 +1,7 @@
 package org.jobrunr.jobs.annotations;
 
+import jakarta.interceptor.InterceptorBinding;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -22,6 +24,7 @@ import java.lang.annotation.Target;
  * </pre>
  */
 
+@InterceptorBinding
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
