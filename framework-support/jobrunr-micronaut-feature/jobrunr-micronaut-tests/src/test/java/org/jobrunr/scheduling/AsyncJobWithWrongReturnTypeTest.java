@@ -2,7 +2,6 @@ package org.jobrunr.scheduling;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.PropertySource;
-import org.jobrunr.micronaut.scheduling.AsyncJobTestServiceWithWrongReturnType;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

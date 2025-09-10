@@ -3,8 +3,6 @@ package org.jobrunr.scheduling;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.jobrunr.jobs.states.StateName;
-import org.jobrunr.micronaut.scheduling.AsyncJobTestService;
-import org.jobrunr.micronaut.scheduling.AsyncJobTestServiceWithNestedJobService;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.Test;
 
@@ -28,23 +26,30 @@ public class AsyncJobTest {
     private StorageProvider storageProvider;
 
     @Test
-    void testAsyncJob() {
-        asyncJobTestService.testMethodAsAsyncJob();
+    void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
+        asyncJobTestService.runAsyncJob();
 
-        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) > 0);
+        await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
         assertThat(storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(10)).get(0))
-                .hasJobDetails(AsyncJobTestService.class, "testMethodAsAsyncJob");
+                .hasJobDetails(AsyncJobTestService.class, "runAsyncJob");
     }
 
     @Test
-    public void testNestedAsyncJob() {
-        asyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob();
+    public void onlyOneJobIsEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromSameService() {
+        asyncJobTestService.runAsyncJobThatCallsAnAsyncJobFromSameService();
+        // why 2: since micronaut supports self-interception
         await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
     }
 
     @Test
-    void testMethodIsNormallyInvokedWhenNotAnnotationWithJob() {
-        var result = asyncJobTestService.classicMethod();
+    public void jobsAreEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromDifferentService() {
+        asyncJobTestServiceWithNestedJobService.runAsyncJobThatCallsAnAsyncJobFromDifferentService();
+        await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
+    }
+
+    @Test
+    void methodIsNormallyInvokedWhenNotAnnotatedWithJob() {
+        var result = asyncJobTestService.runNonAsyncJob();
         assertThat(result).isEqualTo(2);
     }
 }
