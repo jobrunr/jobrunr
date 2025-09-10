@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
 public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
     private final AsyncJobMethodValidator asyncJobMethodValidator;
-    private JobInterceptor jobInterceptor;
+    private AsyncJobInterceptor asyncJobInterceptor;
 
     public AsyncJobPostProcessor() {
         this.asyncJobMethodValidator = new AsyncJobMethodValidator();
@@ -32,18 +32,19 @@ public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAwar
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.jobInterceptor = new JobInterceptor(beanFactory);
+        this.asyncJobInterceptor = new AsyncJobInterceptor(beanFactory);
     }
-
-    private Object applyJobEnhancement(Object bean) {
-        if (jobInterceptor == null) {
-            throw new IllegalStateException("Bean Factory was not set and JobInterceptor could not be created");
+    
+    public Object applyJobEnhancement(Object bean) {
+        if (asyncJobInterceptor == null) {
+            throw new IllegalStateException("Bean Factory was not set and AsyncJobInterceptor could not be created");
         }
         ProxyFactory proxyFactory = new ProxyFactory(bean);
         proxyFactory.setProxyTargetClass(true);
-        proxyFactory.addAdvice(jobInterceptor);
+        proxyFactory.addAdvice(asyncJobInterceptor);
         return proxyFactory.getProxy();
     }
+
 
     private static class AsyncJobMethodValidator implements ReflectionUtils.MethodCallback {
 

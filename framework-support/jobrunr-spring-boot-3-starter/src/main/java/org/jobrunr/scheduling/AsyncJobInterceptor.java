@@ -18,13 +18,13 @@ import java.util.stream.Stream;
 
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 
-public class JobInterceptor implements MethodInterceptor {
+public class AsyncJobInterceptor implements MethodInterceptor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobInterceptor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncJobInterceptor.class);
 
     private final BeanFactory beanFactory;
 
-    public JobInterceptor(BeanFactory beanFactory) {
+    public AsyncJobInterceptor(BeanFactory beanFactory) {
         this.beanFactory = beanFactory;
     }
 
