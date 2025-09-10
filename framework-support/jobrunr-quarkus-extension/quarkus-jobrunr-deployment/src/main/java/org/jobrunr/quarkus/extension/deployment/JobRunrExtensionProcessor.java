@@ -3,6 +3,7 @@ package org.jobrunr.quarkus.extension.deployment;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
+import io.quarkus.arc.deployment.ValidationPhaseBuildItem.ValidationErrorBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -41,8 +42,8 @@ import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProvide
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrSqlStorageProviderProducer;
+import org.jobrunr.quarkus.extension.deployment.AsyncJobValidator.IllegalAsyncJobAnnotationException;
 import org.jobrunr.scheduling.AsyncJobInterceptor;
-import org.jobrunr.scheduling.AsyncJobValidationRecorder;
 import org.jobrunr.scheduling.JobRunrRecurringJobRecorder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.common.NoSqlDatabaseCreator;
@@ -79,9 +80,12 @@ class JobRunrExtensionProcessor {
     }
 
     @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void validateAsyncJobAnnotations(RecorderContext recorderContext, CombinedIndexBuildItem index, AsyncJobValidationRecorder recorder) {
-        new AsyncJobPostProcessor(recorderContext, index, recorder).validate();
+    void validateAsyncJobs(CombinedIndexBuildItem index, BuildProducer<ValidationErrorBuildItem> validationErrors) {
+        try {
+            AsyncJobValidator.validate(index);
+        } catch (IllegalAsyncJobAnnotationException e) {
+            validationErrors.produce(new ValidationErrorBuildItem(e));
+        }
     }
 
     @BuildStep

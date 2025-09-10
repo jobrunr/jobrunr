@@ -1,4 +1,4 @@
-package org.jobrunr.quarkus.scheduling;
+package org.jobrunr.scheduling;
 
 import jakarta.inject.Singleton;
 import org.jobrunr.jobs.annotations.AsyncJob;
@@ -18,10 +18,10 @@ public class AsyncJobTestServiceWithNestedJobService {
         this.asyncJobTestService = asyncJobTestService;
     }
 
-    @Job(name = "my async job with nested jobs")
-    public void testMethodThatCreatesOtherJobsAsAsyncJob() {
+    @Job(name = "my async job with nested async jobs from another service")
+    public void runAsyncJobThatCallsAnAsyncJobFromDifferentService() {
         LOGGER.info("Running AsyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob in a job. It will create another job.");
-        asyncJobTestService.testMethodAsAsyncJob();
+        asyncJobTestService.runAsyncJob();
     }
 
 }

@@ -1,13 +1,16 @@
-package org.jobrunr.quarkus.scheduling;
+package org.jobrunr.scheduling;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -24,7 +27,7 @@ public class AsyncJobTest implements QuarkusTestProfile {
     @Inject
     AsyncJobTestServiceWithNestedJobService asyncJobTestServiceWithNestedJobService;
     @Inject
-    private StorageProvider storageProvider;
+    StorageProvider storageProvider;
 
     @BeforeEach
     void setUp() {
@@ -33,21 +36,30 @@ public class AsyncJobTest implements QuarkusTestProfile {
 
     @Test
     void jobIsEnqueuedWhenCallingServiceWithAsyncJobAnnotation() {
-        asyncJobTestService.testMethodAsAsyncJob();
+        asyncJobTestService.runAsyncJob();
 
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) > 0);
         assertThat(storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(10)).get(0))
-                .hasJobDetails(AsyncJobTestService.class, "testMethodAsAsyncJob");
+                .hasJobDetails(AsyncJobTestService.class, "runAsyncJob");
     }
 
     @Test
-    void testNestedAsyncJob() {
-        asyncJobTestServiceWithNestedJobService.testMethodThatCreatesOtherJobsAsAsyncJob();
+    void jobsAreEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromSameService() {
+        asyncJobTestService.runAsyncJobThatCallsAnAsyncJobFromSameService();
+        // why 2: since quarkus supports self-interception
+        await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
+    }
+
+    @Test
+    void jobsAreEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromDifferentService() {
+        asyncJobTestServiceWithNestedJobService.runAsyncJobThatCallsAnAsyncJobFromDifferentService();
         await().atMost(30, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 2);
     }
 
+
     @Test
-    void methodIsNormallyInvokedWhenNotAnnotationWithJob() {
-        assertThat(asyncJobTestService.classicMethod()).isEqualTo(2);
+    void methodIsNormallyInvokedWhenNotAnnotatedWithJob() {
+        assertThat(asyncJobTestService.runNonAsyncJob()).isEqualTo(2);
     }
+
 }

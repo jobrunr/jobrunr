@@ -1,7 +1,6 @@
 package org.jobrunr.quarkus.extension.deployment;
 
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
-import io.quarkus.deployment.recording.RecorderContext;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
@@ -9,8 +8,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.Type;
-import org.jobrunr.jobs.annotations.AsyncJob;
-import org.jobrunr.scheduling.AsyncJobValidationRecorder;
+import org.jobrunr.jobs.annotations.Job;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,70 +24,72 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AsyncJobPostProcessorTest {
-    @Mock
-    RecorderContext recorderContext;
+class AsyncJobValidatorTest {
     @Mock
     CombinedIndexBuildItem combinedIndexBuildItem;
     @Mock
     IndexView indexView;
 
-    AsyncJobPostProcessor postProcessor;
-
     @BeforeEach
     public void setup() {
         when(combinedIndexBuildItem.getIndex()).thenReturn(indexView);
-        this.postProcessor = new AsyncJobPostProcessor(recorderContext, combinedIndexBuildItem, new AsyncJobValidationRecorder());
     }
 
     @Test
-    public void validateShouldNotThrowExForClassAnnotations() {
+    public void validateShouldNotThrowExceptionForMethodAnnotations() {
         AnnotationTarget nonMethodTarget = mock(AnnotationTarget.class);
-        when(nonMethodTarget.kind()).thenReturn(AnnotationTarget.Kind.CLASS);
+        when(nonMethodTarget.kind()).thenReturn(AnnotationTarget.Kind.METHOD);
 
         AnnotationInstance annotationInstance = mock(AnnotationInstance.class);
         when(annotationInstance.target()).thenReturn(nonMethodTarget);
 
         when(indexView.getAnnotations((DotName) any())).thenReturn(List.of(annotationInstance));
-        assertDoesNotThrow(() -> postProcessor.validate());
+        assertDoesNotThrow(() -> AsyncJobValidator.validate(combinedIndexBuildItem));
     }
 
     @Test
-    public void validateShouldNotThrowExWhenAsyncJobMethodReturnTypeIsVoid() {
-        MethodInfo methodInfo = mock(MethodInfo.class);
-        when(methodInfo.kind()).thenReturn(MethodInfo.Kind.METHOD);
-        when(methodInfo.returnType()).thenReturn(Type.create(DotName.createSimple("void"), Type.Kind.VOID));
+    public void validateShouldNotThrowExceptionWhenAsyncJobMethodReturnTypeIsVoid() {
+        AnnotationTarget classAnnotationTarget = mock(AnnotationTarget.class);
+        when(classAnnotationTarget.kind()).thenReturn(AnnotationTarget.Kind.CLASS);
 
-        ClassInfo declaringClass = mock(ClassInfo.class);
-        when(declaringClass.annotations(DotName.createSimple(AsyncJob.class.getName()))).thenReturn(List.of(mock(AnnotationInstance.class)));
-        when(methodInfo.declaringClass()).thenReturn(declaringClass);
+        ClassInfo classInfo = mock(ClassInfo.class);
+        when(classAnnotationTarget.asClass()).thenReturn(classInfo);
 
         AnnotationInstance annotationInstance = mock(AnnotationInstance.class);
-        when(annotationInstance.target()).thenReturn(methodInfo);
+        when(annotationInstance.target()).thenReturn(classAnnotationTarget);
+
+        MethodInfo methodInfo = mock(MethodInfo.class);
+        when(methodInfo.hasAnnotation(DotName.createSimple(Job.class.getName()))).thenReturn(true);
+        when(methodInfo.returnType()).thenReturn(Type.create(DotName.createSimple("void"), Type.Kind.VOID));
+
+        when(classInfo.methods()).thenReturn(List.of(methodInfo));
 
         when(indexView.getAnnotations(any(DotName.class))).thenReturn(List.of(annotationInstance));
-        assertDoesNotThrow(() -> postProcessor.validate());
+        assertDoesNotThrow(() -> AsyncJobValidator.validate(combinedIndexBuildItem));
     }
 
     @Test
-    public void validate_shouldThrow_forNonVoidReturningAsyncJobMethod() {
+    public void validateShouldThrowExceptionForNonVoidReturningAsyncJobMethod() {
+        AnnotationTarget classAnnotationTarget = mock(AnnotationTarget.class);
+        when(classAnnotationTarget.kind()).thenReturn(AnnotationTarget.Kind.CLASS);
+
+        ClassInfo classInfo = mock(ClassInfo.class);
+        when(classInfo.name()).thenReturn(DotName.createSimple("className"));
+        when(classAnnotationTarget.asClass()).thenReturn(classInfo);
+
+        AnnotationInstance annotationInstance = mock(AnnotationInstance.class);
+        when(annotationInstance.target()).thenReturn(classAnnotationTarget);
+
         MethodInfo methodInfo = mock(MethodInfo.class);
-        when(methodInfo.kind()).thenReturn(MethodInfo.Kind.METHOD);
+        when(methodInfo.hasAnnotation(DotName.createSimple(Job.class.getName()))).thenReturn(true);
         when(methodInfo.returnType()).thenReturn(Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS));
         when(methodInfo.name()).thenReturn("myLittleAsyncJobName");
 
-        ClassInfo declaringClass = mock(ClassInfo.class);
-        when(declaringClass.name()).thenReturn(DotName.createSimple("className"));
-        when(declaringClass.annotations(DotName.createSimple(AsyncJob.class.getName()))).thenReturn(List.of(mock(AnnotationInstance.class)));
-        when(methodInfo.declaringClass()).thenReturn(declaringClass);
-
-        AnnotationInstance annotationInstance = mock(AnnotationInstance.class);
-        when(annotationInstance.target()).thenReturn(methodInfo);
+        when(classInfo.methods()).thenReturn(List.of(methodInfo));
 
         when(indexView.getAnnotations(any(DotName.class))).thenReturn(List.of(annotationInstance));
-
-        assertThatCode(() -> postProcessor.validate())
-                .isInstanceOf(IllegalArgumentException.class)
+        assertThatCode(() -> AsyncJobValidator.validate(combinedIndexBuildItem))
+                .isInstanceOf(AsyncJobValidator.IllegalAsyncJobAnnotationException.class)
                 .hasMessage("An @AsyncJob cannot have a return value. className@myLittleAsyncJobName is defined as an @AsyncJob but has a return value.");
     }
 
