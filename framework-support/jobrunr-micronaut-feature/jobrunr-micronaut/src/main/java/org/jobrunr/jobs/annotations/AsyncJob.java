@@ -1,5 +1,7 @@
 package org.jobrunr.jobs.annotations;
 
+import io.micronaut.aop.Around;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -26,5 +28,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
+@Around
 public @interface AsyncJob {
 }
