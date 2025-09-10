@@ -35,9 +35,9 @@ public class AsyncJobTest {
     }
 
     @Test
-    public void onlyOneJobIsEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromSameService() {
+    public void jobsAreEnqueuedWhenCallingServiceWithAsyncJobThatCallsAnotherAsyncJobFromSameService() {
         asyncJobTestService.runAsyncJobThatCallsAnAsyncJobFromSameService();
-        // why 2: since micronaut supports self-interception
+        // why 2: since micronaut supports self-interception by default
         await().atMost(30, TimeUnit.SECONDS).until(() -> storageProvider.countJobs(StateName.SUCCEEDED) == 2);
     }
 
