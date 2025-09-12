@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling
 
+import kotlinx.coroutines.runBlocking
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations.TEN_SECONDS
 import org.jobrunr.JobRunrAssertions.assertThat
@@ -56,6 +57,29 @@ class JobRequestSchedulerTest {
         val job = storageProvider.getJobById(jobId)
         assertThat(job)
             .hasJobName("Some neat Job Display Name")
+            .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
+    }
+
+    @Test
+    fun enqueueJobRequest() {
+        val jobService = JobService(JobRequestScheduler(storageProvider))
+
+        val jobRequest = ExampleJobRequest(something = "in the way")
+
+        val jobId = runBlocking {
+            jobService.startJob(jobRequest)
+        }
+
+        assertThat(jobId).isEqualTo(jobRequest.id)
+
+        await().atMost(TEN_SECONDS).until {
+            storageProvider.getJobById(jobId).state == SUCCEEDED
+        }
+
+        val job = storageProvider.getJobById(jobId)
+
+        assertThat(job)
+            .hasJobName(jobRequest.jobName)
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
