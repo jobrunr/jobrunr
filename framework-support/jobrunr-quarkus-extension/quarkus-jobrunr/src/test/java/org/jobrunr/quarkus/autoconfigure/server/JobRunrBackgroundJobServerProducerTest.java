@@ -39,8 +39,8 @@ public class JobRunrBackgroundJobServerProducerTest implements QuarkusTestProfil
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.area-code", value = "FR")
-    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout", value = "500")
-    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout", value = "300")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout", value = "500ms")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout", value = "300ms")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.poll-interval-in-minutes", value = "15")
     void carbonAwareManagerAutoConfiguration() {
         CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();

@@ -241,14 +241,14 @@ public interface JobRunrRuntimeConfiguration {
         Optional<String> externalCode();
 
         /**
-         * Allows to set the connect timeout for the carbon api client in minutes
+         * Allows to set the connect timeout as a Duration for the carbon api client
          */
-        Optional<Integer> apiClientConnectTimeout();
+        Optional<Duration> apiClientConnectTimeout();
 
         /**
-         * Allows to set the read timeout for the carbon api client in minutes
+         * Allows to set the read timeout as a duration for the carbon api client
          */
-        Optional<Integer> apiClientReadTimeout();
+        Optional<Duration> apiClientReadTimeout();
 
         /**
          * Set the carbon aware poll interval in minutes for the BackgroundJobServer to process carbon aware jobs

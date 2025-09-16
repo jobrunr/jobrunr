@@ -19,8 +19,6 @@ import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
-import java.time.Duration;
-
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -69,8 +67,8 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientConnectTimeout().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientReadTimeout().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientConnectTimeout().ifPresent(carbonAwareJobProcessingConfiguration::andApiClientConnectTimeout);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientReadTimeout().ifPresent(carbonAwareJobProcessingConfiguration::andApiClientReadTimeout);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().pollIntervalInMinutes().ifPresent(carbonAwareJobProcessingConfiguration::andPollIntervalInMinutes);
             backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
             return backgroundJobServerConfiguration;
