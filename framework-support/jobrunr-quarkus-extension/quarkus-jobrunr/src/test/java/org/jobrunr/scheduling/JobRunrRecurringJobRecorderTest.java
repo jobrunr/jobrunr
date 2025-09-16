@@ -7,6 +7,7 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.stubs.TestService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,11 +48,13 @@ class JobRunrRecurringJobRecorderTest {
 
     @Mock
     ConfigProviderResolver configProviderResolver;
+    private ConfigProviderResolver originalResolver;
 
     @Mock
     Config config;
 
     JobRunrRecurringJobRecorder jobRunrRecurringJobRecorder;
+
 
     @BeforeEach
     void setUpJobRunrRecorder() {
@@ -61,8 +64,14 @@ class JobRunrRecurringJobRecorderTest {
         when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);
         when(jobSchedulerConfiguration.enabled()).thenReturn(true);
 
+        originalResolver = ConfigProviderResolver.instance();
         ConfigProviderResolver.setInstance(configProviderResolver);
         lenient().when(configProviderResolver.getConfig()).thenReturn(config);
+    }
+
+    @AfterEach
+    void restoreOriginalResolver() {
+        ConfigProviderResolver.setInstance(originalResolver);
     }
 
     @Test
