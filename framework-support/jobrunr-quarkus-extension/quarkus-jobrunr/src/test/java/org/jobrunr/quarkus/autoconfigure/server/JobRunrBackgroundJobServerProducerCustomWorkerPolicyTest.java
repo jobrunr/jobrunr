@@ -2,8 +2,6 @@ package org.jobrunr.quarkus.autoconfigure.server;
 
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
-import io.quarkus.test.junit.QuarkusTestProfile;
-import io.quarkus.test.junit.TestProfile;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -19,8 +17,7 @@ import org.junit.jupiter.api.Test;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 @QuarkusComponentTest
-@TestProfile(JobRunrBackgroundJobServerProducerCustomWorkerPolicyTest.class)
-public class JobRunrBackgroundJobServerProducerCustomWorkerPolicyTest implements QuarkusTestProfile {
+public class JobRunrBackgroundJobServerProducerCustomWorkerPolicyTest {
     // Injection needed to create all other beans otherwise the extension doesn't pick them up.
     @Inject
     JobRunrBackgroundJobServerProducer jobRunrBackgroundJobServerProducer;

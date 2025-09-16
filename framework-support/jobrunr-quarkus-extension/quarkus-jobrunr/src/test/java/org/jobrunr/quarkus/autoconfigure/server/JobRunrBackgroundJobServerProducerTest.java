@@ -3,8 +3,6 @@ package org.jobrunr.quarkus.autoconfigure.server;
 
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
-import io.quarkus.test.junit.QuarkusTestProfile;
-import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
@@ -16,8 +14,7 @@ import java.time.Duration;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 @QuarkusComponentTest
-@TestProfile(JobRunrBackgroundJobServerProducerTest.class)
-public class JobRunrBackgroundJobServerProducerTest implements QuarkusTestProfile {
+public class JobRunrBackgroundJobServerProducerTest {
 
     // Injection needed to create all other beans otherwise the extension doesn't pick them up.
     @Inject

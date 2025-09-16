@@ -2,8 +2,6 @@ package org.jobrunr.quarkus.autoconfigure.dashboard;
 
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
-import io.quarkus.test.junit.QuarkusTestProfile;
-import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.junit.jupiter.api.Test;
@@ -11,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusComponentTest
-@TestProfile(JobRunrDashboardProducerTest.class)
-class JobRunrDashboardProducerTest implements QuarkusTestProfile {
+class JobRunrDashboardProducerTest {
 
     // Injection needed to create all other beans otherwise the extension doesn't pick them up.
     @Inject
