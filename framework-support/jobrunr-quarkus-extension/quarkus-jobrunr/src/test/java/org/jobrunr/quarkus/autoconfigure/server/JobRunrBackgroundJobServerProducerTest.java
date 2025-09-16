@@ -1,169 +1,107 @@
 package org.jobrunr.quarkus.autoconfigure.server;
 
-import org.jobrunr.jobs.carbonaware.CarbonAwareJobProcessingConfigurationAssert;
-import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
+
+import io.quarkus.test.component.QuarkusComponentTest;
+import io.quarkus.test.component.TestConfigProperty;
+import jakarta.inject.Inject;
+import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
-import org.jobrunr.server.BackgroundJobServerConfigurationReader;
-import org.jobrunr.server.JobActivator;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
-import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
-import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.mapper.JsonMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
-import java.util.Optional;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-@ExtendWith(MockitoExtension.class)
-class JobRunrBackgroundJobServerProducerTest {
+@QuarkusComponentTest
+public class JobRunrBackgroundJobServerProducerTest {
 
+    // Injection needed to create all other beans otherwise the extension doesn't pick them up.
+    @Inject
     JobRunrBackgroundJobServerProducer jobRunrBackgroundJobServerProducer;
 
-    @Mock
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.JobsConfiguration jobsRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.JobSchedulerConfiguration jobSchedulerRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.BackgroundJobServerConfiguration backgroundJobServerRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.DashboardConfiguration dashboardRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.MiscellaneousConfiguration miscellaneousRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingRunTimeConfiguration;
+    @Inject
+    BackgroundJobServer backgroundJobServer;
+    @Inject
+    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
 
-    @Mock
-    StorageProvider storageProvider;
-
-    @Mock
-    JsonMapper jsonMapper;
-
-    @Mock
-    JobActivator jobActivator;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer()).thenReturn(backgroundJobServerRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.dashboard()).thenReturn(dashboardRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.miscellaneous()).thenReturn(miscellaneousRunTimeConfiguration);
-        lenient().when(backgroundJobServerRunTimeConfiguration.carbonAwareJobProcessingConfiguration()).thenReturn(carbonAwareJobProcessingRunTimeConfiguration);
-
-        jobRunrBackgroundJobServerProducer = new JobRunrBackgroundJobServerProducer();
-        setInternalState(jobRunrBackgroundJobServerProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    void carbonAwareManagerAutoConfigurationIsDisabledByDefault() {
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        assertThat(carbonAwareJobProcessingConfiguration).hasEnabled(false);
     }
 
     @Test
-    void backgroundJobServerConfigurationIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
-
-        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNull();
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.area-code", value = "FR")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout", value = "500")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout", value = "300")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.poll-interval-in-minutes", value = "15")
+    void carbonAwareManagerAutoConfiguration() {
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        assertThat(carbonAwareJobProcessingConfiguration)
+                .hasEnabled(true)
+                .hasApiClientConnectTimeout(Duration.ofMillis(500))
+                .hasApiClientReadTimeout(Duration.ofMillis(300))
+                .hasPollIntervalInMinutes(15)
+                .hasAreaCode("FR");
     }
 
     @Test
-    void backgroundJobServerConfigurationIsSetupWhenConfigured() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(mock(BackgroundJobServerWorkerPolicy.class))).isNotNull();
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.name", value = "test")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
+        assertThat(backgroundJobServer).hasName("test");
     }
 
     @Test
-    void backgroundJobServerConfigurationMapsCorrectConfigurationWhenConfigured() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        when(backgroundJobServerRunTimeConfiguration.name()).thenReturn(Optional.of("test"));
-        when(backgroundJobServerRunTimeConfiguration.workerCount()).thenReturn(Optional.of(25));
-        when(backgroundJobServerRunTimeConfiguration.threadType()).thenReturn(Optional.of(BackgroundJobServerThreadType.PlatformThreads));
-        when(backgroundJobServerRunTimeConfiguration.pollIntervalInSeconds()).thenReturn(Optional.of(5));
-        when(backgroundJobServerRunTimeConfiguration.serverTimeoutPollIntervalMultiplicand()).thenReturn(Optional.of(10));
-        when(backgroundJobServerRunTimeConfiguration.scheduledJobsRequestSize()).thenReturn(Optional.of(1));
-        when(backgroundJobServerRunTimeConfiguration.orphanedJobsRequestSize()).thenReturn(Optional.of(2));
-        when(backgroundJobServerRunTimeConfiguration.succeededJobRequestSize()).thenReturn(Optional.of(3));
-        when(backgroundJobServerRunTimeConfiguration.deleteSucceededJobsAfter()).thenReturn(Optional.of(Duration.of(1, HOURS)));
-        when(backgroundJobServerRunTimeConfiguration.permanentlyDeleteDeletedJobsAfter()).thenReturn(Optional.of(Duration.of(1, DAYS)));
-        when(backgroundJobServerRunTimeConfiguration.interruptJobsAwaitDurationOnStop()).thenReturn(Optional.of(Duration.of(20, SECONDS)));
-
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.worker-count", value = "4")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.thread-type", value = "PlatformThreads")
+    void backgroundJobServerAutoConfigurationTakesIntoThreadTypeAndWorkerCount() {
         assertThat(backgroundJobServerConfiguration)
-                .isNotNull()
-                .hasName("test")
-                .hasWorkerCount(25)
+                .hasWorkerCount(4);
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.poll-interval-in-seconds", value = "5")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.server-timeout-poll-interval-multiplicand", value = "10")
+    void backgroundJobServerAutoConfigurationTakesAllBackgroundServerPollIntervals() {
+        assertThat(backgroundJobServerConfiguration)
                 .hasPollIntervalInSeconds(5)
-                .hasServerTimeoutPollIntervalMultiplicand(10)
+                .hasServerTimeoutPollIntervalMultiplicand(10);
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.jobs.default-number-of-retries", value = "3")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
+        assertThat(backgroundJobServer)
+                .hasRetryFilter(3);
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.scheduled-jobs-request-size", value = "1")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.orphaned-jobs-request-size", value = "2")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.succeeded-jobs-request-size", value = "3")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
+        assertThat(backgroundJobServerConfiguration)
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
-                .hasSucceededJobRequestSize(3)
+                .hasSucceededJobRequestSize(3);
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.interrupt-jobs-await-duration-on-stop", value = "20")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
+        assertThat(backgroundJobServerConfiguration)
                 .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
-        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "deleteSucceededJobsAfter")).isEqualTo(Duration.of(1, HOURS));
-        assertThat((Duration) getInternalState(backgroundJobServerConfiguration, "permanentlyDeleteDeletedJobsAfter")).isEqualTo(Duration.of(1, DAYS));
     }
 
-    @Test
-    void backgroundJobServerIsNotSetupWhenNotConfigured() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(false);
 
-        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNull();
-    }
-
-    @Test
-    void backgroundJobServerIsSetupWhenConfigured() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        assertThat(jobRunrBackgroundJobServerProducer.backgroundJobServer(storageProvider, jsonMapper, jobActivator, usingStandardBackgroundJobServerConfiguration())).isNotNull();
-    }
-
-    @Test
-    void carbonAwareJobProcessingIsSetupWhenConfiguredAndBackgroundJobServerIsEnabled() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        when(carbonAwareJobProcessingRunTimeConfiguration.isEnabled()).thenReturn(true);
-        when(carbonAwareJobProcessingRunTimeConfiguration.areaCode()).thenReturn(Optional.of("DE"));
-        when(carbonAwareJobProcessingRunTimeConfiguration.apiClientConnectTimeoutMs()).thenReturn(Optional.of(500));
-        when(carbonAwareJobProcessingRunTimeConfiguration.apiClientReadTimeoutMs()).thenReturn(Optional.of(1000));
-        when(carbonAwareJobProcessingRunTimeConfiguration.pollIntervalInMinutes()).thenReturn(Optional.of(15));
-
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
-
-        assertThat(carbonAwareJobProcessingConfiguration)
-                .hasAreaCode("DE")
-                .hasApiClientConnectTimeout(Duration.ofMillis(500))
-                .hasPollIntervalInMinutes(15)
-                .hasApiClientReadTimeout(Duration.ofMillis(1000));
-    }
-
-    @Test
-    void carbonAwareJobProcessingIsSetupWhenConfiguredWithExternalCodeAndBackgroundJobServerIsEnabled() {
-        when(backgroundJobServerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        when(carbonAwareJobProcessingRunTimeConfiguration.isEnabled()).thenReturn(true);
-        when(carbonAwareJobProcessingRunTimeConfiguration.externalCode()).thenReturn(Optional.of("external"));
-        when(carbonAwareJobProcessingRunTimeConfiguration.dataProvider()).thenReturn(Optional.of("provider"));
-
-        final BackgroundJobServerConfiguration backgroundJobServerConfiguration = jobRunrBackgroundJobServerProducer.backgroundJobServerConfiguration(jobRunrBackgroundJobServerProducer.backgroundJobServerWorkerPolicy());
-        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = new BackgroundJobServerConfigurationReader(backgroundJobServerConfiguration).getCarbonAwareJobProcessingConfiguration();
-
-        CarbonAwareJobProcessingConfigurationAssert.assertThat(carbonAwareJobProcessingConfiguration)
-                .hasExternalCode("external")
-                .hasDataProvider("provider");
-    }
 }

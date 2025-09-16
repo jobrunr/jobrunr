@@ -50,7 +50,9 @@ dependencies {
     testImplementation testFixtures(project(":core"))
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
-    testImplementation 'org.mongodb:mongodb-driver-sync'
+     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.quarkus:quarkus-junit5-component'
 }
 
 java {

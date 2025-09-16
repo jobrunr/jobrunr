@@ -149,7 +149,8 @@ public interface JobRunrRuntimeConfiguration {
         /**
          * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
-        Optional<Integer> succeededJobRequestSize();
+
+        Optional<Integer> succeededJobsRequestSize();
 
         /**
          * Set the pollIntervalInSeconds for the BackgroundJobServer to see whether new jobs need to be processed
@@ -184,7 +185,7 @@ public interface JobRunrRuntimeConfiguration {
         /**
          * Configures carbon-aware job processing properties
          */
-        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration();
+        CarbonAwareJobProcessingConfiguration carbonAwareJobProcessing();
     }
 
     interface DashboardConfiguration {
@@ -225,7 +226,7 @@ public interface JobRunrRuntimeConfiguration {
          * Enables the carbon aware configuration to schedule jobs optimally.
          */
         @WithDefault("false")
-        boolean isEnabled();
+        boolean enabled();
 
         /**
          * Allows to set the areaCode of your datacenter (the area where your application is hosted) in order to have more accurate carbon emissions forecasts
@@ -240,14 +241,14 @@ public interface JobRunrRuntimeConfiguration {
         Optional<String> externalCode();
 
         /**
-         * Allows to set the connect timeout for the carbon api client
+         * Allows to set the connect timeout for the carbon api client in minutes
          */
-        Optional<Integer> apiClientConnectTimeoutMs();
+        Optional<Integer> apiClientConnectTimeout();
 
         /**
-         * Allows to set the read timeout for the carbon api client
+         * Allows to set the read timeout for the carbon api client in minutes
          */
-        Optional<Integer> apiClientReadTimeoutMs();
+        Optional<Integer> apiClientReadTimeout();
 
         /**
          * Set the carbon aware poll interval in minutes for the BackgroundJobServer to process carbon aware jobs
