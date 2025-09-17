@@ -44,7 +44,7 @@ dependencies {
         api 'com.tngtech.archunit:archunit-junit5:1.4.1'
         api 'net.javacrumbs.json-unit:json-unit-assertj:2.40.1'
         api 'org.mockito:mockito-inline:5.2.0'
-        api 'org.mockito:mockito-junit-jupiter:5.18.0'
+        api 'org.mockito:mockito-junit-jupiter:5.19.0'
         api 'ch.qos.logback:logback-classic:1.5.18'
         api 'org.testcontainers:testcontainers:1.21.3'
         api 'org.testcontainers:junit-jupiter:1.21.3'
