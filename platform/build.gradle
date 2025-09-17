@@ -19,7 +19,7 @@ dependencies {
         api 'com.google.code.gson:gson:2.13.2'
         api 'org.eclipse:yasson:3.0.4'
         api 'io.micrometer:micrometer-core:1.15.4'
-        api 'io.insert-koin:koin-core:4.1.0'
+        api 'io.insert-koin:koin-core:4.1.1'
         api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0'
 
         api 'org.xerial:sqlite-jdbc:3.50.3.0'
