@@ -3,7 +3,6 @@ package org.jobrunr.quarkus.autoconfigure;
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
 import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -11,11 +10,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@QuarkusComponentTest
+@QuarkusComponentTest(value = JobRunrProducer.class)
 class JobRunrProducerTest {
 
-    @Inject
-    Instance<JobRunrProducer> jobRunrProducer;
     @Inject
     Instance<JobScheduler> jobScheduler;
     @Inject
@@ -24,20 +21,20 @@ class JobRunrProducerTest {
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "true")
     void jobSchedulerIsSetupWhenConfigured() {
-        assertThat(CDI.current().select(JobScheduler.class).isResolvable()).isTrue();
-        assertThat(CDI.current().select(JobScheduler.class).get()).isInstanceOf(JobScheduler.class);
+        assertThat(jobScheduler.isResolvable()).isTrue();
+        assertThat(jobScheduler.get()).isInstanceOf(JobScheduler.class);
 
-        assertThat(CDI.current().select(JobRequestScheduler.class).isResolvable()).isTrue();
-        assertThat(CDI.current().select(JobRequestScheduler.class).get()).isInstanceOf(JobRequestScheduler.class);
+        assertThat(jobRequestScheduler.isResolvable()).isTrue();
+        assertThat(jobRequestScheduler.get()).isInstanceOf(JobRequestScheduler.class);
     }
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "false")
     void jobSchedulerIsNotSetUpWhenDisabled() {
-        assertThat(CDI.current().select(JobScheduler.class).isResolvable()).isTrue();
-        assertThat(CDI.current().select(JobScheduler.class).get()).isNull();
+        assertThat(jobScheduler.isResolvable()).isTrue();
+        assertThat(jobScheduler.get()).isNull();
 
-        assertThat(CDI.current().select(JobRequestScheduler.class).isResolvable()).isTrue();
-        assertThat(CDI.current().select(JobRequestScheduler.class).get()).isNull();
+        assertThat(jobRequestScheduler.isResolvable()).isTrue();
+        assertThat(jobRequestScheduler.get()).isNull();
     }
 }
