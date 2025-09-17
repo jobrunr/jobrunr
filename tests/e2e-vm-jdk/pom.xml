@@ -59,14 +59,14 @@
             </properties>
         </profile>
         <profile>
-            <id>jdk-24</id>
+            <id>jdk-25</id>
             <activation>
-                <jdk>24</jdk>
+                <jdk>25</jdk>
             </activation>
             <properties>
-                <maven.compiler.source>24</maven.compiler.source>
-                <maven.compiler.target>24</maven.compiler.target>
-                <maven.compiler.compilerVersion>24</maven.compiler.compilerVersion>
+                <maven.compiler.source>25</maven.compiler.source>
+                <maven.compiler.target>25</maven.compiler.target>
+                <maven.compiler.compilerVersion>25</maven.compiler.compilerVersion>
             </properties>
         </profile>
     </profiles>
