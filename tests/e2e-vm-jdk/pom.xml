@@ -128,7 +128,7 @@
         <dependency>
             <groupId>net.javacrumbs.json-unit</groupId>
             <artifactId>json-unit-assertj</artifactId>
-            <version>4.1.1</version>
+            <version>2.40.1</version> <!-- DON'T WASTE YOUR TIME UPDATING THIS, UNLESS WE MOVE TO JDK 17 OR HIGHER! -->
             <scope>test</scope>
         </dependency>
         <dependency>
