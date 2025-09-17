@@ -42,7 +42,7 @@ dependencies {
         api 'org.awaitility:awaitility:4.3.0'
         api 'org.assertj:assertj-core:3.27.4'
         api 'com.tngtech.archunit:archunit-junit5:1.4.1'
-        api 'net.javacrumbs.json-unit:json-unit-assertj:2.40.1'
+        api 'net.javacrumbs.json-unit:json-unit-assertj:4.1.1'
         api 'org.mockito:mockito-inline:5.2.0'
         api 'org.mockito:mockito-junit-jupiter:5.19.0'
         api 'ch.qos.logback:logback-classic:1.5.18'
