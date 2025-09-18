@@ -167,8 +167,8 @@ public class JobRunrAutoConfigurationTest {
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.enabled=true")
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.area-code=FR")
-                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout=500")
-                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout=300")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-connect-timeout=500ms")
+                .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout=300ms")
                 .withPropertyValues("jobrunr.background-job-server.carbon-aware-job-processing.poll-interval-in-minutes=15")
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
