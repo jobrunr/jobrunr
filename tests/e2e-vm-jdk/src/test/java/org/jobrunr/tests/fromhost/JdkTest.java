@@ -48,8 +48,8 @@ class JdkTest {
     }
 
     @Test
-    void jdk24OpenJDK() {
-        assertThat(buildAndTestOnImage("openjdk:24", "68.0"))
+    void jdk25OpenJDK() {
+        assertThat(buildAndTestOnImage("openjdk:25", "69.0"))
                 .contains("BUILD SUCCESS")
                 .contains("ThreadManager of type 'VirtualThreadPerTask' started");
     }
