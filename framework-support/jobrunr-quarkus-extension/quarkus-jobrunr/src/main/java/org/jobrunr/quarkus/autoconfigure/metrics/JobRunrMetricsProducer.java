@@ -45,7 +45,7 @@ public class JobRunrMetricsProducer {
         @LookupIfProperty(name = "quarkus.jobrunr.background-job-server.enabled", stringValue = "true")
         @LookupIfProperty(name = "quarkus.jobrunr.background-job-server.metrics.enabled", stringValue = "true")
         public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(Instance<BackgroundJobServer> backgroundJobServer, MeterRegistry meterRegistry) {
-            if (backgroundJobServer.isResolvable() && jobRunrRuntimeConfiguration.backgroundJobServer().metrics().enabled()) {
+            if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled() && jobRunrRuntimeConfiguration.backgroundJobServer().metrics().enabled()) {
                 return new BackgroundJobServerMetricsBinder(backgroundJobServer.get(), meterRegistry);
             }
             return null;

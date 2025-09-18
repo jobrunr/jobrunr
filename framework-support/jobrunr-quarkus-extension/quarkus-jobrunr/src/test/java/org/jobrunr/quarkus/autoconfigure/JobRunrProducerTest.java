@@ -10,31 +10,31 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@QuarkusComponentTest(value = JobRunrProducer.class)
+@QuarkusComponentTest(JobRunrProducer.class)
 class JobRunrProducerTest {
 
     @Inject
-    Instance<JobScheduler> jobScheduler;
+    Instance<JobScheduler> jobSchedulerInstance;
     @Inject
-    Instance<JobRequestScheduler> jobRequestScheduler;
+    Instance<JobRequestScheduler> jobRequestSchedulerInstance;
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "true")
     void jobSchedulerIsSetupWhenConfigured() {
-        assertThat(jobScheduler.isResolvable()).isTrue();
-        assertThat(jobScheduler.get()).isInstanceOf(JobScheduler.class);
+        assertThat(jobSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobSchedulerInstance.get()).isInstanceOf(JobScheduler.class);
 
-        assertThat(jobRequestScheduler.isResolvable()).isTrue();
-        assertThat(jobRequestScheduler.get()).isInstanceOf(JobRequestScheduler.class);
+        assertThat(jobRequestSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobRequestSchedulerInstance.get()).isInstanceOf(JobRequestScheduler.class);
     }
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "false")
     void jobSchedulerIsNotSetUpWhenDisabled() {
-        assertThat(jobScheduler.isResolvable()).isTrue();
-        assertThat(jobScheduler.get()).isNull();
+        assertThat(jobSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobSchedulerInstance.get()).isNull();
 
-        assertThat(jobRequestScheduler.isResolvable()).isTrue();
-        assertThat(jobRequestScheduler.get()).isNull();
+        assertThat(jobRequestSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobRequestSchedulerInstance.get()).isNull();
     }
 }

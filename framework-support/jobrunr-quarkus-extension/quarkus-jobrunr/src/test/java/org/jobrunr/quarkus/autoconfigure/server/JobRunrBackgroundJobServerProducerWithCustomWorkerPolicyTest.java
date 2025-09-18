@@ -2,9 +2,11 @@ package org.jobrunr.quarkus.autoconfigure.server;
 
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.assertj.core.api.Assertions;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
@@ -16,19 +18,19 @@ import org.junit.jupiter.api.Test;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
-@QuarkusComponentTest
-public class JobRunrBackgroundJobServerProducerCustomWorkerPolicyTest {
-    // Injection needed to create all other beans otherwise the extension doesn't pick them up.
-    @Inject
-    JobRunrBackgroundJobServerProducer jobRunrBackgroundJobServerProducer;
+@QuarkusComponentTest(JobRunrBackgroundJobServerProducer.class)
+public class JobRunrBackgroundJobServerProducerWithCustomWorkerPolicyTest {
 
     @Inject
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    Instance<BackgroundJobServerConfiguration> backgroundJobServerConfigurationInstance;
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     void backgroundJobServerAutoConfigurationTakesIntoAccountCustomBackgroundJobServerWorkerPolicy() {
-        assertThat(backgroundJobServerConfiguration)
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasWorkerPolicyOfType(BackgroundJobServerConfigurationWithCustomWorkerPolicy.MyBackgroundJobServerWorkerPolicy.class);
     }
 

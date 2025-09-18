@@ -9,19 +9,19 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@QuarkusComponentTest(value = JobRunrDashboardProducer.class) // needed to create all other beans otherwise the extension doesn't pick them up.
+@QuarkusComponentTest(JobRunrDashboardProducer.class) // needed to create all other beans otherwise the extension doesn't pick them up.
 
 class JobRunrDashboardProducerTest {
 
     @Inject
-    Instance<JobRunrDashboardWebServer> jobRunrDashboardWebServer;
+    Instance<JobRunrDashboardWebServer> jobRunrDashboardWebServerInstance;
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.dashboard.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.miscellaneous.allow-anonymous-data-usage", value = "true")
     void dashboardAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageDefaultTrue() {
-        assertThat(jobRunrDashboardWebServer.isResolvable()).isTrue();
-        assertThat(jobRunrDashboardWebServer.get())
+        assertThat(jobRunrDashboardWebServerInstance.isResolvable()).isTrue();
+        assertThat(jobRunrDashboardWebServerInstance.get())
                 .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
     }
 
@@ -29,15 +29,15 @@ class JobRunrDashboardProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.dashboard.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.miscellaneous.allow-anonymous-data-usage", value = "false")
     void dashboardAutoConfigurationTakesIntoAccountAllowAnonymousDataUsageFalse() {
-        assertThat(jobRunrDashboardWebServer.isResolvable()).isTrue();
-        assertThat(jobRunrDashboardWebServer.get())
+        assertThat(jobRunrDashboardWebServerInstance.isResolvable()).isTrue();
+        assertThat(jobRunrDashboardWebServerInstance.get())
                 .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
     }
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.dashboard.enabled", value = "false")
     void dashboardWebServerBeanIsNotThereWhenDisabled() {
-        assertThat(jobRunrDashboardWebServer.isResolvable()).isTrue();
-        assertThat(jobRunrDashboardWebServer.get()).isNull();
+        assertThat(jobRunrDashboardWebServerInstance.isResolvable()).isTrue();
+        assertThat(jobRunrDashboardWebServerInstance.get()).isNull();
     }
 }

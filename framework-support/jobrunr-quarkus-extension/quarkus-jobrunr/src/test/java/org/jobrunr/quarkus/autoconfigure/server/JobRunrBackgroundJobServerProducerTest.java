@@ -3,7 +3,9 @@ package org.jobrunr.quarkus.autoconfigure.server;
 
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import org.assertj.core.api.Assertions;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
@@ -13,22 +15,21 @@ import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
-@QuarkusComponentTest
+@QuarkusComponentTest(JobRunrBackgroundJobServerProducer.class) // needed to create all other beans otherwise the extension doesn't pick them up.
 public class JobRunrBackgroundJobServerProducerTest {
 
-    // Injection needed to create all other beans otherwise the extension doesn't pick them up.
     @Inject
-    JobRunrBackgroundJobServerProducer jobRunrBackgroundJobServerProducer;
-
+    Instance<BackgroundJobServer> backgroundJobServerInstance;
     @Inject
-    BackgroundJobServer backgroundJobServer;
-    @Inject
-    BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    Instance<BackgroundJobServerConfiguration> backgroundJobServerConfigurationInstance;
 
     @Test
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     void carbonAwareManagerAutoConfigurationIsDisabledByDefault() {
-        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        assertThat(backgroundJobServerInstance.isResolvable()).isTrue();
+        assertThat(backgroundJobServerInstance.get()).isInstanceOf(BackgroundJobServer.class);
+
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServerInstance.get().getConfiguration().getCarbonAwareJobProcessingConfiguration();
         assertThat(carbonAwareJobProcessingConfiguration).hasEnabled(false);
     }
 
@@ -40,7 +41,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.api-client-read-timeout", value = "300ms")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.carbon-aware-job-processing.poll-interval-in-minutes", value = "15")
     void carbonAwareManagerAutoConfiguration() {
-        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+        assertThat(backgroundJobServerInstance.isResolvable()).isTrue();
+        assertThat(backgroundJobServerInstance.get()).isInstanceOf(BackgroundJobServer.class);
+
+        CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServerInstance.get().getConfiguration().getCarbonAwareJobProcessingConfiguration();
         assertThat(carbonAwareJobProcessingConfiguration)
                 .hasEnabled(true)
                 .hasApiClientConnectTimeout(Duration.ofMillis(500))
@@ -53,7 +57,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.name", value = "test")
     void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
-        assertThat(backgroundJobServer).hasName("test");
+        assertThat(backgroundJobServerInstance.isResolvable()).isTrue();
+        assertThat(backgroundJobServerInstance.get()).isInstanceOf(BackgroundJobServer.class);
+
+        assertThat(backgroundJobServerInstance.get()).hasName("test");
     }
 
     @Test
@@ -61,7 +68,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.worker-count", value = "4")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.thread-type", value = "PlatformThreads")
     void backgroundJobServerAutoConfigurationTakesIntoThreadTypeAndWorkerCount() {
-        assertThat(backgroundJobServerConfiguration)
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasWorkerCount(4);
     }
 
@@ -70,7 +80,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.poll-interval-in-seconds", value = "5")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.server-timeout-poll-interval-multiplicand", value = "10")
     void backgroundJobServerAutoConfigurationTakesAllBackgroundServerPollIntervals() {
-        assertThat(backgroundJobServerConfiguration)
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasPollIntervalInSeconds(5)
                 .hasServerTimeoutPollIntervalMultiplicand(10);
     }
@@ -79,7 +92,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.jobs.default-number-of-retries", value = "3")
     void backgroundJobServerAutoConfigurationTakesIntoAccountDefaultNumberOfRetries() {
-        assertThat(backgroundJobServer)
+        assertThat(backgroundJobServerInstance.isResolvable()).isTrue();
+        assertThat(backgroundJobServerInstance.get()).isInstanceOf(BackgroundJobServer.class);
+
+        assertThat(backgroundJobServerInstance.get())
                 .hasRetryFilter(3);
     }
 
@@ -89,7 +105,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.orphaned-jobs-request-size", value = "2")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.succeeded-jobs-request-size", value = "3")
     void backgroundJobServerAutoConfigurationTakesIntoAccountAllJobsRequestSizes() {
-        assertThat(backgroundJobServerConfiguration)
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasScheduledJobRequestSize(1)
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3);
@@ -99,9 +118,10 @@ public class JobRunrBackgroundJobServerProducerTest {
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
     @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.interrupt-jobs-await-duration-on-stop", value = "20")
     void backgroundJobServerAutoConfigurationTakesIntoAccountInterruptJobsAwaitDurationOnStopBackgroundJobServer() {
-        assertThat(backgroundJobServerConfiguration)
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
     }
-
-
 }
