@@ -23,6 +23,7 @@ import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.time.Duration;
 
@@ -30,7 +31,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 @Factory
 public class JobRunrFactory {
@@ -44,7 +44,7 @@ public class JobRunrFactory {
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
+        final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 

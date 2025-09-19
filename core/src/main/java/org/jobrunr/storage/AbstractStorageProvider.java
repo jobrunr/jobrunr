@@ -108,12 +108,14 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     if (changeListenerNotificationRateLimit.isRateLimited()) return;
                     JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
                     jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
-                } catch (Exception e) {
-                    logError(e);
                 } finally {
                     if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
+                }
+            }).whenComplete((result, e) -> {
+                if (e != null) {
+                    logError(e);
                 }
             });
         }
@@ -199,7 +201,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
-    private void logError(Exception e) {
+    private void logError(Throwable e) {
         if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }

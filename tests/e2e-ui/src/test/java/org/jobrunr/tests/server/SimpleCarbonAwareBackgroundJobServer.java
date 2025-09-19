@@ -6,6 +6,7 @@ import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.StorageProvider;
 
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class SimpleCarbonAwareBackgroundJobServer extends AbstractSimpleBackgrou
 
     private CarbonIntensityApiStubServer carbonIntensityStubServer;
     private List<RecurringJob> recurringJobs = new ArrayList<>();
-    private int bestIntensityMomentToday = LocalTime.now().getHour();
+    private int bestIntensityMomentToday = LocalTime.now(ZoneId.systemDefault()).getHour();
 
     public SimpleCarbonAwareBackgroundJobServer() {
         withCarbonAwareJobProcessing(usingStandardCarbonAwareJobProcessingConfiguration()

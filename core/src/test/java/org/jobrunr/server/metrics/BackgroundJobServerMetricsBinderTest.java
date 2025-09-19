@@ -93,8 +93,8 @@ class BackgroundJobServerMetricsBinderTest {
             assertThat(getGauge(meters, "jobrunr.background-job-server.process-free-memory").value()).isEqualTo((double) serverStatus.getProcessFreeMemory());
             assertThat(getGauge(meters, "jobrunr.background-job-server.system-free-memory").value()).isEqualTo((double) serverStatus.getSystemFreeMemory());
             assertThat(getGauge(meters, "jobrunr.background-job-server.system-total-memory").value()).isEqualTo((double) serverStatus.getSystemTotalMemory());
-            assertThat(getGauge(meters, "jobrunr.background-job-server.first-heartbeat").value()).isEqualTo(firstHeartBeat.getEpochSecond());
-            assertThat(getGauge(meters, "jobrunr.background-job-server.last-heartbeat").value()).isEqualTo(lastHeartBeat.getEpochSecond());
+            assertThat(getGauge(meters, "jobrunr.background-job-server.first-heartbeat").value()).isEqualTo((double) firstHeartBeat.getEpochSecond());
+            assertThat(getGauge(meters, "jobrunr.background-job-server.last-heartbeat").value()).isEqualTo((double) lastHeartBeat.getEpochSecond());
             assertThat(getGauge(meters, "jobrunr.background-job-server.system-cpu-load").value()).isEqualTo((double) serverStatus.getSystemCpuLoad());
             assertThat(getGauge(meters, "jobrunr.background-job-server.process-cpu-load").value()).isEqualTo((double) serverStatus.getProcessCpuLoad());
         }

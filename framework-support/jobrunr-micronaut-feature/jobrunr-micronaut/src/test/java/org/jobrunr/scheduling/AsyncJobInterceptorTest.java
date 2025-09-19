@@ -27,6 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unused")
 class AsyncJobInterceptorTest {
 
     private AsyncJobInterceptor interceptor;
@@ -100,7 +101,7 @@ class AsyncJobInterceptorTest {
         return context;
     }
 
-    private class JobContextMock extends JobContext {
+    private static class JobContextMock extends JobContext {
         private final String jobSignature;
 
         public JobContextMock(String signature) {

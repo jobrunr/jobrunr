@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Math.ceil;
-import static java.math.BigDecimal.valueOf;
 import static org.jobrunr.utils.NumberUtils.isZero;
 
 /**
@@ -63,7 +62,7 @@ public class JobStatsEnricher {
         if (jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded() < 1) return null;
         BigDecimal durationForAmountSucceededInSeconds = BigDecimal.valueOf(Duration.between(firstRelevantJobStats.getTimeStamp(), jobStats.getTimeStamp()).getSeconds());
         if (isZero(durationForAmountSucceededInSeconds)) return null;
-        BigDecimal amountSucceededPerSecond = valueOf(ceil(jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded())).divide(durationForAmountSucceededInSeconds, RoundingMode.CEILING);
+        BigDecimal amountSucceededPerSecond = BigDecimal.valueOf(ceil((double) jobStats.getSucceeded() - firstRelevantJobStats.getSucceeded())).divide(durationForAmountSucceededInSeconds, RoundingMode.CEILING);
         if (isZero(amountSucceededPerSecond)) return null;
         BigDecimal processingTimeInSeconds = BigDecimal.valueOf(jobStats.getEnqueued() + jobStats.getProcessing()).divide(amountSucceededPerSecond, RoundingMode.HALF_UP);
         return Instant.now().plusSeconds(processingTimeInSeconds.longValue());

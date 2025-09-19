@@ -62,7 +62,7 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
 
     @Override
     protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
-        return new DatabaseCleaner(dataSource, this::canIgnoreException);
+        return new DatabaseCleaner(dataSource);
     }
 
     private boolean canIgnoreException(Exception e) {

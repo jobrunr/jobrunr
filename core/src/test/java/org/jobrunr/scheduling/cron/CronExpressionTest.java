@@ -17,7 +17,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
-import static java.time.LocalDateTime.now;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -57,7 +56,7 @@ class CronExpressionTest {
 
         Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(createdAtNotRelevantInstant, Instant.now(), UTC);
 
-        Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
+        Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now(ZoneId.systemDefault()).plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }
@@ -65,7 +64,7 @@ class CronExpressionTest {
     @Test
     @Because("github issue 31")
     void dailyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = now();
         int hour = localDateTime.getHour();
         int minute = localDateTime.getMinute();
         if (minute < 1) {
@@ -84,7 +83,7 @@ class CronExpressionTest {
     @Test
     @Because("github issue 31")
     void minutelyRecurringJobsTakeTimeZonesCorrectlyIntoAccount() {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = now();
         int nextMinute = localDateTime.plusMinutes(1).getMinute();
 
         Instant nextRun = new CronExpression(Cron.hourly(nextMinute)).next(createdAtNotRelevantInstant, Instant.now(), ZoneOffset.of("+02:00"));
@@ -759,4 +758,7 @@ class CronExpressionTest {
         );
     }
 
+    private static LocalDateTime now() {
+        return LocalDateTime.now(ZoneId.systemDefault());
+    }
 }

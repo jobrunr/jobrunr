@@ -35,7 +35,7 @@ public class ResourcesFileSystemProvider implements FileSystemProvider {
                 fileSystem = FileSystems.getFileSystem(URI.create("resource:/resources"));
             } catch (Exception e) {
                 Map<String, Object> options = new HashMap<>();
-                options.put("create", Boolean.TRUE);
+                options.put("create", true);
                 fileSystem = FileSystems.newFileSystem(URI.create("resource:/resources"), options, null);
             }
         }

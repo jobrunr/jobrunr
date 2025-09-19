@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.lang.reflect.AnnotatedElement;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.junit.platform.commons.support.AnnotationSupport.findAnnotation;
@@ -21,10 +22,11 @@ public class RunTestBetweenExecutionCondition implements ExecutionCondition {
             final LocalTime fromTime = LocalTime.parse(runTestBetween.from());
             final LocalTime toTime = LocalTime.parse(runTestBetween.to());
 
-            if (LocalTime.now().isAfter(fromTime) && LocalTime.now().isBefore(toTime)) {
-                return ConditionEvaluationResult.enabled(String.format("Test enabled as it is now (%s) between %s and %s", LocalTime.now(), fromTime, toTime));
+            LocalTime now = LocalTime.now(ZoneId.systemDefault());
+            if (now.isAfter(fromTime) && now.isBefore(toTime)) {
+                return ConditionEvaluationResult.enabled(String.format("Test enabled as it is now (%s) between %s and %s", now, fromTime, toTime));
             }
-            return ConditionEvaluationResult.disabled(String.format("Test disabled as it is now (%s) not between %s and %s", LocalTime.now(), fromTime, toTime));
+            return ConditionEvaluationResult.disabled(String.format("Test disabled as it is now (%s) not between %s and %s", now, fromTime, toTime));
 
         }
         return ConditionEvaluationResult.enabled("@RunTestBetween is not present.");

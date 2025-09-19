@@ -49,7 +49,7 @@ public class JsonMapperValidatorTest {
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
                 .hasRootCauseMessage("Job Serialization should use fields and not getters/setters.");
     }
-    
+
     @Test
     void testInvalidJacksonJsonMapperNoPolymorphism() {
         assertThatThrownBy(() -> validateJsonMapper(new InvalidJacksonJsonMapper(new ObjectMapper()
@@ -96,7 +96,7 @@ public class JsonMapperValidatorTest {
         assertThatCode(() -> validateJsonMapper(new JsonbJsonMapper())).doesNotThrowAnyException();
     }
 
-    public class InvalidJacksonJsonMapper extends JacksonJsonMapper {
+    public static class InvalidJacksonJsonMapper extends JacksonJsonMapper {
 
         public InvalidJacksonJsonMapper(ObjectMapper objectMapper) {
             super(objectMapper);
@@ -108,7 +108,7 @@ public class JsonMapperValidatorTest {
         }
     }
 
-    public class InvalidGsonJsonMapper extends GsonJsonMapper {
+    public static class InvalidGsonJsonMapper extends GsonJsonMapper {
 
         public InvalidGsonJsonMapper(Gson gson) {
             super(gson);
@@ -120,7 +120,7 @@ public class JsonMapperValidatorTest {
         }
     }
 
-    public class InvalidJsonbJsonMapper extends JsonbJsonMapper {
+    public static class InvalidJsonbJsonMapper extends JsonbJsonMapper {
 
         public InvalidJsonbJsonMapper(JsonbConfig config) {
             super(config);

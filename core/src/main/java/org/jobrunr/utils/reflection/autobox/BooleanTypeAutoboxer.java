@@ -1,5 +1,7 @@
 package org.jobrunr.utils.reflection.autobox;
 
+import org.jobrunr.utils.NumberUtils;
+
 import java.math.BigDecimal;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -15,7 +17,7 @@ public class BooleanTypeAutoboxer implements TypeAutoboxer<Boolean> {
         if (value instanceof Boolean) {
             return (Boolean) value;
         } else if (value instanceof BigDecimal) {
-            return cast(!BigDecimal.ZERO.equals(value));
+            return cast(!NumberUtils.isZero((BigDecimal) value));
         } else if (value instanceof Integer) {
             return cast(((Integer) value) != 0);
         } else if (value instanceof String) {

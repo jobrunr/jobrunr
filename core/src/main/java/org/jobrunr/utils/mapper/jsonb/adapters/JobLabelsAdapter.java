@@ -6,17 +6,13 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
-import org.jobrunr.utils.mapper.jsonb.JobRunrJsonb;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class JobLabelsAdapter implements JsonbAdapter<List<String>, JsonArray> {
 
-    private final JobRunrJsonb jsonb;
-
-    public JobLabelsAdapter(JobRunrJsonb jsonb) {
-        this.jsonb = jsonb;
+    public JobLabelsAdapter() {
     }
 
     @Override

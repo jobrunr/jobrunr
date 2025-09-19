@@ -217,8 +217,8 @@ public class JobContextTest {
         JobContext jobContext = new JobContext(job);
 
         final CountDownLatch countDownLatch = new CountDownLatch(2);
-        final Thread thread1 = new Thread(updateJobContextRunnable(job, jobContext, countDownLatch));
-        final Thread thread2 = new Thread(serializingRunnable(job, jobContext, jobMapper, countDownLatch));
+        final Thread thread1 = new Thread(updateJobContextRunnable(jobContext, countDownLatch));
+        final Thread thread2 = new Thread(serializingRunnable(job, jobMapper, countDownLatch));
 
         thread1.start();
         thread2.start();
@@ -230,7 +230,7 @@ public class JobContextTest {
                 .hasMetadata("key99", "value99");
     }
 
-    private Runnable updateJobContextRunnable(Job job, JobContext jobContext, CountDownLatch countDownLatch) {
+    private Runnable updateJobContextRunnable(JobContext jobContext, CountDownLatch countDownLatch) {
         return () -> {
             try {
                 for (int i = 0; i < 100; i++) {
@@ -244,7 +244,7 @@ public class JobContextTest {
         };
     }
 
-    private Runnable serializingRunnable(Job job, JobContext jobContext, JobMapper jobMapper, CountDownLatch countDownLatch) {
+    private Runnable serializingRunnable(Job job, JobMapper jobMapper, CountDownLatch countDownLatch) {
         return () -> {
             try {
                 for (int i = 0; i < 100; i++) {

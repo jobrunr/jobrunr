@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static java.time.Duration.ofMillis;
@@ -114,7 +115,7 @@ public class ProcessRecurringJobsTaskIntegrationTest {
     }
 
     private CarbonIntensityForecast getIntensityForecastFakeDataOptimalAtIndex(int optimalIndex) {
-        ZonedDateTime startTime = ZonedDateTime.now().truncatedTo(SECONDS);
+        ZonedDateTime startTime = ZonedDateTime.now(ZoneId.systemDefault()).truncatedTo(SECONDS);
         ZonedDateTime forecastUntil = startTime.plusHours(3);
         var forecast = buildForecastSlots(startTime, forecastUntil, SECONDS, i -> i == optimalIndex ? 0 : i);
         return generateCarbonIntensityForecastUsing(startTime.truncatedTo(DAYS).plusDays(1).withHour(18).withMinute(30), forecast);

@@ -27,6 +27,7 @@ import org.slf4j.MDC;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
@@ -181,7 +182,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleWithZonedDateTime() {
-        JobId jobId = BackgroundJobRequest.schedule(ZonedDateTime.now().plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithZonedDateTime"));
+        JobId jobId = BackgroundJobRequest.schedule(ZonedDateTime.now(ZoneId.systemDefault()).plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithZonedDateTime"));
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -189,7 +190,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleWithOffsetDateTime() {
-        JobId jobId = BackgroundJobRequest.schedule(OffsetDateTime.now().plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithOffsetDateTime"));
+        JobId jobId = BackgroundJobRequest.schedule(OffsetDateTime.now(ZoneId.systemDefault()).plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithOffsetDateTime"));
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);
@@ -197,7 +198,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testScheduleWithLocalDateTime() {
-        JobId jobId = BackgroundJobRequest.schedule(LocalDateTime.now().plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithLocalDateTime"));
+        JobId jobId = BackgroundJobRequest.schedule(LocalDateTime.now(ZoneId.systemDefault()).plus(ofMillis(1500)), new TestJobRequest("from testScheduleWithLocalDateTime"));
         await().during(ONE_SECOND).until(() -> storageProvider.getJobById(jobId).getState() == SCHEDULED);
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId)).hasStates(SCHEDULED, ENQUEUED, PROCESSING, SUCCEEDED);

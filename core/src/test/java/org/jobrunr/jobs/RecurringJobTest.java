@@ -14,6 +14,7 @@ import org.mockito.MockedStatic;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
@@ -37,9 +38,9 @@ class RecurringJobTest {
         assertThatCode(() -> aDefaultRecurringJob().withoutId().build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this-is-allowed-with-a-1").build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withId("this_is_ALSO_allowed_with_a_2").build()).doesNotThrowAnyException();
-        assertThatCode(() -> aDefaultRecurringJob().withId("some-id" .repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
+        assertThatCode(() -> aDefaultRecurringJob().withId("some-id".repeat(20).substring(0, 127)).build()).doesNotThrowAnyException();
         assertThatCode(() -> aDefaultRecurringJob().withoutId().withJobDetails(new JobDetails(new SimpleJobRequest())).build()).doesNotThrowAnyException();
-        assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id" .repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> aDefaultRecurringJob().withId("some-id".repeat(20)).build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this is not allowed").build()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> aDefaultRecurringJob().withId("this-is-also-not-allowed-because-of-$").build()).isInstanceOf(IllegalArgumentException.class);
     }
@@ -222,7 +223,7 @@ class RecurringJobTest {
 
     @Test
     void nextInstantWithCronExpressionIsCorrect() {
-        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneId.systemDefault());
         LocalDateTime timeForCron = localDateTime.plusMinutes(-1);
 
         int hour = timeForCron.getHour();
@@ -230,7 +231,7 @@ class RecurringJobTest {
 
         final RecurringJob recurringJob = aDefaultRecurringJob()
                 .withName("the recurring job")
-                .withCronExpression(Cron.daily(hour, (minute)))
+                .withCronExpression(Cron.daily(hour, minute))
                 .withZoneId(ZoneOffset.of("+02:00"))
                 .build();
         Instant nextRun = recurringJob.getNextRun();

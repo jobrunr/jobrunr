@@ -95,11 +95,14 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.errorprone.disableWarningsInGeneratedCode = false
         options.errorprone {
             disable("ReturnValueIgnored")                       // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
-            disable("JavaDurationGetSecondsToToSeconds")        // we can't update to JDK9 just yet
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
-            disable("DoNotCallSuggester")                       // This is a Google-specific annotation
+            disable("DoNotCallSuggester")                       // this is a Google-specific annotation
+            disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
             disable("JdkObsolete")                              // we still rely on JDK8 things
+            disable("JavaDurationGetSecondsToToSeconds")        // we can't update to JDK9 just yet
+            disable("PatternMatchingInstanceof")                // we can't update to JDK9 just yet
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
+            disable("StringSplitter")                           // should not happen because of validation
         }
     }
 

@@ -4,34 +4,21 @@ import org.jobrunr.utils.exceptions.Exceptions;
 
 import javax.sql.DataSource;
 import java.sql.Statement;
-import java.util.function.Function;
 
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 
 public class DatabaseCleaner {
 
-    public static final Function<Exception, Boolean> ignoreExceptions = exception -> true;
-
     private final DataSource dataSource;
     private final String tableNamePrefix;
-    private final Function<Exception, Boolean> canIgnoreException;
 
     public DatabaseCleaner(DataSource dataSource) {
-        this(dataSource, null, ignoreExceptions);
+        this(dataSource, null);
     }
 
     public DatabaseCleaner(DataSource dataSource, String tableNamePrefix) {
-        this(dataSource, tableNamePrefix, ignoreExceptions);
-    }
-
-    public DatabaseCleaner(DataSource dataSource, Function<Exception, Boolean> canIgnoreException) {
-        this(dataSource, null, canIgnoreException);
-    }
-
-    public DatabaseCleaner(DataSource dataSource, String tableNamePrefix, Function<Exception, Boolean> canIgnoreException) {
         this.dataSource = dataSource;
         this.tableNamePrefix = isNotNullOrEmpty(tableNamePrefix) ? tableNamePrefix : "";
-        this.canIgnoreException = canIgnoreException;
     }
 
     public void dropAllTablesAndViews() {
