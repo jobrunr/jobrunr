@@ -91,9 +91,10 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        options.errorprone.enabled = true
-        options.errorprone.disableWarningsInGeneratedCode = false
+        options.errorprone.enabled = false
+        options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
+            // built-in error-prone rules
             disable("ReturnValueIgnored")                       // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
@@ -103,6 +104,17 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             disable("PatternMatchingInstanceof")                // we can't update to JDK9 just yet
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
             disable("StringSplitter")                           // should not happen because of validation
+
+            // Picnic rules
+            disable("TimeZoneUsage")                            // expects deriving from Spring's Clock
+            disable("StaticImport")                             // clashes with error-prone's idea of sometimes not static importing
+
+            def picnicRefasterRulesToDisable = [
+                    "StringRules\$StringIsNullOrEmpty",         // assumes Guava
+                    "PreconditionsRules\$",                     // assumes Guava
+                    "NullRules\$RequireNonNullElse"             // we can't update to JDK9 just yet
+            ].collect { "(?!$it)" }.join("") + ".*"
+            option("-XepOpt:Refaster:NamePattern=^${picnicRefasterRulesToDisable}")
         }
     }
 
@@ -123,9 +135,11 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     dependencies {
         implementation platform(project(':platform'))
-        errorprone("com.google.errorprone:error_prone_core:2.40.0")
-
         compileOnly 'org.apache.groovy:groovy-json:4.0.27'
+
+        errorprone("com.google.errorprone:error_prone_core:2.40.0")
+        errorprone("tech.picnic.error-prone-support:error-prone-contrib:0.24.0")
+        errorprone("tech.picnic.error-prone-support:refaster-runner:0.24.0")
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
