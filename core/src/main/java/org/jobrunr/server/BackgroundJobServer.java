@@ -19,6 +19,7 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
 import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Spliterator;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -336,17 +336,17 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void runStartupTasks() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        CompletableFuture
-                .runAsync(new StartupTask(
-                        new CreateClusterIdIfNotExists(this),
-                        new CheckIfAllJobsExistTask(this),
-                        new MigrateFromV5toV6Task(this)
-                ), executor)
-                .whenComplete((result, unusedNotImportant) -> {
-                    executor.shutdown();
-                    // in case of exception, server is shut down immediately
-                });
+        try {
+            ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+            singleThreadExecutor.execute(new StartupTask(
+                    new CreateClusterIdIfNotExists(this),
+                    new CheckIfAllJobsExistTask(this),
+                    new MigrateFromV5toV6Task(this),
+                    new ShutdownExecutorServiceTask(singleThreadExecutor)
+            ));
+        } catch (Exception notImportant) {
+            // server is shut down immediately
+        }
     }
 
     private List<BackgroundJobRunner> initializeBackgroundJobRunners(JobActivator jobActivator) {

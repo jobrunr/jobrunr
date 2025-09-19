@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,7 +103,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
         if (!jobStatsChangeListeners.isEmpty()) {
-            runAsync(() -> {
+            CompletableFuture<?> future = runAsync(() -> {
                 try {
                     if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
                     if (changeListenerNotificationRateLimit.isRateLimited()) return;
@@ -113,7 +114,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
                 }
-            }).whenComplete((result, e) -> {
+            });
+            future.whenComplete((result, e) -> {
                 if (e != null) {
                     logError(e);
                 }

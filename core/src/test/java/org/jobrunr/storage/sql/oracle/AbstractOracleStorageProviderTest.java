@@ -65,7 +65,4 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
         return new DatabaseCleaner(dataSource);
     }
 
-    private boolean canIgnoreException(Exception e) {
-        return e.getMessage().contains("ORA-00942");
-    }
 }
