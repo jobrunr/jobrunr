@@ -279,8 +279,7 @@ public class CronExpression extends Schedule {
         result = 31 * result + hours.hashCode();
         result = 31 * result + days.hashCode();
         result = 31 * result + months.hashCode();
-        result = 31 * result + daysOfWeek.hashCode();
-        return result;
+        return 31 * result + daysOfWeek.hashCode();
     }
 
     private boolean canScheduleActuallyOccur() {

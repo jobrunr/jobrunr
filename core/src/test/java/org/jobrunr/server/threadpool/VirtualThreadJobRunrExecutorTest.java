@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class VirtualThreadJobRunrExecutorTest {
+final class VirtualThreadJobRunrExecutorTest {
 
     @Mock
     ExecutorService executorService;

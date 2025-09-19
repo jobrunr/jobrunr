@@ -14,7 +14,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 
 public class VirtualThreadJobRunrExecutor implements JobRunrExecutor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualThreadJobRunrExecutor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(VirtualThreadJobRunrExecutor.class);
 
     private final ExecutorService executorService;
     private final int workerCount;
@@ -42,7 +42,7 @@ public class VirtualThreadJobRunrExecutor implements JobRunrExecutor {
     @Override
     public void start() {
         this.started = true;
-        LOGGER.info("ThreadManager of type 'VirtualThreadPerTask' started");
+        LOG.info("ThreadManager of type 'VirtualThreadPerTask' started");
     }
 
     @Override

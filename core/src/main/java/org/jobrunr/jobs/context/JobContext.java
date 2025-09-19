@@ -36,7 +36,7 @@ public class JobContext {
     private static final String JOBRUNR_STEP_RESULT_PREFIX = "jr_step_result_";
     private static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = "jr_step_result_class_";
 
-    public static final JobContext Null = new JobContext(null);
+    public static final JobContext NULL = new JobContext(null);
 
     private final Job job;
 

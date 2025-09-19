@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.defaultJobDetails;
-import static org.jobrunr.jobs.JobParameter.JobContext;
+import static org.jobrunr.jobs.JobParameter.JOB_CONTEXT;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
 class BackgroundJobWithoutIocRunnerTest {
@@ -51,7 +51,7 @@ class BackgroundJobWithoutIocRunnerTest {
     void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
                 .withJobDetails(defaultJobDetails()
-                        .withJobParameter(JobContext))
+                        .withJobParameter(JOB_CONTEXT))
                 .build();
 
         assertThatCode(() -> backgroundJobWithoutIocRunner.run(job)).doesNotThrowAnyException();

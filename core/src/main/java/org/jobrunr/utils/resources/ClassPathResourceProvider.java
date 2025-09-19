@@ -31,12 +31,12 @@ import java.util.stream.Stream;
  */
 public class ClassPathResourceProvider implements AutoCloseable {
 
-    private static final Map<String, FileSystemProvider> fileSystemProviders = new HashMap<>();
-    private static final ReentrantLock lock = new ReentrantLock();
+    private static final Map<String, FileSystemProvider> FILE_SYSTEM_PROVIDERS = new HashMap<>();
+    private static final ReentrantLock LOCK = new ReentrantLock();
 
     public ClassPathResourceProvider() {
         try {
-            lock.tryLock(5, TimeUnit.SECONDS);
+            LOCK.tryLock(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new IllegalStateException("Unable to open lock. Make sure the ClassPathResourceProvider is used inside a try-with-resources block?", e);
         }
@@ -130,21 +130,21 @@ public class ClassPathResourceProvider implements AutoCloseable {
     }
 
     private FileSystemProvider getFileSystemProvider(URI uri) {
-        return fileSystemProviders.computeIfAbsent(uri.getScheme(), this::getFileSystemProviderByScheme);
+        return FILE_SYSTEM_PROVIDERS.computeIfAbsent(uri.getScheme(), this::getFileSystemProviderByScheme);
     }
 
     @Override
     public void close() throws IllegalStateException {
         try {
-            for (FileSystemProvider fileSystemProvider : this.fileSystemProviders.values()) {
+            for (FileSystemProvider fileSystemProvider : this.FILE_SYSTEM_PROVIDERS.values()) {
                 closeFileSystemProvider(fileSystemProvider);
             }
         } catch (Exception e) {
             LoggerFactory.getLogger(ClassPathResourceProvider.class).error("Could not close FileSystemProvider", e);
             throw new IllegalStateException("Could not close FileSystemProvider", e);
         } finally {
-            this.fileSystemProviders.clear();
-            lock.unlock();
+            this.FILE_SYSTEM_PROVIDERS.clear();
+            LOCK.unlock();
         }
     }
 

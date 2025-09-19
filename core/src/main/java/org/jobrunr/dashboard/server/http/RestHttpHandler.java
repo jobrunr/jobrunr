@@ -67,7 +67,7 @@ public class RestHttpHandler extends AbstractHttpExchangeHandler {
                     .map(httpRequestMethodHandlers::get)
                     .ifPresent(httpRequestHandler -> processRequest(httpRequestHandler, new HttpRequest(actualUrl.toRequestUrl(matchingUrl.get())), new HttpResponse(httpExchange, jsonMapper)));
         } else {
-            processRequest(HttpRequestHandlers.notFound, new HttpRequest(null), new HttpResponse(httpExchange, jsonMapper));
+            processRequest(HttpRequestHandlers.NOT_FOUND, new HttpRequest(null), new HttpResponse(httpExchange, jsonMapper));
         }
     }
 

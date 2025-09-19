@@ -108,7 +108,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
         private JobDetails getJobDetails(Method method) {
             List<JobParameter> jobParameters = new ArrayList<>();
             if (method.getParameterCount() == 1 && method.getParameterTypes()[0].equals(JobContext.class)) {
-                jobParameters.add(JobParameter.JobContext);
+                jobParameters.add(JobParameter.JOB_CONTEXT);
             }
             final JobDetails jobDetails = new JobDetails(method.getDeclaringClass().getName(), null, method.getName(), jobParameters);
             jobDetails.setCacheable(true);

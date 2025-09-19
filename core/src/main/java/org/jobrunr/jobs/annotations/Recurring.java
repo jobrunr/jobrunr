@@ -26,10 +26,10 @@ import java.lang.annotation.Target;
  * </pre>
  */
 
-@Target({ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
 public @interface Recurring {
 
     /**

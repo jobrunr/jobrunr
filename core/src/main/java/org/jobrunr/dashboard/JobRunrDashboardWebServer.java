@@ -24,7 +24,7 @@ import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
  */
 public class JobRunrDashboardWebServer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobRunrDashboardWebServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JobRunrDashboardWebServer.class);
 
     private final StorageProvider storageProvider;
     private final JsonMapper jsonMapper;
@@ -74,7 +74,7 @@ public class JobRunrDashboardWebServer {
         registerSecuredContext(sseHandler);
         webServer.start();
 
-        LOGGER.info("JobRunr Dashboard using {} started at http://{}:{}/dashboard",
+        LOG.info("JobRunr Dashboard using {} started at http://{}:{}/dashboard",
                 storageProvider.getStorageProviderInfo().getName(),
                 webServer.getWebServerHostAddress(),
                 webServer.getWebServerHostPort());
@@ -83,7 +83,7 @@ public class JobRunrDashboardWebServer {
     public void stop() {
         if (webServer == null) return;
         webServer.stop();
-        LOGGER.info("JobRunr dashboard stopped");
+        LOG.info("JobRunr dashboard stopped");
         webServer = null;
     }
 

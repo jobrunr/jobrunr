@@ -32,11 +32,12 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
-class JobRunrConfigurationTest {
+final class JobRunrConfigurationTest {
 
     @Mock
     JobActivator jobActivator;
@@ -185,7 +186,7 @@ class JobRunrConfigurationTest {
     void initializeShouldNotThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathButACustomJsonMapperIsProvided() {
         assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
 
-        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = Mockito.mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
+        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
             mockedReflectionUtils.when(() -> ReflectionUtils.classExists(any())).thenReturn(false);
 
             assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isFalse();
@@ -198,7 +199,7 @@ class JobRunrConfigurationTest {
     void initializeShouldThrowAJsonMapperExceptionIfNoneOfTheSupportedJsonLibrariesIsOnTheClasspathAndACustomJsonMapperIsNotProvided() {
         assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isTrue();
 
-        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = Mockito.mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
+        try (MockedStatic<ReflectionUtils> mockedReflectionUtils = mockStatic(ReflectionUtils.class, Mockito.CALLS_REAL_METHODS)) {
             mockedReflectionUtils.when(() -> ReflectionUtils.classExists(any())).thenReturn(false);
 
             assertThat(ReflectionUtils.classExists("com.fasterxml.jackson.databind.ObjectMapper")).isFalse();

@@ -5,11 +5,13 @@ import org.jobrunr.storage.Page;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.jobrunr.utils.StringUtils.*;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
 
 public class OffsetBasedPageRequest extends PageRequest {
 
-    public static final Page emptyPage = new Page(0, emptyList(), 0, 0, null, null, null);
+    public static final Page EMPTY_PAGE = new Page(0, emptyList(), 0, 0, null, null, null);
     public static final long DEFAULT_OFFSET = 0L;
 
     private final long offset;

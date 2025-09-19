@@ -11,6 +11,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +25,7 @@ import static org.jobrunr.utils.StringUtils.capitalize;
 
 public class ReflectionUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ReflectionUtils.class);
 
     private static final String ROOT_PACKAGE_NAME = "org/jobrunr/";
     private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_TYPE_MAPPING = new HashMap<>();
@@ -104,12 +105,12 @@ public class ReflectionUtils {
     }
 
     public static boolean hasDefaultNoArgConstructor(String clazzName) {
-        return Stream.of(toClass(clazzName).getConstructors())
+        return Arrays.stream(toClass(clazzName).getConstructors())
                 .anyMatch(c -> c.getParameterCount() == 0);
     }
 
     public static boolean hasDefaultNoArgConstructor(Class<?> clazz) {
-        return Stream.of(clazz.getConstructors())
+        return Arrays.stream(clazz.getConstructors())
                 .anyMatch(c -> c.getParameterCount() == 0);
     }
 
@@ -133,7 +134,7 @@ public class ReflectionUtils {
     }
 
     public static <T> T newInstanceCE(Class<T> clazz, Object... params) throws ReflectiveOperationException {
-        final Constructor<T> declaredConstructor = getConstructorForArgs(clazz, Stream.of(params).map(Object::getClass).toArray(Class[]::new));
+        final Constructor<T> declaredConstructor = getConstructorForArgs(clazz, Arrays.stream(params).map(Object::getClass).toArray(Class[]::new));
         makeAccessible(declaredConstructor);
         return declaredConstructor.newInstance(params);
     }
@@ -178,7 +179,7 @@ public class ReflectionUtils {
                     .map(superInterface -> findMethod(superInterface, predicate))
                     .filter(Optional::isPresent)
                     .findFirst()
-                    .orElse(Optional.empty());
+                    .orElseGet(Optional::empty);
         } else if (!Object.class.equals(clazz.getSuperclass())) {
             return findMethod(clazz.getSuperclass(), predicate);
         } else {
@@ -287,21 +288,21 @@ public class ReflectionUtils {
 
     private static Class<?> loadClassWithoutClassLoader(String className) throws ClassNotFoundException {
         try {
-            LOGGER.trace("Attempting to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            LOG.trace("Attempting to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            LOGGER.trace("Failed to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
+            LOG.trace("Failed to load class '{}' without ClassLoader (ClassLoader of calling class or system ClassLoader)", className);
             throw e;
         }
     }
 
     private static Class<?> loadClassUsingContextClassLoader(String className, ClassLoader classLoader) {
         try {
-            LOGGER.trace("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+            LOG.trace("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
             return Class.forName(className, true, classLoader);
         } catch (ClassNotFoundException e) {
             // support for Spring Boot Executable jar. See https://github.com/jobrunr/jobrunr/issues/81
-            LOGGER.trace("Failed to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
+            LOG.trace("Failed to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
         }
         return null;
     }

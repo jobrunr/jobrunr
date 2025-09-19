@@ -94,7 +94,7 @@ public abstract class AbstractJsonMapperTest {
     @Test
     void testSerializeAndDeserializeWithJobContext() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWork(5, JobContext.Null))
+                .withJobDetails(() -> testService.doWork(5, JobContext.NULL))
                 .build();
 
         final String jobAsString = jsonMapper.serialize(job);

@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import static java.util.Optional.ofNullable;
 
-@SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
+@SuppressWarnings({"CanBeFinal", "FieldMayBeFinal"}) // because of JSON-B
 public abstract class AbstractJobState implements JobState {
 
     private final StateName state;

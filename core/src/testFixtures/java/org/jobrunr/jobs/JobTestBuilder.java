@@ -101,7 +101,7 @@ public class JobTestBuilder {
                 .withJobDetails(jobDetails()
                         .withClassName(TestService.class)
                         .withMethodName("doWorkThatTakesLong")
-                        .withJobParameter(JobContext.Null));
+                        .withJobParameter(JobContext.NULL));
     }
 
     public static JobTestBuilder aJobInProgress() {

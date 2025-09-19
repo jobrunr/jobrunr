@@ -12,7 +12,7 @@ import org.jobrunr.utils.annotations.Because;
 // by the JobPerformer. In this case, the master tries to save the newly enqueued job again but in the mean time the job version has been updated as the
 // JobPerformer also saved it.
 // This occurs mostly when a lot of jobs fail.
-@Because({"https://github.com/jobrunr/jobrunr/issues/557", "https://github.com/jobrunr/jobrunr/issues/553"})
+@Because({"https://github.com/jobrunr/jobrunr/issues/553", "https://github.com/jobrunr/jobrunr/issues/557"})
 public class ScheduledTooEarlyByJobZooKeeperConcurrentStateChange implements AllowedConcurrentStateChange {
 
     private final StorageProvider storageProvider;

@@ -19,7 +19,7 @@ import static org.jobrunr.server.DesktopUtils.systemSupportsSleepDetection;
 
 public class ServerZooKeeper implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerZooKeeper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerZooKeeper.class);
 
     private final BackgroundJobServer backgroundJobServer;
     private final StorageProvider storageProvider;
@@ -38,7 +38,7 @@ public class ServerZooKeeper implements Runnable {
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
-        LOGGER.trace(systemSupportsSleepDetection()
+        LOG.trace(systemSupportsSleepDetection()
                 ? "JobRunr can detect desktop sleeping."
                 : "JobRunr can not detect desktop sleeping.");
     }
@@ -54,7 +54,7 @@ public class ServerZooKeeper implements Runnable {
                 signalBackgroundJobServerAliveAndDoZooKeeping();
             }
         } catch (Exception shouldNotHappen) {
-            LOGGER.error("An unrecoverable error occurred. Shutting down {}...", backgroundJobServer, shouldNotHappen);
+            LOG.error("An unrecoverable error occurred. Shutting down {}...", backgroundJobServer, shouldNotHappen);
             if (masterId == null) backgroundJobServer.setIsMaster(null);
             new Thread(this::stopServer).start();
         }
@@ -64,7 +64,7 @@ public class ServerZooKeeper implements Runnable {
         try {
             storageProvider.signalBackgroundJobServerStopped(backgroundJobServer.getServerStatus());
         } catch (Exception e) {
-            LOGGER.error("Error when signalling that {} stopped", backgroundJobServer, e);
+            LOG.error("Error when signalling that {} stopped", backgroundJobServer, e);
         } finally {
             masterId = null;
         }
@@ -84,10 +84,10 @@ public class ServerZooKeeper implements Runnable {
             determineIfCurrentBackgroundJobServerIsMaster();
         } catch (ServerTimedOutException e) {
             if (restartAttempts.getAndIncrement() < 3) {
-                LOGGER.error("SEVERE ERROR - {} timed out while it's still alive. Are all servers using NTP and in the same timezone? Are you having long GC cycles? Restart attempt {} out of 3", backgroundJobServer, restartAttempts, e);
+                LOG.error("SEVERE ERROR - {} timed out while it's still alive. Are all servers using NTP and in the same timezone? Are you having long GC cycles? Restart attempt {} out of 3", backgroundJobServer, restartAttempts, e);
                 new Thread(this::resetServer).start();
             } else {
-                LOGGER.error("FATAL - {} restarted 3 times but still times out by other servers. Shutting down.", backgroundJobServer, e);
+                LOG.error("FATAL - {} restarted 3 times but still times out by other servers. Shutting down.", backgroundJobServer, e);
                 new Thread(() -> this.stopServer()).start();
             }
         }
@@ -109,7 +109,7 @@ public class ServerZooKeeper implements Runnable {
 
             final int amountOfServersThatTimedOut = storageProvider.removeTimedOutBackgroundJobServers(timedOutInstant);
             if (amountOfServersThatTimedOut > 0) {
-                LOGGER.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);
+                LOG.info("Removed {} server(s) that timed out", amountOfServersThatTimedOut);
             }
             this.lastServerTimeoutCheck = now;
         }
@@ -121,10 +121,10 @@ public class ServerZooKeeper implements Runnable {
             this.masterId = longestRunningBackgroundJobServerId;
             if (masterId.equals(backgroundJobServer.getId())) {
                 backgroundJobServer.setIsMaster(true);
-                LOGGER.info("Server {} is master (this BackgroundJobServer)", masterId);
+                LOG.info("Server {} is master (this BackgroundJobServer)", masterId);
             } else {
                 backgroundJobServer.setIsMaster(false);
-                LOGGER.info("Server {} is master (another BackgroundJobServer)", masterId);
+                LOG.info("Server {} is master (another BackgroundJobServer)", masterId);
             }
         }
     }

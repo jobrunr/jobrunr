@@ -64,7 +64,7 @@ import static org.jobrunr.utils.VersionNumber.v;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackgroundJobServer.class);
 
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
@@ -144,7 +144,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before pausing");
             if (isPaused()) return;
             stopWorkers();
-            LOGGER.info("{} Paused job processing", this);
+            LOG.info("{} Paused job processing", this);
             lifecycleChange.succeeded();
         }
     }
@@ -155,7 +155,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             if (isStopped()) throw new IllegalStateException("First start the BackgroundJobServer before resuming");
             if (isProcessing()) return;
             startWorkers();
-            LOGGER.info("{} Resumed job processing", this);
+            LOG.info("{} Resumed job processing", this);
             lifecycleChange.succeeded();
         }
     }
@@ -165,12 +165,12 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (isStopping()) return;
         try (LifecycleChangeLock lifecycleChange = lifecycle.goTo(STOP)) {
             if (isStopped()) return;
-            LOGGER.info("{} stopping (may take about {})", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
+            LOG.info("{} stopping (may take about {})", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
             isMaster = null;
             stopWorkers();
             stopZooKeepers();
             firstHeartbeat = null;
-            LOGGER.info("{} BackgroundJobServer and BackgroundJobPerformers stopped", this);
+            LOG.info("{} BackgroundJobServer and BackgroundJobPerformers stopped", this);
             lifecycleChange.succeeded();
         }
     }
@@ -215,13 +215,13 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
         this.isMaster = isMaster;
         if (isMaster != null) {
-            LOGGER.info("JobRunr {} using {} and {} BackgroundJobPerformers started successfully", this, storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
+            LOG.info("JobRunr {} using {} and {} BackgroundJobPerformers started successfully", this, storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if (isMaster) {
                 startJobZooKeepers();
                 runStartupTasks();
             }
         } else {
-            LOGGER.error("JobRunr {} failed to start", this);
+            LOG.error("JobRunr {} failed to start", this);
         }
     }
 
@@ -293,7 +293,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public void processJob(Job job) {
         BackgroundJobPerformer backgroundJobPerformer = backgroundJobPerformerFactory.newBackgroundJobPerformer(this, job);
         jobExecutor.execute(backgroundJobPerformer);
-        LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
+        LOG.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
     @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
@@ -330,7 +330,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private void stopWorkers() {
         if (jobExecutor == null) return;
-        LOGGER.info("{} BackgroundJobPerformers stopping (waiting at most {} for jobs to finish)", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
+        LOG.info("{} BackgroundJobPerformers stopping (waiting at most {} for jobs to finish)", this, configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         jobExecutor.stop(configuration.getInterruptJobsAwaitDurationOnStopBackgroundJobServer());
         this.jobExecutor = null;
     }

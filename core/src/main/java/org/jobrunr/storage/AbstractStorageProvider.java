@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractStorageProvider implements StorageProvider, AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractStorageProvider.class);
 
     private final Set<StorageProviderChangeListener> onChangeListeners;
     private final JobStatsEnricher jobStatsEnricher;
@@ -205,7 +205,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
 
     private void logError(Throwable e) {
         if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
-        LOGGER.warn("Error notifying JobStorageChangeListeners", e);
+        LOG.warn("Error notifying JobStorageChangeListeners", e);
     }
 
     class NotifyOnChangeListeners extends TimerTask {

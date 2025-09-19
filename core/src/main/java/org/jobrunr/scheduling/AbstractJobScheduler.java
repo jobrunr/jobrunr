@@ -28,7 +28,7 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
 
 public abstract class AbstractJobScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJobScheduler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractJobScheduler.class);
 
     private final StorageProvider storageProvider;
     private final JobFilterUtils jobFilterUtils;
@@ -92,7 +92,7 @@ public abstract class AbstractJobScheduler {
             jobFilterUtils.runOnStateElectionFilter(jobToDelete);
             final Job deletedJob = storageProvider.save(jobToDelete);
             jobFilterUtils.runOnStateAppliedFilters(deletedJob);
-            LOGGER.debug("Deleted Job with id {}", deletedJob.getId());
+            LOG.debug("Deleted Job with id {}", deletedJob.getId());
         } catch (ConcurrentJobModificationException e) {
             if (retryCount <= 0) throw e;
             delete(id, reason, --retryCount);
@@ -152,9 +152,9 @@ public abstract class AbstractJobScheduler {
             jobFilterUtils.runOnCreatingFilter(job);
             Job savedJob = this.storageProvider.save(job);
             jobFilterUtils.runOnCreatedFilter(savedJob);
-            LOGGER.debug("Created Job with id {}", job.getId());
+            LOG.debug("Created Job with id {}", job.getId());
         } catch (ConcurrentJobModificationException e) {
-            LOGGER.info("Skipped Job with id {} as it already exists", job.getId());
+            LOG.info("Skipped Job with id {} as it already exists", job.getId());
         }
         return new JobId(job.getId());
     }

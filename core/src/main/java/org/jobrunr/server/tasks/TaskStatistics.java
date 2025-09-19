@@ -12,7 +12,7 @@ import java.time.Instant;
 
 public class TaskStatistics {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskStatistics.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskStatistics.class);
 
     private final DashboardNotificationManager dashboardNotificationManager;
     private long runCounter;
@@ -45,10 +45,10 @@ public class TaskStatistics {
         }
         Duration actualRunDuration = Duration.between(runStartTime, runEndTime);
         if (actualRunDuration.compareTo(pollInterval) < 0) {
-            LOGGER.debug("JobZooKeeper run took {}", actualRunDuration);
+            LOG.debug("JobZooKeeper run took {}", actualRunDuration);
             runTookToLongCounter = 0;
         } else {
-            LOGGER.debug("JobZooKeeper run took {} (while pollIntervalInSeconds is {})", actualRunDuration, pollInterval);
+            LOG.debug("JobZooKeeper run took {} (while pollIntervalInSeconds is {})", actualRunDuration, pollInterval);
             if (runTookToLongCounter < 2) {
                 runTookToLongCounter++;
             } else {

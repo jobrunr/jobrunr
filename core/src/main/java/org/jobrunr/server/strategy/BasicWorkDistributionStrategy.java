@@ -9,7 +9,7 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BasicWorkDistributionStrategy.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BasicWorkDistributionStrategy.class);
 
     private final BackgroundJobServer backgroundJobServer;
     private final int workerCount;
@@ -36,7 +36,7 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
         final int occupiedWorkerCount = getOccupiedWorkerCount();
 
         final int limit = workerCount - occupiedWorkerCount;
-        LOGGER.debug("Can onboard {} new work (occupiedWorkerCount = {}; workerCount = {}).", limit, occupiedWorkerCount, workerCount);
+        LOG.debug("Can onboard {} new work (occupiedWorkerCount = {}; workerCount = {}).", limit, occupiedWorkerCount, workerCount);
         return ascOnUpdatedAt(limit);
     }
 

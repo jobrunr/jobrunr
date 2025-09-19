@@ -226,7 +226,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testEnqueueWithJobContextAndMetadata() {
-        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.Null));
+        JobId jobId = BackgroundJob.enqueue(() -> testService.doWork(5, JobContext.NULL));
         await().atMost(FIVE_HUNDRED_MILLISECONDS).until(() -> storageProvider.getJobById(jobId).getState() == PROCESSING);
         await().atMost(TWO_SECONDS).until(() -> !storageProvider.getJobById(jobId).getMetadata().isEmpty());
         assertThat(storageProvider.getJobById(jobId))
@@ -401,7 +401,7 @@ public class BackgroundJobByJobLambdaTest {
 
     @Test
     void testRecurringCronJobWithJobContext() {
-        BackgroundJob.scheduleRecurrently(everySecond, () -> testService.doWork(5, JobContext.Null));
+        BackgroundJob.scheduleRecurrently(everySecond, () -> testService.doWork(5, JobContext.NULL));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

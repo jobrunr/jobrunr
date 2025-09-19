@@ -14,6 +14,6 @@ object JobContextSerializer : KSerializer<JobContext> {
     override fun serialize(encoder: Encoder, value: JobContext) = encoder.encodeStructure(descriptor) {}
 
     override fun deserialize(decoder: Decoder): JobContext = decoder.decodeStructure(descriptor) {
-        JobContext.Null
+        JobContext.NULL
     }
 }

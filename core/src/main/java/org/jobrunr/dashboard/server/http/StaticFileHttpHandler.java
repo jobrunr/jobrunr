@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StaticFileHttpHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StaticFileHttpHandler.class);
     private static final Set<String> ALLOWED_STATIC_FILE_EXTENSIONS = new HashSet<>(Arrays.asList(".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".txt", ".json", ".ico"));
 
     private final String contextPath;
@@ -55,7 +55,7 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
                 httpExchange.sendResponseHeaders(404, -1);
             }
         } catch (Exception shouldNotHappen) {
-            LOGGER.error("Error serving static files", shouldNotHappen);
+            LOG.error("Error serving static files", shouldNotHappen);
         }
     }
 

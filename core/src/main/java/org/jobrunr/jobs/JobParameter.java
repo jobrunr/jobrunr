@@ -4,7 +4,7 @@ import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 
 public class JobParameter {
 
-    public static final JobParameter JobContext = new JobParameter(org.jobrunr.jobs.context.JobContext.class);
+    public static final JobParameter JOB_CONTEXT = new JobParameter(org.jobrunr.jobs.context.JobContext.class);
 
     private String className;
     private String actualClassName;

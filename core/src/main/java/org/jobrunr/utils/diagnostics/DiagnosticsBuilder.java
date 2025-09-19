@@ -90,7 +90,7 @@ public class DiagnosticsBuilder {
     }
 
     public DiagnosticsBuilder withObject(String key, Object object) {
-        return this.withBulletedLine(key, object.toString() + "(" + object.getClass().getName() + ")");
+        return this.withBulletedLine(key, object + "(" + object.getClass().getName() + ")");
     }
 
     public DiagnosticsBuilder withParameterTypes(Class<?>[] paramTypes) {
@@ -98,7 +98,7 @@ public class DiagnosticsBuilder {
     }
 
     public DiagnosticsBuilder withParameters(Object[] parameters) {
-        return this.withBulletedLine("parameters", stream(parameters).map(o -> o.toString() + "(" + o.getClass().getName() + ")").collect(joining(", ")));
+        return this.withBulletedLine("parameters", stream(parameters).map(o -> o + "(" + o.getClass().getName() + ")").collect(joining(", ")));
     }
 
     public DiagnosticsBuilder withException(Exception exception) {
@@ -141,8 +141,7 @@ public class DiagnosticsBuilder {
             new Thread(() -> IOUtils.copyStreamNoException(process.getInputStream(), writer)).start();
 
             final int ignored = process.waitFor();
-            final String processOutput = writer.toString();
-            return processOutput;
+            return writer.toString();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return "Unable to run javap command (" + e.getMessage() + ").";
