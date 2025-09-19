@@ -12,16 +12,11 @@ Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-framew
 
 
 <p align="center">
-    <a href="https://search.maven.org/artifact/org.jobrunr/jobrunr"><img src="https://maven-badges.herokuapp.com/maven-central/org.jobrunr/jobrunr/badge.svg"></a>&nbsp;
+    <a href="https://central.sonatype.com/artifact/org.jobrunr/jobrunr"><img alt="Maven Central Version" src="https://img.shields.io/maven-central/v/org.jobrunr/jobrunr"></a>&nbsp;
     <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
     <a href="https://www.bestpractices.dev/projects/7376"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/7376/badge"/></a>&nbsp;
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
-    <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Quality Scale" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=sqale_rating" /></a>&nbsp;
-    <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Vulnerabilities" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=vulnerabilities" /></a>&nbsp;
-    <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Security Rating" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=security_rating" /></a><br/>
-    <!--a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=coverage" /></a>&nbsp;
-    <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Reliability Rating" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=reliability_rating" /></a>&nbsp;
-    <a href="https://sonarcloud.io/dashboard?id=jobrunr_jobrunr"><img alt="Bugs" src="https://sonarcloud.io/api/project_badges/measure?project=jobrunr_jobrunr&metric=bugs" /></a--><br/>
+    <br/>
     <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/tweet-btn.svg?v2" /></a>&nbsp;
     <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://www.jobrunr.io/github-star-btn.svg?v2" /></a>
     <a href="https://github.com/jobrunr/jobrunr/discussions"><img src="https://img.shields.io/badge/chat-Github%20discussions-green" alt="Join the chat at Gitter" /></a><br />
