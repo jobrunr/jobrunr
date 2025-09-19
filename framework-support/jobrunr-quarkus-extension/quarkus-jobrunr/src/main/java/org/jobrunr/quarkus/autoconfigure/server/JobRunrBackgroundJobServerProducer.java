@@ -19,8 +19,6 @@ import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
-import java.time.Duration;
-
 import static java.util.Collections.singletonList;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
@@ -59,18 +57,18 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwaitingJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().scheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().orphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
-            jobRunrRuntimeConfiguration.backgroundJobServer().succeededJobRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
+            jobRunrRuntimeConfiguration.backgroundJobServer().succeededJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andSucceededJobsRequestSize);
             jobRunrRuntimeConfiguration.backgroundJobServer().interruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
             CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
-            carbonAwareJobProcessingConfiguration.andCarbonAwareSchedulingEnabled(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().isEnabled());
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().areaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientConnectTimeoutMs().ifPresent(connectTimeout -> carbonAwareJobProcessingConfiguration.andApiClientConnectTimeout(Duration.ofMillis(connectTimeout)));
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().apiClientReadTimeoutMs().ifPresent(readTimeout -> carbonAwareJobProcessingConfiguration.andApiClientReadTimeout(Duration.ofMillis(readTimeout)));
-            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().pollIntervalInMinutes().ifPresent(carbonAwareJobProcessingConfiguration::andPollIntervalInMinutes);
+            carbonAwareJobProcessingConfiguration.andCarbonAwareSchedulingEnabled(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().enabled());
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().areaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().externalIdentifier().ifPresent(carbonAwareJobProcessingConfiguration::andExternalIdentifier);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientConnectTimeout().ifPresent(carbonAwareJobProcessingConfiguration::andApiClientConnectTimeout);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().apiClientReadTimeout().ifPresent(carbonAwareJobProcessingConfiguration::andApiClientReadTimeout);
+            jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessing().pollIntervalInMinutes().ifPresent(carbonAwareJobProcessingConfiguration::andPollIntervalInMinutes);
             backgroundJobServerConfiguration.andCarbonAwareJobProcessingConfiguration(carbonAwareJobProcessingConfiguration);
             return backgroundJobServerConfiguration;
         }

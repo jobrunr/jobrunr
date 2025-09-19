@@ -1,67 +1,40 @@
 package org.jobrunr.quarkus.autoconfigure;
 
-import org.jobrunr.storage.StorageProvider;
-import org.jobrunr.utils.mapper.JsonMapper;
-import org.junit.jupiter.api.BeforeEach;
+import io.quarkus.test.component.QuarkusComponentTest;
+import io.quarkus.test.component.TestConfigProperty;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import org.jobrunr.scheduling.JobRequestScheduler;
+import org.jobrunr.scheduling.JobScheduler;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-@ExtendWith(MockitoExtension.class)
+@QuarkusComponentTest(JobRunrProducer.class)
 class JobRunrProducerTest {
 
-    JobRunrProducer jobRunrProducer;
-    @Mock
-    JobRunrRuntimeConfiguration.JobsConfiguration jobsRunTimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
-    @Mock
-    JobRunrRuntimeConfiguration.JobSchedulerConfiguration jobSchedulerRunTimeConfiguration;
-    @Mock
-    StorageProvider storageProvider;
-    @Mock
-    JsonMapper jsonMapper;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(jobRunrRuntimeConfiguration.jobs()).thenReturn(jobsRunTimeConfiguration);
-        lenient().when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerRunTimeConfiguration);
-
-        jobRunrProducer = new JobRunrProducer();
-        setInternalState(jobRunrProducer, "jobRunrRuntimeConfiguration", jobRunrRuntimeConfiguration);
-    }
+    @Inject
+    Instance<JobScheduler> jobSchedulerInstance;
+    @Inject
+    Instance<JobRequestScheduler> jobRequestSchedulerInstance;
 
     @Test
-    void jobSchedulerIsNotSetupWhenConfigured() {
-        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(false);
-
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNull();
-    }
-
-    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "true")
     void jobSchedulerIsSetupWhenConfigured() {
-        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(true);
+        assertThat(jobSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobSchedulerInstance.get()).isInstanceOf(JobScheduler.class);
 
-        assertThat(jobRunrProducer.jobScheduler(storageProvider)).isNotNull();
+        assertThat(jobRequestSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobRequestSchedulerInstance.get()).isInstanceOf(JobRequestScheduler.class);
     }
 
     @Test
-    void jobRequestSchedulerIsNotSetupWhenConfigured() {
-        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(false);
+    @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "false")
+    void jobSchedulerIsNotSetUpWhenDisabled() {
+        assertThat(jobSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobSchedulerInstance.get()).isNull();
 
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNull();
-    }
-
-    @Test
-    void jobRequestSchedulerIsSetupWhenConfigured() {
-        when(jobSchedulerRunTimeConfiguration.enabled()).thenReturn(true);
-
-        assertThat(jobRunrProducer.jobRequestScheduler(storageProvider)).isNotNull();
+        assertThat(jobRequestSchedulerInstance.isResolvable()).isTrue();
+        assertThat(jobRequestSchedulerInstance.get()).isNull();
     }
 }

@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id('io.quarkus.extension') version '3.24.1'
+    id('io.quarkus.extension') version '3.26.3'
 }
 
 quarkusExtension {
@@ -30,7 +30,7 @@ java {
 
 dependencies {
     api platform(project(':platform'))
-    implementation platform('io.quarkus:quarkus-bom:3.24.1')
+    implementation platform('io.quarkus:quarkus-bom:3.26.3')
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
@@ -51,6 +51,9 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.quarkus:quarkus-junit5-component'
+    testImplementation 'io.quarkus:quarkus-micrometer'
 }
 
 java {
