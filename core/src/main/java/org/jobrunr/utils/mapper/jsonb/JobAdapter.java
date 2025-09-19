@@ -41,7 +41,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
                 .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())
         );
         this.jsonb = new JobRunrJsonb(jsonb);
-        this.jobLabelsAdapter = new JobLabelsAdapter(this.jsonb);
+        this.jobLabelsAdapter = new JobLabelsAdapter();
         this.jobDetailsAdapter = new JobDetailsAdapter(this.jsonb);
         this.jobHistoryAdapter = new JobHistoryAdapter(this.jsonb);
         this.jobMetadataAdapter = new JobMetadataAdapter(this.jsonb);

@@ -68,7 +68,7 @@ public class VirtualThreadJobRunrExecutor implements JobRunrExecutor {
     @Override
     public void execute(Runnable command) {
         if (started) {
-            executorService.submit(command);
+            executorService.execute(command);
         }
     }
 

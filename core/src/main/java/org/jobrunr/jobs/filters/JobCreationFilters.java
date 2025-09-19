@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.stream.Stream;
 
-public class JobCreationFilters extends AbstractJobFilters {
+public class JobCreationFilters extends AbstractJobFilters<AbstractJob> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobCreationFilters.class);
 

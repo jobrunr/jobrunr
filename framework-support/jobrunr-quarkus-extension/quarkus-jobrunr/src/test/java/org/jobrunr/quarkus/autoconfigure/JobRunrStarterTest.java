@@ -75,8 +75,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStartsBackgroundJobServerIfIncludedAndEnabled() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(true);
-        lenient().when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(true);
+        when(backgroundJobServerBuildTimeConfiguration.included()).thenReturn(true);
+        lenient().when(backgroundJobServerRuntimeConfiguration.enabled()).thenReturn(true);
 
         assertThatCode(() -> jobRunrStarter.startup(new StartupEvent())).doesNotThrowAnyException();
         verify(backgroundJobServer).start();
@@ -84,8 +84,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStartTheBackgroundJobServerIfIncludedAndNotEnabled() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(true);
-        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(false);
+        when(backgroundJobServerBuildTimeConfiguration.included()).thenReturn(true);
+        when(backgroundJobServerRuntimeConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.startup(new StartupEvent());
         verify(backgroundJobServerInstance, never()).get();
@@ -94,8 +94,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheBackgroundJobServerIsNotIncludedAndNotEnabled() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(false);
-        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(false);
+        when(backgroundJobServerBuildTimeConfiguration.included()).thenReturn(false);
+        when(backgroundJobServerRuntimeConfiguration.enabled()).thenReturn(false);
 
         assertThatCode(() -> jobRunrStarter.startup(new StartupEvent())).doesNotThrowAnyException();
         verify(backgroundJobServer, never()).start();
@@ -103,8 +103,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesThrowAnExceptionOnStartupIfTheBackgroundJobServerIsNotIncludedButEnabled() {
-        when(jobRunrBuildTimeConfiguration.backgroundJobServer().included()).thenReturn(false);
-        when(jobRunrRuntimeConfiguration.backgroundJobServer().enabled()).thenReturn(true);
+        when(backgroundJobServerBuildTimeConfiguration.included()).thenReturn(false);
+        when(backgroundJobServerRuntimeConfiguration.enabled()).thenReturn(true);
 
         assertThatCode(() -> jobRunrStarter.startup(new StartupEvent())).
                 isInstanceOf(IllegalStateException.class)
@@ -131,8 +131,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterStartsDashboardIfIncludedAndEnabled() {
-        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(true);
-        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(true);
+        when(dashboardBuildTimeConfiguration.included()).thenReturn(true);
+        lenient().when(dashboardRuntimeConfiguration.enabled()).thenReturn(true);
 
         assertThatCode(() -> jobRunrStarter.startup(null)).doesNotThrowAnyException();
         verify(dashboardWebServer).start();
@@ -140,8 +140,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotStartTheDashboardIfIncludedAndNotEnabled() {
-        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(true);
-        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(false);
+        when(dashboardBuildTimeConfiguration.included()).thenReturn(true);
+        lenient().when(dashboardRuntimeConfiguration.enabled()).thenReturn(false);
 
         jobRunrStarter.startup(new StartupEvent());
         verify(dashboardWebServerInstance, never()).get();
@@ -150,8 +150,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesNotThrowAnExceptionOnStartupIfTheDashboardIsNotIncludedAndNotEnabled() {
-        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(false);
-        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(false);
+        when(dashboardBuildTimeConfiguration.included()).thenReturn(false);
+        lenient().when(dashboardRuntimeConfiguration.enabled()).thenReturn(false);
 
         assertThatCode(() -> jobRunrStarter.startup(new StartupEvent())).doesNotThrowAnyException();
         verify(dashboardWebServer, never()).start();
@@ -159,8 +159,8 @@ class JobRunrStarterTest {
 
     @Test
     void jobRunrStarterDoesThrowAnExceptionOnStartupIfTheDashboardIsNotIncludedButEnabled() {
-        when(jobRunrBuildTimeConfiguration.dashboard().included()).thenReturn(false);
-        lenient().when(jobRunrRuntimeConfiguration.dashboard().enabled()).thenReturn(true);
+        when(dashboardBuildTimeConfiguration.included()).thenReturn(false);
+        lenient().when(dashboardRuntimeConfiguration.enabled()).thenReturn(true);
 
         assertThatCode(() -> jobRunrStarter.startup(new StartupEvent()))
                 .isInstanceOf(IllegalStateException.class)

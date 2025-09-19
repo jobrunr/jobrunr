@@ -23,15 +23,14 @@ import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.time.Duration;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Optional.of;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 @Factory
 public class JobRunrFactory {
@@ -45,7 +44,7 @@ public class JobRunrFactory {
     @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        final JobDetailsGenerator jobDetailsGenerator = newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
+        final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
@@ -82,7 +81,7 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getInterruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
         CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
-        of(configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+        carbonAwareJobProcessingConfiguration.andCarbonAwareSchedulingEnabled(configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().isEnabled());
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getAreaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getDataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getExternalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);

@@ -61,9 +61,6 @@ public class Mocks {
         ListIndexesIterable listIndicesMock = mock(ListIndexesIterable.class);
         when(listIndicesMock.spliterator()).thenReturn(mock(Spliterator.class));
 
-        MongoCollection recurringJobCollectionMock = mock(MongoCollection.class);
-        when(recurringJobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
-
         MongoCollection jobCollectionMock = mock(MongoCollection.class);
         when(jobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
 

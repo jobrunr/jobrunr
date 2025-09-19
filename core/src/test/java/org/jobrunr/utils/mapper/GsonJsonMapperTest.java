@@ -11,11 +11,13 @@ public class GsonJsonMapperTest extends AbstractJsonMapperTest {
         return new GsonJsonMapper();
     }
 
+    @Override
     @Test
     @Disabled("No regression introduced for Gson coming from 4.0.0")
     protected void testSerializeAndDeserializeEnqueuedJobComingFrom4Dot0Dot0() {
     }
 
+    @Override
     @Test
     @Disabled("Gson does not know type in actual list")
     void testCanSerializeCollections() {

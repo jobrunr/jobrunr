@@ -9,19 +9,16 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class JobPerformingFilters extends AbstractJobFilters {
+public class JobPerformingFilters extends AbstractJobFilters<Job> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobPerformingFilters.class);
 
-    private final Job job;
-
     public JobPerformingFilters(Job job, JobDefaultFilters jobFilters) {
         super(job, jobFilters);
-        this.job = job;
     }
 
     public void runOnStateElectionFilter() {
-        if(!job.hasStateChange()) return;
+        if (!job.hasStateChange()) return;
         electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
     }
 
@@ -30,7 +27,7 @@ public class JobPerformingFilters extends AbstractJobFilters {
         if (stateChanges.isEmpty()) return;
         applyStateFilters().forEach(catchThrowable(applyStateFilter -> {
             for (int i = stateChanges.size(); i >= 1; i--) {
-                applyStateFilter.onStateApplied(job, job.getJobState(-(i + 1)), job.getJobState(-(i)));
+                applyStateFilter.onStateApplied(job, job.getJobState(-(i + 1)), job.getJobState(-i));
             }
         }));
     }

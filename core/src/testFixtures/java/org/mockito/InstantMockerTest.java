@@ -3,6 +3,7 @@ package org.mockito;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,7 @@ class InstantMockerTest {
     void testMockTimeForZonedDateTime() {
         try (MockedStaticHolder ignored = mockTime(ZonedDateTime.parse("2025-05-27T10:00:00Z"))) { // daily refresh time is at 19h if no data
             assertThat(Instant.now().toString()).isEqualTo("2025-05-27T10:00:00Z");
-            assertThat(ZonedDateTime.now().toString()).isEqualTo("2025-05-27T10:00Z");
+            assertThat(ZonedDateTime.now(ZoneId.systemDefault()).toString()).isEqualTo("2025-05-27T10:00Z");
         }
     }
 

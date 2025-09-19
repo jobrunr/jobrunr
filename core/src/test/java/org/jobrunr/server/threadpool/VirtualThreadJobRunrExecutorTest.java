@@ -37,7 +37,7 @@ class VirtualThreadJobRunrExecutorTest {
         jobRunrExecutor.execute(() -> System.out.println("A Runnable"));
 
         verify(executorService).shutdown();
-        verify(executorService, never()).submit(any(Runnable.class));
+        verify(executorService, never()).execute(any(Runnable.class));
     }
 
     @Test
@@ -47,6 +47,6 @@ class VirtualThreadJobRunrExecutorTest {
 
         jobRunrExecutor.execute(() -> System.out.println("A Runnable"));
 
-        verify(executorService).submit(any(Runnable.class));
+        verify(executorService).execute(any(Runnable.class));
     }
 }

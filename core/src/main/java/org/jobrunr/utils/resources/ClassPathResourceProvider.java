@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -118,10 +119,11 @@ public class ClassPathResourceProvider implements AutoCloseable {
 
     private Stream<Path> listAllChildrenOnClasspath(Path rootPath) {
         try {
-            if (rootPath == null) return Stream.empty();
-            if (Files.notExists(rootPath)) return Stream.empty();
+            if (rootPath == null || Files.notExists(rootPath)) return Stream.empty();
 
-            return Files.list(rootPath);
+            try (Stream<Path> stream = Files.list(rootPath)) {
+                return stream.collect(Collectors.toList()).stream(); // still return a stream but make sure to close the resource
+            }
         } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }

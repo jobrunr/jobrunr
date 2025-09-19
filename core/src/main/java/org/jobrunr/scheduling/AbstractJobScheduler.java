@@ -53,14 +53,14 @@ public abstract class AbstractJobScheduler {
     abstract void create(Stream<JobBuilder> jobBuilderStream);
 
     /**
-     * @see #delete(UUID)
+     * See {@link #delete(UUID)}
      */
     public void delete(JobId jobId) {
         this.delete(jobId.asUUID());
     }
 
     /**
-     * @see #delete(UUID, String)
+     * See {@link #delete(UUID, String)}
      */
     public void delete(JobId jobId, String reason) {
         this.delete(jobId.asUUID(), reason);

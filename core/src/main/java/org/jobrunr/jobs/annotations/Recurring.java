@@ -43,7 +43,7 @@ public @interface Recurring {
     String RECURRING_JOB_DISABLED = "-";
 
     /**
-     * @return The id of this recurring job which can be used to alter or delete it.
+     * Returns the id of this recurring job which can be used to alter or delete it.
      */
     String id() default "";
 
@@ -73,7 +73,7 @@ public @interface Recurring {
     String interval() default "";
 
     /**
-     * @return The zoneId (timezone) of when to run this recurring job.
+     * Returns the zoneId (timezone) of when to run this recurring job.
      */
     String zoneId() default "";
 

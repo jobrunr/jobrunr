@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -138,7 +139,7 @@ public abstract class AbstractJsonMapperTest {
     @Test
     void testSerializeAndDeserializeEnqueuedJobWithLocalDateTimeJobParameter() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWork(LocalDateTime.now()))
+                .withJobDetails(() -> testService.doWork(LocalDateTime.now(ZoneId.systemDefault())))
                 .build();
 
         final String jobAsString = jsonMapper.serialize(job);
@@ -151,7 +152,7 @@ public abstract class AbstractJsonMapperTest {
     @Test
     void testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWork(OffsetDateTime.now()))
+                .withJobDetails(() -> testService.doWork(OffsetDateTime.now(ZoneId.systemDefault())))
                 .build();
 
         final String jobAsString = jsonMapper.serialize(job);

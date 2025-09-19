@@ -20,6 +20,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.chrono.HijrahDate;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
@@ -53,7 +54,7 @@ class AbstractJobSchedulerTest {
 
             assertThatCode(() -> jobScheduler.schedule(null, Instant.now(), JobDetailsTestBuilder.defaultJobDetails().build())).doesNotThrowAnyException();
 
-            assertThatCode(() -> jobScheduler.schedule(null, HijrahDate.now(), JobDetailsTestBuilder.defaultJobDetails().build()))
+            assertThatCode(() -> jobScheduler.schedule(null, HijrahDate.now(ZoneId.systemDefault()), JobDetailsTestBuilder.defaultJobDetails().build()))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("JobRunr does not support Temporal type: java.time.chrono.HijrahDate. Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
 

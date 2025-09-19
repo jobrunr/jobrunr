@@ -45,6 +45,7 @@ public class GCUtils {
          * This method tries to allocate maximum available memory in runtime,
          * and is catching an OutOfMemoryError.
          */
+        @SuppressWarnings("ModifiedButNotUsed")
         public static void tryToAllocateAllAvailableMemory() {
             try {
                 final List<Object[]> allocations = new ArrayList<>();

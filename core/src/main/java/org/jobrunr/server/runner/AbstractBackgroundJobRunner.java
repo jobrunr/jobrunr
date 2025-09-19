@@ -5,12 +5,11 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.utils.JobUtils;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.IntStream;
-
-import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner {
 
@@ -44,7 +43,7 @@ public abstract class AbstractBackgroundJobRunner implements BackgroundJobRunner
         }
 
         protected Object getJobToPerform(Class<?> jobToPerformClass) {
-            return newInstance(jobToPerformClass);
+            return ReflectionUtils.newInstance(jobToPerformClass);
         }
 
         protected Method getJobMethodToPerform(Class<?> jobToPerformClass) {

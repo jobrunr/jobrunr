@@ -6,7 +6,6 @@ import org.slf4j.MDC;
 import java.time.Duration;
 import java.time.Instant;
 
-import static java.lang.String.valueOf;
 import static java.time.Instant.now;
 
 public class PeriodicTaskRunInfo extends TaskRunInfo implements AutoCloseable {
@@ -25,7 +24,7 @@ public class PeriodicTaskRunInfo extends TaskRunInfo implements AutoCloseable {
         this.pollIntervalTimeBoxDuration = getBackgroundJobServerConfiguration().getPollInterval().multipliedBy(95).dividedBy(100);
         this.runIndex = runIndex;
         this.runSucceeded = false;
-        MDC.put(RUN_COUNTER_MDC_KEY, valueOf(runIndex));
+        MDC.put(RUN_COUNTER_MDC_KEY, String.valueOf(runIndex));
     }
 
     @Override

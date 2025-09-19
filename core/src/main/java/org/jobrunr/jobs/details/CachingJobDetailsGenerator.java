@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 
 public class CachingJobDetailsGenerator implements JobDetailsGenerator {
@@ -160,7 +159,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 return parameterRetrievers;
             } catch (Exception e) {
                 jobDetails.setCacheable(false);
-                return emptyList();
+                return new ArrayList<>();
             }
         }
 

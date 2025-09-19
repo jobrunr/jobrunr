@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 class ProcessOrphanedJobsTaskTest extends AbstractTaskTest {
 
-    LogAllStateChangesFilter logAllStateChangesFilter;
     ProcessOrphanedJobsTask task;
 
     @BeforeEach

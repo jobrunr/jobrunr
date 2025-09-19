@@ -35,7 +35,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
                 .withDeserializers(new PathTypeDeserializer(), new FileTypeDeserializer(), new DurationTypeDeserializer())
         );
         this.jsonb = new JobRunrJsonb(jsonb);
-        jobLabelsAdapter = new JobLabelsAdapter(this.jsonb);
+        jobLabelsAdapter = new JobLabelsAdapter();
         jobDetailsAdapter = new JobDetailsAdapter(this.jsonb);
     }
 

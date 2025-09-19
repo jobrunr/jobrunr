@@ -58,7 +58,7 @@ class DefaultSqlStorageProviderTest {
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
         when(connection.getMetaData()).thenReturn(databaseMetaData);
-        when(connection.getMetaData().getTables(null, null, "%", null)).thenReturn(resultSet);
+        when(databaseMetaData.getTables(null, null, "%", null)).thenReturn(resultSet);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         lenient().when(preparedStatement.executeQuery()).thenReturn(resultSet);
 

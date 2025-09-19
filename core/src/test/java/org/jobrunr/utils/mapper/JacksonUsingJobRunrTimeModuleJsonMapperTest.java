@@ -22,6 +22,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
         return new JacksonJsonMapper(false);
     }
 
+    @Override
     @Test
     void testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter() {
         assertThatThrownBy(super::testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter)
@@ -78,7 +79,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof SomeParameter)) return false;
             SomeParameter that = (SomeParameter) o;
             return value == that.value;
         }

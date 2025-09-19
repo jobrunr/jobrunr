@@ -40,7 +40,7 @@ public class SqlStatement {
 
     @Override
     public boolean equals(Object object) {
-        if (object == null || getClass() != object.getClass()) return false;
+        if (!(object instanceof SqlStatement)) return false;
         SqlStatement that = (SqlStatement) object;
         return Objects.equals(hashKey, that.hashKey);
     }

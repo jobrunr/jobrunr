@@ -115,8 +115,8 @@ class ThreadSafeStorageProviderTest {
             final Job jobInProgress = aJobInProgress().build();
             final CountDownLatch countDownToSaveJob = new CountDownLatch(1);
 
-            final Callable<Void> runnable = () -> saveAndCountDown(jobInProgress, countDownToSaveJob);
-            executorService.submit(runnable);
+            final Runnable runnable = () -> saveAndCountDown(jobInProgress, countDownToSaveJob);
+            executorService.execute(runnable);
 
             countDownToInitiateSaveJob.await(); // to make sure the runnable is processing and prevent a race condition
 

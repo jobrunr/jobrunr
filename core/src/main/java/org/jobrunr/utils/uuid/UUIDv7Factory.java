@@ -96,7 +96,7 @@ public final class UUIDv7Factory {
         this.incrementType = builder.getIncrementType();
         this.incrementSupplier = builder.getIncrementSupplier();
         this.random = new Random();
-        this.versionMask = (long) 7 << 12;
+        this.versionMask = 7L << 12;
 
         // initialize internal state
         this.lastUuid = make(clock.millis(), random.nextLong(), random.nextLong());

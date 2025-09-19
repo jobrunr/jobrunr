@@ -12,8 +12,6 @@ import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 
 public class SqlAmountRequestMapper {
-    private static final Function<OrderTerm, String> ORDER_TERM_TO_SQL_STRING = orderTerm -> orderTerm.getFieldName() + " " + orderTerm.getOrder();
-
     protected final Dialect dialect;
     protected final Set<String> allowedSortColumns;
 
@@ -23,7 +21,7 @@ public class SqlAmountRequestMapper {
     }
 
     public String mapToSqlQuery(AmountRequest pageRequest, Sql table) {
-        return mapToSqlQuery(pageRequest, table, ORDER_TERM_TO_SQL_STRING);
+        return mapToSqlQuery(pageRequest, table, SqlAmountRequestMapper::orderTermToSqlString);
     }
 
     public String mapToSqlQuery(AmountRequest amountRequest, Sql table, Function<OrderTerm, String> orderTermMapper) {
@@ -32,7 +30,7 @@ public class SqlAmountRequestMapper {
     }
 
     public String orderClause(AmountRequest amountRequest) {
-        return orderClause(amountRequest, ORDER_TERM_TO_SQL_STRING);
+        return orderClause(amountRequest, SqlAmountRequestMapper::orderTermToSqlString);
     }
 
     private String orderClause(AmountRequest amountRequest, Function<OrderTerm, String> orderTermMapper) {
@@ -41,5 +39,9 @@ public class SqlAmountRequestMapper {
         return " ORDER BY " + orderTerms.stream()
                 .map(orderTermMapper)
                 .collect(joining(", "));
+    }
+
+    private static String orderTermToSqlString(OrderTerm orderTerm) {
+        return orderTerm.getFieldName() + " " + orderTerm.getOrder();
     }
 }

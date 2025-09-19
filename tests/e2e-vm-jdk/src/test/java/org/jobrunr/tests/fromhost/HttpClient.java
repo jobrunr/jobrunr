@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 
 /*
 Cannot use Java 11 Http client as it is compiled with Java 8
@@ -17,7 +19,7 @@ public class HttpClient {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             try (AutoCloseable conc = con::disconnect) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), UTF_8));
                 String inputLine;
                 StringBuilder content = new StringBuilder();
                 while ((inputLine = in.readLine()) != null) {

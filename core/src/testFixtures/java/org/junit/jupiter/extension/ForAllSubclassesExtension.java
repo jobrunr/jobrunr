@@ -77,7 +77,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         return findClassWithForAllSubclassesAnnotation(clazz.getSuperclass());
     }
 
-    private static Method findMethodWithAnnotation(Class clazz, Class<? extends Annotation> annotation) {
+    private static Method findMethodWithAnnotation(Class unusedClass, Class<? extends Annotation> annotation) {
         return Arrays.stream(annotatedTestClass.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotation))
                 .findFirst()

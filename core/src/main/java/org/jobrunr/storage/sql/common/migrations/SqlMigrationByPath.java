@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class SqlMigrationByPath implements SqlMigration {
 
     private final Path path;
@@ -14,7 +16,7 @@ public class SqlMigrationByPath implements SqlMigration {
         this.path = path;
         this.fileName = path.getFileName().toString();
         try {
-            this.migrationSql = new String(Files.readAllBytes(path));
+            this.migrationSql = new String(Files.readAllBytes(path), UTF_8);
         } catch (IOException e) {
             throw new UnsupportedOperationException("Unable to read sql migration from file " + this.fileName, e);
         }

@@ -18,7 +18,7 @@ public class DesktopUtils {
         if (JAVA_VERSION.hasMajorVersionHigherOrEqualTo(11) && ReflectionUtils.classExists("java.awt.Desktop")) {
             try (URLClassLoader classLoader = new URLClassLoader(new URL[]{DesktopUtils.class.getResource("/org/jobrunr/server/Java11OrHigherInternalDesktopUtil.class")})) {
                 Class<?> loadedClass = classLoader.loadClass("org.jobrunr.server.Java11OrHigherInternalDesktopUtil");
-                Object obj = loadedClass.newInstance();
+                Object obj = loadedClass.getDeclaredConstructor().newInstance();
                 if (obj instanceof Internal) {
                     DesktopUtils.internal = (Internal) obj;
                 }

@@ -46,6 +46,16 @@ public class JobRunrSqlStorageProviderProducer {
             public Class<? extends Annotation> annotationType() {
                 return Default.class;
             }
+
+            @Override
+            public int hashCode() {
+                return 42;
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                return obj instanceof Default;
+            }
         };
     }
 
@@ -65,6 +75,17 @@ public class JobRunrSqlStorageProviderProducer {
             @Override
             public String toString() {
                 return "@javax.inject.Named(\"" + name + "\")";
+            }
+
+            @Override
+            public int hashCode() {
+                return value().hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (!(obj instanceof Named)) return false;
+                return value().equals(((Named) obj).value());
             }
         };
     }

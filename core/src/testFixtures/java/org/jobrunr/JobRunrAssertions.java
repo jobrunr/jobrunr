@@ -41,6 +41,8 @@ import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class JobRunrAssertions extends Assertions {
 
     public static Condition<Throwable> failedJob(Job job) {
@@ -127,7 +129,7 @@ public class JobRunrAssertions extends Assertions {
         try (InputStream inputStream = JobRunrAssertions.class.getResourceAsStream(resourceName)) {
             assert inputStream != null;
 
-            return new String(inputStream.readAllBytes());
+            return new String(inputStream.readAllBytes(), UTF_8);
         } catch (Exception e) {
             throw new AssertionError(e);
         }

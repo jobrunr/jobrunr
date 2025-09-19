@@ -27,6 +27,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
@@ -51,7 +52,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
-import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 /**
  * A Spring Boot AutoConfiguration class for JobRunr
@@ -71,7 +71,7 @@ public class JobRunrAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
-        final JobDetailsGenerator jobDetailsGenerator = newInstance(properties.getJobScheduler().getJobDetailsGenerator());
+        final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(properties.getJobScheduler().getJobDetailsGenerator());
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
