@@ -21,7 +21,7 @@ public class JobPerformingFilters extends AbstractJobFilters {
     }
 
     public void runOnStateElectionFilter() {
-        if(!job.hasStateChange()) return;
+        if (!job.hasStateChange()) return;
         electStateFilters().forEach(catchThrowable(electStateFilter -> electStateFilter.onStateElection(job, job.getJobState())));
     }
 
@@ -30,7 +30,7 @@ public class JobPerformingFilters extends AbstractJobFilters {
         if (stateChanges.isEmpty()) return;
         applyStateFilters().forEach(catchThrowable(applyStateFilter -> {
             for (int i = stateChanges.size(); i >= 1; i--) {
-                applyStateFilter.onStateApplied(job, job.getJobState(-(i + 1)), job.getJobState(-(i)));
+                applyStateFilter.onStateApplied(job, job.getJobState(-(i + 1)), job.getJobState(-i));
             }
         }));
     }

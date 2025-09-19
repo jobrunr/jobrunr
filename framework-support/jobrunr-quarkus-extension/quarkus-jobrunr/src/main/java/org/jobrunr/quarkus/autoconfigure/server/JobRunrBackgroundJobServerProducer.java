@@ -22,7 +22,6 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import java.time.Duration;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.of;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 
 @Singleton
@@ -64,7 +63,7 @@ public class JobRunrBackgroundJobServerProducer {
             jobRunrRuntimeConfiguration.backgroundJobServer().interruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
             CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
-            of(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+            carbonAwareJobProcessingConfiguration.andCarbonAwareSchedulingEnabled(jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().isEnabled());
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().areaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().dataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
             jobRunrRuntimeConfiguration.backgroundJobServer().carbonAwareJobProcessingConfiguration().externalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);

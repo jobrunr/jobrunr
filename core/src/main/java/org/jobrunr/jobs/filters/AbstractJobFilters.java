@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceCE;
@@ -39,7 +38,7 @@ public abstract class AbstractJobFilters {
             addJobFiltersFromJobAnnotation(job, result);
             return result;
         } catch (JobNotFoundException e) {
-            return emptyList();
+            return new ArrayList<>();
         }
     }
 

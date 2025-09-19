@@ -556,8 +556,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         new MongoDBCreator(mongoClient, dbName, collectionPrefix).validateCollections();
     }
 
-    // used to perform query analysis for performance tuning
-    private void explainQuery(Bson query) {
+    /**
+     * used to perform query analysis for performance tuning
+     */
+    protected void explainQuery(Bson query) {
         Document explainDocument = new Document();
         explainDocument.put("find", Jobs.NAME);
         explainDocument.put("filter", query);
@@ -567,7 +569,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         System.out.println(document.toJson());
     }
 
-    private void explainAggregation(List<Bson> query, String collectionName) {
+    /**
+     * used to perform query analysis for performance tuning
+     */
+    protected void explainAggregation(List<Bson> query, String collectionName) {
         Document explainDocument = new Document();
         explainDocument.put("aggregate", collectionName);
         explainDocument.put("pipeline", query);

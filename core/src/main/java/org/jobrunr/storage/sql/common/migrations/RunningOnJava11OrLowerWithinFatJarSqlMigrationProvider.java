@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements SqlMigrationProvider {
 
     @Override
@@ -15,7 +17,7 @@ public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements S
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             URLConnection urlConnection = location.openConnection();
-            try(ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream())) {
+            try (ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream())) {
                 return getMigrationsFromZipInputStream(zipInputStream, clazz);
             }
         } catch (IOException e) {
@@ -40,7 +42,7 @@ public class RunningOnJava11OrLowerWithinFatJarSqlMigrationProvider implements S
         int len;
         byte[] buffer = new byte[2048];
         while ((len = zipInputStream.read(buffer, 0, 1024)) >= 0) {
-            s.append(new String(buffer, 0, len));
+            s.append(new String(buffer, 0, len, UTF_8));
         }
         return new SqlMigrationByZipEntry(zipEntry.getName(), s.toString());
     }

@@ -4,6 +4,7 @@ plugins {
     id 'org.sonarqube' version '4.4.1.3373'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
+    id("net.ltgt.errorprone") version '4.3.0' apply false
 }
 
 nexusPublishing {
@@ -80,12 +81,26 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
+    apply plugin: 'net.ltgt.errorprone'
 
     compileJava {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
         options.encoding = "UTF-8"
         options.release = 8
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.errorprone.enabled = true
+        options.errorprone.disableWarningsInGeneratedCode = false
+        options.errorprone {
+            disable("ReturnValueIgnored")                       // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
+            disable("JavaDurationGetSecondsToToSeconds")        // we can't update to JDK9 just yet
+            disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
+            disable("DoNotCallSuggester")                       // This is a Google-specific annotation
+            disable("JdkObsolete")                              // we still rely on JDK8 things
+            disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
+        }
     }
 
     compileTestJava {
@@ -105,6 +120,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     dependencies {
         implementation platform(project(':platform'))
+        errorprone("com.google.errorprone:error_prone_core:2.40.0")
 
         compileOnly 'org.apache.groovy:groovy-json:4.0.27'
 

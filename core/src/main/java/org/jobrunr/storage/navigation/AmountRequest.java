@@ -7,8 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.emptyList;
-import static org.jobrunr.utils.StringUtils.*;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
+import static org.jobrunr.utils.StringUtils.substringAfter;
+import static org.jobrunr.utils.StringUtils.substringBefore;
 
 public class AmountRequest {
 
@@ -45,9 +48,9 @@ public class AmountRequest {
 
     @VisibleFor("testing")
     public List<OrderTerm> getAllOrderTerms(Set<String> allowedOrderTerms) {
-        if (StringUtils.isNullOrEmpty(order)) return emptyList();
-        final String[] sortOns = order.split(",");
         List<OrderTerm> result = new ArrayList<>();
+        if (StringUtils.isNullOrEmpty(order)) return result;
+        final String[] sortOns = order.split(",");
         for (String sortOn : sortOns) {
             String sortField = sortField(sortOn);
             if (!allowedOrderTerms.contains(sortField)) continue;

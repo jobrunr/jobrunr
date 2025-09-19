@@ -4,11 +4,20 @@ import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class RequestUrl {
     private final String url;
@@ -67,7 +76,7 @@ public class RequestUrl {
     }
 
     private Map<String, List<String>> initQueryParams(String url) {
-        if (!url.contains("?")) return Collections.emptyMap();
+        if (!url.contains("?")) return new HashMap<>();
 
         return Arrays.stream(url.substring(url.indexOf('?') + 1).split("&"))
                 .map(this::splitQueryParameter)

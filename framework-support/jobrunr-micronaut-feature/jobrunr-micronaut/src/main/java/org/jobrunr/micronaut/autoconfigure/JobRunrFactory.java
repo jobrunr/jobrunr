@@ -28,7 +28,6 @@ import java.time.Duration;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Optional.of;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
@@ -82,7 +81,7 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getInterruptJobsAwaitDurationOnStop().ifPresent(backgroundJobServerConfiguration::andInterruptJobsAwaitDurationOnStopBackgroundJobServer);
 
         CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
-        of(configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().isEnabled()).ifPresent(carbonAwareJobProcessingConfiguration::andCarbonAwareSchedulingEnabled);
+        carbonAwareJobProcessingConfiguration.andCarbonAwareSchedulingEnabled(configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().isEnabled());
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getAreaCode().ifPresent(carbonAwareJobProcessingConfiguration::andAreaCode);
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getDataProvider().ifPresent(carbonAwareJobProcessingConfiguration::andDataProvider);
         configuration.getBackgroundJobServer().getCarbonAwareJobProcessingConfiguration().getExternalCode().ifPresent(carbonAwareJobProcessingConfiguration::andExternalCode);
