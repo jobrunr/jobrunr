@@ -26,7 +26,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobUtils {
 
-    public static final Logger LOG = LoggerFactory.getLogger(JobUtils.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(JobUtils.class);
 
     private JobUtils() {
     }
@@ -98,15 +98,15 @@ public class JobUtils {
         if (jobDetails.getClassName().startsWith("java")) return Stream.empty();
         if (!classExists(jobDetails.getClassName())) {
             if (isRunningInGraalVMNativeMode()) {
-                LOG.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job. As you're running your application in GraalVM native mode, make sure that your job class is available in the native image. Normally, this is done automatically by JobRunr.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
+                LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job. As you're running your application in GraalVM native mode, make sure that your job class is available in the native image. Normally, this is done automatically by JobRunr.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
             } else {
-                LOG.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
+                LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
             }
             return Stream.empty();
         }
 
         Method jobMethod = getJobMethod(jobDetails);
-        return Arrays.stream(jobMethod.getDeclaredAnnotations());
+        return Stream.of(jobMethod.getDeclaredAnnotations());
     }
 
     private static String getFQClassNameAndMethod(String jobSignature) {
@@ -126,9 +126,10 @@ public class JobUtils {
 
         if (jobParameterTypesAsString.replaceAll("\\s", "").isEmpty()) return new Class[]{};
 
-        return Arrays.stream(jobParameterTypesAsString.split(","))
+        Class<?>[] jobParameterTypes = Arrays.stream(jobParameterTypesAsString.split(","))
                 .map(ReflectionUtils::toClass)
                 .toArray(Class[]::new);
+        return jobParameterTypes;
     }
 
     private static String getJobParameterForSignature(JobParameter jobParameter) {
@@ -138,7 +139,7 @@ public class JobUtils {
     private static String getJobClassAndMethodName(JobDetails jobDetails) {
         String result = jobDetails.getClassName();
         Optional<String> staticFieldName = Optional.ofNullable(jobDetails.getStaticFieldName());
-        if (staticFieldName.isPresent()) result += "." + staticFieldName.orElseThrow(() -> new RuntimeException("Could not find static field name"));
+        if (staticFieldName.isPresent()) result += "." + staticFieldName.get();
         result += "." + jobDetails.getMethodName();
         return result;
     }

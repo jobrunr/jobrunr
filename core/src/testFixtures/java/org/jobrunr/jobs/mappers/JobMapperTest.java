@@ -121,7 +121,7 @@ public abstract class JobMapperTest {
                         .withClassName(TestService.class)
                         .withMethodName("doWork")
                         .withJobParameter(5)
-                        .withJobParameter(JobContext.NULL)
+                        .withJobParameter(JobContext.Null)
                 )
                 .build();
 

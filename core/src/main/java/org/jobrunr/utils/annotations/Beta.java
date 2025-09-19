@@ -16,9 +16,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * It is generally safe for applications to depend on beta APIs, at the cost of some extra work during upgrades. However it is generally inadvisable for libraries (which get included on users' CLASSPATHs, outside the library developers' control) to do so.
  */
 
-@Documented
 @Retention(value = CLASS)
 @Target(value = {ANNOTATION_TYPE, CONSTRUCTOR, FIELD, METHOD, TYPE})
+@Documented
 public @interface Beta {
 
     String note() default "";

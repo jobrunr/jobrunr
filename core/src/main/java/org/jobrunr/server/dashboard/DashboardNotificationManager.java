@@ -19,7 +19,7 @@ import static java.util.Arrays.asList;
 
 public class DashboardNotificationManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DashboardNotificationManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DashboardNotificationManager.class);
 
     private final StorageProvider storageProvider;
     private final Set<DashboardNotificationMapper<?>> notificationMappers;
@@ -55,8 +55,8 @@ public class DashboardNotificationManager {
         return storageProvider
                 .getMetadata(notificationClass.getSimpleName())
                 .stream()
-                .findFirst()
                 .map(metadata -> ReflectionUtils.newInstance(notificationClass, metadata))
+                .findFirst()
                 .orElse(null);
     }
 
@@ -64,7 +64,7 @@ public class DashboardNotificationManager {
         try {
             storageProvider.saveMetadata(metadata);
         } catch (Exception e) {
-            LOG.debug("Unable to save dashboard notification metadata", e); // this is acceptable and means the same notification was saved concurrently
+            LOGGER.debug("Unable to save dashboard notification metadata", e); // this is acceptable and means the same notification was saved concurrently
         }
     }
 }

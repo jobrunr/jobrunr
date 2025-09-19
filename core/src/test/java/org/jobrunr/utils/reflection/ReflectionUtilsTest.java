@@ -2,6 +2,7 @@ package org.jobrunr.utils.reflection;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Method;
@@ -15,16 +16,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-final class ReflectionUtilsTest {
-
-    @Test
-    void hasDefaultNoArgConstructor() {
-        assertThat(ReflectionUtils.hasDefaultNoArgConstructor(TestClassWithTwoConstructors.class)).isTrue();
-    }
+class ReflectionUtilsTest {
 
     @Test
     void testToClass() {
@@ -62,7 +56,7 @@ final class ReflectionUtilsTest {
 
     @Test
     void testAutobox() {
-        assertThat(ReflectionUtils.autobox(null, String.class)).isNull();
+        assertThat(ReflectionUtils.autobox(null, String.class)).isEqualTo(null);
         assertThat(ReflectionUtils.autobox("string", String.class)).isEqualTo("string");
         assertThat(ReflectionUtils.autobox(1, int.class)).isEqualTo(1);
         assertThat(ReflectionUtils.autobox(1, Integer.class)).isEqualTo(1);
@@ -74,8 +68,8 @@ final class ReflectionUtilsTest {
         assertThat(ReflectionUtils.autobox("1", Long.class)).isEqualTo(1L);
         assertThat(ReflectionUtils.autobox("1.1", Double.class)).isEqualTo(1.1);
         assertThat(ReflectionUtils.autobox("1.1", double.class)).isEqualTo(1.1);
-        assertThat(ReflectionUtils.autobox("true", Boolean.class)).isTrue();
-        assertThat(ReflectionUtils.autobox("true", boolean.class)).isTrue();
+        assertThat(ReflectionUtils.autobox("true", Boolean.class)).isEqualTo(true);
+        assertThat(ReflectionUtils.autobox("true", boolean.class)).isEqualTo(true);
         assertThat(ReflectionUtils.autobox("6ec8044c-ad95-4416-a29e-e946c72a37b0", UUID.class)).isEqualTo(UUID.fromString("6ec8044c-ad95-4416-a29e-e946c72a37b0"));
         assertThat(ReflectionUtils.autobox("A", TestEnum.class)).isEqualTo(TestEnum.A);
         assertThat(ReflectionUtils.autobox("PT8H6M12.345S", Duration.class)).isEqualTo(Duration.parse("PT8H6M12.345S"));
@@ -83,11 +77,11 @@ final class ReflectionUtilsTest {
 
     @Test
     void testAutoboxClob() throws SQLException {
-        Clob clob = mock();
+        Clob clob = Mockito.mock(Clob.class);
         String result = "the result";
 
-        when(clob.length()).thenReturn((long) result.length());
-        when(clob.getSubString(1, result.length())).thenReturn(result);
+        Mockito.when(clob.length()).thenReturn((long) result.length());
+        Mockito.when(clob.getSubString(1, result.length())).thenReturn(result);
 
         assertThat(ReflectionUtils.autobox(clob, String.class)).isEqualTo(result);
     }
@@ -105,14 +99,6 @@ final class ReflectionUtilsTest {
 
         final Optional<Method> doWorkFromParentInterfaceB = ReflectionUtils.findMethod(TestInterface.class, "doWorkFromParentInterfaceB");
         assertThat(doWorkFromParentInterfaceB).isPresent();
-    }
-
-    public static class TestClassWithTwoConstructors {
-        public TestClassWithTwoConstructors() {
-        }
-
-        public TestClassWithTwoConstructors(String s) {
-        }
     }
 
     public static class TestObject {

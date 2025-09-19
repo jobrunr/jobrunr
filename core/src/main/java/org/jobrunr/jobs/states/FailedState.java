@@ -7,7 +7,7 @@ import java.time.Instant;
 
 import static org.jobrunr.utils.exceptions.Exceptions.getStackTraceAsString;
 
-@SuppressWarnings({"CanBeFinal", "FieldMayBeFinal"}) // because of JSON-B
+@SuppressWarnings({"FieldMayBeFinal", "CanBeFinal"}) // because of JSON-B
 public class FailedState extends AbstractJobState {
 
     private transient Exception exception;

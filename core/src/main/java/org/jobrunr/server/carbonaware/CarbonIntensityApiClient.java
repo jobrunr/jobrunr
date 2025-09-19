@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class CarbonIntensityApiClient {
-    private static final Logger LOG = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
 
     private final CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration;
     private final JsonMapper jsonMapper;
@@ -31,10 +31,10 @@ public class CarbonIntensityApiClient {
             String carbonIntensityForecastAsString = fetchLatestCarbonIntensityForecastAsStringWithRetries();
             return jsonMapper.deserialize(carbonIntensityForecastAsString, CarbonIntensityForecast.class);
         } catch (CarbonIntensityApiClientException apiClientEx) {
-            LOG.error("Could not retrieve carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), apiClientEx.getMessage(), apiClientEx);
+            LOGGER.error("Could not retrieve carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), apiClientEx.getMessage(), apiClientEx);
             return CarbonIntensityForecast.fromException(apiClientEx);
         } catch (Exception e) {
-            LOG.error("Error processing carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), e.getMessage(), e);
+            LOGGER.error("Error processing carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), e.getMessage(), e);
             return CarbonIntensityForecast.fromException(e);
         }
     }

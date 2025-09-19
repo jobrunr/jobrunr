@@ -78,7 +78,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
             try {
                 Class<Object> objectClass = toClass(getActualClassName(methodClassName, actualClassName));
                 if (JobContext.class.equals(objectClass)) {
-                    result.add(new JobParameter(methodClassName, JobContext.NULL));
+                    result.add(new JobParameter(methodClassName, JobContext.Null));
                 } else if (jsonObject.containsKey(FIELD_JOB_PARAMETER_OBJECT)) {
                     Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
                     result.add(new JobParameter(methodClassName, object));

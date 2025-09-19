@@ -23,7 +23,7 @@ public class TestService {
         Work work = new Work(123, "some string", 456L, UUID.randomUUID());
         long someLongValue = 789L;
 
-        BackgroundJob.enqueue(() -> this.doWorkWithMultipleParameters(JobContext.NULL, someLongValue, work));
+        BackgroundJob.enqueue(() -> this.doWorkWithMultipleParameters(JobContext.Null, someLongValue, work));
     }
 
 }

@@ -266,12 +266,12 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testJobLambdaWithIntegerAndJobContext() {
-        JobLambda job = () -> testService.doWork(3, JobContext.NULL);
+        JobLambda job = () -> testService.doWork(3, JobContext.Null);
         JobDetails jobDetails = toJobDetails(job);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
-                .hasArgs(3, JobContext.NULL);
+                .hasArgs(3, JobContext.Null);
     }
 
     @Test
@@ -674,12 +674,12 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     @Test
     void testIocJobLambdaWithIntegerAndJobContext() {
-        IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, JobContext.NULL);
+        IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, JobContext.Null);
         JobDetails jobDetails = toJobDetails(iocJobLambda);
         assertThat(jobDetails)
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
-                .hasArgs(3, JobContext.NULL);
+                .hasArgs(3, JobContext.Null);
     }
 
     @Test

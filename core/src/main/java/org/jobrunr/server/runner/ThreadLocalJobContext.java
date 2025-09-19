@@ -7,17 +7,17 @@ public class ThreadLocalJobContext {
     private ThreadLocalJobContext() {
     }
 
-    private static final ThreadLocal<JobContext> JOB_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
+    private static final ThreadLocal<JobContext> jobContextThreadLocal = new ThreadLocal<>();
 
     static void setJobContext(JobContext jobContext) {
-        JOB_CONTEXT_THREAD_LOCAL.set(jobContext);
+        jobContextThreadLocal.set(jobContext);
     }
 
     static void clear() {
-        JOB_CONTEXT_THREAD_LOCAL.remove();
+        jobContextThreadLocal.remove();
     }
 
     public static JobContext getJobContext() {
-        return JOB_CONTEXT_THREAD_LOCAL.get();
+        return jobContextThreadLocal.get();
     }
 }

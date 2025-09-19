@@ -25,9 +25,9 @@ import static org.jobrunr.utils.exceptions.Exceptions.hasCause;
 
 public class BackgroundJobPerformer implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BackgroundJobPerformer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobPerformer.class);
 
-    private static final AtomicInteger CONCURRENT_MODIFICATION_EXCEPTION_COUNTER = new AtomicInteger();
+    private static final AtomicInteger concurrentModificationExceptionCounter = new AtomicInteger();
     private final BackgroundJobServer backgroundJobServer;
     private final JobPerformingFilters jobPerformingFilters;
     private final Job job;
@@ -76,11 +76,11 @@ public class BackgroundJobPerformer implements Runnable {
 
             job.startProcessingOn(backgroundJobServer);
             saveAndRunStateRelatedJobFilters(job);
-            LOG.debug("Job(id={}, jobName='{}') processing started", job.getId(), job.getJobName());
+            LOGGER.debug("Job(id={}, jobName='{}') processing started", job.getId(), job.getJobName());
             return job.hasState(PROCESSING);
         } catch (ConcurrentJobModificationException e) {
             // processing already started on other server
-            LOG.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), CONCURRENT_MODIFICATION_EXCEPTION_COUNTER.incrementAndGet(), e);
+            LOGGER.trace("Could not start processing job {} - it is already in a newer state (collision {})", job.getId(), concurrentModificationExceptionCounter.incrementAndGet(), e);
             return false;
         }
     }
@@ -89,7 +89,7 @@ public class BackgroundJobPerformer implements Runnable {
         try {
             JobRunrDashboardLogger.setJob(job);
             backgroundJobServer.getJobSteward().startProcessing(job, Thread.currentThread());
-            LOG.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
+            LOGGER.trace("Job(id={}, jobName='{}') is running", job.getId(), job.getJobName());
             jobPerformingFilters.runOnJobProcessingFilters();
             BackgroundJobRunner backgroundJobRunner = backgroundJobServer.getBackgroundJobRunner(job);
             backgroundJobRunner.run(job);
@@ -105,17 +105,17 @@ public class BackgroundJobPerformer implements Runnable {
 
     private void updateJobStateToSucceededAndRunJobFilters() {
         try {
-            LOG.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
+            LOGGER.debug("Job(id={}, jobName='{}') processing succeeded", job.getId(), job.getJobName());
             job.succeeded();
             saveAndRunStateRelatedJobFilters(job);
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
-                LOG.info("Job finished successfully but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
+                LOGGER.info("Job finished successfully but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
             } else {
                 throw ex;
             }
         } catch (Exception badException) {
-            LOG.error("ERROR - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
+            LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to SUCCEEDED state", job.getId(), job.getJobName(), badException);
         }
     }
 
@@ -125,18 +125,18 @@ public class BackgroundJobPerformer implements Runnable {
             job.failed(message, actualException);
             saveAndRunStateRelatedJobFilters(job);
             if (job.getState() == FAILED) {
-                LOG.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
+                LOGGER.error("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
             } else {
-                LOG.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
+                LOGGER.warn("Job(id={}, jobName='{}') processing failed: {}", job.getId(), job.getJobName(), message, actualException);
             }
         } catch (IllegalJobStateChangeException ex) {
             if (ex.getFrom() == DELETED) {
-                LOG.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
+                LOGGER.info("Job processing failed but it was already deleted - ignoring illegal state change from {} to {}", ex.getFrom(), ex.getTo(), ex);
             } else {
                 throw ex;
             }
         } catch (Exception badException) {
-            LOG.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
+            LOGGER.error("ERROR - could not update job(id={}, jobName='{}') to FAILED state", job.getId(), job.getJobName(), badException);
         }
     }
 

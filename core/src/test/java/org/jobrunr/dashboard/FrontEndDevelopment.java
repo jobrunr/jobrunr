@@ -86,7 +86,7 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>schedule(CarbonAware.between(LocalDate.now(ZoneId.systemDefault()).atTime(20, 0), LocalDate.now(ZoneId.systemDefault()).atTime(22, 0)), x -> x.doWork(72));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().minus(10, DAYS), Duration.ofHours(4)), x -> x.doWork(-240));
 
-        BackgroundJob.<TestService>enqueue(x -> x.doWorkThatTakesLong(JobContext.NULL));
+        BackgroundJob.<TestService>enqueue(x -> x.doWorkThatTakesLong(JobContext.Null));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

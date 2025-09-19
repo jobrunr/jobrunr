@@ -12,7 +12,6 @@ import java.time.Duration;
 import java.util.UUID;
 
 import static java.lang.Math.min;
-import static java.util.UUID.randomUUID;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 /**
@@ -32,7 +31,7 @@ public class BackgroundJobServerConfiguration {
     int succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
     Duration pollInterval = DEFAULT_POLL_INTERVAL;
     int serverTimeoutPollIntervalMultiplicand = DEFAULT_SERVER_TIMEOUT_POLL_INTERVAL_MULTIPLICAND;
-    UUID id = randomUUID();
+    UUID id = UUID.randomUUID();
     String name = getHostName();
     Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
     Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;

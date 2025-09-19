@@ -21,7 +21,7 @@ import static org.jobrunr.utils.OptionalUtils.isNotPresent;
 
 public class CheckIfAllJobsExistTask implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BackgroundJobServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
 
     private final StorageProvider storageProvider;
 
@@ -39,14 +39,14 @@ public class CheckIfAllJobsExistTask implements Runnable {
 
             if (!distinctRecurringJobSignatures.isEmpty() || !distinctScheduledJobSignatures.isEmpty()) {
                 String jobStateThatIsNotFound = jobTypeNotFoundLabel(distinctRecurringJobSignatures, distinctScheduledJobSignatures);
-                LOG.warn("JobRunr found {} jobs that do not exist anymore in your code. These jobs will fail with a JobNotFoundException (due to a ClassNotFoundException or a MethodNotFoundException)." +
+                LOGGER.warn("JobRunr found {} jobs that do not exist anymore in your code. These jobs will fail with a JobNotFoundException (due to a ClassNotFoundException or a MethodNotFoundException)." +
                                 "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: {}",
                         jobStateThatIsNotFound,
                         jobsThatCannotBeFound.stream().map(sign -> "\n\t" + sign + ",").collect(Collectors.joining())
                 );
             }
         } catch (Exception e) {
-            LOG.error("Unexpected exception running `CheckIfAllJobsExistTask`", shouldNotHappenException(e));
+            LOGGER.error("Unexpected exception running `CheckIfAllJobsExistTask`", shouldNotHappenException(e));
         }
     }
 
@@ -56,10 +56,10 @@ public class CheckIfAllJobsExistTask implements Runnable {
             if (ANNOTATION.equals(recurringJob.getCreatedBy())) {
                 if (!jobExists(recurringJob.getJobSignature())) {
                     storageProvider.deleteRecurringJob(recurringJob.getId());
-                    LOG.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but does not exist anymore", recurringJob.getId(), recurringJob.getJobSignature());
                 } else if (isNotPresent(getRecurringAnnotation(recurringJob.getJobDetails()))) {
                     storageProvider.deleteRecurringJob(recurringJob.getId());
-                    LOG.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
+                    LOGGER.info("Deleted recurring job {} ({}) as it was created by the @Recurring annotation but is not annotated by the  @Recurring annotation anymore", recurringJob.getId(), recurringJob.getJobSignature());
                 }
             } else if (!jobExists(recurringJob.getJobSignature())) {
                 missingRecurringJobSignatures.add(recurringJob.getJobSignature());

@@ -12,7 +12,7 @@ import static org.jobrunr.server.DesktopUtils.systemSupportsSleepDetection;
 
 public class SystemSleptConcurrentStateChange implements AllowedConcurrentStateChange {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SystemSleptConcurrentStateChange.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SystemSleptConcurrentStateChange.class);
 
     @Override
     public boolean matches(StateName localState, StateName storageProviderState) {
@@ -22,7 +22,7 @@ public class SystemSleptConcurrentStateChange implements AllowedConcurrentStateC
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
         if (systemSupportsSleepDetection() && hasSystemSleptRecently()) {
-            LOG.warn("Jobs were updated concurrently but JobRunr has detected that the system has slept recently (e.g. a laptop where the lid is closed). It will disregard this ConcurrentJobModificationException and use the job from the StorageProvider.");
+            LOGGER.warn("Jobs were updated concurrently but JobRunr has detected that the system has slept recently (e.g. a laptop where the lid is closed). It will disregard this ConcurrentJobModificationException and use the job from the StorageProvider.");
             return ConcurrentJobModificationResolveResult.succeeded(storageProviderJob);
         }
         throw shouldNotHappenException("Should not happen as matches filter should be filtering out this StateChangeFilter");

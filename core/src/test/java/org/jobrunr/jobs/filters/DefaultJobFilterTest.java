@@ -29,7 +29,7 @@ class DefaultJobFilterTest {
     @Test
     void testDisplayNameByAnnotationReplacesVariables() {
         Job job = anEnqueuedJob().withoutName()
-                .withJobDetails(() -> testService.doWorkWithAnnotationAndJobContext(67656, "the almighty user", JobContext.NULL))
+                .withJobDetails(() -> testService.doWorkWithAnnotationAndJobContext(67656, "the almighty user", JobContext.Null))
                 .build();
 
         defaultJobFilter.onCreating(job);
@@ -163,7 +163,7 @@ class DefaultJobFilterTest {
                         .withMethodName("doWorkWithAnnotationAndJobContext")
                         .withJobParameter(5)
                         .withJobParameter("John Doe")
-                        .withJobParameter(JobParameter.JOB_CONTEXT))
+                        .withJobParameter(JobParameter.JobContext))
                 .build();
 
         defaultJobFilter.onCreating(job);

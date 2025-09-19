@@ -45,7 +45,8 @@ public enum CronFieldType {
 
     public BitSet parseLastDayOfMonth() {
         if (this == DAY) {
-            return fillBitSet(27, length);
+            BitSet bitSet = fillBitSet(27, length);
+            return bitSet;
         }
         throw new InvalidCronExpressionException("Last day of month is only allowed in day field");
     }

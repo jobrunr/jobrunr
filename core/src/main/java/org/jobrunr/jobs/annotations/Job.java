@@ -2,12 +2,7 @@ package org.jobrunr.jobs.annotations;
 
 import org.jobrunr.jobs.filters.JobFilter;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Allows to add a specific name to a job that will be used in the dashboard as well as extra jobFilters that will be used for the job.
@@ -44,17 +39,16 @@ import java.lang.annotation.Target;
  *  </pre>
  */
 
-@Documented
-@Inherited
-@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
 public @interface Job {
 
     int NBR_OF_RETRIES_NOT_PROVIDED = -1;
 
     /**
      * The name of the job. Parameter substitution is supported by means of <code>%0</code> (this will be replaced by the toString representation of the first argument).
-     *
      * @return the name of the job.
      */
     String name() default "";
@@ -63,7 +57,6 @@ public @interface Job {
 
     /**
      * The labels for the job. Parameter substitution is supported by means of <code>%0</code> (this will be replaced by the toString representation of the first argument).
-     *
      * @return the labels for the job.
      */
     String[] labels() default {};

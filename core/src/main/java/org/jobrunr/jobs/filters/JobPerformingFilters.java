@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public class JobPerformingFilters extends AbstractJobFilters<Job> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JobPerformingFilters.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobPerformingFilters.class);
 
     public JobPerformingFilters(Job job, JobDefaultFilters jobFilters) {
         super(job, jobFilters);
@@ -74,7 +74,7 @@ public class JobPerformingFilters extends AbstractJobFilters<Job> {
 
     @Override
     Logger getLogger() {
-        return LOG;
+        return LOGGER;
     }
 
 }

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
@@ -55,7 +56,7 @@ public class CollectionUtils {
     }
 
     public static <T> Set<T> asSet(T... items) {
-        return Arrays.stream(items).collect(toSet());
+        return Stream.of(items).collect(toSet());
     }
 
     public static <T> Set<T> asSet(Collection<T>... existingCollections) {

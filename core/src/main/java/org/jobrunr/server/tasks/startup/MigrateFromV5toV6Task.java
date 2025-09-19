@@ -20,7 +20,7 @@ import static org.jobrunr.storage.Paging.OffsetBasedPage.next;
 
 public class MigrateFromV5toV6Task implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MigrateFromV5toV6Task.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MigrateFromV5toV6Task.class);
 
     private final StorageProvider storageProvider;
 
@@ -40,14 +40,14 @@ public class MigrateFromV5toV6Task implements Runnable {
 
     private void migrateScheduledJobsIfNecessary() {
         if (!SqlStorageProvider.class.isAssignableFrom(storageProvider.getStorageProviderInfo().getImplementationClass())) {
-            LOG.info("Migration of scheduled jobs from v5 to v6 not needed as not using an SqlStorageProvider");
+            LOGGER.info("Migration of scheduled jobs from v5 to v6 not needed as not using an SqlStorageProvider");
             return;
         }
 
-        LOG.info("Start migration of scheduled jobs from v5 to v6");
+        LOGGER.info("Start migration of scheduled jobs from v5 to v6");
         try {
             List<UUID> scheduledJobIdsToMigrate = getScheduledJobIdsToMigrate();
-            LOG.info("Found {} scheduled jobs to migrate.", scheduledJobIdsToMigrate.size());
+            LOGGER.info("Found {} scheduled jobs to migrate.", scheduledJobIdsToMigrate.size());
             List<Job> scheduledJobsToMigrate = new ArrayList<>();
             for (UUID jobId : scheduledJobIdsToMigrate) {
                 Job scheduledJob = storageProvider.getJobById(jobId);
@@ -63,9 +63,9 @@ public class MigrateFromV5toV6Task implements Runnable {
                 storageProvider.save(scheduledJobsToMigrate);
                 scheduledJobsToMigrate.clear();
             }
-            LOG.info("Finished migration of scheduled jobs from v5 to v6");
+            LOGGER.info("Finished migration of scheduled jobs from v5 to v6");
         } catch (Exception e) {
-            LOG.error("Error migrating scheduled jobs from v5 to v6.", e);
+            LOGGER.error("Error migrating scheduled jobs from v5 to v6.", e);
             throw e;
         }
     }

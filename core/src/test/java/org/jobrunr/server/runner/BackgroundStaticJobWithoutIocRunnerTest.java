@@ -63,7 +63,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID(), JobContext.NULL))
+                .withJobDetails(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID(), JobContext.Null))
                 .build();
 
         assertThatCode(() -> backgroundStaticJobWithoutIocRunner.run(job)).doesNotThrowAnyException();

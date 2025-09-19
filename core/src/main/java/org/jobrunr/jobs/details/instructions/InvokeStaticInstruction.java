@@ -34,7 +34,8 @@ public class InvokeStaticInstruction extends JobDetailsInstruction {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
         if (isKotlinCheck()) return null;
-        return createObjectViaStaticMethod(getClassName(), getMethodName(), paramTypes, parameters.toArray());
+        Object result = createObjectViaStaticMethod(getClassName(), getMethodName(), paramTypes, parameters.toArray());
+        return result;
     }
 
     private boolean isKotlinCheck() {

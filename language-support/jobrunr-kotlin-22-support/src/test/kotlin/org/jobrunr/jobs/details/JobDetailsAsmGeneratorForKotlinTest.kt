@@ -133,11 +133,11 @@ class JobDetailsAsmGeneratorForKotlinTest {
 
     @Test
     fun testJobLambdaWithIntegerAndJobContext() {
-        val jobDetails = toJobDetails { testService.doWork(3, JobContext.NULL) }
+        val jobDetails = toJobDetails { testService.doWork(3, JobContext.Null) }
         assertThat(jobDetails)
             .hasClass(TestService::class.java)
             .hasMethodName("doWork")
-            .hasArgs(3, JobContext.NULL)
+            .hasArgs(3, JobContext.Null)
     }
 
     @Test
@@ -392,11 +392,11 @@ class JobDetailsAsmGeneratorForKotlinTest {
 
     @Test
     fun testIocJobLambdaWithIntegerAndJobContext() {
-        val jobDetails = toJobDetails<TestService> { it.doWork(3, JobContext.NULL) }
+        val jobDetails = toJobDetails<TestService> { it.doWork(3, JobContext.Null) }
         assertThat(jobDetails)
             .hasClass(TestService::class.java)
             .hasMethodName("doWork")
-            .hasArgs(3, JobContext.NULL)
+            .hasArgs(3, JobContext.Null)
     }
 
     @Test

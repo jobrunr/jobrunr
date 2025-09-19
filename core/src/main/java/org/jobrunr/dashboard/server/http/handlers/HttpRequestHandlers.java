@@ -3,17 +3,12 @@ package org.jobrunr.dashboard.server.http.handlers;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.DELETE;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.GET;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.HEAD;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.OPTIONS;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.POST;
-import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.PUT;
+import static org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers.RequestMethod.*;
 
 public class HttpRequestHandlers {
 
-    public static final HttpRequestHandler OK = (httpRequest, httpResponse) -> httpResponse.statusCode(200);
-    public static final HttpRequestHandler NOT_FOUND = (httpRequest, httpResponse) -> httpResponse.statusCode(404);
+    public static final HttpRequestHandler ok = (httpRequest, httpResponse) -> httpResponse.statusCode(200);
+    public static final HttpRequestHandler notFound = (httpRequest, httpResponse) -> httpResponse.statusCode(404);
 
     private final Map<String, HttpRequestMethodHandlers> requestHandlers = new HashMap<>();
 
@@ -43,7 +38,7 @@ public class HttpRequestHandlers {
     }
 
     public void delete(String url, HttpRequestHandler httpRequestHandler) {
-        getAllRequestMethodHandlers(OPTIONS).put(url, HttpRequestHandlers.OK);
+        getAllRequestMethodHandlers(OPTIONS).put(url, HttpRequestHandlers.ok);
         getAllRequestMethodHandlers(DELETE).put(url, httpRequestHandler);
     }
 

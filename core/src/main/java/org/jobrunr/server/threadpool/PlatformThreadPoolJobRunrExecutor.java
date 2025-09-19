@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PlatformThreadPoolJobRunrExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlatformThreadPoolJobRunrExecutor.class);
     private final int workerCount;
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize) {
@@ -36,7 +36,7 @@ public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.Sche
     @Override
     public void start() {
         this.prestartAllCoreThreads();
-        LOG.info("ThreadManager of type 'ScheduledThreadPool' started");
+        LOGGER.info("ThreadManager of type 'ScheduledThreadPool' started");
     }
 
     @Override

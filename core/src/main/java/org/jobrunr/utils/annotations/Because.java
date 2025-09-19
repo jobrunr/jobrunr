@@ -15,9 +15,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * Documents why a class, field or method is visible
  */
 
-@Documented
 @Retention(value = CLASS)
 @Target(value = {ANNOTATION_TYPE, CONSTRUCTOR, FIELD, METHOD, TYPE})
+@Documented
 public @interface Because {
 
     String[] value();

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class WebServer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebServer.class);
 
     private final HttpServer httpServer;
     private final ExecutorService executorService;
@@ -70,7 +70,7 @@ public class WebServer {
         try {
             httpHandler.close();
         } catch (Exception shouldNotHappen) {
-            LOG.warn("Error closing HttpHandler", shouldNotHappen);
+            LOGGER.warn("Error closing HttpHandler", shouldNotHappen);
         }
     }
 }
