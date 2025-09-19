@@ -56,7 +56,7 @@ public class DatabaseCleaner {
 
     private void doInTransaction(Exceptions.ThrowingConsumer<Statement> inTransaction, String errorMsg) {
         try {
-            SqlTestUtils.doInTransaction(dataSource, inTransaction, ignoreExceptions);
+            SqlTestUtils.doInTransaction(dataSource, inTransaction);
         } catch (Exception e) {
             System.out.println(errorMsg);
             e.printStackTrace();
