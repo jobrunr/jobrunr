@@ -88,8 +88,8 @@ const RealtimeGraph = () => {
             failedData.push(amountFailed)
             ApexChartsModule.then(({default: ApexCharts}) => {
                 ApexCharts.exec('processing-chart', 'updateSeries', [
-                    {data: failedData},
-                    {data: succeededData}
+                    {name: "Failed jobs", data: failedData},
+                    {name: "Succeeded jobs", data: succeededData}
                 ])
             })
         }
