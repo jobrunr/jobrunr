@@ -9,7 +9,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import Box from "@mui/material/Box";
 import {CogClockwise} from "mdi-material-ui";
 import NotInterestedIcon from '@mui/icons-material/NotInterested';

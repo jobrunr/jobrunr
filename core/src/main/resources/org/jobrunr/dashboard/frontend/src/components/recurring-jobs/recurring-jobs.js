@@ -12,7 +12,7 @@ import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import cronstrue from 'cronstrue';
 import Box from "@mui/material/Box";
 import {Dialog, DialogActions, DialogContent, DialogTitle, Snackbar} from "@mui/material";

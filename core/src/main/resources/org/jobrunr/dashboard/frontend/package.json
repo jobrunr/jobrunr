@@ -17,7 +17,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
     "react-syntax-highlighter": "^15.6.6",
-    "react-timeago": "^7.2.0"
+    "react-timeago": "^8.3.0"
   },
   "scripts": {
     "start": "rsbuild dev",

@@ -1,4 +1,4 @@
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import {setDateStyle, useDateStyles} from "./date-styles";
 
 const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
