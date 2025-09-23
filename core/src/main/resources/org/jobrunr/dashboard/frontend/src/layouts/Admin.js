@@ -1,5 +1,5 @@
 import {createTheme, styled, StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {Navigate, Route, Routes} from 'react-router-dom';
+import {Navigate, Route, Routes} from 'react-router';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";

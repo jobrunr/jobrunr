@@ -19,7 +19,7 @@ import {Dialog, DialogActions, DialogContent, DialogTitle, Snackbar} from "@mui/
 import Alert from '@mui/material/Alert'
 import LoadingIndicator from "../LoadingIndicator";
 import VersionFooter from "../utils/version-footer";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router";
 import TablePagination from "@mui/material/TablePagination";
 import JobLabel from "../utils/job-label";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";

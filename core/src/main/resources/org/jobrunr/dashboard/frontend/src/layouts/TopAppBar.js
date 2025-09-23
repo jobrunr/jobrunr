@@ -4,7 +4,7 @@ import Toolbar from '@mui/material/Toolbar';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
-import {Link as RouterLink} from 'react-router-dom';
+import {Link as RouterLink} from 'react-router';
 import logo from '../assets/jobrunr-logo-white.png';
 import {StatChip} from "../components/ui/StatChip";
 import {useJobStats} from "../hooks/useJobStats";

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {useLocation} from "react-router-dom";
+import {useLocation} from "react-router";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
