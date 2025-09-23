@@ -8,6 +8,7 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
+import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -76,7 +77,7 @@ public class FrontEndDevelopment {
 //        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
-        BackgroundJob.<TestService>scheduleRecurrently("0 14 * * *", x -> x.doWorkThatTakesLong(40));
+        BackgroundJob.<TestService>scheduleRecurrently(Cron.every30seconds(), x -> x.doWorkThatTakesLong(15));
 
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(4, HOURS), Duration.ofHours(4)), x -> x.doWork(4));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));

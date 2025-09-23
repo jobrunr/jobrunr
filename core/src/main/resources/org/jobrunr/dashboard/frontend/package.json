@@ -12,9 +12,9 @@
     "apexcharts": "^5.3.5",
     "cronstrue": "^3.3.0",
     "mdi-material-ui": "^7.9.4",
-    "react": "^18.3.1",
+    "react": "^19.1.1",
     "react-apexcharts": "^1.7.0",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.1.0",
     "react-router": "^7.9.1",
     "react-syntax-highlighter": "^15.6.6",
     "react-timeago": "^8.3.0"

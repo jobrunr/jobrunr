@@ -74,13 +74,13 @@ const AdminUI = function () {
     }, []);
 
     return (
-        <StyledEngineProvider injectFirst>
+        (<StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
-                <JobRunrInfoContext.Provider value={jobRunrInfo}>
+                <JobRunrInfoContext value={jobRunrInfo}>
                     <App/>
-                </JobRunrInfoContext.Provider>
+                </JobRunrInfoContext>
             </ThemeProvider>
-        </StyledEngineProvider>
+        </StyledEngineProvider>)
     );
 };
 
