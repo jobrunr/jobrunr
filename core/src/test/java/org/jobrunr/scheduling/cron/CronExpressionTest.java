@@ -7,7 +7,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -22,6 +21,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.jobrunr.utils.LocalDateUtils.nowUsingSystemDefault;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class CronExpressionTest {
@@ -56,7 +56,7 @@ class CronExpressionTest {
 
         Instant actualNextInstant = new CronExpression(Cron.daily(hour)).next(createdAtNotRelevantInstant, Instant.now(), UTC);
 
-        Instant expectedNextInstant = OffsetDateTime.of(LocalDate.now(ZoneId.systemDefault()).plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
+        Instant expectedNextInstant = OffsetDateTime.of(nowUsingSystemDefault().plusDays(daysToAdd), LocalTime.of(hour, 0), UTC).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
     }

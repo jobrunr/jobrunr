@@ -21,8 +21,6 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -33,6 +31,7 @@ import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
+import static org.jobrunr.utils.LocalDateUtils.nowUsingSystemDefault;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -83,7 +82,7 @@ public class FrontEndDevelopment {
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(48, HOURS), Duration.ofHours(4)), x -> x.doWork(52));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(72));
-        BackgroundJob.<TestService>schedule(CarbonAware.between(LocalDate.now(ZoneId.systemDefault()).atTime(20, 0), LocalDate.now(ZoneId.systemDefault()).atTime(22, 0)), x -> x.doWork(72));
+        BackgroundJob.<TestService>schedule(CarbonAware.between(nowUsingSystemDefault().atTime(20, 0), nowUsingSystemDefault().atTime(22, 0)), x -> x.doWork(72));
         BackgroundJob.<TestService>schedule(CarbonAware.at(now().minus(10, DAYS), Duration.ofHours(4)), x -> x.doWork(-240));
 
         BackgroundJob.<TestService>enqueue(x -> x.doWorkThatTakesLong(JobContext.Null));

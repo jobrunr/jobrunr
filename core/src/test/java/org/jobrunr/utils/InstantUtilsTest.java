@@ -3,7 +3,6 @@ package org.jobrunr.utils;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -25,6 +24,7 @@ import static org.jobrunr.utils.InstantUtils.isInstantAfterOrEqualTo;
 import static org.jobrunr.utils.InstantUtils.isInstantBeforeOrEqualTo;
 import static org.jobrunr.utils.InstantUtils.isInstantInPeriod;
 import static org.jobrunr.utils.InstantUtils.max;
+import static org.jobrunr.utils.LocalDateUtils.nowUsingSystemDefault;
 
 class InstantUtilsTest {
 
@@ -102,7 +102,7 @@ class InstantUtilsTest {
         assertThatCode(() -> InstantUtils.toInstant(LocalTime.now(ZoneId.systemDefault())))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("JobRunr does not support Temporal type: java.time.LocalTime. Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
-        assertThatCode(() -> InstantUtils.toInstant(LocalDate.now(ZoneId.systemDefault())))
+        assertThatCode(() -> InstantUtils.toInstant(nowUsingSystemDefault()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("JobRunr does not support Temporal type: java.time.LocalDate. Supported types are Instant, ChronoLocalDateTime (e.g., LocalDateTime), ChronoZonedDateTime (e.g., ZonedDateTime) and OffsetDateTime.");
         assertThatCode(() -> InstantUtils.toInstant(Year.now(ZoneId.systemDefault())))
