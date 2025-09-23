@@ -47,7 +47,7 @@ class SqlTest {
         }
     }
 
-    class TestSql extends Sql<Job> {
+    static class TestSql extends Sql<Job> {
 
         int parseStatementCounter = 0;
 

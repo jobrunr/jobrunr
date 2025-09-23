@@ -296,6 +296,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
+    @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
     private void startStewardAndServerZooKeeper() {
         zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(5, 5, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
@@ -304,6 +305,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), MILLISECONDS);
     }
 
+    @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
         JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this,
@@ -336,7 +338,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private void runStartupTasks() {
         try {
             ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
-            singleThreadExecutor.submit(new StartupTask(
+            singleThreadExecutor.execute(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
                     new MigrateFromV5toV6Task(this),

@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class JacksonJsonMapper implements JsonMapper {
 
@@ -93,15 +92,20 @@ public class JacksonJsonMapper implements JsonMapper {
 
     private static List<Module> findModules(boolean moduleAutoDiscover) {
         List<Module> modules = moduleAutoDiscover ? ObjectMapper.findModules() : new ArrayList<>();
-        if (modules.stream().noneMatch(isJSR310JavaTimeModule)) {
+        if (modules.stream().noneMatch(JacksonJsonMapper::isJSR310JavaTimeModule)) {
             modules.add(new JobRunrTimeModule());
         }
-        if (modules.stream().noneMatch(isJobRunrModule)) {
+        if (modules.stream().noneMatch(JacksonJsonMapper::isJobRunrModule)) {
             modules.add(new JobRunrModule());
         }
         return modules;
     }
 
-    private static final Predicate<Module> isJSR310JavaTimeModule = m -> "jackson-datatype-jsr310".equals(m.getTypeId()) || "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule".equals(m.getTypeId());
-    private static final Predicate<Module> isJobRunrModule = m -> "org.jobrunr.utils.mapper.jackson.modules.JobRunrModule".equals(m.getTypeId());
+    private static final boolean isJSR310JavaTimeModule(Module m) {
+        return "jackson-datatype-jsr310".equals(m.getTypeId()) || "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule".equals(m.getTypeId());
+    }
+
+    private static final boolean isJobRunrModule(Module m) {
+        return "org.jobrunr.utils.mapper.jackson.modules.JobRunrModule".equals(m.getTypeId());
+    }
 }

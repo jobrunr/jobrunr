@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class CarbonIntensityApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(CarbonIntensityApiClient.class);
 
@@ -72,7 +74,7 @@ public class CarbonIntensityApiClient {
         if (con.getResponseCode() > 299) {
             throw new CarbonIntensityApiClientException(con.getResponseCode(), readErrorStream(con));
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), UTF_8))) {
             StringBuilder content = new StringBuilder();
             reader.lines().forEach(content::append);
             return content.toString();
@@ -81,7 +83,7 @@ public class CarbonIntensityApiClient {
 
     private String readErrorStream(HttpURLConnection connection) throws IOException {
         if (connection.getErrorStream() != null) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), UTF_8))) {
                 return reader.lines().collect(Collectors.joining("\n"));
             }
         }

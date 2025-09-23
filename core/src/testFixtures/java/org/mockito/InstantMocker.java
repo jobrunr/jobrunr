@@ -30,7 +30,7 @@ public class InstantMocker {
     public static MockedStaticHolder mockTime(ZonedDateTime zonedDateTime) {
         MockedStatic<ZonedDateTime> zonedDateTimeMock = Mockito.mockStatic(ZonedDateTime.class, Mockito.CALLS_REAL_METHODS);
         MockedStatic<Instant> instantMockedStatic = mockTime(zonedDateTime.toInstant());
-        zonedDateTimeMock.when(() -> ZonedDateTime.now()).thenReturn(zonedDateTime);
+        zonedDateTimeMock.when(() -> ZonedDateTime.now(ZoneId.systemDefault())).thenReturn(zonedDateTime);
         zonedDateTimeMock.when(() -> ZonedDateTime.now(Mockito.any(ZoneId.class))).thenReturn(zonedDateTime);
         zonedDateTimeMock.when(() -> ZonedDateTime.now(Mockito.any(Clock.class))).thenReturn(zonedDateTime);
         return new MockedStaticHolder(zonedDateTimeMock, instantMockedStatic);

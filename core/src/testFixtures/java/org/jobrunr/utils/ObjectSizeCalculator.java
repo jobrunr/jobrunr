@@ -25,8 +25,20 @@
 
 package org.jobrunr.utils;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Contains utility methods for calculating the memory usage of objects. It
@@ -385,12 +397,6 @@ public final class ObjectSizeCalculator {
      * @return current memory usage derived from system configuration
      */
     public static MemoryLayoutSpecification getEffectiveMemoryLayoutSpecification() {
-        final String vmName = System.getProperty("java.vm.name");
-//        if (vmName == null || !vmName.startsWith("Java HotSpot(TM) ")) {
-//            throw new UnsupportedOperationException(
-//                    "ObjectSizeCalculator only supported on HotSpot VM");
-//        }
-
         final String dataModel = System.getProperty("sun.arch.data.model");
         if ("32".equals(dataModel)) {
             // Running with 32-bit data model
@@ -452,8 +458,8 @@ public final class ObjectSizeCalculator {
                     maxMemory += (Long) max;
                 }
             } catch (IllegalAccessException |
-                    IllegalArgumentException |
-                    InvocationTargetException ex) {
+                     IllegalArgumentException |
+                     InvocationTargetException ex) {
                 throw new AssertionError("java.lang.management not available in compact 1");
             }
 

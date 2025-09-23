@@ -15,6 +15,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
@@ -86,7 +87,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     }
 
     private CarbonIntensityForecast generateCarbonIntensityForecastForTheNextDay() {
-        ZonedDateTime currentTime = ZonedDateTime.now().truncatedTo(HOURS);
+        ZonedDateTime currentTime = ZonedDateTime.now(ZoneId.systemDefault()).truncatedTo(HOURS);
         ZonedDateTime forecastUntil = currentTime.plusDays(1).with(LocalTime.MAX);
         List<TimestampedCarbonIntensityForecast> forecast = buildForecastSlots(currentTime, forecastUntil, HOURS, i -> i);
         ZonedDateTime nextDataAvailableAt = forecastUntil.withHour(18).withMinute(30).truncatedTo(MINUTES);

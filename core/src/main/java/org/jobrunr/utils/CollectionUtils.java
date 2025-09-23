@@ -46,6 +46,7 @@ public class CollectionUtils {
         return result;
     }
 
+    @SuppressWarnings("NonApiType")
     public static <T> ArrayList<T> asArrayList(Collection<T> existingCollection) {
         ArrayList<T> result = new ArrayList<>();
         if (existingCollection != null) {

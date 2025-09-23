@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.ZoneId;
 
 import static java.time.Duration.ofSeconds;
 import static java.time.format.DateTimeFormatter.ofPattern;
@@ -67,7 +68,7 @@ public class DashboardCarbonIntensityChartE2ETest extends AbstractPlaywrightE2ET
 
     private static LocalTime optimalTime() {
         // If it's 12:04, [12:00-13:00] will not be considered so add another hour.
-        return LocalTime.now().truncatedTo(HOURS).plus(3, HOURS);
+        return LocalTime.now(ZoneId.systemDefault()).truncatedTo(HOURS).plus(3, HOURS);
     }
 
 }

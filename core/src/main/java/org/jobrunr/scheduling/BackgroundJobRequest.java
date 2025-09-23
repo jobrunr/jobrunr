@@ -176,7 +176,7 @@ public class BackgroundJobRequest {
     }
 
     /**
-     * @see #delete(UUID)
+     * See {@link #delete(UUID)}
      */
     public static void delete(JobId jobId) {
         delete(jobId.asUUID());

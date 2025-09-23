@@ -27,6 +27,7 @@ class JacksonUsingJSR310JavaTimeModuleJsonMapperTest extends AbstractJsonMapperT
         assertThat(new JavaTimeModule().getTypeId()).isEqualTo("jackson-datatype-jsr310");
     }
 
+    @Override
     @Test
     @Disabled
     void testSerializeAndDeserializeEnqueuedJobWithOffsetDateTimeJobParameter() {
@@ -82,7 +83,7 @@ class JacksonUsingJSR310JavaTimeModuleJsonMapperTest extends AbstractJsonMapperT
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof SomeParameter)) return false;
             SomeParameter that = (SomeParameter) o;
             return value == that.value;
         }

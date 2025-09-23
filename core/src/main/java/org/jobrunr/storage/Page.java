@@ -32,8 +32,8 @@ public class Page<T> {
         this.currentPage = currentPageNo;
         this.hasPrevious = previousPageRequest != null;
         this.hasNext = nextPageRequest != null;
-        this.previousPageRequest = (hasPrevious) ? previousPageRequest.asString() : null;
-        this.nextPageRequest = (hasNext) ? nextPageRequest.asString() : null;
+        this.previousPageRequest = hasPrevious ? previousPageRequest.asString() : null;
+        this.nextPageRequest = hasNext ? nextPageRequest.asString() : null;
         this.items = new ArrayList<>(items);
     }
 
@@ -84,7 +84,7 @@ public class Page<T> {
     private static int calculateTotalPages(long total, PageRequest currentPageRequest) {
         if (total == 0L) return 0;
         int result = (int) Math.ceil((double) total / currentPageRequest.getLimit());
-        if (result * currentPageRequest.getLimit() < total) result++;
+        if (result * ((long) currentPageRequest.getLimit()) < total) result++;
         return result;
     }
 

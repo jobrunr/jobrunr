@@ -29,6 +29,7 @@ public class InvokeStaticInstruction extends JobDetailsInstruction {
         return super.invokeInstruction();
     }
 
+    @Override
     protected Object getObject() {
         Class<?>[] paramTypes = findParamTypesFromDescriptorAsArray(descriptor);
         List<Object> parameters = getParametersUsingParamTypes(paramTypes);
@@ -42,6 +43,7 @@ public class InvokeStaticInstruction extends JobDetailsInstruction {
                 && stream(kotlinCheckMethodNames).anyMatch(methodName -> getMethodName().startsWith(methodName));
     }
 
+    @Override
     String getClassName() {
         return toFQClassName(owner);
     }

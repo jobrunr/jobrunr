@@ -30,8 +30,8 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         if (atomicInteger != null) return;
 
         annotatedTestClass = findClassWithForAllSubclassesAnnotation(context);
-        setUpMethod = findMethodWithAnnotation(annotatedTestClass, BeforeAllSubclasses.class);
-        tearDownMethod = findMethodWithAnnotation(annotatedTestClass, AfterAllSubclasses.class);
+        setUpMethod = findMethodWithAnnotation(BeforeAllSubclasses.class);
+        tearDownMethod = findMethodWithAnnotation(AfterAllSubclasses.class);
 
         try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
             final List<Path> paths = resourceProvider.listAllChildrenOnClasspath(annotatedTestClass).collect(toList());
@@ -77,7 +77,7 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         return findClassWithForAllSubclassesAnnotation(clazz.getSuperclass());
     }
 
-    private static Method findMethodWithAnnotation(Class clazz, Class<? extends Annotation> annotation) {
+    private static Method findMethodWithAnnotation(Class<? extends Annotation> annotation) {
         return Arrays.stream(annotatedTestClass.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotation))
                 .findFirst()

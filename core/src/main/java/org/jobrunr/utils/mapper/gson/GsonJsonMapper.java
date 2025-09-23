@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
 
 public class GsonJsonMapper implements JsonMapper {
@@ -75,7 +76,7 @@ public class GsonJsonMapper implements JsonMapper {
 
     @Override
     public void serialize(OutputStream outputStream, Object object) {
-        try (final OutputStreamWriter writer = new OutputStreamWriter(outputStream)) {
+        try (final OutputStreamWriter writer = new OutputStreamWriter(outputStream, UTF_8)) {
             gson.toJson(object, writer);
         } catch (IOException e) {
             throw JobRunrException.shouldNotHappenException(e);

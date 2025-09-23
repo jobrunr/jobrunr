@@ -34,6 +34,7 @@ public class ScheduledState extends AbstractJobState implements SchedulableState
         this.reason = reason;
     }
 
+    @Override
     public Instant getScheduledAt() {
         return scheduledAt;
     }

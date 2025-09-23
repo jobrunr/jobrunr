@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,18 +103,21 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
         if (!jobStatsChangeListeners.isEmpty()) {
-            runAsync(() -> {
+            CompletableFuture<?> future = runAsync(() -> {
                 try {
                     if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
                     if (changeListenerNotificationRateLimit.isRateLimited()) return;
                     JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
                     jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
-                } catch (Exception e) {
-                    logError(e);
                 } finally {
                     if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
+                }
+            });
+            future.whenComplete((result, e) -> {
+                if (e != null) {
+                    logError(e);
                 }
             });
         }
@@ -199,7 +203,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
-    private void logError(Exception e) {
+    private void logError(Throwable e) {
         if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }

@@ -344,7 +344,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     public void clear() {
         jobQueue.clear();
         recurringJobs.clear();
-        metadata.keySet().removeIf(x -> !(x.endsWith(METADATA_OWNER_CLUSTER)));
+        metadata.keySet().removeIf(x -> !x.endsWith(METADATA_OWNER_CLUSTER));
     }
 
     @Override
@@ -400,7 +400,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .collect(toList());
         return comparators.stream()
                 .reduce(Comparator::thenComparing)
-                .orElse((a, b) -> 0); // default order
+                .orElse((unusedJobA, unusedJobB) -> 0); // default order
     }
 
 }

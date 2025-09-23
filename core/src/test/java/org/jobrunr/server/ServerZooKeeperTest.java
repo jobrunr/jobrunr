@@ -70,7 +70,6 @@ class ServerZooKeeperTest {
         try {
             backgroundJobServer.stop();
         } catch (Exception e) {
-            e.printStackTrace();
             // not that important
         }
     }

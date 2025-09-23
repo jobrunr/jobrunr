@@ -36,9 +36,9 @@ public class TestService implements TestServiceInterface {
 
     private static final Logger LOGGER = new JobRunrDashboardLogger(LoggerFactory.getLogger(TestService.class));
 
-    private static int processedJobs = 0;
+    private static long processedJobs = 0;
 
-    public int getProcessedJobs() {
+    public long getProcessedJobs() {
         return processedJobs;
     }
 
@@ -161,6 +161,7 @@ public class TestService implements TestServiceInterface {
     }
 
     @Job(name = "Doing some work")
+    @Override
     public void doWork() {
         processedJobs++;
         LOGGER.debug("Doing some work... " + processedJobs);
@@ -304,6 +305,7 @@ public class TestService implements TestServiceInterface {
         return UUID.randomUUID();
     }
 
+    @SuppressWarnings("unused")
     private void aPrivateMethod(String string, int someNumber) {
         LOGGER.debug("Nothing to do");
     }
@@ -369,7 +371,7 @@ public class TestService implements TestServiceInterface {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof Work)) return false;
 
             Work work = (Work) o;
 

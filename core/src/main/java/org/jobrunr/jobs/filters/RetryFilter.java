@@ -56,7 +56,7 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     protected long getExponentialBackoffPolicy(Job job, int seed) {
-        return (long) Math.pow(seed, getFailureCount(job));
+        return (long) Math.pow(seed, (double) getFailureCount(job));
     }
 
     private boolean maxAmountOfRetriesReached(Job job) {

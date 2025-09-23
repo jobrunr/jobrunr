@@ -1000,6 +1000,7 @@ public abstract class StorageProviderTest {
             }
         }
 
+        @Override
         public void close() {
             resetStorageProviderUsingInternalState(storageProvider);
         }

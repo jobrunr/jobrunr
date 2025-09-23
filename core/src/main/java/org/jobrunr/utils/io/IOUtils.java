@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class IOUtils {
 
     private IOUtils() {
@@ -20,7 +22,7 @@ public class IOUtils {
     }
 
     public static void copyStream(InputStream input, Writer output) throws IOException {
-        try (InputStreamReader inputStreamReader = new InputStreamReader(input)) {
+        try (InputStreamReader inputStreamReader = new InputStreamReader(input, UTF_8)) {
             char[] buffer = new char[1024]; // Adjust if you want
             int bytesRead;
             while ((bytesRead = inputStreamReader.read(buffer)) != -1) {

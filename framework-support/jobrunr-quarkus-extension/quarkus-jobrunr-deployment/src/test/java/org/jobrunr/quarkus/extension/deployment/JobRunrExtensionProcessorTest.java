@@ -32,10 +32,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.Mockito.any;
@@ -152,8 +152,8 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void kotlinxSerializationClassRetrievalIsInSyncWithKotlinLanguageSupportProject() throws IOException {
-        var kotlinSrc = new String(Files.readAllBytes(Paths.get("../../../language-support/jobrunr-kotlin-22-support/src/main/kotlin/org/jobrunr/kotlin/utils/mapper/KotlinxSerializationJsonMapper.kt")));
-        var processorSrc = new String(Files.readAllBytes(Paths.get("src/main/java/org/jobrunr/quarkus/extension/deployment/JobRunrExtensionProcessor.java")));
+        var kotlinSrc = new String(Files.readAllBytes(Paths.get("../../../language-support/jobrunr-kotlin-22-support/src/main/kotlin/org/jobrunr/kotlin/utils/mapper/KotlinxSerializationJsonMapper.kt")), UTF_8);
+        var processorSrc = new String(Files.readAllBytes(Paths.get("src/main/java/org/jobrunr/quarkus/extension/deployment/JobRunrExtensionProcessor.java")), UTF_8);
 
         assertThat(kotlinSrc).contains("class KotlinxSerializationJsonMapper");
         assertThat(processorSrc).contains("classExists(\"org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper\")");

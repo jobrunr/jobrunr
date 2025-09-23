@@ -10,6 +10,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Iterator;
 
+@SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 public class JobRunrDashboardLogger implements Logger {
 
     private static final ThreadLocal<JobDashboardLogger> jobDashboardLoggerThreadLocal = new ThreadLocal<>();

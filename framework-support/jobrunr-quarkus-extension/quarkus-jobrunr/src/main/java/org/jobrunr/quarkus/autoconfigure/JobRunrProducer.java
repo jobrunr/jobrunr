@@ -15,9 +15,9 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import static java.util.Collections.emptyList;
-import static org.jobrunr.utils.reflection.ReflectionUtils.newInstance;
 
 @Singleton
 public class JobRunrProducer {
@@ -31,7 +31,7 @@ public class JobRunrProducer {
     @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true", lookupIfMissing = true)
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
-            final JobDetailsGenerator jobDetailsGenerator = newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
+            final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
         return null;

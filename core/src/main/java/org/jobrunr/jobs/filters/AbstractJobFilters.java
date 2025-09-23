@@ -14,16 +14,15 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.newInstanceCE;
 
-public abstract class AbstractJobFilters {
-    protected final AbstractJob job;
+public abstract class AbstractJobFilters<T extends AbstractJob> {
+    protected final T job;
     private final List<JobFilter> jobFilters;
 
-    protected AbstractJobFilters(AbstractJob job, JobDefaultFilters jobDefaultFilters) {
+    protected AbstractJobFilters(T job, JobDefaultFilters jobDefaultFilters) {
         this.job = job;
         this.jobFilters = initJobFilters(job, jobDefaultFilters.getFilters());
     }
@@ -39,7 +38,7 @@ public abstract class AbstractJobFilters {
             addJobFiltersFromJobAnnotation(job, result);
             return result;
         } catch (JobNotFoundException e) {
-            return emptyList();
+            return new ArrayList<>();
         }
     }
 
@@ -101,7 +100,7 @@ public abstract class AbstractJobFilters {
         }
     }
 
-    final <T extends JobFilter> Consumer<T> catchThrowable(Consumer<T> consumer) {
+    final <JFT extends JobFilter> Consumer<JFT> catchThrowable(Consumer<JFT> consumer) {
         return jobFilter -> {
             try {
                 long startTime = System.nanoTime();
