@@ -1,6 +1,5 @@
 package org.jobrunr.storage.navigation;
 
-import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.util.ArrayList;
@@ -49,7 +48,6 @@ public class AmountRequest {
     @VisibleFor("testing")
     public List<OrderTerm> getAllOrderTerms(Set<String> allowedOrderTerms) {
         List<OrderTerm> result = new ArrayList<>();
-        if (StringUtils.isNullOrEmpty(order)) return result;
         final String[] sortOns = order.split(",");
         for (String sortOn : sortOns) {
             String sortField = sortField(sortOn);

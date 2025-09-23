@@ -23,8 +23,6 @@ public class Exceptions {
 
     /**
      * A {@link Supplier} that can throw checked Exceptions.
-     *
-     * @param <T> the generic supplier type.
      */
     @FunctionalInterface
     public interface ThrowingSupplier<T> {
