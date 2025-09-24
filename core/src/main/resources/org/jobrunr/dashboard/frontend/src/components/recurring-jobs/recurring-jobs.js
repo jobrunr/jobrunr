@@ -10,7 +10,6 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import Grid from '@mui/material/Grid';
 import Tooltip from '@mui/material/Tooltip';
 import TimeAgo from "react-timeago";
 import cronstrue from 'cronstrue';
@@ -166,7 +165,6 @@ const RecurringJobs = () => {
             <Box my={3}>
                 <Typography variant="h4">Recurring Jobs</Typography>
             </Box>
-
             {isLoading
                 ? <LoadingIndicator/>
                 : <>
@@ -179,21 +177,19 @@ const RecurringJobs = () => {
                         {recurringJobs.length < 1
                             ? <ItemsNotFound>No recurring jobs found</ItemsNotFound>
                             : <>
-                                <Grid item xs={3} container>
-                                    <ButtonGroup
-                                        style={{margin: '1rem'}}
-                                        disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}
-                                    >
-                                        <Button variant="outlined" color="primary"
-                                                onClick={triggerSelectedRecurringJobs}>
-                                            Trigger
-                                        </Button>
-                                        <Button variant="outlined" color="primary"
-                                                onClick={toggleDeleteDialog}>
-                                            Delete
-                                        </Button>
-                                    </ButtonGroup>
-                                </Grid>
+                                <ButtonGroup
+                                    style={{margin: '1rem'}}
+                                    disabled={recurringJobs.every(recurringJob => !recurringJob.selected)}
+                                >
+                                    <Button variant="outlined" color="primary"
+                                            onClick={triggerSelectedRecurringJobs}>
+                                        Trigger
+                                    </Button>
+                                    <Button variant="outlined" color="primary"
+                                            onClick={toggleDeleteDialog}>
+                                        Delete
+                                    </Button>
+                                </ButtonGroup>
                                 <TableContainer>
                                     <Table aria-label="recurring jobs overview">
                                         <TableHead>
@@ -284,7 +280,7 @@ const RecurringJobs = () => {
                 </DialogActions>
             </Dialog>
         </div>
-    )
+    );
 };
 
 export default RecurringJobs;

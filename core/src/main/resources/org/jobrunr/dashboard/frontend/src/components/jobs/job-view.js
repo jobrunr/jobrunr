@@ -150,16 +150,16 @@ const JobView = (props) => {
                                   to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
-                        <Box my={3} style={{marginBottom: 0}}>
-                            <Card style={{display: "flex"}}>
-                                <CardContent style={{width: "100%"}}>
-                                    <Grid container spacing={3} justifyContent="space-between">
-                                        <Grid item xs={6}>
+                        <Box mt={3}>
+                            <Card sx={{display: "flex", borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}>
+                                <CardContent sx={{width: "100%"}}>
+                                    <Grid container spacing={1}>
+                                        <Grid size={6}>
                                             <Typography id="job-id-title" color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid item xs={6} container justifyContent="flex-end">
+                                        <Grid container justifyContent="flex-end" size={6}>
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
@@ -173,7 +173,7 @@ const JobView = (props) => {
                                                 }
                                             </ButtonGroup>
                                         </Grid>
-                                        <Grid item xs={12} style={{paddingTop: 0}}>
+                                        <Grid size={12}>
                                             <Typography id="job-name-title" variant="h5" component="h2" gutterBottom>
                                                 {job.jobName} {job.labels?.map((label) => <JobLabel text={label} key={label}/>)}
                                             </Typography>
@@ -192,7 +192,7 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
 
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                                 <Typography variant="h5" component="h2">
                                     History&nbsp;
                                     <IconButton
@@ -207,7 +207,7 @@ const JobView = (props) => {
                                 </Typography>
                             </Grid>
 
-                            <Grid id="job-history-panel" item xs={12}>
+                            <Grid id="job-history-panel" size={12}>
                                 {
                                     jobStates.map((jobState, index) => {
                                         switch (jobState.state) {
