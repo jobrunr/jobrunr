@@ -8,7 +8,7 @@ export const JobNotification = ({children, severity = "info", ...rest}) => (
             <Paper>
                 <Alert
                     severity={severity}
-                    style={{fontSize: '1rem'}}
+                    sx={{fontSize: '1rem'}}
                     {...rest}
                 >
                     {children}
