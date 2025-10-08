@@ -7,17 +7,16 @@ const CarbonAwareScheduledNotification = ({job}) => {
     if (!carbonAwareAwaitingState) return;
     const scheduledState = job.jobHistory.find(h => h.state === "SCHEDULED");
 
-    function carbonAwareSchedulingDisabled() {
-        return scheduledState?.reason.indexOf("Carbon aware scheduling is disabled") >= 0;
-    }
+    const carbonAwareSchedulingDisabled = scheduledState?.reason.indexOf("Carbon aware scheduling is disabled") >= 0;
 
-    if(carbonAwareSchedulingDisabled()) {
+    if (carbonAwareSchedulingDisabled) {
         return (
             <JobNotification
                 severity="info"
-                icon={<EnergySavingsLeaf fontSize="small" color="success"/>}
+                icon={<EnergySavingsLeaf fontSize="inherit" color="success"/>}
             >
-                This job is scheduled Carbon Aware but Carbon Aware Processing is disabled: scheduling at <SwitchableTimeFormatter date={new Date(scheduledState.scheduledAt)}/>.
+                This job is scheduled Carbon Aware but Carbon Aware Processing is disabled: scheduling at <SwitchableTimeFormatter
+                date={new Date(scheduledState.scheduledAt)}/>.
             </JobNotification>
 
         )
@@ -26,9 +25,10 @@ const CarbonAwareScheduledNotification = ({job}) => {
     return (
         <JobNotification
             severity="info"
-            icon={<EnergySavingsLeaf fontSize="small" color="success"/>}
+            icon={<EnergySavingsLeaf fontSize="inherit" color="success"/>}
         >
-            This job is scheduled Carbon Aware <SwitchableTimeRangeFormatter from={new Date(carbonAwareAwaitingState.from)} to={new Date(carbonAwareAwaitingState.to)}/> to minimize carbon impact.
+            This job is scheduled Carbon Aware <SwitchableTimeRangeFormatter from={new Date(carbonAwareAwaitingState.from)}
+                                                                             to={new Date(carbonAwareAwaitingState.to)}/> to minimize carbon impact.
         </JobNotification>
     )
 };

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {useLocation} from "react-router-dom";
+import {useLocation} from "react-router";
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Box from "@mui/material/Box";
@@ -16,7 +16,7 @@ const JobsView = () => {
     const urlSearchParams = new URLSearchParams(location.search);
     const page = urlSearchParams.get('page');
     const jobState = urlSearchParams.get('state') ?? 'ENQUEUED';
-    const [isLoading, setIsLoading] = useState(true);
+    const [currentFetchKey, setCurrentFetchKey] = useState(undefined);
     const [jobPage, setJobPage] = useState({total: 0, limit: 20, currentPage: 0, items: []});
 
     let sort = 'updatedAt:ASC';
@@ -30,9 +30,10 @@ const JobsView = () => {
         default:
     }
 
+    const fetchKey = `${page}-${jobState}-${sort}-${location.key}`;
+
     useEffect(() => {
         const abortController = new AbortController();
-        setIsLoading(true);
         const offset = (page) * 20;
         const limit = 20;
         let url = `/api/jobs?state=${jobState.toUpperCase()}&offset=${offset}&limit=${limit}&order=${sort}`;
@@ -40,11 +41,13 @@ const JobsView = () => {
             .then(res => res.json())
             .then(response => {
                 setJobPage(response);
-                setIsLoading(false);
             })
-            .catch(error => console.log(error));
+            .catch(error => console.log(error))
+            .finally(() => setCurrentFetchKey(fetchKey));
         return () => abortController.abort("Starting a new request due to state changes");
-    }, [page, jobState, sort, location.key]);
+    }, [fetchKey]);
+
+    const isLoading = currentFetchKey !== fetchKey;
 
     return (
         <main style={{width: '100%'}}>
@@ -53,8 +56,7 @@ const JobsView = () => {
             </Box>
             {isLoading
                 ? <LoadingIndicator/>
-                :
-                <>
+                : <>
                     {jobState === 'ENQUEUED' &&
                         <JobRunrProNotice>Do you want instant job processing? That comes out of the
                             box with <a

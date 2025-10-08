@@ -10,7 +10,7 @@ const JobCode = (props) => {
     const methodName = job.jobDetails.methodName;
     const parameters = job.jobDetails.jobParameters
         .map(jobParameter => jobParameter.object)
-        .map(object => 
+        .map(object =>
             typeof object === "object" ? JSON.stringify(object) : object
         )
         .join(", ")
@@ -30,7 +30,9 @@ const JobCode = (props) => {
     `;
 
     return (
-        <Grid item xs={12} sx={{marginTop: 0, paddingTop: "0 !important", '& > pre': {marginTop: 0}}}>
+        <Grid
+            sx={{'& > pre': {margin: 0}}}
+            size={12}>
             <Highlight language="java">
                 {code}
             </Highlight>

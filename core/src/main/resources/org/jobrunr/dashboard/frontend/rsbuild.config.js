@@ -24,6 +24,7 @@ export default defineConfig({
         tsconfigPath: './jsconfig.json'
     },
     server: {
+        base: '/dashboard',
         proxy: {
             '/api': 'http://localhost:8000',
             '/sse': 'http://localhost:8000',

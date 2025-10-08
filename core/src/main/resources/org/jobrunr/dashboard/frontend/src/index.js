@@ -1,4 +1,4 @@
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router";
 import {createRoot} from 'react-dom/client';
 import AdminUI from "layouts/Admin.js";
 import "assets/css/material-dashboard-react.css?v=1.8.1";

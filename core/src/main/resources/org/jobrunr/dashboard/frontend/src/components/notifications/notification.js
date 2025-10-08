@@ -2,7 +2,7 @@ import {alpha, ListItem, Menu, MenuItem, Stack} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import {useState} from "react";
 import Typography from "@mui/material/Typography";
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import IconButton from "@mui/material/IconButton";
 import {MarkEmailRead, MarkEmailUnread, MoreVert} from "@mui/icons-material";
 import ListItemIcon from "@mui/material/ListItemIcon";

@@ -4,7 +4,7 @@ import CardContent from '@mui/material/CardContent';
 
 const StatCard = ({title, children}) => {
     return (
-        <Card style={{minWidth: '230px', minHeight: '105px', marginRight: '20px'}}>
+        <Card role="gridcell" style={{minWidth: '215px', minHeight: '105px'}}>
             <CardContent>
                 <Typography color="textSecondary" gutterBottom>
                     {title}

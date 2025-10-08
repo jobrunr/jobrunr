@@ -1,5 +1,5 @@
-import {createTheme, styled, StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {Navigate, Route, Routes} from 'react-router-dom';
+import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {Navigate, Route, Routes} from 'react-router';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
 import Servers from "../components/servers/servers";
@@ -12,6 +12,7 @@ import GithubStarPopup from "../components/utils/github-star-popup";
 import {DEFAULT_JOBRUNR_INFO, JobRunrInfoContext} from "../contexts/JobRunrInfoContext";
 import {useEffect, useState} from "react";
 import {setServers} from "../hooks/useServers";
+import LoadingIndicator from "../components/LoadingIndicator.js";
 
 const Main = styled("main")(({theme}) => ({
     padding: theme.spacing(3),
@@ -61,6 +62,7 @@ const App = () => {
 }
 
 const AdminUI = function () {
+    const [isLoading, setIsLoading] = useState(true);
     const [jobRunrInfo, setJobRunrInfo] = useState(DEFAULT_JOBRUNR_INFO);
 
     useEffect(() => {
@@ -70,17 +72,19 @@ const AdminUI = function () {
         ]).then(([servers, jobRunrInfo]) => {
             setServers(servers);
             setJobRunrInfo(jobRunrInfo);
-        }).catch(error => console.log(error));
+        }).catch(error => console.log(error))
+            .finally(() => setIsLoading(false));
     }, []);
 
     return (
-        <StyledEngineProvider injectFirst>
-            <ThemeProvider theme={theme}>
-                <JobRunrInfoContext.Provider value={jobRunrInfo}>
+        <ThemeProvider theme={theme}>
+            {isLoading ?
+                <LoadingIndicator/>
+                : <JobRunrInfoContext value={jobRunrInfo}>
                     <App/>
-                </JobRunrInfoContext.Provider>
-            </ThemeProvider>
-        </StyledEngineProvider>
+                </JobRunrInfoContext>
+            }
+        </ThemeProvider>
     );
 };
 

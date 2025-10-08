@@ -11,13 +11,13 @@ export const getEndpointToDismissProblem = (problem) => {
 export const DismissibleNotification = ({onDismiss, extraMenuItems, children, ...rest}) => {
     return (
         <Notification {...rest} extraMenuItems={
-            <>
-                {extraMenuItems}
-                <MenuItem onClick={onDismiss}>
+            [
+                extraMenuItems,
+                <MenuItem onClick={onDismiss} key="dismiss-buttom">
                     <ListItemIcon><Delete fontSize="small" color="error"/></ListItemIcon>
                     <ListItemText>Dismiss</ListItemText>
                 </MenuItem>
-            </>
+            ]
         }>
             {children}
         </Notification>

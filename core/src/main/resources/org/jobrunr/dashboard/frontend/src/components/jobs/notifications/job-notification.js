@@ -4,11 +4,11 @@ import Alert from "@mui/material/Alert";
 
 export const JobNotification = ({children, severity = "info", ...rest}) => (
     (
-        <Grid item xs={12}>
+        <Grid size={12}>
             <Paper>
                 <Alert
                     severity={severity}
-                    style={{fontSize: '1rem'}}
+                    sx={{fontSize: '1rem'}}
                     {...rest}
                 >
                     {children}

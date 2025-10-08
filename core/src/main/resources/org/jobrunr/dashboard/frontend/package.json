@@ -6,18 +6,18 @@
   "homepage": "",
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^5.18.0",
-    "@mui/material": "^5.18.0",
-    "apexcharts": "^5.3.3",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
+    "apexcharts": "^5.3.5",
     "cronstrue": "^3.3.0",
     "mdi-material-ui": "^7.9.4",
-    "react": "^18.3.1",
+    "react": "^19.2.0",
     "react-apexcharts": "^1.7.0",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.1",
+    "react-dom": "^19.2.0",
+    "react-router": "^7.9.3",
     "react-syntax-highlighter": "^15.6.6",
-    "react-timeago": "^7.2.0"
+    "react-timeago": "^8.3.0"
   },
   "scripts": {
     "start": "rsbuild dev",
@@ -42,14 +42,14 @@
     ]
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.5.8",
-    "@rsbuild/plugin-react": "^1.4.0",
+    "@rsbuild/core": "^1.5.13",
+    "@rsbuild/plugin-react": "^1.4.1",
     "@swc/core": "^1.13.5",
     "@swc/jest": "^0.2.39",
-    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
-    "jest": "^30.1.3",
-    "jest-environment-jsdom": "^30.1.2",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "jest-junit": "^16.0.0",
     "owasp-dependency-check": "^0.0.25"
   },

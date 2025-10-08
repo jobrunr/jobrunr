@@ -272,7 +272,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                             >
                                 Mark all read
                             </Button>
-                            <Button variant="outlined" onClick={closeNotifications}>Close</Button>
+                            <Button variant="outlined" onClick={closeNotifications} autoFocus>Close</Button>
                         </Stack>
                     </Box>
                     {problemsWithReadStatus.length

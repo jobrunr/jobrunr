@@ -1,5 +1,5 @@
 import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 
 export const CarbonIntensityApiErrorProblem = ({problem, ...rest}) => {
     return (

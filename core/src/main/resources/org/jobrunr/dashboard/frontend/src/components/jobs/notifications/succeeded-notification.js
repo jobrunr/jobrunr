@@ -1,5 +1,5 @@
 import {convertISO8601DurationToSeconds} from "../../../utils/helper-functions";
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import {JobNotification} from "./job-notification";
 import {useServers} from "../../../hooks/useServers";
 

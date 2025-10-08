@@ -1,4 +1,4 @@
-import TimeAgo from "react-timeago/lib";
+import TimeAgo from "react-timeago";
 import {DismissibleClusterProblemNotification, getEndpointToDismissProblem} from "./dismissible-notification";
 
 export const CPUAllocationIrregularityProblemNotification = ({problem, ...rest}) => {
