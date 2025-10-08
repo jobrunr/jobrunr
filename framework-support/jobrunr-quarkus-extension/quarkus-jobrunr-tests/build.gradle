@@ -4,14 +4,10 @@ plugins {
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
     options.release = 17
 }
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
     options.release = 17
 }
 
