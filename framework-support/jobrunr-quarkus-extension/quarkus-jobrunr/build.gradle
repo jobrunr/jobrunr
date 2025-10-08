@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id('io.quarkus.extension') version '3.26.3'
+    id('io.quarkus.extension') version '3.27.0'
 }
 
 quarkusExtension {
@@ -24,7 +24,7 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    implementation platform('io.quarkus:quarkus-bom:3.26.3')
+    implementation platform('io.quarkus:quarkus-bom:3.27.0')
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
