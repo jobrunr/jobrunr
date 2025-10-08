@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 plugins {
-    id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.sonarqube' version '6.3.1.5724'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
     id("net.ltgt.errorprone") version '4.3.0' apply false
@@ -84,10 +84,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'net.ltgt.errorprone'
 
     compileJava {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        options.release = 21
         options.encoding = "UTF-8"
-        options.release = 8
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -108,8 +106,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     compileTestJava {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        options.release = 21
         options.encoding = "UTF-8"
     }
 
@@ -142,8 +139,10 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     tasks.clean.doFirst {
-        delete "/tmp/reports/$project.name"
-        println "Deleted /tmp/reports/$project.name"
+        def projectName = project.name
+        delete "/tmp/reports/$projectName"
+        println "Deleted /tmp/reports/$projectName"
+
     }
 
     test {

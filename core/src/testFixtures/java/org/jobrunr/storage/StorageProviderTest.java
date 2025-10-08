@@ -139,8 +139,8 @@ public abstract class StorageProviderTest {
 
         assertThat(backgroundJobServers).hasSize(2);
         //why: sqlite has no microseconds precision for timestamps
-        assertThat(backgroundJobServers.get(0)).isEqualToComparingOnlyGivenFields(serverStatus1, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
-        assertThat(backgroundJobServers.get(1)).isEqualToComparingOnlyGivenFields(serverStatus2, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
+        assertThat(backgroundJobServers.get(0)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus1);
+        assertThat(backgroundJobServers.get(1)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus2);
         assertThat(backgroundJobServers.get(0).getFirstHeartbeat()).isCloseTo(serverStatus1.getFirstHeartbeat(), within(1000, MICROS));
         assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
         assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, MICROS));
@@ -766,7 +766,7 @@ public abstract class StorageProviderTest {
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
 
-        Job existingCarbonAwareJob = jobs.getFirst();
+        Job existingCarbonAwareJob = jobs.get(0);
         existingCarbonAwareJob.scheduleAt(Instant.now(), "test");
         storageProvider.save(existingCarbonAwareJob);
 

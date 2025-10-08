@@ -22,12 +22,6 @@ compileTestJava {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-java {
-    registerFeature('metrics') {
-        usingSourceSet(sourceSets.main)
-    }
-}
-
 dependencies {
     api platform(project(':platform'))
     implementation platform('io.quarkus:quarkus-bom:3.26.3')
@@ -38,7 +32,7 @@ dependencies {
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'io.quarkus:quarkus-micrometer'
 
-    metricsApi 'io.quarkus:quarkus-smallrye-health'
+    compileOnly 'io.quarkus:quarkus-smallrye-health'
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'org.eclipse:yasson'
