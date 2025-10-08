@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 
 public class Whitebox {
 
+    @SuppressWarnings("unchecked")
     public static <T> T getInternalState(Object target, String field) {
         Class<?> c = null;
         if (target instanceof Class) {

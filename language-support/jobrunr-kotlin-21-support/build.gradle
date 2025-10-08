@@ -96,10 +96,10 @@ publishing {
                 withXml {
                     def pomNode = asNode()
                     pomNode.remove(pomNode.dependencyManagement)
-                    pomNode.dependencies.'*'.findAll() {
-                        it.optional.text() == 'true'
-                    }.each() {
-                        it.parent().remove(it)
+                    pomNode.dependencies.'*'.each() {
+                        if (it.optional.text() == 'true') {
+                            it.parent().remove(it)
+                        }
                     }
                 }
             }
