@@ -151,7 +151,7 @@ const JobView = (props) => {
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
                         <Box my={3}>
-                            <Card sx={{display: "flex", borderBottomLeftRadius: 0, borderBottomRightRadius: 0}}>
+                            <Card sx={{display: "flex"}}>
                                 <CardContent sx={{width: "100%", padding: 0, "&:last-child": {padding: 0}}}>
                                     <Grid container spacing={1} px={2} pt={2}>
                                         <Grid size={6}>
