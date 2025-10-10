@@ -134,6 +134,8 @@ public interface StorageProvider extends AutoCloseable {
      */
     long countJobs(StateName state);
 
+    long countJobs(StateName[] states);
+
     /**
      * Returns all the jobs matching the given {@link StateName}, {@link Instant} and {@link AmountRequest}.
      *
@@ -153,10 +155,16 @@ public interface StorageProvider extends AutoCloseable {
      */
     List<Job> getJobList(StateName state, AmountRequest amountRequest);
 
+    List<Job> getJobList(StateName[] state, AmountRequest amountRequest);
+
     default Page<Job> getJobs(StateName state, PageRequest pageRequest) {
-        long totalJobs = countJobs(state);
+        return getJobs(new StateName[]{state}, pageRequest);
+    }
+
+    default Page<Job> getJobs(StateName[] states, PageRequest pageRequest) {
+        long totalJobs = countJobs(states);
         if (totalJobs == 0) return pageRequest.emptyPage();
-        return pageRequest.mapToNewPage(totalJobs, getJobList(state, pageRequest));
+        return pageRequest.mapToNewPage(totalJobs, getJobList(states, pageRequest));
     }
 
     default List<Job> getJobsToProcess(BackgroundJobServer backgroundJobServer, AmountRequest amountRequest) {
