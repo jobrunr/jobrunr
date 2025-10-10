@@ -75,6 +75,11 @@ public class JobTable extends Sql<Job> {
         return this;
     }
 
+    public JobTable withStates(StateName[] states) {
+        with(FIELD_STATE, stream(states).map(stateName -> "'" + stateName.name() + "'").collect(joining(",")));
+        return this;
+    }
+
     public JobTable withScheduledAt(Instant scheduledBefore) {
         with(FIELD_SCHEDULED_AT, scheduledBefore);
         return this;
@@ -139,9 +144,14 @@ public class JobTable extends Sql<Job> {
                 .selectCount("from jobrunr_jobs where state = :state");
     }
 
-    public List<Job> selectJobsByState(StateName state, AmountRequest amountRequest) {
-        return withState(state)
-                .selectJobs("jobAsJson from jobrunr_jobs where state = :state", pageRequestMapper.map(amountRequest))
+    public long countJobs(StateName[] states) throws SQLException {
+        return withStates(states)
+                .selectCount("from jobrunr_jobs where state in (:states)");
+    }
+
+    public List<Job> selectJobsByState(StateName[] states, AmountRequest amountRequest) {
+        return withStates(states)
+                .selectJobs("jobAsJson from jobrunr_jobs where state in (:states)", pageRequestMapper.map(amountRequest))
                 .collect(toList());
     }
 

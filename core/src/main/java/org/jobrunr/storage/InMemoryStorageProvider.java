@@ -16,6 +16,7 @@ import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -153,6 +154,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
+    public long countJobs(StateName[] states) {
+        return getJobsStream(states).count();
+    }
+
+    @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         return getJobsStream(state, amountRequest)
                 .filter(job -> job.getUpdatedAt().isBefore(updatedBefore))
@@ -165,6 +171,15 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state, amountRequest)
+                .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
+                .limit(amountRequest.getLimit())
+                .map(this::deepClone)
+                .collect(toList());
+    }
+
+    @Override
+    public List<Job> getJobList(StateName[] states, AmountRequest amountRequest) {
+        return getJobsStream(states, amountRequest)
                 .skip((amountRequest instanceof OffsetBasedPageRequest) ? ((OffsetBasedPageRequest) amountRequest).getOffset() : 0)
                 .limit(amountRequest.getLimit())
                 .map(this::deepClone)
@@ -360,9 +375,19 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .sorted(getJobComparator(amountRequest));
     }
 
+    private Stream<Job> getJobsStream(StateName[] states, AmountRequest amountRequest) {
+        return getJobsStream(states)
+                .sorted(getJobComparator(amountRequest));
+    }
+
     private Stream<Job> getJobsStream(StateName state) {
         return jobQueue.values().stream()
                 .filter(job -> job.hasState(state));
+    }
+
+    private Stream<Job> getJobsStream(StateName[] states) {
+        return jobQueue.values().stream()
+                .filter(job -> Arrays.stream(states).anyMatch(job::hasState));
     }
 
     private Job deepClone(Job job) {

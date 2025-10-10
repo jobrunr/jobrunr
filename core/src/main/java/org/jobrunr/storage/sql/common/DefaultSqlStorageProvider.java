@@ -240,8 +240,13 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public long countJobs(StateName state) {
+        return countJobs(new StateName[]{state});
+    }
+
+    @Override
+    public long countJobs(StateName[] states) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).countJobs(state);
+            return jobTable(conn).countJobs(states);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -258,8 +263,13 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
 
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
+        return getJobList(new StateName[]{state}, amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobList(StateName[] states, AmountRequest amountRequest) {
         try (final Connection conn = dataSource.getConnection()) {
-            return jobTable(conn).selectJobsByState(state, amountRequest);
+            return jobTable(conn).selectJobsByState(states, amountRequest);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
