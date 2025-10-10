@@ -340,6 +340,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     @Override
+    public long countJobs(StateName[] states) {
+        return jobCollection.countDocuments(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toList())));
+    }
+
+    @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         return findJobs(and(eq(Jobs.FIELD_STATE, state.name()), lt(Jobs.FIELD_UPDATED_AT, toMicroSeconds(updatedBefore))), amountRequest);
     }
@@ -347,6 +352,11 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         return findJobs(eq(Jobs.FIELD_STATE, state.name()), amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobList(StateName[] states, AmountRequest amountRequest) {
+        return findJobs(in(Jobs.FIELD_STATE, stream(states).map(Enum::name).collect(toList())), amountRequest);
     }
 
     @Override

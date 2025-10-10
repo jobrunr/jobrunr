@@ -139,6 +139,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     }
 
     @Override
+    public long countJobs(StateName[] states) {
+        return storageProvider.countJobs(states);
+    }
+
+    @Override
     public List<Job> getJobList(StateName state, Instant updatedBefore, AmountRequest amountRequest) {
         return storageProvider.getJobList(state, updatedBefore, amountRequest);
     }
@@ -146,6 +151,11 @@ public class ThreadSafeStorageProvider implements StorageProvider {
     @Override
     public List<Job> getJobList(StateName state, AmountRequest amountRequest) {
         return storageProvider.getJobList(state, amountRequest);
+    }
+
+    @Override
+    public List<Job> getJobList(StateName[] states, AmountRequest amountRequest) {
+        return storageProvider.getJobList(states, amountRequest);
     }
 
     @Override
