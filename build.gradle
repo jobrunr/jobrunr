@@ -93,7 +93,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
-            disable("ReturnValueIgnored")                       // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
+            disable("ReturnValueIgnored")
+            // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
             disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
@@ -168,7 +169,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacoco {
-        toolVersion = "0.8.12"
+        toolVersion = "0.8.14"
     }
 
     jacocoTestReport {
