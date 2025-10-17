@@ -22,6 +22,7 @@ const Console = styled("div")(() => ({
         textAlign: 'right',
         color: '#3885b7',
         margin: '-0.1em 0',
+        userSelect: 'none',
     },
     '& > dl dd': {
         margin: '-0.2em 0 -0.2em 220px'
