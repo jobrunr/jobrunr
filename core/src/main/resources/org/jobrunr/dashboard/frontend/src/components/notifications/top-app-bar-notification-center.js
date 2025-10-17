@@ -194,9 +194,12 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
     const callWebhooksForApiNotificationsOnOpen = () => {
-        if(apiNotification && apiNotification.webhook) {
-            fetch(apiNotification.webhook).catch(() => undefined /* ignored */);
+        try {
+            if(!new URL(apiNotification?.webhook).hostname.endsWith(".jobrunr.io")) return
+        } catch(notAValidUrlEx) {
+            return
         }
+        fetch(apiNotification.webhook).catch(() => undefined /* ignored */);
     }
 
     const openNotifications = () => {
