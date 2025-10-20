@@ -2,7 +2,6 @@ package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.context.JobDashboardProgressBar;
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.DeletedState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.FailedState;

@@ -49,6 +49,7 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
             if (resource != null) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
                 httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+                if (!toServe.equals("index.html")) httpExchange.getResponseHeaders().add("Cache-Control", "public, max-age=604800");
                 httpExchange.sendResponseHeaders(200, 0);
                 copyResourceToResponseBody(resource, httpExchange);
             } else {
