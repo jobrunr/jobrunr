@@ -9,6 +9,7 @@ export default defineConfig({
         template: './public/index.html',
         templateParameters: {
             PUBLIC_URL: process.env.PUBLIC_URL,
+            CSP_NONCE: process.env.CSP_NONCE,
         }
     },
     output: {
@@ -19,9 +20,13 @@ export default defineConfig({
         manifest: 'asset-manifest.json',
         cleanDistPath: process.env.NODE_ENV === 'production'
     },
+    security: {
+        nonce: process.env.CSP_NONCE,
+    },
     source: {
         define: publicVars,
-        tsconfigPath: './jsconfig.json'
+        tsconfigPath: './jsconfig.json',
+        preEntry: ["./entry.js"]
     },
     server: {
         base: '/dashboard',
