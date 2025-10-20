@@ -26,7 +26,6 @@ export default defineConfig({
     source: {
         define: publicVars,
         tsconfigPath: './jsconfig.json',
-        preEntry: ["./entry.js"]
     },
     server: {
         base: '/dashboard',
