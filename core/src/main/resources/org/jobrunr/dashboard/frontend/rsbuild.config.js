@@ -9,7 +9,7 @@ export default defineConfig({
         template: './public/index.html',
         templateParameters: {
             PUBLIC_URL: process.env.PUBLIC_URL,
-            CSP_NONCE: process.env.CSP_NONCE,
+            CSP_NONCE: process.env.NODE_ENV === 'production' ? process.env.CSP_NONCE : "CSP_NONCE",
         }
     },
     output: {
@@ -21,7 +21,7 @@ export default defineConfig({
         cleanDistPath: process.env.NODE_ENV === 'production'
     },
     security: {
-        nonce: process.env.CSP_NONCE,
+        nonce: process.env.NODE_ENV === 'production' ? process.env.CSP_NONCE : "CSP_NONCE",
     },
     source: {
         define: publicVars,
@@ -32,6 +32,9 @@ export default defineConfig({
         proxy: {
             '/api': 'http://localhost:8000',
             '/sse': 'http://localhost:8000',
+        },
+        headers: {
+            'Content-Security-Policy': "script-src 'nonce-CSP_NONCE' 'strict-dynamic';object-src 'none';base-uri 'none'",
         },
         compress: false
     },
