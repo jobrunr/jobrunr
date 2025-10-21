@@ -9,16 +9,25 @@ import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import {SevereJobRunrExceptionProblemNotification} from "./severe-jobrunr-exception-problem";
 import {CPUAllocationIrregularityProblemNotification} from "./cpu-allocation-irregularity-problem";
-import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY, NewJobRunrVersionAvailableNotification} from "./new-jobrunr-version-available";
+import {
+    getNewVersionProblem,
+    LATEST_DISMISSED_VERSION_STORAGE_KEY,
+    NewJobRunrVersionAvailableNotification
+} from "./new-jobrunr-version-available";
 import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
-import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_NOTIFICATION} from "./jobrunr-api-notification";
+import {
+    getApiNotificationProblem,
+    JobRunrApiNotification,
+    LATEST_DISMISSED_API_NOTIFICATION
+} from "./jobrunr-api-notification";
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
+const WEBHOOK_API_NOTIFICATIONS_CALLED_KEY = "webhookApiNotifications";
 
 const getReadNotifications = () => {
     const storedReadNotifications = localStorage.getItem(READ_NOTIFICATIONS_STORAGE_KEY);
@@ -185,8 +194,22 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
+    const callWebhooksForApiNotificationsOnOpen = () => {
+        try {
+            if(!new URL(apiNotification?.webhook).hostname.endsWith(".jobrunr.io")) return
+        } catch(notAValidUrlEx) {
+            return
+        }
+        // Prevent the webhook from being overloaded when closing/opening the notification center
+        if(localStorage.getItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY) === apiNotification["id"]) return
+        localStorage.setItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY, apiNotification["id"])
+
+        fetch(apiNotification.webhook).catch(() => undefined /* ignored */);
+    }
+
     const openNotifications = () => {
         setIsOpen(true);
+        callWebhooksForApiNotificationsOnOpen();
     };
 
     const closeNotifications = () => {
