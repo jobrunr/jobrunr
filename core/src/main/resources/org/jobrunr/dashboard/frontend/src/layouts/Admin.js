@@ -54,7 +54,7 @@ const App = () => {
                     <Route path="jobs" element={<JobsViewWithSidebar/>}/>
                     <Route path="recurring-jobs" element={<RecurringJobs/>}/>
                     <Route path="servers" element={<Servers/>}/>
-                    <Route path="*" element={<Navigate to="overview" replace/>}/>
+                    <Route path="*" element={<Navigate to="/dashboard/overview" replace/>}/>
                 </Routes>
             </Main>
         </div>

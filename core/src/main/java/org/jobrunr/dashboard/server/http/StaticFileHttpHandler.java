@@ -9,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
 
@@ -49,9 +51,17 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
             if (resource != null) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
                 httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-                if (!toServe.equals("index.html")) httpExchange.getResponseHeaders().add("Cache-Control", "public, max-age=604800");
-                httpExchange.sendResponseHeaders(200, 0);
-                copyResourceToResponseBody(resource, httpExchange);
+                if (toServe.endsWith(".html")) {
+                    final String nonce = UUID.randomUUID().toString();
+                    httpExchange.getResponseHeaders().add("Content-Security-Policy", "script-src 'nonce-" + nonce + "' 'strict-dynamic';object-src 'none';base-uri 'none'");
+                    httpExchange.sendResponseHeaders(200, 0);
+                    copyHtmlResourceToResponseBody(resource, httpExchange, nonce);
+                } else {
+                    httpExchange.getResponseHeaders().add("Cache-Control", "public, max-age=604800");
+                    httpExchange.getResponseHeaders().add("Content-Security-Policy", "base-uri 'none'; default-src 'none'");
+                    httpExchange.sendResponseHeaders(200, 0);
+                    copyResourceToResponseBody(resource, httpExchange);
+                }
             } else {
                 httpExchange.sendResponseHeaders(404, -1);
             }
@@ -72,6 +82,15 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
                 requestPath += "index.html";
             }
             return requestPath;
+        }
+    }
+
+    void copyHtmlResourceToResponseBody(URL resource, HttpExchange httpExchange, String nonce) throws IOException {
+        try (InputStream inputStream = resource.openStream(); StringWriter stringWriter = new StringWriter(); OutputStream outputStream = httpExchange.getResponseBody()) {
+            IOUtils.copyStream(inputStream, stringWriter);
+            String result = stringWriter.toString()
+                    .replace("%CSP_NONCE%", nonce);
+            IOUtils.copyToStream(result, outputStream);
         }
     }
 
