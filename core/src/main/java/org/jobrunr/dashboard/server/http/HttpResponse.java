@@ -40,7 +40,6 @@ public class HttpResponse {
 
     private HttpResponse data(int status, String contentType, ThrowingConsumer<OutputStream> streamConsumer) {
         httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, contentType);
-        httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         try (OutputStream outputStream = httpExchange.getResponseBody()) {
             httpExchange.sendResponseHeaders(status, 0);
             streamConsumer.accept(outputStream);
@@ -52,7 +51,6 @@ public class HttpResponse {
 
     public void statusCode(int i) {
         try {
-            httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             httpExchange.sendResponseHeaders(i, -1);
         } catch (IOException e) {

@@ -22,7 +22,6 @@ public class SseExchange implements AutoCloseable {
         responseHeaders.add("Connection", "keep-alive");
         responseHeaders.add("Language", "en-US");
         responseHeaders.add("Charset", "UTF-8");
-        responseHeaders.add("Access-Control-Allow-Origin", "*");
         httpExchange.sendResponseHeaders(200, 0);
         this.writer.write("\n\n");
     }
