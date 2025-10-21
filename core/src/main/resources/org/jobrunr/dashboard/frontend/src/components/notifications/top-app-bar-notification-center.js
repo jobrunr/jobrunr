@@ -27,6 +27,7 @@ import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
+const WEBHOOK_API_NOTIFICATIONS_CALLED_KEY = "webhookApiNotifications";
 
 const getReadNotifications = () => {
     const storedReadNotifications = localStorage.getItem(READ_NOTIFICATIONS_STORAGE_KEY);
@@ -193,8 +194,6 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
-    const WEBHOOK_API_NOTIFICATIONS_CALLED_KEY = "webhookApiNotificationss"
-
     const callWebhooksForApiNotificationsOnOpen = () => {
         try {
             if(!new URL(apiNotification?.webhook).hostname.endsWith(".jobrunr.io")) return
@@ -202,10 +201,8 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             return
         }
         // Prevent the webhook from being overloaded when closing/opening the notification center
-        const webhooksCalled = localStorage.getItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY) ? JSON.parse(localStorage.getItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY)) : {}
-        if(webhooksCalled[apiNotification["id"]]) return
-         webhooksCalled[apiNotification["id"]] = "called"
-        localStorage.setItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY, JSON.stringify(webhooksCalled))
+        if(localStorage.getItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY) === apiNotification["id"]) return
+        localStorage.setItem(WEBHOOK_API_NOTIFICATIONS_CALLED_KEY, apiNotification["id"])
 
         fetch(apiNotification.webhook).catch(() => undefined /* ignored */);
     }
