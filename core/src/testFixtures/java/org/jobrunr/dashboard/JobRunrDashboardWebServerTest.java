@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Optional;
 
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -72,6 +73,7 @@ abstract class JobRunrDashboardWebServerTest {
 
         assertThat(getResponse.statusCode()).isEqualTo(200);
         assertThat(version.isAllowAnonymousDataUsage()).isFalse();
+        assertThat(getResponse.headers().firstValue("Cache-Control")).isEqualTo(Optional.of("no-cache, no-store, private"));
     }
 
     @Test

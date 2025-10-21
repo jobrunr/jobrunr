@@ -17,7 +17,7 @@ public class SseExchange implements AutoCloseable {
     public SseExchange(HttpExchange httpExchange) throws IOException {
         this.writer = new BufferedWriter(new OutputStreamWriter(httpExchange.getResponseBody(), StandardCharsets.UTF_8));
         Headers responseHeaders = httpExchange.getResponseHeaders();
-        responseHeaders.add("Cache-Control", "no-cache,public");
+        responseHeaders.add("Cache-Control", "no-cache, no-store, private");
         responseHeaders.add("Content-Type", "text/event-stream");
         responseHeaders.add("Connection", "keep-alive");
         responseHeaders.add("Language", "en-US");

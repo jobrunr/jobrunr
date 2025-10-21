@@ -41,7 +41,7 @@ public class HttpResponse {
     private HttpResponse data(int status, String contentType, ThrowingConsumer<OutputStream> streamConsumer) {
         httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, contentType);
         try (OutputStream outputStream = httpExchange.getResponseBody()) {
-            httpExchange.sendResponseHeaders(status, 0);
+            sendResponseHeaders(status, 0);
             streamConsumer.accept(outputStream);
         } catch (Exception e) {
             throw new IllegalStateException(e);
@@ -50,11 +50,17 @@ public class HttpResponse {
     }
 
     public void statusCode(int i) {
+        httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         try {
-            httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            httpExchange.sendResponseHeaders(i, -1);
+            sendResponseHeaders(i, -1);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private void sendResponseHeaders(int statusCode, long responseLength) throws IOException {
+        httpExchange.getResponseHeaders().add("Cache-Control", "no-cache, no-store, private");
+        httpExchange.getResponseHeaders().add("Expires", "0");
+        httpExchange.sendResponseHeaders(statusCode, responseLength);
     }
 }
