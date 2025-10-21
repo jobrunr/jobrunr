@@ -57,6 +57,7 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
                     httpExchange.sendResponseHeaders(200, 0);
                     copyHtmlResourceToResponseBody(resource, httpExchange, nonce);
                 } else {
+                    httpExchange.getResponseHeaders().add("Cache-Control", "public, max-age=604800");
                     httpExchange.getResponseHeaders().add("Content-Security-Policy", "base-uri 'none'; default-src 'none'");
                     httpExchange.sendResponseHeaders(200, 0);
                     copyResourceToResponseBody(resource, httpExchange);
