@@ -193,12 +193,18 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
+    const WEBHOOK_API_NOTIFICATION_CALLED_KEY = "webhookApiNotificationss"
+
     const callWebhooksForApiNotificationsOnOpen = () => {
         try {
             if(!new URL(apiNotification?.webhook).hostname.endsWith(".jobrunr.io")) return
         } catch(notAValidUrlEx) {
             return
         }
+        // Prevent the webhook from being overloaded when closing/opening the notification center
+        if(localStorage.getItem(WEBHOOK_API_NOTIFICATION_CALLED_KEY)) return
+        localStorage.setItem(WEBHOOK_API_NOTIFICATION_CALLED_KEY, "called")
+
         fetch(apiNotification.webhook).catch(() => undefined /* ignored */);
     }
 
