@@ -50,7 +50,6 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
             final URL resource = this.getClass().getClassLoader().getResource(rootDir + toServe);
             if (resource != null) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
-                httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 if (toServe.endsWith(".html")) {
                     final String nonce = UUID.randomUUID().toString();
                     httpExchange.getResponseHeaders().add("Content-Security-Policy", "script-src 'nonce-" + nonce + "' 'strict-dynamic';object-src 'none';base-uri 'none'");

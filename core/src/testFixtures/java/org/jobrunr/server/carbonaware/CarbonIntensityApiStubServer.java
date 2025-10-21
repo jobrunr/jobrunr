@@ -131,7 +131,6 @@ public class CarbonIntensityApiStubServer {
             @Override
             public void handle(HttpExchange httpExchange) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.APPLICATION_JSON);
-                httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
                 try (var outputStream = httpExchange.getResponseBody()) {
                     httpExchange.sendResponseHeaders(200, 0);
                     outputStream.write(getIntensityJson().getBytes(StandardCharsets.UTF_8));

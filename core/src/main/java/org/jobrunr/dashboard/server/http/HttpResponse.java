@@ -59,7 +59,6 @@ public class HttpResponse {
     }
 
     private void sendResponseHeaders(int statusCode, long responseLength) throws IOException {
-        httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         httpExchange.getResponseHeaders().add("Cache-Control", "no-cache, no-store, private");
         httpExchange.getResponseHeaders().add("Expires", "0");
         httpExchange.sendResponseHeaders(statusCode, responseLength);
