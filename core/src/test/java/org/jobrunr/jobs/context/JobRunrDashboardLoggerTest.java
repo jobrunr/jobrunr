@@ -516,7 +516,7 @@ class JobRunrDashboardLoggerTest {
         }
     }
 
-    private static class LogCondition extends Condition {
+    private static class LogCondition extends Condition<Map<String, Object>> {
 
         private final Level level;
         private final String message;
@@ -527,8 +527,7 @@ class JobRunrDashboardLoggerTest {
         }
 
         @Override
-        public boolean matches(Object value) {
-            Map<String, Object> metadata = cast(value);
+        public boolean matches(Map<String, Object> metadata) {
             JobDashboardLogLines logLines = cast(metadata.get("jobRunrDashboardLog-2"));
             return logLines.getLogLines().stream().anyMatch(logLine -> level.equals(logLine.getLevel()) && message.equals(logLine.getLogMessage()));
         }
