@@ -9,7 +9,9 @@ const root = createRoot(document.getElementById("root")); // createRoot(containe
 root.render(
     <BrowserRouter>
         <Routes>
-            <Route path="/dashboard/*" element={<AdminUI/>}/>
+            <Route path="/dashboard">
+                <Route index path="*" element={<AdminUI/>}/>
+            </Route>
         </Routes>
     </BrowserRouter>
 );
