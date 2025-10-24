@@ -3,8 +3,8 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.0'
+    id 'org.jetbrains.kotlin.jvm' version '2.2.20'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.20'
 }
 
 dependencies {
@@ -20,6 +20,8 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 
     testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
 }
 
 dependencyUpdates {
