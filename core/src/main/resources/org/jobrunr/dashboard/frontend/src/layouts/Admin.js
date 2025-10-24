@@ -49,12 +49,13 @@ const App = () => {
             <TopAppBar/>
             <Main>
                 <Routes>
+                    <Route index element={<Overview/>}/>
                     <Route path="overview" element={<Overview/>}/>
                     <Route path="jobs/:jobId" element={<JobViewWithSideBar/>}/>
                     <Route path="jobs" element={<JobsViewWithSidebar/>}/>
                     <Route path="recurring-jobs" element={<RecurringJobs/>}/>
                     <Route path="servers" element={<Servers/>}/>
-                    <Route path="*" element={<Navigate to="/dashboard/overview" replace/>}/>
+                    <Route path="*" element={<Navigate to=".." replace/>}/>
                 </Routes>
             </Main>
         </div>
