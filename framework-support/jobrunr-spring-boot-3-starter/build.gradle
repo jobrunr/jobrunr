@@ -83,7 +83,7 @@ publishing {
             from components.java
 
             pom {
-                name = 'JobRunr Spring Boot Native'
+                name = 'JobRunr Spring Boot 3 Starter'
                 description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {

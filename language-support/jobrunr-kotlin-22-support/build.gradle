@@ -32,12 +32,12 @@ dependencyUpdates {
 }
 
 compileJava {
-    options.release = 17
+    options.release = 8
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        jvmTarget = JvmTarget.JVM_1_8
     }
 }
 
