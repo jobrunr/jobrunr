@@ -11,7 +11,7 @@ compileJava {
 }
 
 compileTestJava {
-    options.release = 21
+    options.release = 17
 }
 
 dependencies {
