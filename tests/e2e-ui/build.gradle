@@ -28,7 +28,7 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'com.microsoft.playwright:playwright'
     testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
 }
 
 sonar {
