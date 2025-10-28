@@ -93,8 +93,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
-            disable("ReturnValueIgnored")
-            // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
+            disable("ReturnValueIgnored")                       // for BatchCollector we rely on side effects to finish it
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
             disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
