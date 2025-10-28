@@ -28,7 +28,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'io.quarkus:quarkus-micrometer'
-
     compileOnly 'io.quarkus:quarkus-smallrye-health'
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -45,6 +44,7 @@ dependencies {
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-component'
     testImplementation 'io.quarkus:quarkus-micrometer'
+    testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
 java {
