@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id 'com.github.ben-manes.versions' version '0.53.0'
@@ -38,6 +39,10 @@ kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_1_8
     }
+}
+
+tasks.named('compileTestKotlin', KotlinCompile) {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 }
 
 java {
