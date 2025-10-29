@@ -2,9 +2,11 @@ package org.jobrunr.jobs;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.data.Index;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -74,6 +76,11 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
     public JobDetailsAssert hasArg(Predicate<Object> predicate) {
         Object[] jobParameterValues = actual.getJobParameterValues();
         Assertions.assertThat(Stream.of(jobParameterValues)).describedAs("Arg did not match predicate...").anyMatch(predicate);
+        return this;
+    }
+
+    public JobDetailsAssert hasArg(Consumer<JobParameter> requirements, Index index) {
+        Assertions.assertThat(actual.getJobParameters()).satisfies(requirements, index);
         return this;
     }
 
