@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {useDateStyles} from "../../utils/date-styles";
+import {useDateStyles} from "../../../hooks/useDateStyles.js";
 import {extractDateFromISOString, extractTimeFromDate, formatTime, SwitchableTimeFormatter} from "../../utils/time-ago";
 
 // interpolate from green (120°) to red (0°) in HSL space

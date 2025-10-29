@@ -9,19 +9,11 @@ import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import {SevereJobRunrExceptionProblemNotification} from "./severe-jobrunr-exception-problem";
 import {CPUAllocationIrregularityProblemNotification} from "./cpu-allocation-irregularity-problem";
-import {
-    getNewVersionProblem,
-    LATEST_DISMISSED_VERSION_STORAGE_KEY,
-    NewJobRunrVersionAvailableNotification
-} from "./new-jobrunr-version-available";
+import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY, NewJobRunrVersionAvailableNotification} from "./new-jobrunr-version-available";
 import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
-import {
-    getApiNotificationProblem,
-    JobRunrApiNotification,
-    LATEST_DISMISSED_API_NOTIFICATION
-} from "./jobrunr-api-notification";
+import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_NOTIFICATION} from "./jobrunr-api-notification";
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
@@ -193,7 +185,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
-   const openNotifications = () => {
+    const openNotifications = () => {
         setIsOpen(true);
     };
 

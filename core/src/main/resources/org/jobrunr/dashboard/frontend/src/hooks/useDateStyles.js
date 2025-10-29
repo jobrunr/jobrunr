@@ -11,6 +11,12 @@ const subscribe = (listener) => {
     };
 }
 
+export const dateStyles = {
+    defaultStyle: 'defaultStyle',
+    readableStyle: 'readableStyle',
+    iso8601Style: 'iso8601Style'
+};
+
 export const setDateStyle = (style) => {
     localStorage.setItem('switchableTimeAgoStyle', style);
     dateStyle = style;
@@ -18,5 +24,6 @@ export const setDateStyle = (style) => {
 }
 
 export const useDateStyles = () => {
-    return useSyncExternalStore(subscribe, getSnapshot);
+    const style = useSyncExternalStore(subscribe, getSnapshot);
+    return [style, setDateStyle];
 }

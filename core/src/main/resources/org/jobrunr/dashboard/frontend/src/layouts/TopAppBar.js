@@ -9,6 +9,7 @@ import logo from '../assets/jobrunr-logo-white.png';
 import {StatChip} from "../components/ui/StatChip";
 import {useJobStats} from "../hooks/useJobStats";
 import {TopAppBarNotificationCenter} from "../components/notifications/top-app-bar-notification-center";
+import {Preferences} from "../components/settings/preferences.js";
 
 const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
@@ -60,6 +61,7 @@ const TopAppBar = () => {
                     <MenuButtonWithStat text="Servers" stat={stats.backgroundJobServers} id="servers-btn" to="/dashboard/servers"/>
                 </Buttons>
                 <TopAppBarNotificationCenter/>
+                <Preferences/>
                 <IconButton
                     edge="start"
                     color="inherit"

@@ -1,15 +1,10 @@
 import TimeAgo from "react-timeago";
-import {setDateStyle, useDateStyles} from "./date-styles";
+import {dateStyles, setDateStyle, useDateStyles} from "../../hooks/useDateStyles.js";
+import {convertToBrowserDefaultDateStyle} from "../../utils/helper-functions.js";
 
 const timeAgoFormatterWithoutSuffix = (a, b) => a !== 1 ? `${a} ${b}s` : `${a} ${b}`;
 
 export const SuffixFreeTimeAgo = ({date, ...rest}) => <TimeAgo date={date} title={date.toString()} formatter={timeAgoFormatterWithoutSuffix} {...rest}/>;
-
-const possibleStyles = {
-    defaultStyle: 'defaultStyle',
-    readableStyle: 'readableStyle',
-    iso8601Style: 'iso8601Style'
-};
 
 const setNewStyle = (e, style) => {
     e.stopPropagation();
@@ -39,34 +34,34 @@ export const formatTime = (h, m) => {
 };
 
 export const SwitchableTimeRangeFormatter = ({from, to}) => {
-    const style = useDateStyles();
+    const [style] = useDateStyles();
     const hourDiff = (a, b) => Math.floor(Math.abs(a - b) / 1000 / 60 / 60);
     const now = new Date();
 
     const hourDiffFrom = hourDiff(now, from);
     const hourDiffTo = hourDiff(now, to);
 
-    if (style === possibleStyles.defaultStyle && (hourDiffFrom > 24 || hourDiffTo > 24)) {
+    if (style === dateStyles.defaultStyle && (hourDiffFrom > 24 || hourDiffTo > 24)) {
         // One of the two dates is more than 24h in the future resulting in ... day(s) from now: only display the nearest one
         const date = hourDiffFrom < hourDiffTo ? from : to;
         return (
             <SwitchableTimeFormatter date={date}/>
         )
-    } else if (style === possibleStyles.readableStyle && hourDiff(from, to) < 24) {
+    } else if (style === dateStyles.readableStyle && hourDiff(from, to) < 24) {
         const fromTime = from.toString().replace(from.toDateString(), "").split(" ")
         const toTime = to.toString().replace(to.toDateString(), "").split(" ")
 
         if (fromTime[2] === toTime[2]) {
             // Timezones are equal: return "at Sat Jul 05 2025 between 12:00:00 18:00:00 (GMT+0200)"
             return (
-                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, dateStyles.iso8601Style)}>
                     at {from.toDateString()} between {fromTime[1]} and {toTime[1]} ({fromTime[2]})
                 </span>
             )
         } else {
             // Timezones differ: return "at Sat Jul 05 2025O between 12:00:00 GMT+0200 and 18:00:00 GMT+0200"
             return (
-                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>
+                <span style={{cursor: "pointer"}} onClick={e => setNewStyle(e, dateStyles.iso8601Style)}>
                     at {from.toDateString()} between {fromTime[1]} {fromTime[2]} and {toTime[1]} {fromTime[2]}
                 </span>
             )
@@ -78,17 +73,15 @@ export const SwitchableTimeRangeFormatter = ({from, to}) => {
         <span>between <SwitchableTimeFormatter date={from}/> and <SwitchableTimeFormatter date={to}/></span>
     )
 }
-
 export const SwitchableTimeFormatter = ({date}) => {
-    const style = useDateStyles();
+    const [style] = useDateStyles();
 
-    let result = <TimeAgo onClick={e => setNewStyle(e, possibleStyles.readableStyle)} date={date} title={date.toString()}/>;
-    if (style === possibleStyles.readableStyle) {
-        let dateAsString = date.toString();
-        result = <span onClick={e => setNewStyle(e, possibleStyles.iso8601Style)}>{dateAsString.substring(0, dateAsString.indexOf(' ('))}</span>
+    let result = <TimeAgo onClick={e => setNewStyle(e, dateStyles.readableStyle)} date={date} title={date.toString()}/>;
+    if (style === dateStyles.readableStyle) {
+        result = <span onClick={e => setNewStyle(e, dateStyles.iso8601Style)}>{convertToBrowserDefaultDateStyle(date)}</span>
     }
-    if (style === possibleStyles.iso8601Style) {
-        result = <span onClick={e => setNewStyle(e, possibleStyles.defaultStyle)}>{date.toISOString()}</span>
+    if (style === dateStyles.iso8601Style) {
+        result = <span onClick={e => setNewStyle(e, dateStyles.defaultStyle)}>{date.toISOString()}</span>
     }
 
     return <span style={{cursor: "pointer"}}>{result}</span>;
