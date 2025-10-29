@@ -30,6 +30,8 @@ export const Preferences = () => {
     const popperAnchorEl = useRef(null);
     const [dateStyle, setDateStyle] = useDateStyles();
 
+    const currentDate = new Date();
+
     const openNotifications = () => {
         setIsOpen(true);
     };
@@ -96,16 +98,22 @@ export const Preferences = () => {
                                         e.g., 1 minute ago
                                     </Typography>
                                 </DateStyleToggleButton>
+                                <DateStyleToggleButton value={dateStyles.localeStyle}>
+                                    Locale date
+                                    <Typography variant="caption" color="text.secondary">
+                                        e.g., {currentDate.toLocaleString()}
+                                    </Typography>
+                                </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.readableStyle}>
                                     Browser default
                                     <Typography variant="caption" color="text.secondary">
-                                        e.g., {convertToBrowserDefaultDateStyle(new Date())}
+                                        e.g., {convertToBrowserDefaultDateStyle(currentDate)}
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.iso8601Style}>
                                     ISO 8601
                                     <Typography variant="caption" color="text.secondary">
-                                        e.g., {new Date().toISOString()}
+                                        e.g., {currentDate.toISOString()}
                                     </Typography>
                                 </DateStyleToggleButton>
                             </ToggleButtonGroup>

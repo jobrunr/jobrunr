@@ -13,6 +13,7 @@ const subscribe = (listener) => {
 
 export const dateStyles = {
     defaultStyle: 'defaultStyle',
+    localeStyle: 'localeStyle',
     readableStyle: 'readableStyle',
     iso8601Style: 'iso8601Style'
 };

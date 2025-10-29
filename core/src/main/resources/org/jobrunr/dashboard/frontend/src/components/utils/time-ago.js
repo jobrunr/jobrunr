@@ -76,7 +76,10 @@ export const SwitchableTimeRangeFormatter = ({from, to}) => {
 export const SwitchableTimeFormatter = ({date}) => {
     const [style] = useDateStyles();
 
-    let result = <TimeAgo onClick={e => setNewStyle(e, dateStyles.readableStyle)} date={date} title={date.toString()}/>;
+    let result = <TimeAgo onClick={e => setNewStyle(e, dateStyles.localeStyle)} date={date} title={date.toString()}/>;
+    if (style === dateStyles.localeStyle) {
+        result = <span onClick={e => setNewStyle(e, dateStyles.readableStyle)}>{date.toLocaleString()}</span>
+    }
     if (style === dateStyles.readableStyle) {
         result = <span onClick={e => setNewStyle(e, dateStyles.iso8601Style)}>{convertToBrowserDefaultDateStyle(date)}</span>
     }
