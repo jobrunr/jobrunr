@@ -115,8 +115,9 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
+        mavenCentral()
     }
 
     dependencies {
