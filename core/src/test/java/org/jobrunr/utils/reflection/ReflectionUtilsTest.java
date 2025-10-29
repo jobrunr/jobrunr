@@ -1,5 +1,6 @@
 package org.jobrunr.utils.reflection;
 
+import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -99,6 +100,25 @@ class ReflectionUtilsTest {
 
         final Optional<Method> doWorkFromParentInterfaceB = ReflectionUtils.findMethod(TestInterface.class, "doWorkFromParentInterfaceB");
         assertThat(doWorkFromParentInterfaceB).isPresent();
+    }
+
+    @Test
+    void testFindMethodOnClassWithPrimitivesAndWrapper() {
+        final Optional<Method> doWorkWithPrimitive = ReflectionUtils.findMethod(TestService.class, "doWork", Integer.class, Integer.class);
+        assertThat(doWorkWithPrimitive).isPresent();
+
+        final Optional<Method> doWorkWithWrapper = ReflectionUtils.findMethod(TestService.class, "doWork", Integer.class);
+        assertThat(doWorkWithWrapper).isPresent();
+    }
+
+    @Test
+    void testFindMethodOnClassWithInheritance() {
+        final Optional<Method> doWorkWithSameType = ReflectionUtils.findMethod(TestService.class, "doWorkAndReturnResult", CharSequence.class);
+        assertThat(doWorkWithSameType).isPresent();
+
+        // JobRunr uses the JobParameter class which has the className (CharSequence) and actualClassName (String). To find the job method, CharSequence is used
+        final Optional<Method> doWorkWithInheritedType = ReflectionUtils.findMethod(TestService.class, "doWorkAndReturnResult", String.class);
+        assertThat(doWorkWithInheritedType).isEmpty();
     }
 
     public static class TestObject {

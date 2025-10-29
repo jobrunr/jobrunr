@@ -188,7 +188,7 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("I will never succeed... ");
     }
 
-    public String doWorkAndReturnResult(String someString) {
+    public String doWorkAndReturnResult(CharSequence someString) {
         return "Hello to you to " + someString;
     }
 
