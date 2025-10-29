@@ -1,5 +1,5 @@
-import {Box, Button, Divider, Grid, IconButton, Paper, ToggleButton, ToggleButtonGroup, Tooltip, Typography} from "@mui/material";
-import {CalendarMonth, DarkMode, LightMode, Logout, Person, SettingsBrightness} from "@mui/icons-material";
+import {Box, Divider, Grid, IconButton, Paper, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
+import {CalendarMonth, DarkMode, LightMode, Person, SettingsBrightness} from "@mui/icons-material";
 import {ClickAwayPopper} from "../ui/ClickAwayPopper.js";
 import React, {useRef, useState} from "react";
 import {convertToBrowserDefaultDateStyle} from "../../utils/helper-functions.js";
@@ -80,7 +80,7 @@ export const Preferences = () => {
                             </ToggleButtonGroup>
                         </Grid>
                         <Divider/>
-                        <Grid container py={2} spacing={2} direction="column">
+                        <Grid container pt={2} spacing={2} direction="column">
                             <PreferenceHeading icon={<CalendarMonth/>} title="Date style"/>
                             <ToggleButtonGroup
                                 exclusive
@@ -110,17 +110,6 @@ export const Preferences = () => {
                                 </DateStyleToggleButton>
                             </ToggleButtonGroup>
                         </Grid>
-                        <Divider/>
-                        <Tooltip title="This feature is available to JobRunr Pro users">
-                            <Box pt={2}>
-                                <Button
-                                    fullWidth
-                                    sx={{justifyContent: "flex-start", textTransform: "none", color: "inherit", fontWeight: "inherit", fontSize: 16}}
-                                >
-                                    <PreferenceHeading icon={<Logout/>} title="Logout" as="span"/>
-                                </Button>
-                            </Box>
-                        </Tooltip>
                     </Box>
                 </Paper>
             </ClickAwayPopper>
