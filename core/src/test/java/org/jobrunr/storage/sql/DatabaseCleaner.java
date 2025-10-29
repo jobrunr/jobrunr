@@ -24,7 +24,7 @@ public class DatabaseCleaner {
     public void dropAllTablesAndViews() {
         drop("view " + tableNamePrefix + "jobrunr_jobs_stats");
         drop("table " + tableNamePrefix + "jobrunr_recurring_jobs");
-        drop("table " + tableNamePrefix + "jobrunr_job_counters");
+        drop("table " + tableNamePrefix + "jobrunr_job_counters", true);
         drop("table " + tableNamePrefix + "jobrunr_jobs");
         drop("table " + tableNamePrefix + "jobrunr_backgroundjobservers");
         drop("table " + tableNamePrefix + "jobrunr_metadata");
@@ -33,7 +33,7 @@ public class DatabaseCleaner {
 
     public void deleteAllDataInTables() {
         delete("from " + tableNamePrefix + "jobrunr_recurring_jobs");
-        delete("from " + tableNamePrefix + "jobrunr_job_counters");
+        delete("from " + tableNamePrefix + "jobrunr_job_counters", true);
         delete("from " + tableNamePrefix + "jobrunr_jobs");
         delete("from " + tableNamePrefix + "jobrunr_backgroundjobservers");
         delete("from " + tableNamePrefix + "jobrunr_metadata");
@@ -41,25 +41,35 @@ public class DatabaseCleaner {
     }
 
     private void delete(String name) {
-        doInTransaction(statement -> statement.executeUpdate("delete " + name), "Error deleting from " + name);
+        delete(name, false);
+    }
+
+    private void delete(String name, boolean exceptionExpected) {
+        doInTransaction(statement -> statement.executeUpdate("delete " + name), exceptionExpected, "Error deleting from " + name);
     }
 
     private void drop(String name) {
-        doInTransaction(statement -> statement.executeUpdate("drop " + name), "Error dropping " + name);
+        drop(name, false);
+    }
+
+    private void drop(String name, boolean exceptionExpected) {
+        doInTransaction(statement -> statement.executeUpdate("drop " + name), exceptionExpected, "Error dropping " + name);
     }
 
     private void insertInitialData() {
         doInTransaction(statement -> statement
                         .executeUpdate("insert into " + tableNamePrefix + "jobrunr_metadata values ('succeeded-jobs-counter-cluster', 'succeeded-jobs-counter', 'cluster', '0', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"),
-                "Error inserting initial data");
+                false, "Error inserting initial data");
     }
 
-    private void doInTransaction(Exceptions.ThrowingConsumer<Statement> inTransaction, String errorMsg) {
+    private void doInTransaction(Exceptions.ThrowingConsumer<Statement> inTransaction, boolean exceptionExpected, String errorMsg) {
         try {
             SqlTestUtils.doInTransaction(dataSource, inTransaction);
         } catch (Exception e) {
-            System.out.println(errorMsg);
-            e.printStackTrace();
+            if (!exceptionExpected) {
+                System.out.println(errorMsg);
+                e.printStackTrace();
+            }
         }
     }
 }

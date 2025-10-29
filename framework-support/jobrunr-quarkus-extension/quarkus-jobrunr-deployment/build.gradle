@@ -7,19 +7,16 @@ plugins {
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
     options.release = 17
 }
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    options.release = 17
 }
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.26.3')
+    api platform('io.quarkus:quarkus-bom:3.27.0')
 
     api project(':core')
     implementation project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')

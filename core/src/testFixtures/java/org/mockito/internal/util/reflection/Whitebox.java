@@ -4,13 +4,11 @@
  */
 package org.mockito.internal.util.reflection;
 
-import sun.misc.Unsafe;
-
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
 public class Whitebox {
 
+    @SuppressWarnings("unchecked")
     public static <T> T getInternalState(Object target, String field) {
         Class<?> c = null;
         if (target instanceof Class) {
@@ -31,17 +29,8 @@ public class Whitebox {
         Class<?> c = target.getClass();
         try {
             Field f = getFieldFromHierarchy(c, field);
-            if (Modifier.isStatic(f.getModifiers()) && Modifier.isFinal(f.getModifiers())) {
-                Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
-                unsafeField.setAccessible(true);
-                Unsafe unsafe = (Unsafe) unsafeField.get(null);
-                Object staticFieldBase = unsafe.staticFieldBase(f);
-                long staticFieldOffset = unsafe.staticFieldOffset(f);
-                unsafe.putObject(staticFieldBase, staticFieldOffset, value);
-            } else {
-                f.setAccessible(true);
-                f.set(target, value);
-            }
+            f.setAccessible(true);
+            f.set(target, value);
         } catch (Exception e) {
             throw new RuntimeException("Unable to set internal state on a private field. Please report to mockito mailing list.", e);
         }
