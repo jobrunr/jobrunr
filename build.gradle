@@ -88,6 +88,11 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.encoding = "UTF-8"
     }
 
+    compileTestJava {
+        options.release = 21
+        options.encoding = "UTF-8"
+    }
+
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.enabled = false
         options.errorprone.disableWarningsInGeneratedCode = true
@@ -103,11 +108,6 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
             disable("StringSplitter")                           // should not happen because of validation
         }
-    }
-
-    compileTestJava {
-        options.release = 21
-        options.encoding = "UTF-8"
     }
 
     javadoc {
