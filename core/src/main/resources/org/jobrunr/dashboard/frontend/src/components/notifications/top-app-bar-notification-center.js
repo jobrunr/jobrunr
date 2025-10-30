@@ -250,7 +250,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             edge="start"
             color="inherit"
             size="large"
-            sx={{marginRight: 2}}
+            sx={{marginRight: 1}}
             onClick={openNotifications}
             ref={popperAnchorEl}
             id="notifications-center-button"

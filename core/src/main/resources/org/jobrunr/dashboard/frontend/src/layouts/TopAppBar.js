@@ -2,10 +2,11 @@ import {styled} from "@mui/material/styles";
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import GitHubIcon from '@mui/icons-material/GitHub';
-import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import {Link as RouterLink} from 'react-router';
-import logo from '../assets/jobrunr-logo-white.png';
+import logo from '../assets/jobrunr-logo-white.webp';
 import {StatChip} from "../components/ui/StatChip";
 import {useJobStats} from "../hooks/useJobStats";
 import {TopAppBarNotificationCenter} from "../components/notifications/top-app-bar-notification-center";
@@ -16,8 +17,8 @@ const StyledAppBar = styled(AppBar)(({theme}) => ({
 }));
 
 const Buttons = styled("div")(({theme}) => ({
-    '& > *': {
-        margin: `${theme.spacing(2)}!important`,
+    '& > a': {
+        padding: `${theme.spacing(1.5)}`,
     },
     '& div.MuiChip-root': {
         height: 'initial',
@@ -27,7 +28,7 @@ const Buttons = styled("div")(({theme}) => ({
     '& div span.MuiChip-label': {
         padding: '0 8px'
     },
-    margin: "0 50px",
+    margin: "0 24px",
     flexGrow: 1,
 }));
 
@@ -52,25 +53,27 @@ const TopAppBar = () => {
 
     return (
         <StyledAppBar position="fixed">
-            <Toolbar style={{display: "flex", alignItems: "center"}}>
+            <Toolbar sx={{display: "flex", alignItems: "center"}}>
                 <img style={{width: 'auto', height: '35px'}} src={logo} alt="JobRunr"/>
-                <Buttons>
-                    <OverviewButton/>
-                    <MenuButtonWithStat text="Jobs" stat={stats.enqueued} id="jobs-btn" to="/dashboard/jobs"/>
-                    <MenuButtonWithStat text="Recurring Jobs" stat={stats.recurringJobs} id="recurring-jobs-btn" to="/dashboard/recurring-jobs"/>
-                    <MenuButtonWithStat text="Servers" stat={stats.backgroundJobServers} id="servers-btn" to="/dashboard/servers"/>
-                </Buttons>
-                <TopAppBarNotificationCenter/>
-                <Preferences/>
-                <IconButton
-                    edge="start"
-                    color="inherit"
-                    aria-label="menu"
-                    target="_blank"
-                    href="https://github.com/jobrunr/jobrunr"
-                    size="large">
-                    <GitHubIcon/>
-                </IconButton>
+                <Box sx={{display: "flex", alignItems: "center", marginTop: "6px", width: "100%"}}>
+                    <Buttons>
+                        <OverviewButton/>
+                        <MenuButtonWithStat text="Jobs" stat={stats.enqueued} id="jobs-btn" to="/dashboard/jobs"/>
+                        <MenuButtonWithStat text="Recurring Jobs" stat={stats.recurringJobs} id="recurring-jobs-btn" to="/dashboard/recurring-jobs"/>
+                        <MenuButtonWithStat text="Servers" stat={stats.backgroundJobServers} id="servers-btn" to="/dashboard/servers"/>
+                    </Buttons>
+                    <TopAppBarNotificationCenter/>
+                    <Preferences/>
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        target="_blank"
+                        href="https://github.com/jobrunr/jobrunr"
+                    >
+                        <GitHubIcon fontSize="medium"/>
+                    </IconButton>
+                </Box>
             </Toolbar>
         </StyledAppBar>
     );

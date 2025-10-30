@@ -99,7 +99,7 @@ const RealtimeGraph = () => {
     return (
         <div className="row">
             <Box my={3}>
-                <Typography id="title" variant="h5">Realtime graph</Typography>
+                <Typography id="realtime-graph" variant="h5">Realtime graph</Typography>
             </Box>
             <Paper>
                 <Suspense fallback={<LoadingIndicator/>}>
