@@ -24,10 +24,17 @@ public class MethodFinderPredicate implements Predicate<Method> {
     private boolean compareParameterTypesForPrimitives(Class<?>[] parameterTypes) {
         if (this.parameterTypes.length != parameterTypes.length) return false;
 
-        boolean result = true;
         for (int i = 0; i < parameterTypes.length; i++) {
-            result &= (parameterTypes[i].isPrimitive()) && ReflectionUtils.isClassAssignable(parameterTypes[i], this.parameterTypes[i]);
+            if (parameterTypes[i].isPrimitive()) {
+                if (!ReflectionUtils.isClassAssignable(parameterTypes[i], this.parameterTypes[i])) {
+                    return false;
+                }
+            } else {
+                if (!parameterTypes[i].equals(this.parameterTypes[i])) {
+                    return false;
+                }
+            }
         }
-        return result;
+        return true;
     }
 }

@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -119,6 +120,15 @@ class ReflectionUtilsTest {
         // JobRunr uses the JobParameter class which has the className (CharSequence) and actualClassName (String). To find the job method, CharSequence is used
         final Optional<Method> doWorkWithInheritedType = ReflectionUtils.findMethod(TestService.class, "doWorkAndReturnResult", String.class);
         assertThat(doWorkWithInheritedType).isEmpty();
+    }
+
+    @Test
+    void testFindMethodOnClassWithPrimitivesAndObjects() {
+        final Optional<Method> doWorkWithMatchingTypes1 = ReflectionUtils.findMethod(TestService.class, "doWork", UUID.class, int.class, Instant.class);
+        assertThat(doWorkWithMatchingTypes1).isPresent();
+
+        final Optional<Method> doWorkWithMatchingTypes2 = ReflectionUtils.findMethod(TestService.class, "doWork", UUID.class, Integer.class, Instant.class);
+        assertThat(doWorkWithMatchingTypes2).isPresent();
     }
 
     public static class TestObject {
