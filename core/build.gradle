@@ -6,6 +6,12 @@ plugins {
     id 'java-test-fixtures'
     id 'maven-publish'
     id 'signing'
+    id 'idea'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 sourceSets {
@@ -20,6 +26,84 @@ sourceSets {
             exclude '**/package-lock.json'
         }
     }
+    java17 {
+        java.srcDir 'src/main/java17'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+    java25 {
+        java.srcDir 'src/main/java25'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+    test {
+        java.srcDir 'src/test/java'
+    }
+    test17 {
+        java.srcDir 'src/test/java17'
+        compileClasspath += sourceSets.main.output + sourceSets.java17.output + configurations.test17CompileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.java17.output + configurations.test17RuntimeClasspath
+    }
+    test25 {
+        java.srcDir 'src/test/java25'
+        compileClasspath += sourceSets.main.output + sourceSets.java25.output + configurations.test25CompileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.java25.output + configurations.test25RuntimeClasspath
+    }
+}
+
+configurations {
+    java17Implementation.extendsFrom implementation
+    java17CompileOnly.extendsFrom compileOnly
+    java17RuntimeOnly.extendsFrom runtimeOnly
+    test17Implementation.extendsFrom testImplementation, java17Implementation
+    test17CompileOnly.extendsFrom testCompileOnly, java17CompileOnly
+    test17RuntimeOnly.extendsFrom testRuntimeOnly, java17RuntimeOnly
+
+    java25Implementation.extendsFrom implementation
+    java25CompileOnly.extendsFrom compileOnly
+    java25RuntimeOnly.extendsFrom runtimeOnly
+    test25Implementation.extendsFrom testImplementation, java25Implementation
+    test25CompileOnly.extendsFrom testCompileOnly, java25CompileOnly
+    test25RuntimeOnly.extendsFrom testRuntimeOnly, java25RuntimeOnly
+}
+
+idea {
+    module {
+        testSources.from(sourceSets.test17.java.srcDirs)
+        testSources.from(sourceSets.test25.java.srcDirs)
+    }
+}
+
+tasks.named('compileJava', JavaCompile) {
+    options.release = 8
+}
+tasks.named('compileTestJava', JavaCompile) {
+    options.release = 11
+}
+tasks.named('compileTestFixturesJava', JavaCompile) {
+    options.release = 11
+}
+tasks.named('compileJava17Java', JavaCompile) {
+    options.release = 17
+}
+tasks.named('compileTest17Java', JavaCompile) {
+    options.release = 17
+}
+tasks.named('compileJava25Java', JavaCompile) {
+    options.release = 25
+}
+tasks.named('compileTest25Java', JavaCompile) {
+    options.release = 25
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.register('test17', Test) {
+    group = 'verification'
+    testClassesDirs = sourceSets.test17.output.classesDirs
+    classpath = sourceSets.test17.runtimeClasspath
 }
 
 tasks.register('myJavadocs', Javadoc) {
@@ -47,6 +131,8 @@ dependencies {
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
     compileOnly 'io.micrometer:micrometer-core'
+
+    java17CompileOnly 'tools.jackson.core:jackson-databind:3.0.1'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
     compileOnly 'org.mongodb:mongodb-driver-sync'
@@ -81,6 +167,7 @@ dependencies {
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'org.wiremock:wiremock'
+    test17Implementation 'tools.jackson.core:jackson-databind:3.0.1'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.mockito:mockito-inline'
@@ -91,19 +178,6 @@ dependencies {
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'io.micrometer:micrometer-core'
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-compileJava {
-    options.release = 8
-}
-
-compileTestFixturesJava {
-    options.release = 11
 }
 
 normalization {
