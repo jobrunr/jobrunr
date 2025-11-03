@@ -17,8 +17,13 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npx /usr/bin/npx
-RUN npx playwright@1.56.0 install-deps
-RUN npx playwright@1.56.0 install
+
+# Playwright support
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npx -y playwright@1.56.0 install-deps
+RUN npx -y playwright@1.56.0 install chromium firefox webkit
+RUN chmod -R a+rX /ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # disable SVE so ld-linux on arm64 doesn't segfault
 ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"

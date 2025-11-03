@@ -66,6 +66,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-oracle-free'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-db2'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'

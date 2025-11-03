@@ -37,7 +37,7 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
     protected abstract GenericContainer getMongoContainer();
 
     @Override
-    protected void cleanup() {
+    protected void cleanup(int testMethodIndex) {
         cleanup(MongoDBStorageProvider.DEFAULT_DB_NAME);
     }
 
