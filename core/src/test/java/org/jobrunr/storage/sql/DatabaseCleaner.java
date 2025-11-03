@@ -21,14 +21,15 @@ public class DatabaseCleaner {
         this.tableNamePrefix = isNotNullOrEmpty(tableNamePrefix) ? tableNamePrefix : "";
     }
 
-    public void dropAllTablesAndViews() {
-        drop("view " + tableNamePrefix + "jobrunr_jobs_stats");
-        drop("table " + tableNamePrefix + "jobrunr_recurring_jobs");
+    public void dropAllTablesAndViews(int testMethodIndex) {
+        boolean exceptionExpected = testMethodIndex == 0;
+        drop("view " + tableNamePrefix + "jobrunr_jobs_stats", exceptionExpected);
+        drop("table " + tableNamePrefix + "jobrunr_recurring_jobs", exceptionExpected);
         drop("table " + tableNamePrefix + "jobrunr_job_counters", true);
-        drop("table " + tableNamePrefix + "jobrunr_jobs");
-        drop("table " + tableNamePrefix + "jobrunr_backgroundjobservers");
-        drop("table " + tableNamePrefix + "jobrunr_metadata");
-        drop("table " + tableNamePrefix + "jobrunr_migrations");
+        drop("table " + tableNamePrefix + "jobrunr_jobs", exceptionExpected);
+        drop("table " + tableNamePrefix + "jobrunr_backgroundjobservers", exceptionExpected);
+        drop("table " + tableNamePrefix + "jobrunr_metadata", exceptionExpected);
+        drop("table " + tableNamePrefix + "jobrunr_migrations", exceptionExpected);
     }
 
     public void deleteAllDataInTables() {

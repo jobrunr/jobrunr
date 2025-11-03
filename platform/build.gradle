@@ -12,9 +12,9 @@ dependencies {
         api 'org.ow2.asm:asm:9.9'
         api 'org.ow2.asm:asm-util:9.9'
 
-        api 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
-        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0'
-        api 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.20.0'
+        api 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+        api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1'
+        api 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.20.1'
         api 'com.fasterxml.jackson.module:jackson-module-kotlin:2.19.1'
         api 'com.google.code.gson:gson:2.13.2'
         api 'org.eclipse:yasson:3.0.4'
@@ -26,7 +26,7 @@ dependencies {
         api 'com.h2database:h2:2.4.240'
         api 'org.postgresql:postgresql:42.7.8'
         api 'com.google.cloud.sql:postgres-socket-factory:1.25.3'
-        api 'com.oracle.database.jdbc:ojdbc8:23.9.0.25.07'
+        api 'com.oracle.database.jdbc:ojdbc8:23.26.0.0.0'
         api 'org.mariadb.jdbc:mariadb-java-client:3.5.6'
         api 'com.mysql:mysql-connector-j:9.5.0'
         api 'com.microsoft.sqlserver:mssql-jdbc:13.2.1.jre8'
@@ -55,7 +55,8 @@ dependencies {
         api 'org.testcontainers:testcontainers-oracle-free:2.0.1'
         api 'org.testcontainers:testcontainers-postgresql:2.0.1'
         api 'org.testcontainers:testcontainers-db2:2.0.1'
-        api 'com.microsoft.playwright:playwright:1.52.0'
+        api 'org.testcontainers:testcontainers-mongodb:2.0.1'
+        api 'com.microsoft.playwright:playwright:1.56.0'
         api 'org.wiremock:wiremock:3.13.1'
     }
 }
