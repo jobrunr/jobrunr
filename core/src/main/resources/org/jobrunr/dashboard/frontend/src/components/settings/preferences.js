@@ -67,10 +67,7 @@ export const Preferences = () => {
                             <ToggleButtonGroup
                                 exclusive
                                 value={mode}
-                                onChange={(event) => {
-                                    console.log(event.target);
-                                    setMode(event.target.value)
-                                }}
+                                onChange={(event) => setMode(event.target.value)}
                                 color="secondary"
                                 fullWidth
                             >
