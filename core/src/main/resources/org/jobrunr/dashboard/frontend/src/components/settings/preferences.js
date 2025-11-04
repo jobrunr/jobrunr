@@ -50,18 +50,17 @@ export const Preferences = () => {
             <IconButton
                 edge="start"
                 color="inherit"
-                size="large"
-                sx={{marginRight: 1}}
+                sx={{marginRight: 1.5}}
                 onClick={openNotifications}
                 ref={popperAnchorEl}
                 id="notifications-center-button"
             >
-                <Person/>
+                <Person fontSize="small"/>
             </IconButton>
 
             <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
                 <Paper elevation={6}>
-                    <Box width="80vw" maxWidth={300} maxHeight="70vh" overflow="auto" p={2}>
+                    <Box maxWidth={300} maxHeight="70vh" overflow="auto" p={2}>
                         <Grid container pb={2} spacing={2} direction="column">
                             <PreferenceHeading icon={<SettingsBrightness/>} title="Theme"/>
 
