@@ -15,7 +15,6 @@ public class ContentType {
     public static final String TEXT_JAVASCRIPT = "text/javascript;charset=UTF-8";
     public static final String TEXT_CSS = "text/css;charset=UTF-8";
     public static final String IMAGE_PNG = "image/png";
-    public static final String IMAGE_WEBP = "image/webp";
     public static final String IMAGE_X_ICON = "image/x-icon";
 
     public static String from(Path path) {
@@ -35,8 +34,6 @@ public class ContentType {
             return TEXT_CSS;
         } else if (path.toLowerCase().endsWith(".png")) {
             return IMAGE_PNG;
-        } else if (path.toLowerCase().endsWith(".webp")) {
-            return IMAGE_WEBP;
         } else if (path.toLowerCase().endsWith(".ico")) {
             return IMAGE_X_ICON;
         } else if (path.toLowerCase().endsWith(".map")) {
