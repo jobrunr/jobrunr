@@ -1,9 +1,9 @@
 # build stage for Maven
-FROM maven:3.9.4-eclipse-temurin-21 AS maven-dist
+FROM maven:3.9.11-eclipse-temurin-25 AS maven-dist
 # build stage for Gradle
-FROM gradle:8.14.2-jdk21 AS gradle-dist
+FROM gradle:9.2.0-jdk25 AS gradle-dist
 # Main build stage
-FROM eclipse-temurin:21-jdk@sha256:88214b12ef97dcb4d44a96f23043041a78ab08fc035740309f1f0b026ce79940
+FROM eclipse-temurin:25-jdk@sha256:3a35a62d3ece346cfde11b08fafdc3f99d3946d31d5ebc15d678b44a67c3b9ec
 
 ARG NODE_VERSION=23.11.0
 
@@ -17,8 +17,13 @@ RUN npm -v
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npm /usr/bin/npm
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/node /usr/bin/node
 RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npx /usr/bin/npx
-RUN npx playwright@1.52.0 install-deps
-RUN npx playwright@1.52.0 install
+
+# Playwright support
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npx -y playwright@1.56.0 install-deps
+RUN npx -y playwright@1.56.0 install chromium firefox webkit
+RUN chmod -R a+rX /ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # disable SVE so ld-linux on arm64 doesn't segfault
 ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"

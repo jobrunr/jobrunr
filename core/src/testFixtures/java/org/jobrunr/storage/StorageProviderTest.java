@@ -21,6 +21,7 @@ import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.TestMethodIndexProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -90,7 +91,8 @@ public abstract class StorageProviderTest {
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
-        cleanup();
+        int testMethodIndex = TestMethodIndexProvider.getTestMethodIndex(this.getClass());
+        cleanup(testMethodIndex);
         final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
         JobRunr.configure()
                 .useStorageProvider(getStorageProvider())
@@ -108,7 +110,7 @@ public abstract class StorageProviderTest {
         this.storageProvider.close();
     }
 
-    protected abstract void cleanup();
+    protected abstract void cleanup(int testMethodIndex);
 
     protected abstract StorageProvider getStorageProvider();
 
@@ -139,8 +141,8 @@ public abstract class StorageProviderTest {
 
         assertThat(backgroundJobServers).hasSize(2);
         //why: sqlite has no microseconds precision for timestamps
-        assertThat(backgroundJobServers.get(0)).isEqualToComparingOnlyGivenFields(serverStatus1, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
-        assertThat(backgroundJobServers.get(1)).isEqualToComparingOnlyGivenFields(serverStatus2, "id", "workerPoolSize", "pollIntervalInSeconds", "running");
+        assertThat(backgroundJobServers.get(0)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus1);
+        assertThat(backgroundJobServers.get(1)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus2);
         assertThat(backgroundJobServers.get(0).getFirstHeartbeat()).isCloseTo(serverStatus1.getFirstHeartbeat(), within(1000, MICROS));
         assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
         assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, MICROS));
@@ -766,7 +768,7 @@ public abstract class StorageProviderTest {
                 .hasSize(1)
                 .containsExactly(jobs.get(0));
 
-        Job existingCarbonAwareJob = jobs.getFirst();
+        Job existingCarbonAwareJob = jobs.get(0);
         existingCarbonAwareJob.scheduleAt(Instant.now(), "test");
         storageProvider.save(existingCarbonAwareJob);
 

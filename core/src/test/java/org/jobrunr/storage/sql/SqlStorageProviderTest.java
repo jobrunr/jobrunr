@@ -35,12 +35,9 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
         parsedStatementCache.clear();
     }
 
-    private static Class<? extends SqlStorageProviderTest> currentTestClass;
-    private static int testMethodIndex;
-
     @Override
-    public void cleanup() {
-        cleanupDatabase(getDataSource());
+    public void cleanup(int testMethodIndex) {
+        cleanupDatabase(getDataSource(), testMethodIndex);
     }
 
     @Override
@@ -73,9 +70,9 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     public abstract DataSource getDataSource();
 
-    protected void cleanupDatabase(DataSource dataSource) {
-        if (getTestMethodIndex() < 3) {
-            getDatabaseCleaner(dataSource).dropAllTablesAndViews();
+    protected void cleanupDatabase(DataSource dataSource, int testMethodIndex) {
+        if (testMethodIndex < 3) {
+            getDatabaseCleaner(dataSource).dropAllTablesAndViews(testMethodIndex);
         } else {
             getDatabaseCleaner(dataSource).deleteAllDataInTables();
         }
@@ -83,14 +80,6 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     protected DatabaseCleaner getDatabaseCleaner(DataSource dataSource) {
         return new DatabaseCleaner(dataSource);
-    }
-
-    private int getTestMethodIndex() {
-        if (currentTestClass != this.getClass()) {
-            testMethodIndex = 0;
-        }
-        currentTestClass = this.getClass();
-        return testMethodIndex++;
     }
 
     public static class ThrowingSqlStorageProvider extends ThrowingStorageProvider {

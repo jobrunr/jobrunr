@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id('io.quarkus.extension') version '3.26.3'
+    id('io.quarkus.extension') version '3.27.0'
 }
 
 quarkusExtension {
@@ -12,33 +12,23 @@ quarkusExtension {
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
     options.release = 17
 }
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-java {
-    registerFeature('metrics') {
-        usingSourceSet(sourceSets.main)
-    }
+    options.release = 17
 }
 
 dependencies {
     api platform(project(':platform'))
-    implementation platform('io.quarkus:quarkus-bom:3.26.3')
+    implementation platform('io.quarkus:quarkus-bom:3.27.0')
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
     implementation 'io.quarkus:quarkus-arc'
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'io.quarkus:quarkus-micrometer'
-
-    metricsApi 'io.quarkus:quarkus-smallrye-health'
+    compileOnly 'io.quarkus:quarkus-smallrye-health'
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'org.eclipse:yasson'
@@ -54,6 +44,7 @@ dependencies {
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-component'
     testImplementation 'io.quarkus:quarkus-micrometer'
+    testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
 java {

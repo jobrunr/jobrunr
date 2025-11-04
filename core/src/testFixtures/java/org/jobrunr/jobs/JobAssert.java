@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -104,7 +105,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
-    public JobAssert hasMetadata(Condition condition) {
+    public JobAssert hasMetadata(Condition<Map<String, Object>> condition) {
         Assertions.assertThat(actual.getMetadata()).has(condition);
         return this;
     }

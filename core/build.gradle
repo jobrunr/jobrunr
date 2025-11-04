@@ -1,7 +1,7 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'com.github.ben-manes.versions' version '0.53.0'
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
@@ -22,13 +22,13 @@ sourceSets {
     }
 }
 
-task myJavadocs(type: Javadoc) {
+tasks.register('myJavadocs', Javadoc) {
     source = sourceSets.main.allJava
     classpath = project.sourceSets.main.compileClasspath
     options.links 'https://docs.oracle.com/en/java/javase/11/docs/api/'
 }
 
-task runFrontEndDevelopment(type: JavaExec) {
+tasks.register('runFrontEndDevelopment', JavaExec) {
     group = "Execution"
     description = "Run the FrontEnd Development JavaExecTask"
     classpath = sourceSets.test.runtimeClasspath
@@ -59,13 +59,14 @@ dependencies {
     testImplementation 'org.eclipse:yasson'
     testImplementation 'io.micrometer:micrometer-core'
     testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mariadb'
-    testImplementation 'org.testcontainers:mssqlserver'
-    testImplementation 'org.testcontainers:mysql'
-    testImplementation 'org.testcontainers:oracle-free'
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.testcontainers:db2'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-mariadb'
+    testImplementation 'org.testcontainers:testcontainers-mssqlserver'
+    testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.testcontainers:testcontainers-oracle-free'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.testcontainers:testcontainers-db2'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
@@ -98,9 +99,12 @@ java {
     withSourcesJar()
 }
 
+compileJava {
+    options.release = 8
+}
+
 compileTestFixturesJava {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    options.release = 11
 }
 
 normalization {
@@ -110,40 +114,33 @@ normalization {
     }
 }
 
-task npmRunBuild() {
+tasks.register('npmInstall', Exec) {
+    workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
+    commandLine 'npm', 'install'
+    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
+    outputs.cacheIf { true }
+}
+
+tasks.register('npmRunBuild', Exec) {
+    dependsOn 'npmInstall'
+    workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
+    commandLine 'npm', 'run', 'build'
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     outputs.cacheIf { true }
-
-    doLast {
-        println "JobRunr Frontend Build started"
-        exec {
-            workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
-            commandLine 'sh', '-c', 'npm install'
-        }
-        exec {
-            workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
-            commandLine 'sh', '-c', 'npm run build'
-        }
-        println "JobRunr Frontend Build succeeded"
-    }
 }
 
-task npmRunTest() {
+tasks.register('npmRunTest', Exec) {
+    dependsOn 'npmInstall'
+    workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
+    commandLine 'npm', 'run', 'test'
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('/tmp/reports/core/frontend')
     outputs.cacheIf { true }
-    doLast {
-        exec {
-            workingDir = new File(projectDir, 'src/main/resources/org/jobrunr/dashboard/frontend')
-            commandLine 'sh', '-c', 'npm run test'
-        }
-    }
 }
-
-npmRunTest.dependsOn npmRunBuild
-processResources.dependsOn npmRunBuild
-sourcesJar.dependsOn npmRunBuild
 
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
@@ -230,10 +227,7 @@ signing {
 }
 
 def getGitBranch() {
-    def stdout = new ByteArrayOutputStream()
-    exec {
+    return providers.exec {
         commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
+    }.standardOutput.asText.get().trim()
 }

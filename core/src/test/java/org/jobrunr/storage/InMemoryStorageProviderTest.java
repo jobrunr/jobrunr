@@ -16,7 +16,7 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 public class InMemoryStorageProviderTest extends StorageProviderTest {
 
     @Override
-    protected void cleanup() {
+    protected void cleanup(int testMethodIndex) {
         storageProvider = new InMemoryStorageProvider(rateLimit().withoutLimits());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
     }

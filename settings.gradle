@@ -1,10 +1,11 @@
 pluginManagement {
     repositories {
+        mavenLocal()
+        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
         mavenCentral()
         maven { url = 'https://plugins.gradle.org/m2/' }
         maven { url = 'https://repo.spring.io/release' }
         maven { url = 'https://repo.spring.io/milestone' }
-        gradlePluginPortal()
     }
 }
 
@@ -29,7 +30,6 @@ buildCache {
 rootProject.name = 'JobRunr'
 include ':platform'
 include ':core'
-include ':language-support:jobrunr-kotlin-20-support'
 include ':language-support:jobrunr-kotlin-21-support'
 include ':language-support:jobrunr-kotlin-22-support'
 include ':framework-support:jobrunr-micronaut-feature'

@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 plugins {
-    id 'org.sonarqube' version '4.4.1.3373'
+    id 'org.sonarqube' version '6.3.1.5724'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
     id("net.ltgt.errorprone") version '4.3.0' apply false
@@ -71,8 +71,7 @@ sonar {
         property "sonar.sourceEncoding", "UTF-8"
         property "sonar.projectKey", "jobrunr_jobrunr"
         property "sonar.organization", "jobrunr"
-        property "sonar.branch.name", "v8"
-        property "sonar.branch.target", "v8"
+        // property "sonar.branch.name", "v8"
         property "sonar.coverage.jacoco.xmlReportPaths", "/tmp/reports/$project.name/jacocoTestCoverage.xml"
     }
 }
@@ -84,10 +83,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'net.ltgt.errorprone'
 
     compileJava {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        options.release = 21
         options.encoding = "UTF-8"
-        options.release = 8
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -95,7 +92,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
-            disable("ReturnValueIgnored")                       // in case of BatchCollector we rely on side effects to finish it; refactoring to Consumer makes it much worse
+            disable("ReturnValueIgnored")                       // for BatchCollector we rely on side effects to finish it
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
             disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
@@ -108,8 +105,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     compileTestJava {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        options.release = 21
         options.encoding = "UTF-8"
     }
 
@@ -118,15 +114,16 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
+        mavenCentral()
     }
 
     dependencies {
         implementation platform(project(':platform'))
         compileOnly 'org.apache.groovy:groovy-json:4.0.27'
 
-        errorprone("com.google.errorprone:error_prone_core:2.40.0")
+        errorprone("com.google.errorprone:error_prone_core:2.43.0")
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
@@ -142,8 +139,10 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     tasks.clean.doFirst {
-        delete "/tmp/reports/$project.name"
-        println "Deleted /tmp/reports/$project.name"
+        def projectName = project.name
+        delete "/tmp/reports/$projectName"
+        println "Deleted /tmp/reports/$projectName"
+
     }
 
     test {
@@ -169,7 +168,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacoco {
-        toolVersion = "0.8.12"
+        toolVersion = "0.8.14"
     }
 
     jacocoTestReport {
