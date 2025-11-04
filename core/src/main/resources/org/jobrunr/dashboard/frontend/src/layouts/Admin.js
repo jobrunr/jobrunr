@@ -1,4 +1,4 @@
-import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {createTheme, CssBaseline, styled, ThemeProvider} from '@mui/material';
 import {Navigate, Route, Routes} from 'react-router';
 import TopAppBar from "./TopAppBar";
 import Overview from "../components/overview/overview";
@@ -20,12 +20,29 @@ const Main = styled("main")(({theme}) => ({
 }));
 
 const theme = createTheme({
+    colorSchemes: {
+        dark: {
+            palette: {
+                text: {
+                    primary: '#E0E0E0'
+                }
+            }
+        }
+    },
     palette: {
         primary: {
             main: '#000'
         },
         secondary: {
             main: '#f50057'
+        },
+        background: {
+            default: {
+                light: '#eeeeee'
+            }
+        },
+        text: {
+            primary: '#3c4858'
         }
     },
     components: {
@@ -78,7 +95,8 @@ const AdminUI = function () {
     }, []);
 
     return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={theme} defaultMode="light">
+            <CssBaseline enableColorScheme/>
             {isLoading ?
                 <LoadingIndicator/>
                 : <JobRunrInfoContext value={jobRunrInfo}>

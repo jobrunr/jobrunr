@@ -1,4 +1,4 @@
-import {Box, Divider, Grid, IconButton, Paper, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
+import {Box, Divider, Grid, IconButton, Paper, ToggleButton, ToggleButtonGroup, Typography, useColorScheme} from "@mui/material";
 import {CalendarMonth, DarkMode, LightMode, Person, SettingsBrightness} from "@mui/icons-material";
 import {ClickAwayPopper} from "../ui/ClickAwayPopper.js";
 import React, {useRef, useState} from "react";
@@ -29,6 +29,7 @@ export const Preferences = () => {
     const [isOpen, setIsOpen] = useState(false);
     const popperAnchorEl = useRef(null);
     const [dateStyle, setDateStyle] = useDateStyles();
+    const {mode, setMode} = useColorScheme();
 
     const currentDate = new Date();
 
@@ -66,18 +67,22 @@ export const Preferences = () => {
 
                             <ToggleButtonGroup
                                 exclusive
-                                value="light"
+                                value={mode}
+                                onChange={(event) => {
+                                    console.log(event.target);
+                                    setMode(event.target.value)
+                                }}
                                 color="secondary"
                                 fullWidth
                             >
                                 <IconToggleButton value="light">
-                                    <LightMode fontSize="small" sx={{marginRight: 1}}/> Light
+                                    <LightMode fontSize="small" sx={{marginRight: 1, pointerEvents: "none"}}/> Light
                                 </IconToggleButton>
-                                <IconToggleButton value="system" disabled>
-                                    <SettingsBrightness fontSize="small" sx={{marginRight: 1}}/> System
+                                <IconToggleButton value="system">
+                                    <SettingsBrightness fontSize="small" sx={{marginRight: 1, pointerEvents: "none"}}/> System
                                 </IconToggleButton>
-                                <IconToggleButton value="dark" disabled>
-                                    <DarkMode fontSize="small" sx={{marginRight: 1}}/> Dark
+                                <IconToggleButton value="dark">
+                                    <DarkMode fontSize="small" sx={{marginRight: 1, pointerEvents: "none"}}/> Dark
                                 </IconToggleButton>
                             </ToggleButtonGroup>
                         </Grid>
