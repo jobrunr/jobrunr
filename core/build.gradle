@@ -148,10 +148,6 @@ tasks.register('npmRunTest', Exec) {
 //sourcesJar.dependsOn npmRunBuild
 //test.dependsOn npmRunTest
 
-clean {
-    outputs.upToDateWhen { false }
-}
-
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
         it.moduleVersion?.group == 'org.ow2.asm' && it.moduleVersion.name == 'asm'
