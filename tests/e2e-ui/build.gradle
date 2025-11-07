@@ -31,6 +31,12 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
 }
 
+tasks.named('test') {
+    dependsOn ':core:publishToMavenLocal'
+    dependsOn ':language-support:jobrunr-kotlin-22-support:publishToMavenLocal'
+}
+
+
 sonar {
     skipProject = true
 }
