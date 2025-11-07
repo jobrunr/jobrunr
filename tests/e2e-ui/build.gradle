@@ -35,6 +35,7 @@ dependencies {
 }
 
 tasks.named('test') {
+    dependsOn ':platform:publishToMavenLocal'
     dependsOn ':core:publishToMavenLocal'
     dependsOn ':language-support:jobrunr-kotlin-22-support:publishToMavenLocal'
 }
