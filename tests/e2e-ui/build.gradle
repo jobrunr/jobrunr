@@ -10,13 +10,13 @@ compileTestJava {
 }
 
 dependencies {
-    implementation project(':core')
-    implementation testFixtures(project(":core"))
+    implementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT'
+    implementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT:test-fixtures'
     implementation 'ch.qos.logback:logback-classic'
 
-    testImplementation project(':core')
+    testImplementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
-    testImplementation project(':language-support:jobrunr-kotlin-22-support')
+    testImplementation 'org.jobrunr:jobrunr-kotlin-2.2-support:1.0.0-SNAPSHOT'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'

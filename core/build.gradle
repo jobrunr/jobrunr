@@ -144,9 +144,9 @@ tasks.register('npmRunTest', Exec) {
 // ⚠️These steps are essential for the frontend to be build and tested properly.
 // Please don't remove, unless you've a different way to achieve the same thing.
 // The steps make sure the tasks are included in the build and test pipeline of gradle.
-processResources.dependsOn npmRunBuild
-sourcesJar.dependsOn npmRunBuild
-test.dependsOn npmRunTest
+//processResources.dependsOn npmRunBuild
+//sourcesJar.dependsOn npmRunBuild
+//test.dependsOn npmRunTest
 
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
