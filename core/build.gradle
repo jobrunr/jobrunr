@@ -117,7 +117,8 @@ normalization {
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
-    outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend')
+    outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
+    outputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     commandLine 'sh', '-c', 'npm install'
     outputs.cacheIf { true }
 }
@@ -132,7 +133,7 @@ tasks.register('npmRunBuild', Exec) {
 }
 
 tasks.register('npmRunTest', Exec) {
-    dependsOn 'npmInstall'
+    dependsOn 'npmRunBuild'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('/tmp/reports/core/frontend')
