@@ -116,7 +116,7 @@ normalization {
 
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'install'
+    commandLine 'sh', '-c', 'npm install'
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
     outputs.cacheIf { true }
@@ -125,7 +125,7 @@ tasks.register('npmInstall', Exec) {
 tasks.register('npmRunBuild', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'run', 'build'
+    commandLine 'sh', '-c', 'npm run build'
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
@@ -135,12 +135,16 @@ tasks.register('npmRunBuild', Exec) {
 tasks.register('npmRunTest', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'run', 'test'
+    commandLine 'sh', '-c', 'npm run test'
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('/tmp/reports/core/frontend')
     outputs.cacheIf { true }
 }
+
+npmRunTest.dependsOn npmRunBuild
+processResources.dependsOn npmRunBuild
+sourcesJar.dependsOn npmRunBuild
 
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
