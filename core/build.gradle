@@ -116,35 +116,36 @@ normalization {
 
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'sh', '-c', 'npm install'
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
-    outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
+    outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend')
+    commandLine 'sh', '-c', 'npm install'
     outputs.cacheIf { true }
 }
 
 tasks.register('npmRunBuild', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'sh', '-c', 'npm run build'
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
+    commandLine 'sh', '-c', 'npm run build'
     outputs.cacheIf { true }
 }
 
 tasks.register('npmRunTest', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'sh', '-c', 'npm run test'
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('/tmp/reports/core/frontend')
+    commandLine 'sh', '-c', 'npm run test'
     outputs.cacheIf { true }
 }
 
-npmRunTest.dependsOn npmRunBuild
+// ⚠️These steps are essential for the frontend to be build and tested properly.
+// Please don't remove, unless you've a different way to achieve the same thing.
+// The steps make sure the tasks are included in the build and test pipeline of gradle.
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
+test.dependsOn npmRunTest
 
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
