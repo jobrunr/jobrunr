@@ -185,3 +185,14 @@ See [CONTRIBUTING](https://github.com/jobrunr/jobrunr/blob/master/CONTRIBUTING.m
 * `./gradlew publishToMavenLocal`
 
 Then, in your own project you can depend on `org.jobrunr:jobrunr:1.0.0-SNAPSHOT`.
+
+## 🪪 License
+
+This project is licensed under the terms of the [Apache License 2.0](LICENSE).
+
+JobRunr is distributed under the **Apache 2.0 License**,
+which allows you to freely **use**, **modify**, and **redistribute** this software
+as long as you follow the conditions described in the license file.
+
+The full license text is available in the [LICENSE](LICENSE) file
+included in this repository.
