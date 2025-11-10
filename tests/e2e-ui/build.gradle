@@ -1,5 +1,4 @@
 plugins {
-    id 'java-library'
 }
 
 compileJava {
@@ -11,15 +10,13 @@ compileTestJava {
 }
 
 dependencies {
-    api platform(project(':platform'))
-
-    implementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT'
-    implementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT:test-fixtures'
+    implementation project(':core')
+    implementation testFixtures(project(":core"))
     implementation 'ch.qos.logback:logback-classic'
 
-    testImplementation 'org.jobrunr:jobrunr:1.0.0-SNAPSHOT'
+    testImplementation project(':core')
     testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
-    testImplementation 'org.jobrunr:jobrunr-kotlin-2.2-support:1.0.0-SNAPSHOT'
+    testImplementation project(':language-support:jobrunr-kotlin-22-support')
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -33,13 +30,6 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
 }
-
-tasks.named('test') {
-//    dependsOn ':platform:publishToMavenLocal'
-    dependsOn ':core:publishToMavenLocal'
-    dependsOn ':language-support:jobrunr-kotlin-22-support:publishToMavenLocal'
-}
-
 
 sonar {
     skipProject = true

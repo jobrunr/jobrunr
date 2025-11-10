@@ -18,7 +18,7 @@ public class HttpClient {
             URL url = new URL(getUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            try (AutoCloseable conc = con::disconnect) {
+            try (AutoCloseable ignored = con::disconnect) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), UTF_8));
                 String inputLine;
                 StringBuilder content = new StringBuilder();
@@ -30,6 +30,20 @@ public class HttpClient {
             }
         } catch (Exception e) {
             return "{}";
+        }
+    }
+
+    public static boolean ok(String getUrl) {
+        try {
+            URL url = new URL(getUrl);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            try (AutoCloseable ignored = con::disconnect) {
+                int responseCode = con.getResponseCode();
+                return responseCode == HttpURLConnection.HTTP_OK;
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 }
