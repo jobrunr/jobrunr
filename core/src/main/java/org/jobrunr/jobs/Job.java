@@ -75,8 +75,8 @@ public class Job extends AbstractJob {
         return UUID_FACTORY.create();
     }
 
-    // used for deserialization
     private Job() {
+        // used for deserialization
         this.id = null;
         this.jobHistory = new CopyOnWriteArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
