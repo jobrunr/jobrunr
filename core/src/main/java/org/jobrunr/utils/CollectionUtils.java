@@ -1,5 +1,7 @@
 package org.jobrunr.utils;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +27,7 @@ public class CollectionUtils {
         return !isNullOrEmpty(collection);
     }
 
-    public static <T> boolean isNullOrEmpty(Collection<T> collection) {
+    public static <T> boolean isNullOrEmpty(@Nullable Collection<T> collection) {
         if (collection == null) return true;
         return collection.isEmpty();
     }
@@ -34,7 +36,7 @@ public class CollectionUtils {
         return !isNullOrEmpty(someArray);
     }
 
-    public static <T> boolean isNullOrEmpty(T[] someArray) {
+    public static <T> boolean isNullOrEmpty(@Nullable T[] someArray) {
         if (someArray == null) return true;
         return someArray.length < 1;
     }
@@ -47,7 +49,7 @@ public class CollectionUtils {
     }
 
     @SuppressWarnings("NonApiType")
-    public static <T> ArrayList<T> asArrayList(Collection<T> existingCollection) {
+    public static <T> ArrayList<T> asArrayList(@Nullable Collection<T> existingCollection) {
         ArrayList<T> result = new ArrayList<>();
         if (existingCollection != null) {
             result.addAll(existingCollection);
@@ -75,12 +77,12 @@ public class CollectionUtils {
         return ofNullable(getLast(items));
     }
 
-    public static <T> T getFirst(List<T> items) {
+    public static <T> @Nullable T getFirst(List<T> items) {
         if (isNullOrEmpty(items)) return null;
         return items.get(0);
     }
 
-    public static <T> T getLast(List<T> items) {
+    public static <T> @Nullable T getLast(List<T> items) {
         if (isNullOrEmpty(items)) return null;
         return items.get(items.size() - 1);
     }

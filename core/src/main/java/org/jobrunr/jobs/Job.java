@@ -18,6 +18,7 @@ import org.jobrunr.utils.annotations.LockingJob;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.jobrunr.utils.uuid.UUIDv7Factory;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -137,7 +138,7 @@ public class Job extends AbstractJob {
         return cast(getJobState(-1));
     }
 
-    public JobState getJobState(int element) {
+    public @Nullable JobState getJobState(int element) {
         if (element >= 0) {
             return jobHistory.get(element);
         } else {

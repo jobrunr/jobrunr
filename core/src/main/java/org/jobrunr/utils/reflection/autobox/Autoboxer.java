@@ -1,5 +1,7 @@
 package org.jobrunr.utils.reflection.autobox;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +27,7 @@ public class Autoboxer {
 
     }
 
-    public static <T> T autobox(Object value, Class<T> type) {
+    public static <T> @Nullable T autobox(@Nullable Object value, Class<T> type) {
         if (value == null) return null;
         if (type.isAssignableFrom(value.getClass())) {
             return cast(value);

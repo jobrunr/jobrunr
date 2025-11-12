@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsBuilder;
+import org.jspecify.annotations.Nullable;
 
 public class BAStoreOperandInstruction extends ZeroOperandInstruction {
 
@@ -14,7 +15,7 @@ public class BAStoreOperandInstruction extends ZeroOperandInstruction {
     }
 
     @Override
-    public Object invokeInstruction() {
+    public @Nullable Object invokeInstruction() {
         return null;
     }
 

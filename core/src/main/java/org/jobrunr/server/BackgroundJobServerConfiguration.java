@@ -5,6 +5,7 @@ import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultConcurrentJobModificationPolicy;
+import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -59,7 +60,7 @@ public class BackgroundJobServerConfiguration {
      * @param id the id of this BackgroundJobServer (used in the dashboard and to see whether server is still up &amp; running)
      * @return the same configuration instance which provides a fluent api
      */
-    public BackgroundJobServerConfiguration andId(UUID id) {
+    public BackgroundJobServerConfiguration andId(@Nullable UUID id) {
         if (id == null) throw new IllegalArgumentException("The id can not be null");
         this.id = id;
         return this;

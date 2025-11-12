@@ -13,6 +13,7 @@ import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.utils.GraalVMUtils;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
@@ -51,7 +52,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
     private static final MemberCategory[] allMemberCategories = MemberCategory.values();
 
     @Override
-    public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+    public @Nullable BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
         boolean hasJobSchedulerOrDashboardEnabled = hasJobSchedulerOrDashboardEnabled(beanFactory);
         Set<String> recurringJobClassNames = findAllRecurringJobClassNames(beanFactory);
         Set<String> jobRequestHandlerClassNames = findAllJobRequestHandlerClassNames(beanFactory);

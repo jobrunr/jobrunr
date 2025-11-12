@@ -9,6 +9,7 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
+import org.jspecify.annotations.Nullable;
 
 
 public class JobRunrMongoDBStorageProviderProducer {
@@ -16,7 +17,7 @@ public class JobRunrMongoDBStorageProviderProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public StorageProvider storageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
+    public @Nullable StorageProvider storageProvider(MongoClient mongoClient, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
         if (configuration.database().type().isPresent() && !configuration.database().type().get().equalsIgnoreCase("mongodb")) return null;
 
         String databaseName = configuration.database().databaseName().orElse(null);

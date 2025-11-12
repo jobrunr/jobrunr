@@ -1,5 +1,7 @@
 package org.jobrunr.utils;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
@@ -36,7 +38,7 @@ public class StringUtils {
         return s;
     }
 
-    public static String substringAfter(String s, String splitter) {
+    public static @Nullable String substringAfter(String s, String splitter) {
         final int indexOf = s.indexOf(splitter);
         return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : null;
     }
@@ -49,7 +51,7 @@ public class StringUtils {
         return s.substring(s.lastIndexOf(splitter) + 1);
     }
 
-    public static String substringBetween(String s, String open, String close) {
+    public static @Nullable String substringBetween(String s, String open, String close) {
         if (s.contains(open) && s.contains(close)) {
             return substringBefore(substringAfter(s, open), close);
         }
@@ -64,7 +66,7 @@ public class StringUtils {
      * @param close the String after the substring, may not be null
      * @return Returns the last matched String between the given open and close String when possible or null.
      */
-    public static String lastMatchedSubstringBetween(String s, String open, String close) {
+    public static @Nullable String lastMatchedSubstringBetween(String s, String open, String close) {
         if (s.contains(open) && s.contains(close)) {
             return substringBefore(substringAfterLast(s, open), close);
         }
@@ -79,7 +81,7 @@ public class StringUtils {
      * @param close the String after the substring, may not be null
      * @return Returns the String between the given open and close String when possible or everything after the opening String.
      */
-    public static String lenientSubstringBetween(String s, String open, String close) {
+    public static @Nullable String lenientSubstringBetween(@Nullable String s, String open, String close) {
         if (s != null && s.contains(open)) {
             String result = substringAfter(s, open);
             if (result.contains(close)) {

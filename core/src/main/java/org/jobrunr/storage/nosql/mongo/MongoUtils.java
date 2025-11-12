@@ -7,6 +7,7 @@ import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.types.Binary;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -67,7 +68,7 @@ public class MongoUtils {
         return MICROS.between(Instant.EPOCH, instant);
     }
 
-    public static Instant fromMicroseconds(Long micros) {
+    public static @Nullable Instant fromMicroseconds(@Nullable Long micros) {
         if (micros == null) {
             return null;
         }

@@ -12,6 +12,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
+import org.jspecify.annotations.Nullable;
 
 @Singleton
 public class JobRunrMetricsProducer {
@@ -27,7 +28,7 @@ public class JobRunrMetricsProducer {
         @DefaultBean
         @Singleton
         @LookupIfProperty(name = "quarkus.jobrunr.jobs.metrics.enabled", stringValue = "true")
-        public StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
+        public @Nullable StorageProviderMetricsBinder storageProviderMetricsBinder(StorageProvider storageProvider, MeterRegistry meterRegistry) {
             if (jobRunrRuntimeConfiguration.jobs().metrics().enabled()) {
                 return new StorageProviderMetricsBinder(storageProvider, meterRegistry);
             }
@@ -44,7 +45,7 @@ public class JobRunrMetricsProducer {
         @Singleton
         @LookupIfProperty(name = "quarkus.jobrunr.background-job-server.enabled", stringValue = "true")
         @LookupIfProperty(name = "quarkus.jobrunr.background-job-server.metrics.enabled", stringValue = "true")
-        public BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(Instance<BackgroundJobServer> backgroundJobServer, MeterRegistry meterRegistry) {
+        public @Nullable BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder(Instance<BackgroundJobServer> backgroundJobServer, MeterRegistry meterRegistry) {
             if (jobRunrRuntimeConfiguration.backgroundJobServer().enabled() && jobRunrRuntimeConfiguration.backgroundJobServer().metrics().enabled()) {
                 return new BackgroundJobServerMetricsBinder(backgroundJobServer.get(), meterRegistry);
             }

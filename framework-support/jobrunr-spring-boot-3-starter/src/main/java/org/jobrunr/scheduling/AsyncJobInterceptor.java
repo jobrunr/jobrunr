@@ -7,6 +7,7 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -29,7 +30,7 @@ public class AsyncJobInterceptor implements MethodInterceptor {
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
+    public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
         // If method is not annotated with @Job or it is running the actual method, proceed as usual
         if (!AnnotatedElementUtils.hasAnnotation(invocation.getMethod(), Job.class) || isRunningActualJob(invocation)) {
             return invocation.proceed();

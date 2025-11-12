@@ -1,6 +1,7 @@
 package org.jobrunr.storage.navigation;
 
 import org.jobrunr.utils.annotations.VisibleFor;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class AmountRequest {
     protected final String order;
     protected final int limit;
 
-    public static AmountRequest fromString(String amountRequestAsString) {
+    public static @Nullable AmountRequest fromString(String amountRequestAsString) {
         if (isNullOrEmpty(amountRequestAsString)) return null;
 
         return new AmountRequest(

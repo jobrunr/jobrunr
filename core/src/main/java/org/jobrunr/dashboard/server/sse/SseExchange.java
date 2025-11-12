@@ -2,6 +2,7 @@ package org.jobrunr.dashboard.server.sse;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class SseExchange implements AutoCloseable {
         this.writer.write("\n\n");
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(@Nullable String message) {
         if (message == null) return;
         if (message.equals(lastSendMessage)) return;
         try {

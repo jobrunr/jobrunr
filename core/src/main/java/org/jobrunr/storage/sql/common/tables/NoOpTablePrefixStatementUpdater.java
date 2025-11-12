@@ -1,5 +1,7 @@
 package org.jobrunr.storage.sql.common.tables;
 
+import org.jspecify.annotations.Nullable;
+
 public class NoOpTablePrefixStatementUpdater implements TablePrefixStatementUpdater {
 
     @Override
@@ -8,7 +10,7 @@ public class NoOpTablePrefixStatementUpdater implements TablePrefixStatementUpda
     }
 
     @Override
-    public String getSchema() {
+    public @Nullable String getSchema() {
         return null;
     }
 
