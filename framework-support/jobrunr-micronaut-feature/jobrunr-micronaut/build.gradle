@@ -28,6 +28,7 @@ dependencies {
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'org.jspecify:jspecify'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.micronaut.test:micronaut-test-junit5'
