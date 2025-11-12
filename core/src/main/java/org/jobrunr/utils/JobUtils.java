@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -55,8 +56,11 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        if (!jobDetails.hasStaticFieldName() && getJobMethod(jobDetails) == null)
-            throw new IllegalStateException("Job does not exist");
+        if (jobDetails.hasStaticFieldName()) return; // small chance / more for sysout type of jobs
+        Method jobMethod = getJobMethod(jobDetails);
+        if (Modifier.isAbstract(jobMethod.getModifiers())) {
+            throw new JobMethodNotFoundException(jobDetails);
+        }
     }
 
     public static boolean jobExists(String jobSignature) {
