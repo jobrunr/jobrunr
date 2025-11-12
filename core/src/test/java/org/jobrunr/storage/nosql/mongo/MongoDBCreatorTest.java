@@ -18,9 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MongoDBCreatorTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:latest").withExposedPorts(27017);
+    private static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:latest").withExposedPorts(27017);
 
     @BeforeEach
     void clearAllCollections() {

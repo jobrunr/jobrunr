@@ -26,6 +26,7 @@ import static org.awaitility.Awaitility.await;
 import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.tests.fromhost.HttpClient.getJson;
+import static org.jobrunr.tests.fromhost.HttpClient.ok;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 @EnabledIfEnvironmentVariable(named = "JDK_TEST", matches = "true")
@@ -55,6 +56,11 @@ class E2EJDKTest {
     public static void stopJobRunr() {
         JobRunr
                 .destroy();
+    }
+
+    @Test
+    void dashboardWebServerIsReachable() {
+        assertThat(ok("http://localhost:8000/dashboard")).isTrue();
     }
 
     @Test

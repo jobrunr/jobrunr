@@ -21,6 +21,7 @@ import org.jobrunr.stubs.BackgroundJobServerStub;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.exceptions.Exceptions;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.junit.jupiter.TestMethodIndexProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -90,7 +91,8 @@ public abstract class StorageProviderTest {
 
     @BeforeEach
     public void cleanUpAndSetupBackgroundJobServer() {
-        cleanup();
+        int testMethodIndex = TestMethodIndexProvider.getTestMethodIndex(this.getClass());
+        cleanup(testMethodIndex);
         final JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
         JobRunr.configure()
                 .useStorageProvider(getStorageProvider())
@@ -108,7 +110,7 @@ public abstract class StorageProviderTest {
         this.storageProvider.close();
     }
 
-    protected abstract void cleanup();
+    protected abstract void cleanup(int testMethodIndex);
 
     protected abstract StorageProvider getStorageProvider();
 

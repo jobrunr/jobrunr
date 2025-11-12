@@ -30,8 +30,8 @@ steps:
       - |
         bash -lc '
           set -e -o pipefail
-          gradle --no-daemon -Djib.console=plain --info clean build npmRunTest test \
-            | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.|Caching disabled for |[[:space:]]+Caching not enabled\\.)"
+          gradle --no-daemon -Djib.console=plain --info clean build test \
+            | grep -Ev "^(Found locally available resource with matching checksum|Build cache key for|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.|Caching disabled for |[[:space:]]+Caching not enabled\\.)"
         '
     environment:
       GRADLE_RO_DEP_CACHE: /root/.gradle-ci-cache
