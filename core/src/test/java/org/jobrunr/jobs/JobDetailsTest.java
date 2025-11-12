@@ -6,9 +6,13 @@ import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.GenericJobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level1JobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.MyAsyncJobRequest;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
@@ -97,5 +101,29 @@ class JobDetailsTest {
         final TestInvalidJobRequest jobRequest = new TestInvalidJobRequest();
         assertThatThrownBy(() -> new JobDetails(jobRequest))
                 .isInstanceOf(JobMethodNotFoundException.class);
+    }
+
+    @Test
+    void testJobDetailsFromValidJobRequestUsingStaticField() {
+        final GenericJobRequest jobRequest = new GenericJobRequest();
+        assertThatCode(() -> new JobDetails(jobRequest)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testJobDetailsFromValidJobRequestUsingGenerics() {
+        final GenericJobRequest jobRequest = new GenericJobRequest();
+        assertThatCode(() -> new JobDetails(jobRequest)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testJobDetailsFromValidJobRequestUsingInheritance() {
+        final Level1JobRequest jobRequest = new Level1JobRequest();
+        assertThatCode(() -> new JobDetails(jobRequest)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void testJobDetailsFromValidAsyncJobRequest() {
+        final MyAsyncJobRequest jobRequest = new MyAsyncJobRequest();
+        assertThatCode(() -> new JobDetails(jobRequest)).doesNotThrowAnyException();
     }
 }
