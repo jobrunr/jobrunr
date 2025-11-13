@@ -12,26 +12,31 @@ public class ReflectionTestClasses {
 
     }
 
-    public static class Level0JobRequestHandler<T extends Level0JobRequest> implements JobRequestHandler<T> {
+    public static abstract class Level0JobRequestHandler<T extends Level0JobRequest> implements JobRequestHandler<T> {
         @Override
         public void run(T jobRequest) throws Exception {
             System.out.println(jobRequest);
         }
     }
 
-    public static class Level1JobRequest extends Level0JobRequest {
+    public static abstract class Level1JobRequest
+            <T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>> extends Level0JobRequest {
+    }
+
+    public static abstract class Level1JobRequestHandler
+            <T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>>
+            extends Level0JobRequestHandler<T> implements JobRequestHandler<T> {
+    }
+
+    public static class Level2JobRequest extends Level1JobRequest<Level2JobRequest, Level2JobRequestHandler> {
         @Override
-        public Class<Level1JobRequestHandler> getJobRequestHandler() {
-            return Level1JobRequestHandler.class;
+        public Class<Level2JobRequestHandler> getJobRequestHandler() {
+            return Level2JobRequestHandler.class;
         }
     }
 
-    public static class Level1JobRequestHandler extends Level0JobRequestHandler<Level1JobRequest> {
-        @Override
-        public void run(Level1JobRequest jobRequest) throws Exception {
-            super.run(jobRequest);
-        }
-
+    public static class Level2JobRequestHandler
+            extends Level1JobRequestHandler<Level2JobRequest, Level2JobRequestHandler> {
     }
 
     public static class GenericJobRequest implements JobRequest {
