@@ -16,7 +16,6 @@ import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 import java.util.TimeZone;
 
 public class Jackson3JsonMapper implements JsonMapper {
@@ -27,9 +26,7 @@ public class Jackson3JsonMapper implements JsonMapper {
         var typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("org.jobrunr.")
                 .allowIfSubType("java.util.concurrent.")
-                .allowIfSubType(Map.class)
                 .allowIfSubTypeIsArray()
-                .denyForExactBaseType(Number.class)
                 .build();
 
         this.jsonMapper = tools.jackson.databind.json.JsonMapper.builder()
