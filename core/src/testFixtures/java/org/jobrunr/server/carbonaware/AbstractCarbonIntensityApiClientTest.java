@@ -11,9 +11,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.time.Duration;
 import java.time.Instant;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static java.lang.String.format;
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
@@ -85,9 +82,9 @@ abstract class AbstractCarbonIntensityApiClientTest {
     @Test
     void fetchCarbonIntensityForecastWithResponseCode404SetsResponseStatus() {
         var url = format(getCarbonIntensityForecastApiPath() + "?areaCode=BE");
-        stubFor(WireMock.get(urlEqualTo(url)).willReturn(notFound().withResponseBody(new Body("<html><body>404 Not Found</body></html>"))));
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(url)).willReturn(WireMock.notFound().withResponseBody(new Body("<html><body>404 Not Found</body></html>"))));
         var apiClient = createCarbonAwareApiClient("BE");
-        var logger =  LoggerAssert.initFor(apiClient);
+        var logger = LoggerAssert.initFor(apiClient);
 
         var forecast = apiClient.fetchCarbonIntensityForecast();
 

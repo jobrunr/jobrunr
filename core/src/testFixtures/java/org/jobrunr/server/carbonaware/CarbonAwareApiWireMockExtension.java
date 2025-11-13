@@ -2,6 +2,7 @@ package org.jobrunr.server.carbonaware;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -22,10 +23,6 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.lang.String.format;
 import static java.time.Duration.ofMillis;
 import static java.time.ZoneId.systemDefault;
@@ -43,7 +40,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     protected final String carbonIntensityApiBaseUrl;
 
     static {
-        wireMockServer = new WireMockServer(options().dynamicPort());
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         wireMockServer.start();
         WireMock.configureFor(wireMockServer.port());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -80,8 +77,8 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
 
     public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
         var url = format(getCarbonIntensityForecastApiPath() + "?areaCode=%s", areaCode);
-        stubFor(WireMock.get(urlEqualTo(url))
-                .willReturn(aResponse()
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(url))
+                .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(response)));
     }

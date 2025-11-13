@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
 import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
@@ -53,9 +54,10 @@ public abstract class AbstractJobStatsSseExchangeTest {
             outStream.reset();
 
             sseExchange.onChange(storageProvider.getJobStats());
-            var eventData = outStream.toString(StandardCharsets.UTF_8);
+            var eventData = outStream.toString(StandardCharsets.UTF_8).trim();
 
-            assertThat(eventData.trim()).isEqualTo(contentOfResource("/dashboard/sse/job-stats.txt"));
+            assertThat(eventData).startsWith("event\ndata:");
+            assertThatJson(eventData.replace("event\ndata:", "")).isEqualTo(contentOfResource("/dashboard/sse/job-stats.json"));
         }
     }
 
