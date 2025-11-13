@@ -2,10 +2,11 @@ import {render, screen} from '@testing-library/react'
 import AwaitingStateCarbonIntensityChart from "./awaiting-state-carbon-intensity-chart.js";
 import {jest} from '@jest/globals';
 import CarbonIntensityDataMock from "./__mocks__/carbon-intensity-data-mock.js";
-import {setDateStyle} from "../../utils/date-styles.js";
+import {setDateStyle} from "../../../hooks/useDateStyles.js";
 
 describe('carbon aware intensity chart', () => {
     let _fetch;
+
     function mockFetch(status, data) {
         _fetch = global.fetch;
         global.fetch = jest.fn(() =>

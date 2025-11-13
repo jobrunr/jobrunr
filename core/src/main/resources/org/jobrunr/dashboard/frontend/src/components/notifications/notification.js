@@ -117,8 +117,7 @@ export const Notification = ({title = "Notification", date, severity = "warning"
                         </Stack>
                     </Box>
                 }
-                primaryTypographyProps={{component: "div"}}
-                secondaryTypographyProps={{component: "div"}}
+                slotProps={{primary: {component: "div"}, secondary: {component: "div"}}}
             />
         </NotificationListItem>
     )

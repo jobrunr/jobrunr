@@ -44,6 +44,7 @@
   "devDependencies": {
     "@rsbuild/core": "^1.5.13",
     "@rsbuild/plugin-react": "^1.4.1",
+    "@rsbuild/plugin-svgr": "^1.2.2",
     "@swc/core": "^1.13.5",
     "@swc/jest": "^0.2.39",
     "@testing-library/jest-dom": "^6.9.1",

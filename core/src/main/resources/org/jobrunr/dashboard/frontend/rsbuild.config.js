@@ -1,10 +1,11 @@
 import {defineConfig, loadEnv} from '@rsbuild/core';
 import {pluginReact} from '@rsbuild/plugin-react';
+import {pluginSvgr} from "@rsbuild/plugin-svgr";
 
 const {publicVars} = loadEnv({prefixes: ['REACT_APP_']});
 
 export default defineConfig({
-    plugins: [pluginReact()],
+    plugins: [pluginReact(), pluginSvgr()],
     html: {
         template: './public/index.html',
         templateParameters: {

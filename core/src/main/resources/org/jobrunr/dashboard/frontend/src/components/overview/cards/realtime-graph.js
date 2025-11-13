@@ -1,10 +1,11 @@
-import {lazy, Suspense, useEffect, useRef, useState} from 'react';
+import {lazy, Suspense, useEffect, useMemo, useRef} from 'react';
 
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import LoadingIndicator from "../../LoadingIndicator";
 import {useJobStats} from "../../../hooks/useJobStats";
+import {useColorScheme} from "@mui/material";
 
 function getArrayWithLimitedLength(length) {
     const array = [];
@@ -34,8 +35,14 @@ const RealtimeGraph = () => {
 
     const [stats, _] = useJobStats();
 
-    const [graphState] = useState({
+    const {mode, systemMode} = useColorScheme();
+    const actualMode = systemMode || mode;
+
+    const graphState = useMemo(() => ({
         options: {
+            theme: {
+                mode: actualMode,
+            },
             chart: {
                 id: "processing-chart",
                 type: 'bar',
@@ -46,7 +53,8 @@ const RealtimeGraph = () => {
                 },
                 toolbar: {
                     show: false
-                }
+                },
+                background: "transparent",
             },
             dataLabels: {
                 enabled: false
@@ -67,7 +75,7 @@ const RealtimeGraph = () => {
             {name: "Failed jobs", data: []},
             {name: "Succeeded jobs", data: []}
         ]
-    });
+    }), [actualMode]);
 
     useEffect(() => {
         const oldStats = oldStatsRef.current;
@@ -99,7 +107,7 @@ const RealtimeGraph = () => {
     return (
         <div className="row">
             <Box my={3}>
-                <Typography id="title" variant="h5">Realtime graph</Typography>
+                <Typography id="realtime-graph" variant="h5">Realtime graph</Typography>
             </Box>
             <Paper>
                 <Suspense fallback={<LoadingIndicator/>}>

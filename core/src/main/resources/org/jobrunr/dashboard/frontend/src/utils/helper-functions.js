@@ -61,3 +61,8 @@ export function subDaysToDate(date, days = 30) {
     jsDate.setDate(jsDate.getDate() - days);
     return jsDate;
 }
+
+export function convertToBrowserDefaultDateStyle(date) {
+    const dateString = date.toString();
+    return dateString.toString().substring(0, dateString.indexOf(' ('));
+}

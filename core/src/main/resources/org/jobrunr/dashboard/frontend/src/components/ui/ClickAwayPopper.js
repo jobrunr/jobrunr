@@ -9,6 +9,7 @@ export const ClickAwayPopper = ({children, isOpen, handleClickAway, ...rest}) =>
                 sx={{zIndex: 1250}} // TODO use theme to determine z-index
                 open
                 placement="bottom-end"
+                role="dialog"
                 {...rest}
             >
                 <TrapFocus open disableAutoFocus disableEnforceFocus>

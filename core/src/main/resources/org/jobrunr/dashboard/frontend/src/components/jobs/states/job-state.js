@@ -10,7 +10,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Accordion from "@mui/material/Accordion";
 
-const COLOR_VARIANTS = {
+const COLOR_VARIANTS_LIGHT = {
     deleted: {
         color: '#ffe4bf',
         backgroundColor: '#654b3d',
@@ -60,6 +60,56 @@ const COLOR_VARIANTS = {
     }
 }
 
+const COLOR_VARIANTS_DARK = {
+    deleted: {
+        color: '#ffb380',
+        backgroundColor: '#3d2817',
+        '& div.MuiAlert-icon': {
+            color: '#ff8a65',
+            backgroundColor: '#3d2817',
+        },
+        '& div.MuiAlert-standardInfo': {
+            color: '#ffb380',
+            backgroundColor: '#3d2817',
+        }
+    },
+    scheduled: {
+        color: "rgb(144, 202, 249)",
+        backgroundColor: "rgb(18, 35, 48)",
+        '& div.MuiAlert-icon': {
+            color: "rgb(144, 202, 249)"
+        }
+    },
+    processing: {
+        color: "rgb(255, 213, 153)",
+        backgroundColor: "rgb(51, 30, 0)",
+    },
+    failed: {
+        color: "rgb(255, 167, 163)",
+        backgroundColor: "rgb(49, 13, 11)",
+    },
+    enqueued: {
+        color: "rgb(144, 202, 249)",
+        backgroundColor: "rgb(13, 30, 49)",
+    },
+    success: {
+        color: "rgb(165, 214, 167)",
+        backgroundColor: "rgb(15, 35, 16)",
+    },
+    awaiting: {
+        color: "rgb(189, 189, 189)",
+        backgroundColor: "rgb(33, 37, 30)",
+        '& div.MuiAlert-icon': {
+            color: 'rgb(189, 189, 189)',
+            backgroundColor: 'rgb(33, 37, 30)',
+        },
+        '& div.MuiAlert-standardInfo': {
+            color: 'rgb(189, 189, 189)',
+            backgroundColor: 'rgb(33, 37, 30)',
+        }
+    }
+}
+
 const ICON_VARIANTS = {
     deleted: Delete,
     scheduled: Schedule,
@@ -81,9 +131,9 @@ const ALERT_SEVERITY_VARIANTS = {
 
 const StyledAccordionSummary = styled(AccordionSummary,
     {shouldForwardProp: prop => prop !== 'state'}
-)(({state}) => ({
+)(({theme, state}) => ({
     minHeight: 56,
-    ...COLOR_VARIANTS[state]
+    ...(theme.palette.mode === "light" ? COLOR_VARIANTS_LIGHT[state] : COLOR_VARIANTS_DARK[state])
 }));
 
 const JobStateHeading = ({state, title, date, canExpand = true}) => {
