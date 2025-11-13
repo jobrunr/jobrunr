@@ -7,7 +7,7 @@ import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestJobRequest.TestJobRequestHandler;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.reflection.ReflectionTestClasses.GenericJobRequest;
-import org.jobrunr.utils.reflection.ReflectionTestClasses.Level1JobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level2JobRequest;
 import org.jobrunr.utils.reflection.ReflectionTestClasses.MyAsyncJobRequest;
 import org.junit.jupiter.api.Test;
 
@@ -117,7 +117,7 @@ class JobDetailsTest {
 
     @Test
     void testJobDetailsFromValidJobRequestUsingInheritance() {
-        final Level1JobRequest jobRequest = new Level1JobRequest();
+        final Level2JobRequest jobRequest = new Level2JobRequest();
         assertThatCode(() -> new JobDetails(jobRequest)).doesNotThrowAnyException();
     }
 
