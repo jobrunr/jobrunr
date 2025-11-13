@@ -146,7 +146,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     }
 
-    test {
+    tasks.withType(Test) {
         finalizedBy jacocoTestReport
         reports.junitXml.outputLocation = file("/tmp/reports/$project.name")
         reports.html.outputLocation = file("/tmp/reports/$project.name")
