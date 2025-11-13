@@ -4,9 +4,9 @@ import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
@@ -14,15 +14,15 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 public class MongoDBLatestStorageProviderWithTablePrefixTest extends AbstractMongoDBStorageProviderTest {
 
     @Container
-    private static final GenericContainer mongoContainer = new GenericContainer("mongo:latest").withExposedPorts(27017);
+    private static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:latest").withExposedPorts(27017);
 
     @Override
-    protected GenericContainer getMongoContainer() {
+    protected MongoDBContainer getMongoContainer() {
         return mongoContainer;
     }
 
     @Override
-    protected void cleanup() {
+    protected void cleanup(int testMethodIndex) {
         cleanup("some_other_db");
     }
 

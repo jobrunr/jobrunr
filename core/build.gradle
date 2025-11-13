@@ -156,6 +156,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-oracle-free'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-db2'
+    testImplementation 'org.testcontainers:testcontainers-mongodb'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
@@ -193,31 +194,37 @@ normalization {
 
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'install'
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
+    outputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
+    commandLine 'sh', '-c', 'npm install'
     outputs.cacheIf { true }
 }
 
 tasks.register('npmRunBuild', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'run', 'build'
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
+    commandLine 'sh', '-c', 'npm run build'
     outputs.cacheIf { true }
 }
 
 tasks.register('npmRunTest', Exec) {
-    dependsOn 'npmInstall'
+    dependsOn 'npmRunBuild'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    commandLine 'npm', 'run', 'test'
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/src').withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('/tmp/reports/core/frontend')
+    commandLine 'sh', '-c', 'npm run test'
     outputs.cacheIf { true }
 }
+
+// ⚠️These steps are essential for the frontend to be build and tested properly.
+// Please don't remove, unless you've a different way to achieve the same thing.
+// The steps make sure the tasks are included in the build and test pipeline of gradle.
+processResources.dependsOn npmRunBuild
+sourcesJar.dependsOn npmRunBuild
+test.dependsOn npmRunTest
 
 jar {
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
@@ -307,4 +314,22 @@ def getGitBranch() {
     return providers.exec {
         commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
     }.standardOutput.asText.get().trim()
+}
+
+// this task is executed on the release to check that the UI build output folder is present and fresh
+tasks.register('uiBuildOutputVerification') {
+    doLast {
+        def outputDir = file('src/main/resources/org/jobrunr/dashboard/frontend/build')
+        if (!outputDir.exists()) {
+            throw new GradleException("UI build output missing! This means that the task 'npmRunBuild' hasn't run...")
+        }
+
+        def sourcesLastModifiedAt = fileTree('src/main/resources/org/jobrunr/dashboard/frontend').files.collect { f -> f.lastModified() }.max()
+        def outputLastModifiedAt = fileTree(outputDir).files.collect(f -> f.lastModified()).max()
+        if (outputLastModifiedAt < sourcesLastModifiedAt) {
+            throw new GradleException("UI output is stale! The sources are newer than the build artifacts. This means that the task 'npmRunBuild' hasn't run...")
+        }
+
+        println "✓ UI build output validated"
+    }
 }

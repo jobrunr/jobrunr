@@ -16,6 +16,8 @@ public class MethodFinderPredicate implements Predicate<Method> {
 
     @Override
     public boolean test(Method method) {
+        if (method.isBridge()) return false;
+
         return methodName.equals(method.getName()) && (
                 Arrays.equals(method.getParameterTypes(), parameterTypes)
                         || compareParameterTypesForPrimitives(method.getParameterTypes()));
@@ -24,10 +26,11 @@ public class MethodFinderPredicate implements Predicate<Method> {
     private boolean compareParameterTypesForPrimitives(Class<?>[] parameterTypes) {
         if (this.parameterTypes.length != parameterTypes.length) return false;
 
-        boolean result = true;
         for (int i = 0; i < parameterTypes.length; i++) {
-            result &= (parameterTypes[i].isPrimitive()) && ReflectionUtils.isClassAssignable(parameterTypes[i], this.parameterTypes[i]);
+            if (!ReflectionUtils.isClassAssignable(parameterTypes[i], this.parameterTypes[i])) {
+                return false;
+            }
         }
-        return result;
+        return true;
     }
 }

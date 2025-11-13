@@ -1,10 +1,11 @@
 pluginManagement {
     repositories {
+        mavenLocal()
+        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
         mavenCentral()
         maven { url = 'https://plugins.gradle.org/m2/' }
         maven { url = 'https://repo.spring.io/release' }
         maven { url = 'https://repo.spring.io/milestone' }
-        gradlePluginPortal()
     }
 }
 
