@@ -106,6 +106,10 @@ tasks.register('test17', Test) {
     classpath = sourceSets.test17.runtimeClasspath
 }
 
+tasks.named('test') {
+    dependsOn(tasks.named('test17'))
+}
+
 tasks.register('myJavadocs', Javadoc) {
     source = sourceSets.main.allJava
     classpath = project.sourceSets.main.compileClasspath
