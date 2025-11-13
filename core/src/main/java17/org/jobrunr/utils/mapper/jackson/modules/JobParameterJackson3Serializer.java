@@ -17,7 +17,13 @@ public class JobParameterJackson3Serializer extends StdSerializer<JobParameter> 
         jgen.writeStartObject();
         jgen.writeStringProperty("className", jobParameter.getClassName());
         jgen.writeStringProperty("actualClassName", jobParameter.getActualClassName());
-        jgen.writeStringProperty("object", jobParameter.getObject() != null ? jobParameter.getObject().toString() : null);
+        Object objectValue = jobParameter.getObject();
+        if (objectValue != null) {
+            jgen.writeName("object");
+            jgen.writePOJO(objectValue);
+        } else {
+            jgen.writeNullProperty("object");
+        }
         jgen.writeEndObject();
     }
 }
