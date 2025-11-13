@@ -182,6 +182,7 @@ dependencies {
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'io.micrometer:micrometer-core'
+    testFixturesApi 'org.wiremock:wiremock'
 }
 
 normalization {
