@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling.carbonaware;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
@@ -18,10 +19,7 @@ public class CarbonAwareScheduleMargin {
     private final Duration marginBefore;
     private final Duration marginAfter;
 
-    public CarbonAwareScheduleMargin(@Nullable Duration marginBefore, @Nullable Duration marginAfter) {
-        if (marginBefore == null || marginAfter == null) {
-            throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be non-null.", marginBefore, marginAfter));
-        }
+    public CarbonAwareScheduleMargin(@NonNull Duration marginBefore, @NonNull Duration marginAfter) {
         if (marginBefore.isNegative() || marginAfter.isNegative()) {
             throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be positive Durations.", marginBefore, marginAfter));
         }

@@ -25,6 +25,8 @@
 
 package org.jobrunr.utils;
 
+import org.jspecify.annotations.NonNull;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -149,8 +151,7 @@ public final class ObjectSizeCalculator {
      *
      * @param memoryLayoutSpecification a description of the JVM memory layout.
      */
-    public ObjectSizeCalculator(final MemoryLayoutSpecification memoryLayoutSpecification) {
-        Objects.requireNonNull(memoryLayoutSpecification);
+    public ObjectSizeCalculator(@NonNull final MemoryLayoutSpecification memoryLayoutSpecification) {
         arrayHeaderSize = memoryLayoutSpecification.getArrayHeaderSize();
         objectHeaderSize = memoryLayoutSpecification.getObjectHeaderSize();
         objectPadding = memoryLayoutSpecification.getObjectPadding();
