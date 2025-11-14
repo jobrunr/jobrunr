@@ -6,6 +6,7 @@ import jakarta.json.bind.serializer.DeserializationContext;
 import jakarta.json.bind.serializer.JsonbDeserializer;
 import jakarta.json.stream.JsonParser;
 import org.jobrunr.utils.DurationUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -14,7 +15,7 @@ import java.time.Duration;
 public class DurationTypeDeserializer implements JsonbDeserializer<Duration> {
 
     @Override
-    public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext, Type type) {
+    public @Nullable Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext, Type type) {
         JsonValue value = jsonParser.getValue();
         if (value != JsonValue.NULL) {
             if (value instanceof JsonString) {

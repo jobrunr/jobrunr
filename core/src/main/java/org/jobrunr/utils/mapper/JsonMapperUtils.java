@@ -1,5 +1,7 @@
 package org.jobrunr.utils.mapper;
 
+import org.jspecify.annotations.Nullable;
+
 import static java.util.Arrays.stream;
 
 public class JsonMapperUtils {
@@ -11,7 +13,7 @@ public class JsonMapperUtils {
         return getActualClassName(methodClassName, actualClassName, "java.", "sun.", "com.sun.");
     }
 
-    public static String getActualClassName(String methodClassName, String actualClassName, String... classNamesThatShouldReturnTheMethodClassName) {
+    public static String getActualClassName(String methodClassName, @Nullable String actualClassName, String... classNamesThatShouldReturnTheMethodClassName) {
         if (actualClassName == null || stream(classNamesThatShouldReturnTheMethodClassName).anyMatch(actualClassName::startsWith))
             return methodClassName;
         return actualClassName;

@@ -5,6 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.metrics.BackgroundJobServerMetricsBinder;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.metrics.StorageProviderMetricsBinder;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper around a Micrometer {@link MeterRegistry} that allows to integrate Micrometer with JobRunr.
@@ -21,7 +22,7 @@ public class JobRunrMicroMeterIntegration implements AutoCloseable {
         this.meterRegistry = meterRegistry;
     }
 
-    public void initialize(StorageProvider storageProvider, BackgroundJobServer backgroundJobServer) {
+    public void initialize(StorageProvider storageProvider, @Nullable BackgroundJobServer backgroundJobServer) {
         storageProviderMetricsBinder = new StorageProviderMetricsBinder(storageProvider, meterRegistry);
         if (backgroundJobServer != null) {
             backgroundJobServerMetricsBinder = new BackgroundJobServerMetricsBinder(backgroundJobServer, meterRegistry);

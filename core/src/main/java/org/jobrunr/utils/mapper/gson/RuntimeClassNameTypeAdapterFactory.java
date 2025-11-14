@@ -11,6 +11,8 @@ import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -147,10 +149,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
      * @throws IllegalArgumentException if either {@code type} or {@code label}
      *                                  have already been registered on this type adapter.
      */
-    public RuntimeClassNameTypeAdapterFactory<T> registerSubtype(Class<? extends T> type, String label) {
-        if (type == null || label == null) {
-            throw new NullPointerException();
-        }
+    public RuntimeClassNameTypeAdapterFactory<T> registerSubtype(@NonNull Class<? extends T> type, @NonNull String label) {
         if (subtypeToLabel.containsKey(type) || labelToSubtype.containsKey(label)) {
             throw new IllegalArgumentException("types and labels must be unique");
         }
@@ -183,9 +182,10 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
         }
 
         return new TypeAdapter<R>() {
+
             @SuppressWarnings("unchecked")
             @Override
-            public R read(JsonReader in) {
+            public @Nullable R read(JsonReader in) {
                 JsonElement jsonElement = Streams.parse(in);
                 if (jsonElement.isJsonObject() && ((JsonObject) jsonElement).has(typeFieldName)) {
                     JsonElement labelJsonElement = jsonElement.getAsJsonObject().remove(typeFieldName);

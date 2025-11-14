@@ -1,5 +1,7 @@
 package org.jobrunr.server.lifecycle;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -24,7 +26,7 @@ public class BackgroundJobServerLifecycle {
         return readWriteLock.isWriteLocked();
     }
 
-    public boolean isTransitioningTo(BackgroundJobServerLifecycleEvent event) {
+    public boolean isTransitioningTo(@Nullable BackgroundJobServerLifecycleEvent event) {
         if (!isTransitioning()) return false;
 
         try {

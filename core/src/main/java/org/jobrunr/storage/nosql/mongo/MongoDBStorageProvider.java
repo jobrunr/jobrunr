@@ -48,6 +48,7 @@ import org.jobrunr.storage.nosql.mongo.mapper.JobDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MetadataDocumentMapper;
 import org.jobrunr.storage.nosql.mongo.mapper.MongoDBAmountRequestMapper;
 import org.jobrunr.utils.resilience.RateLimiter;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -168,7 +169,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         this(mongoClient, null, null, databaseOptions, changeListenerNotificationRateLimit);
     }
 
-    public MongoDBStorageProvider(MongoClient mongoClient, String dbName, String collectionPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+    public MongoDBStorageProvider(MongoClient mongoClient, @Nullable String dbName, String collectionPrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         super(changeListenerNotificationRateLimit);
         validateMongoClient(mongoClient);
 
