@@ -1,6 +1,15 @@
 package org.jobrunr.utils.reflection;
 
+import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.GenericJobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.GenericJobRequestHandler;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level0JobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level0JobRequestHandler;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level1JobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level1JobRequestHandler;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level2JobRequest;
+import org.jobrunr.utils.reflection.ReflectionTestClasses.Level2JobRequestHandler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -119,7 +128,49 @@ class ReflectionUtilsTest {
 
         // JobRunr uses the JobParameter class which has the className (CharSequence) and actualClassName (String). To find the job method, CharSequence is used
         final Optional<Method> doWorkWithInheritedType = ReflectionUtils.findMethod(TestService.class, "doWorkAndReturnResult", String.class);
-        assertThat(doWorkWithInheritedType).isEmpty();
+        assertThat(doWorkWithInheritedType).isPresent();
+
+        final Optional<Method> doWorkWithWrongType = ReflectionUtils.findMethod(TestService.class, "doWorkAndReturnResult", UUID.class);
+        assertThat(doWorkWithWrongType).isNotPresent();
+    }
+
+    @Test
+    void testFindMethodOnClassWithMultipleInheritance() {
+        final Optional<Method> level2JobRequestHandlerUsingLevel2JobRequest = ReflectionUtils.findMethod(Level2JobRequestHandler.class, "run", Level2JobRequest.class);
+        assertThat(level2JobRequestHandlerUsingLevel2JobRequest).isPresent();
+
+        final Optional<Method> level2JobRequestHandlerUsingLevel1JobRequest = ReflectionUtils.findMethod(Level2JobRequestHandler.class, "run", Level1JobRequest.class);
+        assertThat(level2JobRequestHandlerUsingLevel1JobRequest).isPresent();
+
+        final Optional<Method> level2JobRequestHandlerUsingLevel0JobRequest = ReflectionUtils.findMethod(Level2JobRequestHandler.class, "run", Level0JobRequest.class);
+        assertThat(level2JobRequestHandlerUsingLevel0JobRequest).isPresent();
+
+        final Optional<Method> level1JobRequestHandlerUsingLevel1JobRequest = ReflectionUtils.findMethod(Level1JobRequestHandler.class, "run", Level1JobRequest.class);
+        assertThat(level1JobRequestHandlerUsingLevel1JobRequest).isPresent();
+
+        final Optional<Method> level1JobRequestHandlerUsingLevel0JobRequest = ReflectionUtils.findMethod(Level1JobRequestHandler.class, "run", Level0JobRequest.class);
+        assertThat(level1JobRequestHandlerUsingLevel0JobRequest).isPresent();
+
+        final Optional<Method> level1JobRequestHandlerUsingJobRequest = ReflectionUtils.findMethod(Level1JobRequestHandler.class, "run", JobRequest.class);
+        assertThat(level1JobRequestHandlerUsingJobRequest).isPresent();
+
+        final Optional<Method> level0JobRequestHandlerUsingLevel2JobRequest = ReflectionUtils.findMethod(Level0JobRequestHandler.class, "run", Level2JobRequest.class);
+        assertThat(level0JobRequestHandlerUsingLevel2JobRequest).isPresent();
+
+        final Optional<Method> level0JobRequestHandlerUsingLevel1JobRequest = ReflectionUtils.findMethod(Level0JobRequestHandler.class, "run", Level1JobRequest.class);
+        assertThat(level0JobRequestHandlerUsingLevel1JobRequest).isPresent();
+
+        final Optional<Method> level0JobRequestHandlerUsingLevel0JobRequest = ReflectionUtils.findMethod(Level0JobRequestHandler.class, "run", Level0JobRequest.class);
+        assertThat(level0JobRequestHandlerUsingLevel0JobRequest).isPresent();
+    }
+
+    @Test
+    void testFindMethodOnGenericClass() {
+        final Optional<Method> level1JobRequestHandlerUsingLevel1JobRequest = ReflectionUtils.findMethod(GenericJobRequestHandler.class, "run", GenericJobRequest.class);
+        assertThat(level1JobRequestHandlerUsingLevel1JobRequest).isPresent();
+
+        final Optional<Method> level1JobRequestHandlerUsingLevel0JobRequest = ReflectionUtils.findMethod(GenericJobRequestHandler.class, "run", JobRequest.class);
+        assertThat(level1JobRequestHandlerUsingLevel0JobRequest).isPresent();
     }
 
     @Test

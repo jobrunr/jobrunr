@@ -160,7 +160,7 @@ public class ReflectionUtils {
     }
 
     public static Optional<Method> findMethod(Object object, String methodName, Class<?>... parameterTypes) {
-        return findMethod(object.getClass(), new MethodFinderPredicate(methodName, parameterTypes));
+        return findMethod(object.getClass(), methodName, parameterTypes);
     }
 
     public static Optional<Method> findMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
@@ -173,14 +173,14 @@ public class ReflectionUtils {
                 .findFirst();
         if (optionalMethod.isPresent()) {
             return optionalMethod;
-        } else if (clazz.isInterface()) {
+        } else if (!clazz.isInterface() && !Object.class.equals(clazz.getSuperclass())) {
+            return findMethod(clazz.getSuperclass(), predicate);
+        } else if (clazz.getInterfaces().length > 0) {
             return Stream.of(clazz.getInterfaces())
                     .map(superInterface -> findMethod(superInterface, predicate))
                     .filter(Optional::isPresent)
                     .findFirst()
                     .orElse(Optional.empty());
-        } else if (!Object.class.equals(clazz.getSuperclass())) {
-            return findMethod(clazz.getSuperclass(), predicate);
         } else {
             return Optional.empty();
         }
