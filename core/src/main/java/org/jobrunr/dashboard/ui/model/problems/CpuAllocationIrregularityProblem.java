@@ -16,6 +16,7 @@ public class CpuAllocationIrregularityProblem extends Problem {
         this.cpuAllocationIrregularityMetadataSet = new ArrayList<>(cpuAllocationIrregularityMetadataSet);
     }
 
+    @SuppressWarnings("NonApiType")
     public ArrayList<JobRunrMetadata> getCpuAllocationIrregularityMetadataSet() {
         return cpuAllocationIrregularityMetadataSet;
     }

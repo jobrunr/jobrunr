@@ -304,7 +304,7 @@ public class DatabaseCreator {
         private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
         private ScheduledExecutorService lockUpdateScheduler;
 
-        public MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
+        MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
             this.connectionProvider = connectionProvider;
             this.tablePrefixStatementUpdater = tablePrefixStatementUpdater;
         }

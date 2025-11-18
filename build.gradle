@@ -1,10 +1,11 @@
 import groovy.json.JsonSlurper
 
 plugins {
-    id 'org.sonarqube' version '6.3.1.5724'
-    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'signing'
-    id("net.ltgt.errorprone") version '4.3.0' apply false
+    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
+    id 'net.ltgt.errorprone' version '4.3.0' apply false
+    id 'org.openrewrite.rewrite' version '7.20.0'
+    id 'org.sonarqube' version '6.3.1.5724'
 }
 
 nexusPublishing {
@@ -81,14 +82,20 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
     apply plugin: 'net.ltgt.errorprone'
+    apply plugin: 'org.openrewrite.rewrite'
 
     compileJava {
         options.release = 21
         options.encoding = "UTF-8"
     }
 
+    rewrite {
+        activeRecipe("org.openrewrite.java.format.AutoFormat")
+        setExportDatatables(true)
+    }
+
     tasks.withType(JavaCompile).configureEach {
-        options.errorprone.enabled = false
+        options.errorprone.enabled = true
         options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
@@ -96,11 +103,12 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
             disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
-            disable("JdkObsolete")                              // we still rely on JDK8 things
+            //disable("JdkObsolete")                              // we still rely on JDK8 things
             disable("JavaDurationGetSecondsToToSeconds")        // we can't update to JDK9 just yet
             disable("PatternMatchingInstanceof")                // we can't update to JDK9 just yet
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
             disable("StringSplitter")                           // should not happen because of validation
+            disable("TypeParameterUnusedInFormals")            // due to heavy reflection usage in JobRunr
         }
     }
 

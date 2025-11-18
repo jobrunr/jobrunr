@@ -7,7 +7,9 @@ import org.jobrunr.jobs.details.instructions.AbstractJVMInstruction;
 import org.jobrunr.jobs.details.postprocess.CGLibPostProcessor;
 import org.jobrunr.jobs.details.postprocess.JobDetailsPostProcessor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,7 +18,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 public abstract class JobDetailsBuilder {
 
-    private final LinkedList<AbstractJVMInstruction> instructions;
+    private final Deque<AbstractJVMInstruction> instructions;
     private final LinkedList<Object> stack;
     private final List<Object> localVariables;
     private String jobDetailsClassName;
@@ -30,7 +32,7 @@ public abstract class JobDetailsBuilder {
     }
 
     protected JobDetailsBuilder(List<Object> localVariables, String className, String methodName) {
-        this.instructions = new LinkedList<>();
+        this.instructions = new ArrayDeque<>();
         this.stack = new LinkedList<>();
         this.localVariables = localVariables;
 
@@ -55,7 +57,7 @@ public abstract class JobDetailsBuilder {
         this.localVariables.add(o);
     }
 
-    public List<AbstractJVMInstruction> getInstructions() {
+    public Deque<AbstractJVMInstruction> getInstructions() {
         return instructions;
     }
 

@@ -126,7 +126,7 @@ public class ReflectionUtils {
 
     public static <T> T newInstance(Class<T> clazz, Object... params) {
         try {
-            return newInstanceCE(clazz, params);
+            return clazz.cast(newInstanceCE(clazz, params));
         } catch (ReflectiveOperationException e) {
             throw shouldNotHappenException(e);
         }
@@ -338,7 +338,7 @@ public class ReflectionUtils {
     /**
      * Why: less warnings and @SuppressWarnings("unchecked")
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     public static <T> T cast(Object anObject) {
         return (T) anObject;
     }
