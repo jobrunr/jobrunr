@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson.modules;
+package org.jobrunr.utils.mapper.jackson3.modules;
 
 import org.jobrunr.utils.DurationUtils;
 import tools.jackson.core.JacksonException;
@@ -8,9 +8,9 @@ import tools.jackson.databind.ser.std.StdSerializer;
 
 import java.time.Duration;
 
-public class DurationJackson3Serializer extends StdSerializer<Duration> {
+public class DurationSerializer extends StdSerializer<Duration> {
 
-    protected DurationJackson3Serializer() {
+    protected DurationSerializer() {
         super(Duration.class);
     }
 

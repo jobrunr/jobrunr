@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson;
+package org.jobrunr.utils.mapper.jackson3;
 
 import org.jobrunr.utils.mapper.AbstractJsonMapperTest;
 import org.jobrunr.utils.mapper.JsonMapper;

@@ -136,7 +136,7 @@ dependencies {
     compileOnly 'org.eclipse:yasson'
     compileOnly 'io.micrometer:micrometer-core'
 
-    java17CompileOnly 'tools.jackson.core:jackson-databind:3.0.1'
+    java17CompileOnly 'tools.jackson.core:jackson-databind'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
     compileOnly 'org.mongodb:mongodb-driver-sync'
@@ -171,7 +171,7 @@ dependencies {
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'org.mongodb:mongodb-driver-sync'
-    test17Implementation 'tools.jackson.core:jackson-databind:3.0.1'
+    test17Implementation 'tools.jackson.core:jackson-databind'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
     testFixturesApi 'org.mockito:mockito-inline'

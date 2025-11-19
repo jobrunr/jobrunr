@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson.modules;
+package org.jobrunr.utils.mapper.jackson3.modules;
 
 import org.jobrunr.jobs.JobParameter;
 import tools.jackson.core.JacksonException;
@@ -6,9 +6,9 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ser.std.StdSerializer;
 
-public class JobParameterJackson3Serializer extends StdSerializer<JobParameter> {
+public class JobParameterSerializer extends StdSerializer<JobParameter> {
 
-    protected JobParameterJackson3Serializer() {
+    protected JobParameterSerializer() {
         super(JobParameter.class);
     }
 

@@ -1,7 +1,7 @@
 package org.jobrunr.dashboard;
 
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.mapper.jackson.Jackson3JsonMapper;
+import org.jobrunr.utils.mapper.jackson3.Jackson3JsonMapper;
 
 public class Jackson3JobRunrDashboardWebserverTest extends JobRunrDashboardWebServerTest {
 

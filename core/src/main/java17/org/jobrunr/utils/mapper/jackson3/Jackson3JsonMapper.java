@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson;
+package org.jobrunr.utils.mapper.jackson3;
 
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
-import org.jobrunr.utils.mapper.jackson.modules.JobRunrJackson3Module;
-import org.jobrunr.utils.mapper.jackson.modules.JobRunrJackson3TimeModule;
+import org.jobrunr.utils.mapper.jackson3.modules.JobRunrModule;
+import org.jobrunr.utils.mapper.jackson3.modules.JobRunrTimeModule;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
@@ -45,7 +45,7 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .disable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS)
                 .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
                 .enable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS)
-                .addModules(new JobRunrJackson3Module(), new JobRunrJackson3TimeModule())
+                .addModules(new JobRunrModule(), new JobRunrTimeModule())
                 .activateDefaultTypingAsProperty(typeValidator, DefaultTyping.OBJECT_AND_NON_CONCRETE, "@class")
                 .build();
     }

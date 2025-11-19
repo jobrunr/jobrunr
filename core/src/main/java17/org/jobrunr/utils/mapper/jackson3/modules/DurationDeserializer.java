@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson.modules;
+package org.jobrunr.utils.mapper.jackson3.modules;
 
 import org.jobrunr.utils.DurationUtils;
 import tools.jackson.core.JacksonException;
@@ -10,9 +10,9 @@ import tools.jackson.databind.deser.std.StdDeserializer;
 import java.math.BigDecimal;
 import java.time.Duration;
 
-public class DurationJackson3Deserializer extends StdDeserializer<Duration> {
+public class DurationDeserializer extends StdDeserializer<Duration> {
 
-    protected DurationJackson3Deserializer() {
+    protected DurationDeserializer() {
         super(Duration.class);
     }
 

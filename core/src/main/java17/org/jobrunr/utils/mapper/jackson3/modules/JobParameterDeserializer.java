@@ -1,4 +1,4 @@
-package org.jobrunr.utils.mapper.jackson.modules;
+package org.jobrunr.utils.mapper.jackson3.modules;
 
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
@@ -20,9 +20,9 @@ import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_N
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
-public class JobParameterJackson3Deserializer extends StdDeserializer<JobParameter> {
+public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
 
-    protected JobParameterJackson3Deserializer() {
+    protected JobParameterDeserializer() {
         super(JobParameter.class);
     }
 
