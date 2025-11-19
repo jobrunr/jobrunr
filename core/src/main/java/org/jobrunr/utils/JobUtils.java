@@ -57,12 +57,16 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        boolean jobExists = jobExists(getJobSignature(jobDetails));
+        assertJobExists(getJobSignature(jobDetails));
+    }
+
+    public static void assertJobExists(String jobSignature) {
+        boolean jobExists = jobExists(jobSignature);
         if (!jobExists) {
-            if (!classExists(jobDetails.getClassName())) {
-                throw new JobClassNotFoundException(jobDetails);
+            if (!classExists(getFQClassName(getFQClassNameAndMethod(jobSignature)))) {
+                throw new JobClassNotFoundException(jobSignature);
             }
-            throw new JobMethodNotFoundException(jobDetails);
+            throw new JobMethodNotFoundException(jobSignature);
         }
     }
 

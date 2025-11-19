@@ -3,6 +3,8 @@ package org.jobrunr.utils;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
+import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,6 +13,25 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 
 class JobUtilsTest {
+
+    @Test
+    void assertJobExists() {
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestJobRequest$TestJobRequestHandler.run(org.jobrunr.stubs.TestJobRequest)")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestServiceInterface.doWork()")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestServiceInterface.doWork()")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.doWork(java.util.UUID)")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.getProcessedJobs()")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer)")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("java.lang.System.out.println(java.lang.String)")).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists("javax.sql.DataSource.getConnection()")).doesNotThrowAnyException();
+
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestJobRequest$TestJobRequestHandler.run(org.jobrunr.stubs.TestInvalidJobRequest)")).isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestServiceThatDoesNotExist.doWork(java.lang.Integer,java.lang.Integer)")).isInstanceOf(JobClassNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.methodThatDoesNotExist(java.lang.Integer,java.lang.Integer)")).isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.doWork(java.util.UUID,org.jobrunr.stubs.JobParameterThatDoesNotExist)")).isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer)")).isInstanceOf(JobMethodNotFoundException.class); // too many parameters
+    }
 
     @Test
     void jobExists() {
