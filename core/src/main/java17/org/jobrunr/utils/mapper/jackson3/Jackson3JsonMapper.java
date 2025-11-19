@@ -3,7 +3,9 @@ package org.jobrunr.utils.mapper.jackson3;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
 import org.jobrunr.utils.mapper.jackson3.modules.JobRunrModule;
@@ -12,6 +14,7 @@ import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.cfg.EnumFeature;
+import tools.jackson.databind.exc.InvalidDefinitionException;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 import java.io.OutputStream;
@@ -25,6 +28,7 @@ public class Jackson3JsonMapper implements JsonMapper {
     public Jackson3JsonMapper() {
         var typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("org.jobrunr.")
+                .allowIfSubType("java.nio.")
                 .allowIfSubType("java.util.concurrent.")
                 .allowIfSubTypeIsArray()
                 .build();
@@ -52,7 +56,11 @@ public class Jackson3JsonMapper implements JsonMapper {
 
     @Override
     public String serialize(Object object) {
-        return jsonMapper.writeValueAsString(object);
+        try {
+            return jsonMapper.writeValueAsString(object);
+        } catch (InvalidDefinitionException e) {
+            throw new JobParameterJsonMapperException("The job parameters are not serializable.", e);
+        }
     }
 
     @Override
@@ -62,6 +70,10 @@ public class Jackson3JsonMapper implements JsonMapper {
 
     @Override
     public <T> T deserialize(String serializedObjectAsString, Class<T> clazz) {
-        return jsonMapper.readValue(serializedObjectAsString, clazz);
+        try {
+            return jsonMapper.readValue(serializedObjectAsString, clazz);
+        } catch (InvalidDefinitionException e) {
+            throw JobRunrException.configurationException("Did you register all necessary Jackson Modules?", e);
+        }
     }
 }
