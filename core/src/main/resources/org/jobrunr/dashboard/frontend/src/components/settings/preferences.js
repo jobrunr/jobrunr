@@ -53,9 +53,9 @@ export const Preferences = () => {
                 sx={{marginRight: 1.5}}
                 onClick={openNotifications}
                 ref={popperAnchorEl}
-                id="notifications-center-button"
+                id="control-center-button"
             >
-                <Person fontSize="small"/>
+                <Person/>
             </IconButton>
 
             <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>

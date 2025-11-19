@@ -255,7 +255,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             id="notifications-center-button"
         >
             <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
-                <Notifications fontSize="small"/>
+                <Notifications/>
             </Badge>
         </IconButton>
         <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>

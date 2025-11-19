@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {useDateStyles} from "../../../hooks/useDateStyles.js";
+import {dateStyles, useDateStyles} from "../../../hooks/useDateStyles.js";
 import {extractDateFromISOString, extractTimeFromDate, formatTime, SwitchableTimeFormatter} from "../../utils/time-ago";
 
 // interpolate from green (120°) to red (0°) in HSL space
@@ -16,8 +16,8 @@ function isInTimeRange(idx, [from, to]) {
 }
 
 const CarbonIntensityChart = ({job, jobState}) => {
-    const style = useDateStyles();
-    const useUTC = style === 'iso8601Style';
+    const [style, _] = useDateStyles();
+    const useUTC = style === dateStyles.iso8601Style;
 
     const scheduledState = useMemo(
         () => job.jobHistory.find(js => js.state === 'SCHEDULED'),
@@ -206,7 +206,6 @@ const CarbonIntensityChart = ({job, jobState}) => {
                                 textAlign: slot === '00:00' ? 'left' : 'center',
                                 justifySelf: slot === '00:00' ? 'start' : 'center',
                                 fontSize: '12px',
-                                color: '#333'
                             }}>
                                 {slot.endsWith(':00') ? slot : ''}
                             </div>
@@ -219,7 +218,6 @@ const CarbonIntensityChart = ({job, jobState}) => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 marginTop: '4px',
-                color: '#333'
             }}>
                 <div style={{fontSize: '12px', lineHeight: 1, alignSelf: 'start', marginTop: '4px'}}>▲&nbsp;
                     <span>{visualizeDate}</span>

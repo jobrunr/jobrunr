@@ -148,3 +148,7 @@ footer {
 * {
     letter-spacing: normal !important;
 }
+
+pre {
+    font-size: 13px;
+}
