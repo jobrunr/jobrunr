@@ -14,6 +14,7 @@ class JobUtilsTest {
 
     @Test
     void jobExists() {
+        assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestServiceInterface.doWork()")).isTrue();
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.doWork(java.util.UUID)")).isTrue();
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.getProcessedJobs()")).isTrue();
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)")).isTrue();

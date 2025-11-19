@@ -5,6 +5,7 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.utils.reflection.ReflectionUtils;
@@ -56,9 +57,11 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        if (jobDetails.hasStaticFieldName()) return; // small chance / more for sysout type of jobs
-        Method jobMethod = getJobMethod(jobDetails);
-        if (Modifier.isAbstract(jobMethod.getModifiers())) {
+        boolean jobExists = jobExists(getJobSignature(jobDetails));
+        if (!jobExists) {
+            if (!classExists(jobDetails.getClassName())) {
+                throw new JobClassNotFoundException(jobDetails);
+            }
             throw new JobMethodNotFoundException(jobDetails);
         }
     }
@@ -70,14 +73,18 @@ public class JobUtils {
         try {
             String clazzAndMethod = getFQClassNameAndMethod(jobSignature);
             String clazzName = getFQClassName(clazzAndMethod);
-            String method = getMethodName(clazzAndMethod);
+            String methodName = getMethodName(clazzAndMethod);
 
             Class<Object> clazz = toClass(clazzName);
             Class<?>[] jobParameterTypes = getParameterTypes(jobSignature);
-            return findMethod(clazz, method, jobParameterTypes).isPresent();
-        } catch (IllegalArgumentException e) {
-            return false;
+            Optional<Method> method = findMethod(clazz, methodName, jobParameterTypes);
+            if (method.isPresent()) {
+                boolean isJobRequestHandlerWithWrongRunMethodArgument = Modifier.isAbstract(method.get().getModifiers()) && JobRequestHandler.class.isAssignableFrom(clazz);
+                return !isJobRequestHandlerWithWrongRunMethodArgument;
+            }
+        } catch (IllegalArgumentException ignored) {
         }
+        return false;
     }
 
     public static Optional<Job> getJobAnnotation(JobDetails jobDetails) {
