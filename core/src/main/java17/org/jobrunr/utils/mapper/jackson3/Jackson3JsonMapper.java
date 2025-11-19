@@ -26,6 +26,10 @@ public class Jackson3JsonMapper implements JsonMapper {
     private final tools.jackson.databind.json.JsonMapper jsonMapper;
 
     public Jackson3JsonMapper() {
+        this(tools.jackson.databind.json.JsonMapper.builder());
+    }
+
+    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder builder) {
         var typeValidator = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("org.jobrunr.")
                 .allowIfSubType("java.nio.")
@@ -33,7 +37,7 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .allowIfSubTypeIsArray()
                 .build();
 
-        this.jsonMapper = tools.jackson.databind.json.JsonMapper.builder()
+        this.jsonMapper = builder
                 .addMixIn(Job.class, JobMixin.class)
                 .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
                 .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
