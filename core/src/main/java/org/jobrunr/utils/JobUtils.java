@@ -15,16 +15,10 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
 import static org.jobrunr.utils.GraalVMUtils.isRunningInGraalVMNativeMode;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
@@ -41,25 +35,6 @@ public class JobUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobUtils.class);
 
     private JobUtils() {
-    }
-
-    public static List<UUID> idsOf(List<org.jobrunr.jobs.Job> jobs) {
-        return jobs.stream().map(org.jobrunr.jobs.Job::getId).collect(toList());
-    }
-
-    public static Set<String> getRootPackageNames(Set<String> distinctJobSignatures) {
-        return distinctJobSignatures.stream()
-                .map(jobSignature -> extractPackageComponents(jobSignature, 3))
-                .collect(toSet());
-    }
-
-    private static String extractPackageComponents(String fullyQualifiedName, int amount) {
-        // Split the fully qualified class name by "." to get individual components.
-        String[] components = fullyQualifiedName.split("\\.");
-        // Calculate how many components to include (up to three or the total number of components, whichever is less).
-        int limit = Math.min(components.length - 1, amount); // Exclude the class name itself by subtracting 1.
-        // Join the first up to the given amount components back into a string.
-        return String.join(".", copyOfRange(components, 0, limit));
     }
 
     public static String getReadableNameFromJobDetails(JobDetails jobDetails) {
