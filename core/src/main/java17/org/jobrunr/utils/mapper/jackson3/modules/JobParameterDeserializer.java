@@ -29,11 +29,11 @@ public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
     @Override
     public JobParameter deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws JacksonException {
         JsonNode node = deserializationContext.readTree(jsonParser);
-        final String className = node.get(FIELD_CLASS_NAME).asText();
-        final String actualClassName = node.has(FIELD_ACTUAL_CLASS_NAME) ? node.get(FIELD_ACTUAL_CLASS_NAME).asText() : null;
+        final String className = node.get(FIELD_CLASS_NAME).asString();
+        final String actualClassName = node.has(FIELD_ACTUAL_CLASS_NAME) ? node.get(FIELD_ACTUAL_CLASS_NAME).asString() : null;
         final JsonNode objectJsonNode = node.get("object");
         if (Path.class.getName().equals(className)) { // see https://github.com/FasterXML/jackson-databind/issues/2013
-            return new JobParameter(className, Paths.get(objectJsonNode.asText().replace("file:", "")));
+            return new JobParameter(className, Paths.get(objectJsonNode.asString().replace("file:", "")));
         } else {
             return getJobParameter(deserializationContext, className, actualClassName, objectJsonNode);
         }
