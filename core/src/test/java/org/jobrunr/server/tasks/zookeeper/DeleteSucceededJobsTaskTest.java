@@ -88,9 +88,9 @@ class DeleteSucceededJobsTaskTest extends AbstractTaskTest {
     void taskMovesSucceededJobsToDeletedStateAlsoForInterfacesWithMethodsThatDontExistAnymore() {
         // GIVEN
         Job job = aSucceededJob().withJobDetails(jobDetails()
-                        .withClassName(TestServiceInterface.class)
-                        .withMethodName("methodThatDoesNotExist")
-                        .build())
+                .withClassName(TestServiceInterface.class)
+                .withMethodName("methodThatDoesNotExist")
+                .build())
                 .build();
 
         whenGetJobsToDeleteThenReturn(singletonList(job));

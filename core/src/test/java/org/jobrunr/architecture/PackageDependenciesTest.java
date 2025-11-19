@@ -68,9 +68,9 @@ class PackageDependenciesTest {
     ArchRule jobDashboardClassesShouldNotDependOnServerClasses = noClasses()
             .that().resideInAPackage("org.jobrunr.dashboard..")
             .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.server..")
-                            .or(are(assignableFrom(DashboardNotification.class)))
-            );
+            resideInAnyPackage("org.jobrunr.server..")
+                    .or(are(assignableFrom(DashboardNotification.class)))
+    );
 
     @ArchTest
     ArchRule jobRunrJobsClassesDependenciesTest = classes()
@@ -116,10 +116,10 @@ class PackageDependenciesTest {
     ArchRule jobServerClassesShouldNotDependOnSchedulingClasses = noClasses()
             .that().resideInAPackage("org.jobrunr.server..")
             .should().dependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.scheduling..")
-                            .and(not(assignableTo(JobNotFoundException.class)))
-                            .and(not(assignableTo(Schedule.class)))
-                            .and(not(assignableTo(CarbonAwareScheduleMargin.class))));
+            resideInAnyPackage("org.jobrunr.scheduling..")
+                    .and(not(assignableTo(JobNotFoundException.class)))
+                    .and(not(assignableTo(Schedule.class)))
+                    .and(not(assignableTo(CarbonAwareScheduleMargin.class))));
 
     @ArchTest
     ArchRule jobServerClassesShouldNotDependOnDashboardClasses = noClasses()
@@ -130,19 +130,19 @@ class PackageDependenciesTest {
     ArchRule jobRunrStorageClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.storage")
             .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.jobrunr.server.jmx..", "org.slf4j..", "java..")
-                            .or(assignableFrom(BackgroundJobServer.class))
-                            .or(assignableFrom(BackgroundJobServerConfiguration.class)));
+            resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.jobrunr.server.jmx..", "org.slf4j..", "java..")
+                    .or(assignableFrom(BackgroundJobServer.class))
+                    .or(assignableFrom(BackgroundJobServerConfiguration.class)));
 
 
     @ArchTest
     ArchRule jobRunrStorageMongoClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.storage.nosql.mongo..")
             .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..", "")
-                            .or(are(equivalentTo(JobRunrException.class)))
-                            .or(assignableFrom(BackgroundJobServer.class))
-            ); // see https://github.com/TNG/ArchUnit/issues/519
+            resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "com.mongodb..", "org.bson..", "org.slf4j..", "java..", "")
+                    .or(are(equivalentTo(JobRunrException.class)))
+                    .or(assignableFrom(BackgroundJobServer.class))
+    ); // see https://github.com/TNG/ArchUnit/issues/519
 
     @ArchTest
     ArchRule jobRunrStorageSqlClassesDependenciesTest = classes()

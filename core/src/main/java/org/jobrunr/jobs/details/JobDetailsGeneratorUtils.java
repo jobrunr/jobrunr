@@ -133,15 +133,8 @@ public class JobDetailsGeneratorUtils {
     }
 
     private static Class<?> getClassToAdd(String paramType) {
-        if ("Z".equals(paramType)) return boolean.class;
-        else if ("I".equals(paramType)) return int.class;
-        else if ("J".equals(paramType)) return long.class;
-        else if ("F".equals(paramType)) return float.class;
-        else if ("D".equals(paramType)) return double.class;
-        else if ("B".equals(paramType) || "S".equals(paramType) || "C".equals(paramType))
-            throw new JobRunrException("Error parsing lambda", new IllegalArgumentException("Parameters of type byte, short and char are not supported currently."));
-        else if (paramType.startsWith("L")) return toClass(toFQClassName(paramType.substring(1).replace(";", "")));
-        else if (paramType.startsWith("[")) return toClass(toFQClassName(paramType));
+        if ("Z".equals(paramType)) return boolean.class; else if ("I".equals(paramType)) return int.class; else if ("J".equals(paramType)) return long.class; else if ("F".equals(paramType)) return float.class; else if ("D".equals(paramType)) return double.class; else if ("B".equals(paramType) || "S".equals(paramType) || "C".equals(paramType))
+            throw new JobRunrException("Error parsing lambda", new IllegalArgumentException("Parameters of type byte, short and char are not supported currently.")); else if (paramType.startsWith("L")) return toClass(toFQClassName(paramType.substring(1).replace(";", ""))); else if (paramType.startsWith("[")) return toClass(toFQClassName(paramType));
         else throw JobRunrException.shouldNotHappenException("A classType was found which is not known: " + paramType);
     }
 }

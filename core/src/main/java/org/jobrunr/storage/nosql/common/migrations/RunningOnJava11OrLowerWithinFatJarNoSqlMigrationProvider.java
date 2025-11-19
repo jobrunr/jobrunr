@@ -17,7 +17,7 @@ public class RunningOnJava11OrLowerWithinFatJarNoSqlMigrationProvider implements
         try {
             URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
             URLConnection urlConnection = location.openConnection();
-            try(ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream())) {
+            try (ZipInputStream zipInputStream = new ZipInputStream(urlConnection.getInputStream())) {
                 return getMigrationsFromZipInputStream(zipInputStream, clazz);
             }
         } catch (IOException e) {

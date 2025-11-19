@@ -18,7 +18,7 @@ public class TestJobContextJobRequest implements JobRequest {
         @Job(retries = 0)
         public void run(TestJobContextJobRequest jobRequest) throws Exception {
             JobContext jobContext = jobContext();
-            for(int i = 0; i < 100; i++) {
+            for (int i = 0; i < 100; i++) {
                 jobContext.saveMetadata("key" + i, jobContext.getJobId());
                 Thread.sleep(5);
             }

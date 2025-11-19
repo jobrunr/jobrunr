@@ -10,7 +10,7 @@ public class DefaultSqlMigrationProvider implements SqlMigrationProvider {
 
     @Override
     public List<SqlMigration> getMigrations(Class<?> clazz) {
-        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+        try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
             return resourceProvider.listAllChildrenOnClasspath(clazz, "migrations")
                     .filter(path -> path.toString().endsWith(".sql"))
                     .map(SqlMigrationByPath::new)

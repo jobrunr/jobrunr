@@ -14,12 +14,12 @@ public class TestServiceForRecurringJobsIfStopTheWorldGCOccurs {
     private static Instant firstRun = null;
 
     public void doWork() throws Exception {
-        if(firstRun == null) firstRun = Instant.now();
+        if (firstRun == null) firstRun = Instant.now();
         Instant shouldRunAt = firstRun.plusSeconds(processedJobs * 5);
         Instant now = Instant.now();
         processedJobs++;
         LOGGER.info("Processed job {} that should run at {} (drift: {}ms)", processedJobs, shouldRunAt, Duration.between(now, shouldRunAt).toMillis());
-        if(processedJobs > 2 && Duration.between(shouldRunAt, now).getSeconds() < 5) {
+        if (processedJobs > 2 && Duration.between(shouldRunAt, now).getSeconds() < 5) {
             LOGGER.info("JobRunr recovered from long GC and all jobs were executed");
         }
     }

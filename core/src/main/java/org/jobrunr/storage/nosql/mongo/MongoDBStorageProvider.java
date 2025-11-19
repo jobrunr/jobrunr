@@ -466,10 +466,10 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         final long allTimeSucceededCount = (succeededJobStats != null ? ((Number) succeededJobStats.get(Metadata.FIELD_VALUE)).longValue() : 0L);
 
         final List<Document> stateAggregation = jobCollection.aggregate(asList(
-                        match(ne(Jobs.FIELD_STATE, null)),
-                        project(fields(excludeId(), include(Jobs.FIELD_STATE))),
-                        group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
-                        limit(10)))
+                match(ne(Jobs.FIELD_STATE, null)),
+                project(fields(excludeId(), include(Jobs.FIELD_STATE))),
+                group("$state", Accumulators.sum(Jobs.FIELD_STATE, 1)),
+                limit(10)))
                 .into(new ArrayList<>());
 
 

@@ -95,8 +95,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
         }
 
         private boolean hasParametersOutsideOfJobContext(Method method) {
-            if (method.getParameterCount() == 0) return false;
-            else if (method.getParameterCount() > 1) return true;
+            if (method.getParameterCount() == 0) return false; else if (method.getParameterCount() > 1) return true;
             else return !method.getParameterTypes()[0].equals(JobContext.class);
         }
 

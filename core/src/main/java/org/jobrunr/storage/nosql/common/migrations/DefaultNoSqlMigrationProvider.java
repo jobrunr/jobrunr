@@ -10,7 +10,7 @@ public class DefaultNoSqlMigrationProvider implements NoSqlMigrationProvider {
 
     @Override
     public List<NoSqlMigration> getMigrations(Class<?> clazz) {
-        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+        try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
             return resourceProvider.listAllChildrenOnClasspath(clazz, "migrations")
                     .map(NoSqlMigrationByPath::new)
                     .collect(toList());

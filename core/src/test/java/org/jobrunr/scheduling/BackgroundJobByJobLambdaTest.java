@@ -369,8 +369,8 @@ public class BackgroundJobByJobLambdaTest {
         Instant now = now();
         JobId jobId = BackgroundJob.schedule(between(now, now.plus(5, HOURS)), TestService::doStaticWork);
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getJobById(jobId))
-                .hasScheduledAt(now.plus(1, HOURS).truncatedTo(HOURS))
-                .hasStates(AWAITING, SCHEDULED)
+                        .hasScheduledAt(now.plus(1, HOURS).truncatedTo(HOURS))
+                        .hasStates(AWAITING, SCHEDULED)
         );
     }
 

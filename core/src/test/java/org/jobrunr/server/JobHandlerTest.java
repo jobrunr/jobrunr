@@ -111,7 +111,8 @@ class JobHandlerTest {
     }
 
     private JobHandler createJobHandlerWithTask(Task task) {
-        JobHandler jobHandler = new JobHandler(backgroundJobServer, task) {};
+        JobHandler jobHandler = new JobHandler(backgroundJobServer, task) {
+        };
         logger = LoggerAssert.initFor(jobHandler);
         return jobHandler;
     }

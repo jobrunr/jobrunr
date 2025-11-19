@@ -8,7 +8,8 @@ import org.jobrunr.jobs.context.JobContext;
  */
 public class MockJobContext {
 
-    private MockJobContext() {}
+    private MockJobContext() {
+    }
 
     public static void setUpJobContextForJob(Job job) {
         MockJobContext.setUpJobContext(new RunnerJobContext(job));

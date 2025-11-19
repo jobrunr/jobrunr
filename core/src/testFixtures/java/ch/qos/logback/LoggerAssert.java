@@ -41,7 +41,7 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
         logger.addAppender(listAppender);
         return listAppender;
     }
-    
+
     public static ListAppender<ILoggingEvent> initFor(Object object) {
         Object logger = Whitebox.getInternalState(object, "LOGGER");
         if (logger instanceof JobRunrDashboardLogger) {

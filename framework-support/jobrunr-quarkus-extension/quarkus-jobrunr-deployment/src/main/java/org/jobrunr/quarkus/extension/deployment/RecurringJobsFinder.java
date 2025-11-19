@@ -73,14 +73,14 @@ public class RecurringJobsFinder {
     }
 
     private String getCron(AnnotationInstance recurringJobAnnotation) {
-        if(recurringJobAnnotation.value("cron") != null) {
+        if (recurringJobAnnotation.value("cron") != null) {
             return recurringJobAnnotation.value("cron").asString();
         }
         return null;
     }
 
     private String getInterval(AnnotationInstance recurringJobAnnotation) {
-        if(recurringJobAnnotation.value("interval") != null) {
+        if (recurringJobAnnotation.value("interval") != null) {
             return recurringJobAnnotation.value("interval").asString();
         }
         return null;
@@ -92,7 +92,7 @@ public class RecurringJobsFinder {
             throw new IllegalStateException("Methods annotated with " + Recurring.class.getName() + " can only have zero parameters or a single parameter of type JobContext.");
         }
         List<JobParameter> jobParameters = new ArrayList<>();
-        if(methodInfo.parameters().size() == 1 && methodInfo.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()))) {
+        if (methodInfo.parameters().size() == 1 && methodInfo.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()))) {
             jobParameters.add(JobParameter.JobContext);
         }
         final JobDetails jobDetails = new JobDetails(methodInfo.declaringClass().name().toString(), null, methodInfo.name(), jobParameters);
@@ -101,8 +101,7 @@ public class RecurringJobsFinder {
     }
 
     private boolean hasParametersOutsideOfJobContext(MethodInfo method) {
-        if(method.parameters().isEmpty()) return false;
-        else if(method.parameters().size() > 1) return true;
+        if (method.parameters().isEmpty()) return false; else if (method.parameters().size() > 1) return true;
         else return !method.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()));
     }
 

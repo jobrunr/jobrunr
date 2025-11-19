@@ -71,7 +71,7 @@ public class JobServerStats {
     // see bug JDK-8193878
 
     <O> O getMXBeanValue(String name) {
-        if(platformMBeanServer == null || operatingSystemMXBean == null) return cast(-1);
+        if (platformMBeanServer == null || operatingSystemMXBean == null) return cast(-1);
 
         try {
             final Object attribute = platformMBeanServer.getAttribute(operatingSystemMXBean.getObjectName(), name);
@@ -80,6 +80,7 @@ public class JobServerStats {
             return cast(-1);
         }
     }
+
     private static OperatingSystemMXBean getOperatingSystemMXBean() {
         try {
             return ManagementFactory.getOperatingSystemMXBean();

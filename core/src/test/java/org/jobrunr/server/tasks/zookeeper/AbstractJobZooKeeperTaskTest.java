@@ -51,8 +51,7 @@ public class AbstractJobZooKeeperTaskTest extends AbstractTaskTest {
     void convertAndProcessManyJobsReturnsPreviousResultsSoSupplierCanChooseToContinueOrNot() {
         // GIVEN
         Function<List<Job>, List<Job>> itemSupplier = jobs -> {
-            if (jobs == null) return asList(anEnqueuedJob().build(), anEnqueuedJob().build());
-            else if (jobs.size() != 2) throw new IllegalStateException("Previous list with size 2 was expected");
+            if (jobs == null) return asList(anEnqueuedJob().build(), anEnqueuedJob().build()); else if (jobs.size() != 2) throw new IllegalStateException("Previous list with size 2 was expected");
             else return emptyList();
         };
         Function<Job, Job> toJobFunction = job -> job;

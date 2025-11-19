@@ -62,11 +62,11 @@ public abstract class NoSqlDatabaseCreator<T> {
             } catch (Exception exceptionCausedByConcurrentMigration) {
                 try {
                     sleep(timeRandom.nextInt(1000));
-                    if(isNewMigration(noSqlMigration)) {
+                    if (isNewMigration(noSqlMigration)) {
                         runMigration(noSqlMigration.getMigration());
                         markMigrationAsDone(noSqlMigration);
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw shouldNotHappenException(new IllegalStateException("Error running database migration " + noSqlMigration.getClassName(), e));
                 }
             }

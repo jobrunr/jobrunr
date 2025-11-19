@@ -77,6 +77,14 @@ sonar {
     }
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
+        mavenCentral()
+    }
+}
+
 configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -119,12 +127,6 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     javadoc {
         options.encoding = "UTF-8"
-    }
-
-    repositories {
-        mavenLocal()
-        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
-        mavenCentral()
     }
 
     dependencies {

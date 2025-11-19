@@ -17,6 +17,7 @@ public class TestJobRequestThatTakesLong implements JobRequest {
     public TestJobRequestThatTakesLong(String input) {
         this(input, false, 0);
     }
+
     public TestJobRequestThatTakesLong(String input, int nbrOfSeconds) {
         this(input, false, nbrOfSeconds);
     }
@@ -46,7 +47,7 @@ public class TestJobRequestThatTakesLong implements JobRequest {
         @Job(name = "Some neat Job Display Name", retries = 1)
         public void run(TestJobRequestThatTakesLong jobRequest) throws InterruptedException {
             if (jobRequest.mustFail()) throw new IllegalArgumentException("it must fail");
-            if(jobRequest.nbrOfSeconds > 0) {
+            if (jobRequest.nbrOfSeconds > 0) {
                 Thread.sleep(jobRequest.nbrOfSeconds * 1000);
             }
             System.out.println("Running simple job request in background: " + jobRequest.getInput());

@@ -51,7 +51,7 @@ public class TestJobRequestWithoutJobAnnotation implements JobRequest {
             if (jobRequest.mustFail()) throw new IllegalArgumentException("it must fail");
             System.out.println("Running simple job request in background: " + jobRequest.getInput());
             jobContext().saveMetadata("test", "test");
-            if(jobRequest.sleepAfterFinished > 0L) {
+            if (jobRequest.sleepAfterFinished > 0L) {
                 Thread.sleep(jobRequest.sleepAfterFinished * 1000);
             }
         }

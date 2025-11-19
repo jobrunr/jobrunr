@@ -34,7 +34,7 @@ public class AsyncJobPostProcessor implements BeanPostProcessor, BeanFactoryAwar
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.asyncJobInterceptor = new AsyncJobInterceptor(beanFactory);
     }
-    
+
     public Object applyJobEnhancement(Object bean) {
         if (asyncJobInterceptor == null) {
             throw new IllegalStateException("Bean Factory was not set and AsyncJobInterceptor could not be created");

@@ -26,9 +26,9 @@ public class InstantUtils {
     }
 
     public static Instant max(Instant instant1, Instant instant2) {
-        if(instant1 == null && instant2 == null) return null;
-        if(instant1 == null) return instant2;
-        if(instant2 == null) return instant1;
+        if (instant1 == null && instant2 == null) return null;
+        if (instant1 == null) return instant2;
+        if (instant2 == null) return instant1;
         return instant1.compareTo(instant2) > 0 ? instant1 : instant2;
     }
 

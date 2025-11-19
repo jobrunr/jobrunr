@@ -584,7 +584,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                                 .hasFieldOrPropertyWithValue("className", CharSequence.class.getName())
                                 .hasFieldOrPropertyWithValue("actualClassName", String.class.getName())
                                 .hasFieldOrPropertyWithValue("object", "someString")
-                        , atIndex(0));
+                , atIndex(0));
     }
 
     @Test

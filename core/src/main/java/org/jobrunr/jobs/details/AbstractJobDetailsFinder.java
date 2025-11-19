@@ -89,7 +89,7 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
             ClassReader parser = new ClassReader(inputStream);
             parser.accept(this, ClassReader.SKIP_FRAMES);
         } catch (IllegalArgumentException e) {
-            if(e.getMessage().startsWith("Unsupported class file")) {
+            if (e.getMessage().startsWith("Unsupported class file")) {
                 String requiredAsmVersion = JarUtils.getManifestAttributeValue(JobRunr.class, "Minimum-ASM-Version");
                 String actualAsmVersion = JarUtils.getVersion(Opcodes.class);
                 throw new IllegalArgumentException("JobRunr needs (and automatically adds) ASM " + requiredAsmVersion + " as a transitive dependency but you have ASM " + actualAsmVersion + " on the classpath.", e);
