@@ -543,7 +543,7 @@ public abstract class StorageProviderTest {
         assertThat(distinctJobSignaturesForJobsInProgress)
                 .hasSize(1)
                 .containsOnly(
-                        "org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer)");
+                        "org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer)");
 
         Set<String> distinctJobSignaturesForSucceededJobs = storageProvider.getDistinctJobSignatures(SUCCEEDED);
         assertThat(distinctJobSignaturesForSucceededJobs)
