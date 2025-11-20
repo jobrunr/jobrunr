@@ -47,11 +47,11 @@ class ExceptionsTest {
         private int attempts = 0;
         private final int maxRetries;
 
-        public static RunnableForStorageException AlwaysThrows() {
+        static RunnableForStorageException AlwaysThrows() {
             return new RunnableForStorageException(Integer.MAX_VALUE);
         }
 
-        public static RunnableForStorageException ThrowsAfterAttempt(int attempt) {
+        static RunnableForStorageException ThrowsAfterAttempt(int attempt) {
             return new RunnableForStorageException(attempt);
         }
 
@@ -72,11 +72,11 @@ class ExceptionsTest {
         private int attempts = 0;
         private final int maxRetries;
 
-        public static SupplierForStorageException AlwaysThrows() {
+        static SupplierForStorageException AlwaysThrows() {
             return new SupplierForStorageException(Integer.MAX_VALUE);
         }
 
-        public static SupplierForStorageException ThrowsAfterAttempt(int attempt) {
+        static SupplierForStorageException ThrowsAfterAttempt(int attempt) {
             return new SupplierForStorageException(attempt);
         }
 

@@ -64,6 +64,7 @@ public class ReflectionTestClasses {
 
     public static class MyAsyncJobRequestHandler implements AsyncJobRequestHandler<MyAsyncJobRequest> {
 
+        @Override
         public void runAsync(MyAsyncJobRequest jobRequest) {
             System.out.println("Run async...");
         }

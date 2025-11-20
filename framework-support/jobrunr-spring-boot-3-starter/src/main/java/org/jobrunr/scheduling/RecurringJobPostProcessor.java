@@ -58,7 +58,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
         private final BeanFactory beanFactory;
         private final StringValueResolver embeddedValueResolver;
 
-        public RecurringJobFinderMethodCallback(BeanFactory beanFactory, StringValueResolver resolver) {
+        RecurringJobFinderMethodCallback(BeanFactory beanFactory, StringValueResolver resolver) {
             this.beanFactory = beanFactory;
             this.embeddedValueResolver = resolver;
         }
@@ -95,7 +95,8 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
         }
 
         private boolean hasParametersOutsideOfJobContext(Method method) {
-            if (method.getParameterCount() == 0) return false; else if (method.getParameterCount() > 1) return true;
+            if (method.getParameterCount() == 0) return false;
+            else if (method.getParameterCount() > 1) return true;
             else return !method.getParameterTypes()[0].equals(JobContext.class);
         }
 

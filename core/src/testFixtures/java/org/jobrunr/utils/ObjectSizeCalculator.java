@@ -35,9 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.IdentityHashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -135,10 +133,10 @@ public final class ObjectSizeCalculator {
     // added.
     private final int superclassFieldPadding;
 
-    private final Map<Class<?>, ClassSizeInfo> classSizeInfos = new IdentityHashMap<>();
+    private final IdentityHashMap<Class<?>, ClassSizeInfo> classSizeInfos = new IdentityHashMap<>();
 
-    private final Map<Object, Object> alreadyVisited = new IdentityHashMap<>();
-    private final Map<Class<?>, ClassHistogramElement> histogram = new IdentityHashMap<>();
+    private final IdentityHashMap<Object, Object> alreadyVisited = new IdentityHashMap<>();
+    private final IdentityHashMap<Class<?>, ClassHistogramElement> histogram = new IdentityHashMap<>();
 
     private final Deque<Object> pending = new ArrayDeque<>(16 * 1024);
     private long size;
@@ -266,7 +264,7 @@ public final class ObjectSizeCalculator {
             this.array = array;
         }
 
-        public void visit(final ObjectSizeCalculator calc) {
+        void visit(final ObjectSizeCalculator calc) {
             for (final Object elem : array) {
                 if (elem != null) {
                     calc.visit(elem);
@@ -303,9 +301,9 @@ public final class ObjectSizeCalculator {
         private final long fieldsSize;
         private final Field[] referenceFields;
 
-        public ClassSizeInfo(final Class<?> clazz) {
+        ClassSizeInfo(final Class<?> clazz) {
             long newFieldsSize = 0;
-            final List<Field> newReferenceFields = new LinkedList<>();
+            final List<Field> newReferenceFields = new ArrayList<>();
             for (final Field f : clazz.getDeclaredFields()) {
                 if (Modifier.isStatic(f.getModifiers())) {
                     continue;
@@ -336,7 +334,7 @@ public final class ObjectSizeCalculator {
             enqueueReferencedObjects(obj, calc);
         }
 
-        public void enqueueReferencedObjects(final Object obj, final ObjectSizeCalculator calc) {
+        void enqueueReferencedObjects(final Object obj, final ObjectSizeCalculator calc) {
             for (final Field f : referenceFields) {
                 try {
                     calc.enqueue(f.get(obj));
@@ -458,8 +456,8 @@ public final class ObjectSizeCalculator {
                     maxMemory += (Long) max;
                 }
             } catch (IllegalAccessException |
-                    IllegalArgumentException |
-                    InvocationTargetException ex) {
+                     IllegalArgumentException |
+                     InvocationTargetException ex) {
                 throw new AssertionError("java.lang.management not available in compact 1");
             }
 

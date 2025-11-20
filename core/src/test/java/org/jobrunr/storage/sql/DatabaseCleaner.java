@@ -49,10 +49,6 @@ public class DatabaseCleaner {
         doInTransaction(statement -> statement.executeUpdate("delete " + name), exceptionExpected, "Error deleting from " + name);
     }
 
-    private void drop(String name) {
-        drop(name, false);
-    }
-
     private void drop(String name, boolean exceptionExpected) {
         doInTransaction(statement -> statement.executeUpdate("drop " + name), exceptionExpected, "Error dropping " + name);
     }

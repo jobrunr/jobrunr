@@ -175,7 +175,7 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
 
     private static class JobStateCondition extends Condition<Job> {
 
-        public JobStateCondition(StateName stateName) {
+        JobStateCondition(StateName stateName) {
             super(job -> job.hasState(stateName), "Job should have state %s", stateName);
         }
     }

@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.stream;
-import static java.util.stream.Stream.of;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.utils.StringUtils.capitalize;
 
@@ -162,7 +161,7 @@ public class ReflectionUtils {
 
     public static Optional<Method> findMethod(String className, String methodName, String... parameterTypeNames) {
         try {
-            return findMethod(toClass(className), methodName, of(parameterTypeNames).map(ReflectionUtils::toClass).toArray(Class[]::new));
+            return findMethod(toClass(className), methodName, Stream.of(parameterTypeNames).map(ReflectionUtils::toClass).toArray(Class[]::new));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

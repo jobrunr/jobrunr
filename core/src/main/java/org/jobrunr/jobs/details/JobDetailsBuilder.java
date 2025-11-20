@@ -31,6 +31,7 @@ public abstract class JobDetailsBuilder {
         this(localVariables, null, null);
     }
 
+    @SuppressWarnings("JdkObsolete") // we want to keep the linked list here
     protected JobDetailsBuilder(List<Object> localVariables, String className, String methodName) {
         this.instructions = new ArrayDeque<>();
         this.stack = new LinkedList<>();
@@ -65,6 +66,7 @@ public abstract class JobDetailsBuilder {
         return instructions.pollFirst();
     }
 
+    @SuppressWarnings("NonApiType")
     public LinkedList<Object> getStack() {
         return stack;
     }

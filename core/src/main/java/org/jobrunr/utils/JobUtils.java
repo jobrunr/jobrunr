@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Stream.of;
 import static org.jobrunr.utils.GraalVMUtils.isRunningInGraalVMNativeMode;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 import static org.jobrunr.utils.StringUtils.substringBefore;
@@ -144,7 +143,7 @@ public class JobUtils {
     public static String[] getParameterTypeNamesFromJobSignature(String jobSignature) {
         String jobParameterTypesAsString = substringBetween(jobSignature, "(", ")");
         if (jobParameterTypesAsString.replaceAll("\\s", "").isEmpty()) return new String[]{};
-        return of(jobParameterTypesAsString.split(",")).map(String::trim).toArray(String[]::new);
+        return Stream.of(jobParameterTypesAsString.split(",")).map(String::trim).toArray(String[]::new);
     }
 
     private static String getClassNameAndMethodFromJobSignature(String jobSignature) {
