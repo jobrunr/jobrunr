@@ -58,7 +58,7 @@ public class RecurringJobPostProcessor implements BeanPostProcessor, BeanFactory
         private final BeanFactory beanFactory;
         private final StringValueResolver embeddedValueResolver;
 
-        public RecurringJobFinderMethodCallback(BeanFactory beanFactory, StringValueResolver resolver) {
+        RecurringJobFinderMethodCallback(BeanFactory beanFactory, StringValueResolver resolver) {
             this.beanFactory = beanFactory;
             this.embeddedValueResolver = resolver;
         }

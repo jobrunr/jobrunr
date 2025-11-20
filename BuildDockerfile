@@ -5,7 +5,7 @@ FROM gradle:9.2.0-jdk25 AS gradle-dist
 # Main build stage
 FROM eclipse-temurin:25-jdk@sha256:3a35a62d3ece346cfde11b08fafdc3f99d3946d31d5ebc15d678b44a67c3b9ec
 
-ARG NODE_VERSION=23.11.0
+ARG NODE_VERSION=24.11.1
 
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io

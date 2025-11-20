@@ -25,6 +25,7 @@ import org.jobrunr.stubs.TestServiceThatCannotBeRun;
 import org.jobrunr.utils.SleepUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -199,7 +200,7 @@ class BackgroundJobServerTest {
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
     }
 
-    @Test
+    @RepeatedTest(value = 100)
     void testServerStatusStateMachine() {
         // INITIAL
         assertThat(backgroundJobServer.isAnnounced()).isFalse();

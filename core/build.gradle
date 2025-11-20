@@ -112,7 +112,7 @@ tasks.register('test25', Test) {
     classpath = sourceSets.test25.runtimeClasspath
 }
 
-tasks.named('test') {
+tasks.named('check') {
     dependsOn 'test17', 'test25'
 }
 
