@@ -84,9 +84,11 @@ class ScheduleTest {
         assertThatCode(() -> new CronExpression("* * * * * * [PT0S/PT0S]").validate()).doesNotThrowAnyException();
         assertThatCode(() -> new CronExpression("0 0 * * * [PT0S/PT7H]").validate()).doesNotThrowAnyException();
 
-        assertThatCode(() -> new CronExpression("* * * * * * [PT1M/PT0S]").validate()).isInstanceOf(IllegalStateException.class)
+        assertThatCode(() -> new CronExpression("* * * * * * [PT1M/PT0S]").validate())
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("The total carbon aware margin must be lower than the duration between each schedule.");
-        assertThatCode(() -> new CronExpression("0 0 * * * [PT12H/PT24H]").validate()).isInstanceOf(IllegalStateException.class)
+        assertThatCode(() -> new CronExpression("0 0 * * * [PT12H/PT24H]").validate())
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("The total carbon aware margin must be lower than the duration between each schedule.");
     }
 }
