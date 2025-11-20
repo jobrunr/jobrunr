@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.stream;
+import static java.util.stream.Stream.of;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.utils.StringUtils.capitalize;
 
@@ -157,6 +158,14 @@ public class ReflectionUtils {
     public static Method getMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
         return findMethod(clazz, methodName, parameterTypes)
                 .orElseThrow(() -> new JobNotFoundException(clazz, methodName, parameterTypes));
+    }
+
+    public static Optional<Method> findMethod(String className, String methodName, String... parameterTypeNames) {
+        try {
+            return findMethod(toClass(className), methodName, of(parameterTypeNames).map(ReflectionUtils::toClass).toArray(Class[]::new));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     public static Optional<Method> findMethod(Object object, String methodName, Class<?>... parameterTypes) {

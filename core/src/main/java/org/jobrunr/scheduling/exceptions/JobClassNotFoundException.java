@@ -9,6 +9,10 @@ public class JobClassNotFoundException extends JobNotFoundException {
         super(message);
     }
 
+    public JobClassNotFoundException(String className, String methodName, String[] parameterTypeNames) {
+        super(className, methodName, parameterTypeNames);
+    }
+
     public JobClassNotFoundException(JobDetails jobDetails) {
         super(jobDetails);
     }

@@ -17,12 +17,16 @@ public class JobNotFoundException extends RuntimeException {
                 jobDetails.getJobParameters().stream().filter(JobParameter::isNotDeserializable).map(JobParameter::getException).map(JobParameterNotDeserializableException::getStackTrace).findAny().orElse(null));
     }
 
+    public JobNotFoundException(String className, String methodName, String[] parameterTypeNames) {
+        this(className, methodName, parameterTypeNames, "");
+    }
+
     public JobNotFoundException(Class<?> clazz, String methodName, Class<?>[] parameterTypes) {
         this(clazz.getName(), methodName, Stream.of(parameterTypes).map(Class::getName).toArray(String[]::new), "");
     }
 
-    public JobNotFoundException(String className, String methodName, String[] parameterTypes, String jobParameterNotDeserializableStackTrace) {
-        this(className + "." + methodName + "(" + String.join(",", parameterTypes) + ")" + getJobParameterNotDeserializableStackTrace(jobParameterNotDeserializableStackTrace));
+    public JobNotFoundException(String className, String methodName, String[] parameterTypeNames, String jobParameterNotDeserializableStackTrace) {
+        this(className + "." + methodName + "(" + String.join(",", parameterTypeNames) + ")" + getJobParameterNotDeserializableStackTrace(jobParameterNotDeserializableStackTrace));
     }
 
     public JobNotFoundException(String message) {
