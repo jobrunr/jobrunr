@@ -1,5 +1,7 @@
 package org.jobrunr.server.carbonaware;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ public class CarbonIntensityForecast {
         return new CarbonIntensityForecast(new ApiResponseStatus(ex.getApiErrorCode() + "", "HTTP Response Code " + ex.getApiErrorCode()), null, null, null, null, null, null, null);
     }
 
-    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration forecastInterval, List<TimestampedCarbonIntensityForecast> intensityForecast) {
+    public CarbonIntensityForecast(ApiResponseStatus apiResponse, String dataProvider, String dataIdentifier, String displayName, String timezone, Instant nextForecastAvailableAt, Duration forecastInterval, @Nullable List<TimestampedCarbonIntensityForecast> intensityForecast) {
         this.apiResponse = apiResponse;
         this.dataProvider = dataProvider;
         this.dataIdentifier = dataIdentifier;
@@ -97,7 +99,7 @@ public class CarbonIntensityForecast {
         return apiResponse != null && !apiResponse.code.equals("OK");
     }
 
-    public Instant lowestCarbonIntensityInstant(Instant startOfPeriod, Instant endOfPeriod) {
+    public @Nullable Instant lowestCarbonIntensityInstant(Instant startOfPeriod, Instant endOfPeriod) {
         if (hasNoForecast()) return null;
 
         return getForecastsForPeriod(startOfPeriod, endOfPeriod)

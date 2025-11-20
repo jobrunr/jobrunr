@@ -47,6 +47,7 @@ dependencies {
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
     compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'org.jspecify:jspecify'
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
     compileOnly 'org.mongodb:mongodb-driver-sync'
@@ -89,6 +90,7 @@ dependencies {
     testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
+    testFixturesApi 'org.jspecify:jspecify'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'io.micrometer:micrometer-core'

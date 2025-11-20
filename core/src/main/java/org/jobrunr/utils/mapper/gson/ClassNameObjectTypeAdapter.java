@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,8 +24,9 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
 
     public static final TypeAdapterFactory FACTORY = new TypeAdapterFactory() {
+
         @Override
-        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+        public <T> @Nullable TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
             return type.getRawType() == Object.class ? (TypeAdapter<T>) new ClassNameObjectTypeAdapter(gson) : null;
         }
     };
@@ -36,7 +38,7 @@ public class ClassNameObjectTypeAdapter extends TypeAdapter<Object> {
     }
 
     @Override
-    public Object read(JsonReader in) throws IOException {
+    public @Nullable Object read(JsonReader in) throws IOException {
         JsonToken token = in.peek();
         switch (token) {
             case BEGIN_ARRAY:

@@ -14,6 +14,7 @@ import org.jobrunr.stubs.TaskEvent;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -1273,8 +1274,9 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     private static class DummyProxyInvocationHandler implements InvocationHandler {
+
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             System.out.println("Invoking method " + method.getName() + " on object " + proxy);
             return null;
         }

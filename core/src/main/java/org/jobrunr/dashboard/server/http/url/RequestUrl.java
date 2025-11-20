@@ -2,6 +2,7 @@ package org.jobrunr.dashboard.server.http.url;
 
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Arrays;
@@ -38,7 +39,7 @@ public class RequestUrl {
         return params;
     }
 
-    public String param(String paramName) {
+    public @Nullable String param(String paramName) {
         return params.get(paramName);
     }
 

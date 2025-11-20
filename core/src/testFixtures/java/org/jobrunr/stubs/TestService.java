@@ -9,6 +9,7 @@ import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -482,7 +483,7 @@ public class TestService implements TestServiceInterface {
         }
 
         @Override
-        public Void doWork() {
+        public @Nullable Void doWork() {
             LOGGER.debug("Simple Command " + string + " " + integer);
             return null;
         }

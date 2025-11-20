@@ -14,6 +14,7 @@ import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -63,10 +64,8 @@ public class JobScheduler extends AbstractJobScheduler {
         this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
     }
 
-    public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
+    public JobScheduler(StorageProvider storageProvider, @NonNull JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {
         super(storageProvider, jobFilters);
-        if (jobDetailsGenerator == null)
-            throw new IllegalArgumentException("A JobDetailsGenerator is required to use the JobScheduler.");
         this.jobDetailsGenerator = jobDetailsGenerator;
         BackgroundJob.setJobScheduler(this);
     }

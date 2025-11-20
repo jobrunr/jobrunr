@@ -3,6 +3,7 @@ package org.jobrunr.jobs.details.instructions;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.details.JobDetailsBuilder;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
     }
 
     @Override
-    public Object invokeInstruction() {
+    public @Nullable Object invokeInstruction() {
         if (!isLastJobDetailsInstruction() && isVoidInstruction()) {
             throw new JobRunrException("JobRunr only supports enqueueing/scheduling of one method");
         } else if (isLastJobDetailsInstruction()) {

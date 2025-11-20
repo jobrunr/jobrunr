@@ -1,6 +1,7 @@
 package org.jobrunr.storage.sql.common.db;
 
 import org.jobrunr.storage.StorageException;
+import org.jspecify.annotations.Nullable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -74,7 +75,7 @@ public class SqlSpliterator implements Spliterator<SqlResultSet>, AutoCloseable 
     }
 
     @Override
-    public Spliterator<SqlResultSet> trySplit() {
+    public @Nullable Spliterator<SqlResultSet> trySplit() {
         return null;
     }
 

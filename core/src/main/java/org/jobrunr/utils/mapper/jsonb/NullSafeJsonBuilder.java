@@ -6,6 +6,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -49,7 +50,7 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
         return this;
     }
 
-    public NullSafeJsonBuilder add(String name, UUID value) {
+    public NullSafeJsonBuilder add(String name, @Nullable UUID value) {
         if (value != null) delegate.add(name, value.toString());
         return this;
     }
@@ -72,12 +73,12 @@ public class NullSafeJsonBuilder implements JsonObjectBuilder {
         return this;
     }
 
-    public NullSafeJsonBuilder add(String name, Integer value) {
+    public NullSafeJsonBuilder add(String name, @Nullable Integer value) {
         if (value != null) add(name, value.intValue());
         return this;
     }
 
-    public NullSafeJsonBuilder add(String name, Long value) {
+    public NullSafeJsonBuilder add(String name, @Nullable Long value) {
         if (value != null) add(name, value.longValue());
         return this;
     }

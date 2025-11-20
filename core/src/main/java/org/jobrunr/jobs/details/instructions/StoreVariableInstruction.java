@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsBuilder;
+import org.jspecify.annotations.Nullable;
 
 public class StoreVariableInstruction extends VisitLocalVariableInstruction {
 
@@ -18,7 +19,7 @@ public class StoreVariableInstruction extends VisitLocalVariableInstruction {
     }
 
     @Override
-    public Object invokeInstruction() {
+    public @Nullable Object invokeInstruction() {
         jobDetailsBuilder.addLocalVariable(jobDetailsBuilder.getStack().pollLast());
         return null;
     }
