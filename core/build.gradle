@@ -178,6 +178,7 @@ dependencies {
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'org.wiremock:wiremock'
     test17Implementation 'tools.jackson.core:jackson-databind'
 
     testFixturesApi 'org.junit.jupiter:junit-jupiter'
@@ -189,7 +190,8 @@ dependencies {
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'io.micrometer:micrometer-core'
-    testFixturesApi 'org.wiremock:wiremock-standalone'
+
+    testFixturesCompileOnly 'org.wiremock:wiremock'
 }
 
 normalization {
