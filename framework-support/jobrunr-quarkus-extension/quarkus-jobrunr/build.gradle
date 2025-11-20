@@ -4,11 +4,11 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id('io.quarkus.extension') version '3.27.0'
+    id 'io.quarkus.extension' version '3.27.1'
 }
 
 quarkusExtension {
-    deploymentModule = 'quarkus-jobrunr-deployment'
+    deploymentModule = "quarkus-jobrunr-deployment"
 }
 
 compileJava {

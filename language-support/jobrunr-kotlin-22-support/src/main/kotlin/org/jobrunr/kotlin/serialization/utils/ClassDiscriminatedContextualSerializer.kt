@@ -15,6 +15,7 @@ object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
     @OptIn(InternalSerializationApi::class)
     override val descriptor = buildSerialDescriptor(Any::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
 
+    @Suppress("UNCHECKED_CAST")
     override fun serialize(encoder: Encoder, value: Any) {
         require(encoder is JsonEncoder)
 

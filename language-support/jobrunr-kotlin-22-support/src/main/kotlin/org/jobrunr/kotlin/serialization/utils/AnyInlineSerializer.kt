@@ -11,6 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 class AnyInlineSerializer<T : Any> : KSerializer<T> {
     override val descriptor = buildSerialDescriptor(Any::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
 
+    @Suppress("UNCHECKED_CAST")
     override fun serialize(encoder: Encoder, value: T) {
         encoder.encodeSerializableValue(
             encoder.serializersModule.serializer(value::class) as? KSerializer<T>

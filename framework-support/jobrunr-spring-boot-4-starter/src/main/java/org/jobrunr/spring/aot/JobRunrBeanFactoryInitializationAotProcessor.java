@@ -42,7 +42,6 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.VersionNumber.JAVA_VERSION;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
-import static org.springframework.aot.hint.MemberCategory.DECLARED_CLASSES;
 import static org.springframework.aot.hint.MemberCategory.INVOKE_PUBLIC_METHODS;
 
 public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
@@ -125,7 +124,7 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
         if (VirtualThreads.isSupported(JAVA_VERSION)) {
             try {
                 hints.reflection()
-                        .registerType(Thread.class, DECLARED_CLASSES, INVOKE_PUBLIC_METHODS)
+                        .registerType(Thread.class, INVOKE_PUBLIC_METHODS)
                         .registerType(Class.forName("java.lang.Thread$Builder"), allMemberCategories)
                         .registerType(Executors.class, allMemberCategories)
                         .registerType(ExecutorService.class, allMemberCategories);

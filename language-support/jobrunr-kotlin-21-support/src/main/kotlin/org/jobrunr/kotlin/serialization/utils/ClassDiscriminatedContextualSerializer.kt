@@ -18,6 +18,7 @@ object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
     override fun serialize(encoder: Encoder, value: Any) {
         require(encoder is JsonEncoder)
 
+        @Suppress("UNCHECKED_CAST")
         val serializer = encoder.serializersModule.serializer(value::class) as KSerializer<Any>
         when (val jsonElement = encoder.json.encodeToJsonElement(serializer, value)) {
             is JsonObject -> {
