@@ -15,9 +15,7 @@ import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.JsonMapperException;
-import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
-import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
+import org.jobrunr.utils.mapper.JsonMapperFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +25,6 @@ import static java.util.Optional.ofNullable;
 import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.usingStandardDashboardConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.utils.mapper.JsonMapperValidator.validateJsonMapper;
-import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
 /**
  * The main class to configure JobRunr
@@ -46,7 +43,7 @@ public class JobRunrConfiguration {
     JobRunrMicroMeterIntegration microMeterIntegration;
 
     JobRunrConfiguration() {
-        this.jsonMapper = determineJsonMapper();
+        this.jsonMapper = JsonMapperFactory.createJsonMapper();
         this.jobMapper = this.jsonMapper == null ? null : new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
@@ -350,17 +347,6 @@ public class JobRunrConfiguration {
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
         return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
-    }
-
-    private static JsonMapper determineJsonMapper() {
-        if (classExists("com.fasterxml.jackson.databind.ObjectMapper")) {
-            return new JacksonJsonMapper();
-        } else if (classExists("com.google.gson.Gson")) {
-            return new GsonJsonMapper();
-        } else if (classExists("jakarta.json.bind.JsonbBuilder")) {
-            return new JsonbJsonMapper();
-        }
-        return null;
     }
 
     public static class JobRunrConfigurationResult {

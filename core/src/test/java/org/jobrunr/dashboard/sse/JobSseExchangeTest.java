@@ -18,7 +18,9 @@ import java.net.URISyntaxException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aDeletedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
