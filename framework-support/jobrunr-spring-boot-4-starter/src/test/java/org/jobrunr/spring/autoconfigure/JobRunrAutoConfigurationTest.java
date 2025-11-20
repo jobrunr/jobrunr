@@ -1,6 +1,5 @@
 package org.jobrunr.spring.autoconfigure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
@@ -26,7 +25,6 @@ import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
@@ -65,18 +63,26 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void selectJacksonMapperIfNoOtherJsonSerializersPresent() {
+    void selectJackson3MapperIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withClassLoader(new FilteredClassLoader(Gson.class, kotlinx.serialization.json.Json.class))
-                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(JacksonJsonMapper.class));
+                .withClassLoader(new FilteredClassLoader(Gson.class, com.fasterxml.jackson.databind.ObjectMapper.class, kotlinx.serialization.json.Json.class))
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "Jackson3JsonMapper".equals(x.getClass().getSimpleName())));
+    }
+
+    @Test
+    void selectJackson2JsonMapperIfNoOtherJsonSerializersPresent() {
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withClassLoader(new FilteredClassLoader(Gson.class, tools.jackson.databind.ObjectMapper.class, kotlinx.serialization.json.Json.class))
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "JacksonJsonMapper".equals(x.getClass().getSimpleName())));
     }
 
     @Test
     void selectGsonMapperIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withClassLoader(new FilteredClassLoader(ObjectMapper.class, kotlinx.serialization.json.Json.class))
+                .withClassLoader(new FilteredClassLoader(com.fasterxml.jackson.databind.ObjectMapper.class, tools.jackson.databind.ObjectMapper.class, kotlinx.serialization.json.Json.class))
                 .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(GsonJsonMapper.class));
     }
 
@@ -84,7 +90,7 @@ public class JobRunrAutoConfigurationTest {
     void selectKotlinxSerializationIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
-                .withClassLoader(new FilteredClassLoader(ObjectMapper.class, Gson.class))
+                .withClassLoader(new FilteredClassLoader(com.fasterxml.jackson.databind.ObjectMapper.class, tools.jackson.databind.ObjectMapper.class, Gson.class))
                 .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").isInstanceOf(KotlinxSerializationJsonMapper.class));
     }
 

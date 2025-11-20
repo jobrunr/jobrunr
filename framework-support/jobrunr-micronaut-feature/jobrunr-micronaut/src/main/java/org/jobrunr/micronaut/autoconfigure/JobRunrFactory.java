@@ -22,7 +22,7 @@ import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.JsonMapperFactory;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.time.Duration;
@@ -138,6 +138,6 @@ public class JobRunrFactory {
 
     @Singleton
     public JsonMapper jobRunrJsonMapper() {
-        return new JacksonJsonMapper();
+        return JsonMapperFactory.createJsonMapper();
     }
 }

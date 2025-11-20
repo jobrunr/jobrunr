@@ -16,8 +16,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC1')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC1')
+    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC2')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC2')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter-classic'
@@ -26,10 +26,6 @@ dependencies {
 
     compileOnly 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'io.micrometer:micrometer-core'
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
-    compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compileOnly 'com.google.code.gson:gson'
-    compileOnly 'org.eclipse:yasson'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
     compileOnly project(':language-support:jobrunr-kotlin-22-support')
 
@@ -39,6 +35,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'tools.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
     testImplementation project(':language-support:jobrunr-kotlin-22-support')
@@ -62,7 +59,7 @@ normalization {
 jar {
     archiveClassifier = ''
     manifest {
-        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-3.starter'
+        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-4.starter'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
@@ -78,7 +75,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
-            artifactId = 'jobrunr-spring-boot-3-starter'
+            artifactId = 'jobrunr-spring-boot-4-starter'
             version = project.version
             from components.java
 
@@ -121,7 +118,7 @@ publishing {
                     pomNode.dependencies.'*'.each() {
                         if (it.optional.text() == 'true') {
                             it.parent().remove(it)
-                        } else if (it.artifactId.text() == 'spring-boot-starter') {
+                        } else if (it.artifactId.text() == 'spring-boot-starter-classic') {
                             it.scope.replaceNode {
                                 scope('provided')
                             }

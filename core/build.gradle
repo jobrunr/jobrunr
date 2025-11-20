@@ -106,8 +106,14 @@ tasks.register('test17', Test) {
     classpath = sourceSets.test17.runtimeClasspath
 }
 
+tasks.register('test25', Test) {
+    group = 'verification'
+    testClassesDirs = sourceSets.test25.output.classesDirs
+    classpath = sourceSets.test25.runtimeClasspath
+}
+
 tasks.named('test') {
-    dependsOn(tasks.named('test17'))
+    dependsOn 'test17', 'test25'
 }
 
 tasks.register('myJavadocs', Javadoc) {
@@ -227,12 +233,20 @@ sourcesJar.dependsOn npmRunBuild
 test.dependsOn npmRunTest
 
 jar {
+    from(sourceSets.java17.output) {
+        into 'META-INF/versions/17'
+    }
+    from(sourceSets.java25.output) {
+        into 'META-INF/versions/25'
+    }
+
     def asmVersion = configurations.compileClasspath.incoming.resolutionResult.allComponents.find {
         it.moduleVersion?.group == 'org.ow2.asm' && it.moduleVersion.name == 'asm'
     }?.moduleVersion?.version
     exclude('**/dependency-check-bin/', '**/dependency-check-reports/')
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'
+        attributes 'Multi-Release': 'true'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version
