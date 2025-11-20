@@ -1,7 +1,7 @@
-<p style="text-align: center">
+<p align=""center">
  <a href="https://www.jobrunr.io/en/" target="_blank"><img src="https://user-images.githubusercontent.com/567842/80095933-1181c900-8569-11ea-85e7-14129b3f8142.png" alt="JobRunr logo"></img></a>
 </p>  
-<p style="text-align: center">
+<p align=""center">
 The ultimate library to perform background processing on the JVM.<br/>
 Dead simple API. Extensible. Reliable. <br/>
 Distributed and backed by persistent storage. <br/>
@@ -11,7 +11,7 @@ Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-framew
 <br/>
 
 
-<p style="text-align: center">
+<p align=""center">
     <a href="https://central.sonatype.com/artifact/org.jobrunr/jobrunr"><img alt="Maven Central Version" src="https://img.shields.io/maven-central/v/org.jobrunr/jobrunr"></a>&nbsp;
     <img alt="Woodpecker CI" src="https://ci.jobrunr.io/api/badges/1/status.svg" />&nbsp;
     <a href="https://www.bestpractices.dev/projects/7376"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/7376/badge"/></a>&nbsp;
