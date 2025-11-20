@@ -78,27 +78,27 @@ class JobRunrConfigurationTest {
     @Test
     void ifJobActivatorIsAddedAfterBackgroundJobServer() {
         assertThatThrownBy(() -> JobRunr.configure()
-                        .useStorageProvider(storageProvider)
-                        .useBackgroundJobServer()
-                        .useJobActivator(jobActivator)
+                .useStorageProvider(storageProvider)
+                .useBackgroundJobServer()
+                .useJobActivator(jobActivator)
         )
-        .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Please configure the JobActivator before the BackgroundJobServer.");
     }
 
     @Test
     void backgroundJobServerThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
-                        .useBackgroundJobServer()
+                .useBackgroundJobServer()
         )
-        .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
     }
 
     @Test
     void backgroundJobServerIsNotInstantiatedIfGuardIsFalse() {
         assertThatCode(() -> JobRunr.configure()
-                        .useBackgroundJobServerIf(false)
+                .useBackgroundJobServerIf(false)
         ).doesNotThrowAnyException();
     }
 
@@ -114,7 +114,7 @@ class JobRunrConfigurationTest {
     @Test
     void dashboardThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
-                        .useDashboard()
+                .useDashboard()
         ).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a JobRunrDashboardWebServer. Please see the documentation on how to setup a job StorageProvider.");
     }
@@ -122,15 +122,15 @@ class JobRunrConfigurationTest {
     @Test
     void dashboardCanBeConfigured() {
         assertThatCode(() -> JobRunr.configure()
-                        .useStorageProvider(storageProvider)
-                        .useDashboard()
+                .useStorageProvider(storageProvider)
+                .useDashboard()
         ).doesNotThrowAnyException();
     }
 
     @Test
     void dashboardIsNotStartedIfGuardIsFalse() {
         assertThatCode(() -> JobRunr.configure()
-                        .useDashboardIf(false)
+                .useDashboardIf(false)
         ).doesNotThrowAnyException();
     }
 

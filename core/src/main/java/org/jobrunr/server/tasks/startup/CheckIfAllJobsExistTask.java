@@ -40,7 +40,7 @@ public class CheckIfAllJobsExistTask implements Runnable {
             if (!distinctRecurringJobSignatures.isEmpty() || !distinctScheduledJobSignatures.isEmpty()) {
                 String jobStateThatIsNotFound = jobTypeNotFoundLabel(distinctRecurringJobSignatures, distinctScheduledJobSignatures);
                 LOGGER.warn("JobRunr found {} jobs that do not exist anymore in your code. These jobs will fail with a JobNotFoundException (due to a ClassNotFoundException or a MethodNotFoundException)." +
-                        "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: {}",
+                                "\n\tBelow you can find the method signatures of the jobs that cannot be found anymore: {}",
                         jobStateThatIsNotFound,
                         jobsThatCannotBeFound.stream().map(sign -> "\n\t" + sign + ",").collect(Collectors.joining())
                 );

@@ -9,7 +9,9 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 import static java.util.Arrays.stream;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaConstructor;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 

@@ -90,13 +90,13 @@ public class FrontEndDevelopment {
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
-                        dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
-                        System.out.println("Saved ServerJobRunrException");
-                    }
-                },
+                                 @Override
+                                 public void run() {
+                                     dashboardNotificationManager.handle(new SevereJobRunrException("A bad exception happened.", new ExceptionWithDiagnostics()));
+                                     dashboardNotificationManager.notify(new CpuAllocationIrregularityNotification(20));
+                                     System.out.println("Saved ServerJobRunrException");
+                                 }
+                             },
                 30000
         );
 

@@ -103,7 +103,8 @@ public class JobStats implements Comparable<JobStats> {
 
     @Override
     public int compareTo(JobStats jobStats) {
-        if (this.succeeded > jobStats.succeeded) return 1; else if (this.allTimeSucceeded > jobStats.allTimeSucceeded) return 1;
+        if (this.succeeded > jobStats.succeeded) return 1;
+        else if (this.allTimeSucceeded > jobStats.allTimeSucceeded) return 1;
         else return this.timeStamp.compareTo(jobStats.timeStamp);
     }
 }

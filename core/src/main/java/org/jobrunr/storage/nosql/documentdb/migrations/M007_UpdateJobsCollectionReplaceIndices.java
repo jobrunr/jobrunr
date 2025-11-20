@@ -7,8 +7,13 @@ import org.bson.Document;
 import org.jobrunr.storage.StorageProviderUtils.Jobs;
 import org.jobrunr.storage.nosql.mongo.migrations.MongoMigration;
 
-import static com.mongodb.client.model.Indexes.*;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.*;
+import static com.mongodb.client.model.Indexes.ascending;
+import static com.mongodb.client.model.Indexes.compoundIndex;
+import static com.mongodb.client.model.Indexes.descending;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_RECURRING_JOB_ID;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_STATE;
+import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 
 public class M007_UpdateJobsCollectionReplaceIndices extends MongoMigration {

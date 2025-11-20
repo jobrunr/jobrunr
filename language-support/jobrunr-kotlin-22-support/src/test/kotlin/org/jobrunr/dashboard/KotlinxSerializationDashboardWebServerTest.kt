@@ -5,6 +5,6 @@ import kotlinx.serialization.InternalSerializationApi
 import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper
 
 internal class KotlinxSerializationDashboardWebServerTest : JobRunrDashboardWebServerTest() {
-	@OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-	override fun getJsonMapper() = KotlinxSerializationJsonMapper()
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    override fun getJsonMapper() = KotlinxSerializationJsonMapper()
 }

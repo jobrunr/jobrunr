@@ -18,7 +18,11 @@ import java.time.Instant;
 import static java.time.Duration.ofMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.*;
+import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
+import static org.jobrunr.jobs.JobTestBuilder.aJob;
+import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
+import static org.jobrunr.jobs.JobTestBuilder.aScheduledJob;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)

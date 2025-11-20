@@ -6,10 +6,10 @@ import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import org.jobrunr.storage.JobRunrMetadata
 
 object JobRunrMetadataSerializer : FieldBasedSerializer<JobRunrMetadata>(
-	JobRunrMetadata::class,
-	Field("name", String.serializer()) { it.name },
-	Field("owner", String.serializer()) { it.owner },
-	Field("createdAt", InstantSerializer) { it.createdAt },
-	Field("updatedAt", InstantSerializer) { it.updatedAt },
-	Field("value", String.serializer()) { it.value }
+    JobRunrMetadata::class,
+    Field("name", String.serializer()) { it.name },
+    Field("owner", String.serializer()) { it.owner },
+    Field("createdAt", InstantSerializer) { it.createdAt },
+    Field("updatedAt", InstantSerializer) { it.updatedAt },
+    Field("value", String.serializer()) { it.value }
 )

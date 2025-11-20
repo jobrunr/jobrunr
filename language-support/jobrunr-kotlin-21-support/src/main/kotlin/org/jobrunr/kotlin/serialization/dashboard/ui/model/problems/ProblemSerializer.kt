@@ -9,38 +9,38 @@ import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import kotlin.reflect.KClass
 
 abstract class ProblemSerializer<ProblemType : Problem>(
-	kClass: KClass<ProblemType>,
-	vararg fields: Field<ProblemType, out Any>,
+    kClass: KClass<ProblemType>,
+    vararg fields: Field<ProblemType, out Any>,
 ) : FieldBasedSerializer<ProblemType>(
-	kClass,
-	listOf(
-		Field("type", String.serializer()) { it.type },
-		*fields
-	)
+    kClass,
+    listOf(
+        Field("type", String.serializer()) { it.type },
+        *fields
+    )
 )
 
 object CpuAllocationIrregularityProblemSerializer : ProblemSerializer<CpuAllocationIrregularityProblem>(
-	CpuAllocationIrregularityProblem::class,
-	Field("cpuAllocationIrregularityMetadataSet", ListSerializer(JobRunrMetadataSerializer)) {
-		it.cpuAllocationIrregularityMetadataSet
-	},
+    CpuAllocationIrregularityProblem::class,
+    Field("cpuAllocationIrregularityMetadataSet", ListSerializer(JobRunrMetadataSerializer)) {
+        it.cpuAllocationIrregularityMetadataSet
+    },
 )
 
 object PollIntervalInSecondsTimeBoxIsTooSmallProblemSerializer : ProblemSerializer<PollIntervalInSecondsTimeBoxIsTooSmallProblem>(
-	PollIntervalInSecondsTimeBoxIsTooSmallProblem::class,
-	Field("pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet", ListSerializer(JobRunrMetadataSerializer)) {
-		it.pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet
-	},
+    PollIntervalInSecondsTimeBoxIsTooSmallProblem::class,
+    Field("pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet", ListSerializer(JobRunrMetadataSerializer)) {
+        it.pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet
+    },
 )
 
 object ScheduledJobsNotFoundProblemSerializer : ProblemSerializer<ScheduledJobsNotFoundProblem>(
-	ScheduledJobsNotFoundProblem::class,
-	Field("jobsNotFound", SetSerializer(String.serializer())) { it.jobsNotFound },
+    ScheduledJobsNotFoundProblem::class,
+    Field("jobsNotFound", SetSerializer(String.serializer())) { it.jobsNotFound },
 )
 
 object SevereJobRunrExceptionProblemSerializer : ProblemSerializer<SevereJobRunrExceptionProblem>(
-	SevereJobRunrExceptionProblem::class,
-	Field("githubIssueTitle", String.serializer()) { it.githubIssueTitle },
-	Field("githubIssueBody", String.serializer()) { it.githubIssueBody },
-	Field("githubIssueBodyLength", Int.serializer()) { it.githubIssueBodyLength },
+    SevereJobRunrExceptionProblem::class,
+    Field("githubIssueTitle", String.serializer()) { it.githubIssueTitle },
+    Field("githubIssueBody", String.serializer()) { it.githubIssueBody },
+    Field("githubIssueBodyLength", Int.serializer()) { it.githubIssueBodyLength },
 )

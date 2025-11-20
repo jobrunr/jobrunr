@@ -45,7 +45,7 @@ public class JsonMapperValidatorTest {
                         .setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
                 ))
         )
-        .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
                 .hasRootCauseMessage("Job Serialization should use fields and not getters/setters.");
     }
@@ -59,7 +59,7 @@ public class JsonMapperValidatorTest {
                         .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
                 ))
         )
-        .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.")
                 .hasRootCauseMessage("Polymorphism is not supported as no @class annotation is present with fully qualified name of the different Job states.");
     }
@@ -69,7 +69,7 @@ public class JsonMapperValidatorTest {
         assertThatThrownBy(() -> validateJsonMapper(new InvalidGsonJsonMapper(new GsonBuilder().create()
                 ))
         )
-        .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.");
     }
 
@@ -77,7 +77,7 @@ public class JsonMapperValidatorTest {
     void testInvalidJsonbJsonMapper() {
         assertThatThrownBy(() -> validateJsonMapper(new InvalidJsonbJsonMapper(new JsonbConfig()))
         )
-        .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The JsonMapper you provided cannot be used as it deserializes jobs in an incorrect way.");
     }
 

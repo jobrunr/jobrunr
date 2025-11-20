@@ -31,7 +31,8 @@ public class JobStatsEnricher {
     }
 
     private static JobStats getLatestJobStats(JobStats jobStats, JobStats previousJobStats) {
-        if (previousJobStats == null) return jobStats; else if (jobStats.compareTo(previousJobStats) >= 0) return jobStats;
+        if (previousJobStats == null) return jobStats;
+        else if (jobStats.compareTo(previousJobStats) >= 0) return jobStats;
         else return previousJobStats;
     }
 

@@ -80,8 +80,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public boolean hasMajorMinorAndPatchVersionHigherOrEqualTo(VersionNumber o) {
-        if (compareVersionNumber(majorVersion, o.majorVersion) > 0) return true; else if (compareVersionNumber(majorVersion, o.majorVersion) == 0
-                && compareVersionNumber(minorVersion, o.minorVersion) > 0) return true; else if (compareVersionNumber(majorVersion, o.majorVersion) == 0
+        if (compareVersionNumber(majorVersion, o.majorVersion) > 0) return true;
+        else if (compareVersionNumber(majorVersion, o.majorVersion) == 0
+                && compareVersionNumber(minorVersion, o.minorVersion) > 0) return true;
+        else if (compareVersionNumber(majorVersion, o.majorVersion) == 0
                 && compareVersionNumber(minorVersion, o.minorVersion) == 0
                 && compareVersionNumber(patchVersion, o.patchVersion) >= 0) return true;
         return false;
@@ -142,7 +144,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     private int compareVersionNumber(String myself, String other) {
-        if (myself.length() != other.length()) return myself.length() - other.length(); else if (myself.compareTo(other) < 0) return -1; else if (myself.compareTo(other) > 0) return 1;
+        if (myself.length() != other.length()) return myself.length() - other.length();
+        else if (myself.compareTo(other) < 0) return -1;
+        else if (myself.compareTo(other) > 0) return 1;
         return 0;
     }
 

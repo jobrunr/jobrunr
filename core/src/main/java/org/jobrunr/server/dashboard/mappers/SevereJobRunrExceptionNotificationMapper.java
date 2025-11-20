@@ -7,8 +7,8 @@ import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
-import org.jobrunr.utils.RuntimeUtils;
 import org.jobrunr.utils.JarUtils;
+import org.jobrunr.utils.RuntimeUtils;
 
 import java.time.Instant;
 import java.util.UUID;

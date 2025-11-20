@@ -41,11 +41,11 @@
       "doNotRetry": false
     },
     {
-      "@class" : "org.jobrunr.jobs.states.CarbonAwareAwaitingState",
-      "state" : "AWAITING",
-      "createdAt" : "${json-unit.ignore}",
-      "from" : "${json-unit.ignore}",
-      "to" : "${json-unit.ignore}",
+      "@class": "org.jobrunr.jobs.states.CarbonAwareAwaitingState",
+      "state": "AWAITING",
+      "createdAt": "${json-unit.ignore}",
+      "from": "${json-unit.ignore}",
+      "to": "${json-unit.ignore}",
       "reason": "carbon state for job test builder"
     },
     {

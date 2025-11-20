@@ -1,14 +1,14 @@
 CREATE TABLE jobrunr_jobs
 (
-	id           nchar(36)     NOT NULL,
-	version      bigint        NOT NULL,
-	jobAsJson    clob          NOT NULL,
-	jobSignature NVARCHAR(255) NOT NULL,
-	state        NVARCHAR(36)  NOT NULL,
-	createdAt    TIMESTAMP(6)  NOT NULL,
-	updatedAt    TIMESTAMP(6)  NOT NULL,
-	scheduledAt  TIMESTAMP(6),
-	PRIMARY KEY (id)
+    id           nchar(36)    NOT NULL,
+    version      bigint       NOT NULL,
+    jobAsJson    clob         NOT NULL,
+    jobSignature NVARCHAR(255) NOT NULL,
+    state        NVARCHAR(36)  NOT NULL,
+    createdAt    TIMESTAMP(6) NOT NULL,
+    updatedAt    TIMESTAMP(6) NOT NULL,
+    scheduledAt  TIMESTAMP(6),
+    PRIMARY KEY (id)
 );
 CREATE INDEX jobrunr_state_idx ON jobrunr_jobs (state);
 CREATE INDEX jobrunr_job_signature_idx ON jobrunr_jobs (jobSignature);

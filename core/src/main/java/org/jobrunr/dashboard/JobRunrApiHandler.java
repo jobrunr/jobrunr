@@ -70,7 +70,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
                 response.statusCode(404);
             } else {
                 String format = request.queryParam("format", String.class, null);
-                if ("jsonValue" .equals(format)) {
+                if ("jsonValue".equals(format)) {
                     response.fromJsonString(metadata.getValue());
                 } else {
                     response.asJson(metadata);

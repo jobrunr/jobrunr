@@ -12,6 +12,7 @@ public interface JobRequestHandler<T extends JobRequest> {
 
     /**
      * The actual job processing to perform.
+     *
      * @param jobRequest the {@link JobRequest} to be processed
      * @throws Exception if an error occurs during the processing, JobRunr will automatically retry the job.
      */
@@ -19,6 +20,7 @@ public interface JobRequestHandler<T extends JobRequest> {
 
     /**
      * Gives access to the JobContext for the current job in a thread-safe manner. It will be available only during the {@link #run(JobRequest)} method.
+     *
      * @return the {@link JobContext} for the current Job
      */
     default JobContext jobContext() {

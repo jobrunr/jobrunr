@@ -2,7 +2,11 @@ package org.jobrunr.jobs.details;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.details.instructions.*;
+import org.jobrunr.jobs.details.instructions.ALoadOperandInstruction;
+import org.jobrunr.jobs.details.instructions.IConst2OperandInstruction;
+import org.jobrunr.jobs.details.instructions.InvokeSpecialInstruction;
+import org.jobrunr.jobs.details.instructions.InvokeVirtualInstruction;
+import org.jobrunr.jobs.details.instructions.LdcInstruction;
 import org.jobrunr.stubs.TestService;
 import org.junit.jupiter.api.Test;
 

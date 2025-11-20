@@ -46,9 +46,9 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .defaultTimeZone(TimeZone.getDefault())
                 .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
                 .changeDefaultVisibility(vc -> vc
-                                .with(JsonAutoDetect.Visibility.NONE)
-                                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
-                                .withCreatorVisibility(JsonAutoDetect.Visibility.PUBLIC_ONLY)
+                        .with(JsonAutoDetect.Visibility.NONE)
+                        .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                        .withCreatorVisibility(JsonAutoDetect.Visibility.PUBLIC_ONLY)
                 )
                 .disable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS)
                 .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)

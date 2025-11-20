@@ -3,7 +3,6 @@ package org.jobrunr.jobs.context;
 import org.jobrunr.jobs.Job;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;

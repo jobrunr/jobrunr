@@ -9,7 +9,9 @@ import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
 
-import static org.jobrunr.jobs.states.StateName.*;
+import static org.jobrunr.jobs.states.StateName.DELETED;
+import static org.jobrunr.jobs.states.StateName.FAILED;
+import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 
 public class JobSseExchange extends AbstractObjectSseExchange implements JobChangeListener {
 

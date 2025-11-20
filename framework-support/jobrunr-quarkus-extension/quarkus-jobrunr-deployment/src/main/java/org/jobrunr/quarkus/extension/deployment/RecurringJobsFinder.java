@@ -101,7 +101,8 @@ public class RecurringJobsFinder {
     }
 
     private boolean hasParametersOutsideOfJobContext(MethodInfo method) {
-        if (method.parameters().isEmpty()) return false; else if (method.parameters().size() > 1) return true;
+        if (method.parameters().isEmpty()) return false;
+        else if (method.parameters().size() > 1) return true;
         else return !method.parameterType(0).name().equals(DotName.createSimple(JobContext.class.getName()));
     }
 

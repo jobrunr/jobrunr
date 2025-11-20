@@ -6,7 +6,6 @@ import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.annotations.Recurring;
 import org.jobrunr.jobs.context.JobContext;
-import org.jobrunr.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +13,6 @@ import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.ANNOTATION;
 
@@ -55,7 +53,8 @@ public class JobRunrRecurringJobScheduler {
     }
 
     private boolean hasParametersOutsideOfJobContext(Method method) {
-        if (method.getParameterCount() == 0) return false; else if (method.getParameterCount() > 1) return true;
+        if (method.getParameterCount() == 0) return false;
+        else if (method.getParameterCount() > 1) return true;
         else return !method.getParameterTypes()[0].equals(JobContext.class);
     }
 
