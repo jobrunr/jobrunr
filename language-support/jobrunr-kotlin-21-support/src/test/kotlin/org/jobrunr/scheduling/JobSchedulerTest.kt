@@ -8,7 +8,10 @@ import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.mappers.JobMapper
-import org.jobrunr.jobs.states.StateName.*
+import org.jobrunr.jobs.states.StateName.ENQUEUED
+import org.jobrunr.jobs.states.StateName.PROCESSING
+import org.jobrunr.jobs.states.StateName.SCHEDULED
+import org.jobrunr.jobs.states.StateName.SUCCEEDED
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.server.JobActivator
 import org.jobrunr.storage.InMemoryStorageProvider

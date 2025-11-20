@@ -3,7 +3,11 @@ package org.jobrunr.kotlin.serialization.dashboard.ui.model.problems
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.serializer
-import org.jobrunr.dashboard.ui.model.problems.*
+import org.jobrunr.dashboard.ui.model.problems.CpuAllocationIrregularityProblem
+import org.jobrunr.dashboard.ui.model.problems.PollIntervalInSecondsTimeBoxIsTooSmallProblem
+import org.jobrunr.dashboard.ui.model.problems.Problem
+import org.jobrunr.dashboard.ui.model.problems.ScheduledJobsNotFoundProblem
+import org.jobrunr.dashboard.ui.model.problems.SevereJobRunrExceptionProblem
 import org.jobrunr.kotlin.serialization.storage.JobRunrMetadataSerializer
 import org.jobrunr.kotlin.serialization.utils.FieldBasedSerializer
 import kotlin.reflect.KClass

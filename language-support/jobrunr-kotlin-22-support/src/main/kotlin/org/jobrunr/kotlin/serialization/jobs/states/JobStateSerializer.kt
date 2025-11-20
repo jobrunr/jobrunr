@@ -9,7 +9,14 @@ import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
-import org.jobrunr.jobs.states.*
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState
+import org.jobrunr.jobs.states.DeletedState
+import org.jobrunr.jobs.states.EnqueuedState
+import org.jobrunr.jobs.states.FailedState
+import org.jobrunr.jobs.states.ProcessingState
+import org.jobrunr.jobs.states.ScheduledState
+import org.jobrunr.jobs.states.StateName
+import org.jobrunr.jobs.states.SucceededState
 import org.jobrunr.kotlin.serialization.misc.DurationSerializer
 import org.jobrunr.kotlin.serialization.misc.InstantSerializer
 import org.jobrunr.kotlin.serialization.misc.UUIDSerializer

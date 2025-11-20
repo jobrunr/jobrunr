@@ -3,7 +3,11 @@ package org.jobrunr.kotlin.serialization.jobs.context
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
+import kotlinx.serialization.encoding.encodeStructure
 import org.jobrunr.jobs.context.JobDashboardProgressBar
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 
