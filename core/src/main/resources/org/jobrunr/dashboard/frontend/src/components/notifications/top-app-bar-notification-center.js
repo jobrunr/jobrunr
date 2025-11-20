@@ -9,19 +9,11 @@ import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import {SevereJobRunrExceptionProblemNotification} from "./severe-jobrunr-exception-problem";
 import {CPUAllocationIrregularityProblemNotification} from "./cpu-allocation-irregularity-problem";
-import {
-    getNewVersionProblem,
-    LATEST_DISMISSED_VERSION_STORAGE_KEY,
-    NewJobRunrVersionAvailableNotification
-} from "./new-jobrunr-version-available";
+import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY, NewJobRunrVersionAvailableNotification} from "./new-jobrunr-version-available";
 import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
-import {
-    getApiNotificationProblem,
-    JobRunrApiNotification,
-    LATEST_DISMISSED_API_NOTIFICATION
-} from "./jobrunr-api-notification";
+import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_NOTIFICATION} from "./jobrunr-api-notification";
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
@@ -193,7 +185,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
     const amountOfUnreadNotifications = problemsWithReadStatus.filter(p => !p.read).length;
 
-   const openNotifications = () => {
+    const openNotifications = () => {
         setIsOpen(true);
     };
 
@@ -257,19 +249,18 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         <IconButton
             edge="start"
             color="inherit"
-            size="large"
-            sx={{marginRight: 2}}
+            sx={{marginRight: 1.5}}
             onClick={openNotifications}
             ref={popperAnchorEl}
             id="notifications-center-button"
         >
-            <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" style={{textTransform: "uppercase"}}>
+            <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
                 <Notifications/>
             </Badge>
         </IconButton>
         <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
             <Paper elevation={6}>
-                <Box width="80vw" maxWidth={500} maxHeight="70vh" overflow="auto" id="notifications-center-container">
+                <Box maxWidth={500} maxHeight="70vh" overflow="auto" id="notifications-center-container">
                     <Box p={2}>
                         <Stack direction="row" spacing={1} justifyContent="space-between">
                             <Button

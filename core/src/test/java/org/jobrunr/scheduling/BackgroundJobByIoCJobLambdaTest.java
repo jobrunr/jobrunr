@@ -113,6 +113,20 @@ public class BackgroundJobByIoCJobLambdaTest {
     }
 
     @Test
+    void testEnqueueWithInterface() {
+        JobId jobId = BackgroundJob.<TestServiceInterface>enqueue(x -> x.doWork());
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
+    void testEnqueueWithInterfaceAndMethodReference() {
+        JobId jobId = BackgroundJob.enqueue(TestServiceInterface::doWork);
+        await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
+        assertThat(storageProvider.getJobById(jobId)).hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
+    }
+
+    @Test
     void testEnqueueUsingServiceInstance() {
         JobId jobId = BackgroundJob.enqueue(() -> testServiceForIoC.doWork());
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);

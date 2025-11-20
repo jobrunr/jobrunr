@@ -9,6 +9,7 @@ import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.stubs.TestInvalidJobRequest;
 import org.jobrunr.stubs.TestJobRequest;
 import org.jobrunr.stubs.TestService;
+import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -44,6 +45,20 @@ class RecurringJobBuilderTest {
                 .hasId()
                 .hasScheduleExpression(every5Seconds)
                 .hasJobDetails(TestService.class, "doWork")
+                .hasCreatedBy(API);
+    }
+
+    @Test
+    void testDefaultJobWithJobLambdaUsingInterface() {
+        RecurringJob recurringJob = aRecurringJob()
+                .withDetails(TestServiceInterface::doWork)
+                .withCron(every5Seconds)
+                .build(jobDetailsGenerator);
+
+        assertThat(recurringJob)
+                .hasId()
+                .hasScheduleExpression(every5Seconds)
+                .hasJobDetails(TestServiceInterface.class, "doWork")
                 .hasCreatedBy(API);
     }
 

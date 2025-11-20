@@ -73,7 +73,7 @@ class AsyncJobInterceptorTest {
     @Test
     void interceptProceedsNormallyIfJobIsAlreadyRunning() throws Exception {
         var invocationContext = invocationContextMockFor("someMethodWithJobAnnotation", "arg1", "arg2");
-        MockJobContext.setUpJobContext(new JobContextMock("org.jobrunr.scheduling.AsyncJobInterceptorTest.someMethodWithJobAnnotation(java.lang.String,java.lang.String)"));
+        MockJobContext.setUpJobContext(new JobContextMock("org.jobrunr.scheduling.AsyncJobInterceptorTest.someMethodWithJobAnnotation(java.lang.String, java.lang.String)"));
         interceptor.intercept(invocationContext);
 
         verify(invocationContext, times(1)).proceed();

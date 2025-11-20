@@ -13,16 +13,18 @@ Recommended and <a href="https://www.thoughtworks.com/radar/languages-and-framew
 
 <p align="center">
     <a href="https://central.sonatype.com/artifact/org.jobrunr/jobrunr"><img alt="Maven Central Version" src="https://img.shields.io/maven-central/v/org.jobrunr/jobrunr"></a>&nbsp;
-    <img alt="Drone Build" src="https://build.jobrunr.io/api/badges/jobrunr/jobrunr/status.svg" />&nbsp;
+    <img alt="Woodpecker CI" src="https://ci.jobrunr.io/api/badges/1/status.svg" />&nbsp;
     <a href="https://www.bestpractices.dev/projects/7376"><img alt="OpenSSF Best Practices" src="https://www.bestpractices.dev/projects/7376/badge"/></a>&nbsp;
     <img alt="LGPLv3 Licence" src="https://img.shields.io/badge/license-LGPLv3-green.svg" /><br/>
     <br/>
-    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://www.jobrunr.io/tweet-btn.svg?v2" /></a>&nbsp;
-    <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://www.jobrunr.io/github-star-btn.svg?v2" /></a>
-    <a href="https://github.com/jobrunr/jobrunr/discussions"><img src="https://img.shields.io/badge/chat-Github%20discussions-green" alt="Join the chat at Gitter" /></a><br />
+    <a href="https://twitter.com/intent/tweet?text=Try%20JobRunr%20for%20easy%20distributed%20background%20job%20processing%20on%20the%20JVM%21%20&url=https://www.jobrunr.io&via=jobrunr&hashtags=java,scheduling,processing,distributed,developers"><img alt="Tweet about us!" src="https://img.shields.io/twitter/url?label=Tweet%20about%20us!&url=https%3A%2F%2Fx.com%2FJobRunr"></a>&nbsp;
+    <a href="https://github.com/jobrunr/jobrunr/stargazers"><img alt="Star us!" src="https://img.shields.io/github/stars/jobrunr/jobrunr?label=Star%20us!" /></a>
+    <a href="https://github.com/jobrunr/jobrunr/discussions"><img src="https://img.shields.io/badge/chat-Github%20discussions-green" alt="Chat with us in Github Discussions" /></a><br />
 </p>
 
 ## Overview
+
+<!-- // @formatter:off -->
 ```java
 BackgroundJob.enqueue(() -> System.out.println("This is all you need for distributed jobs!"));
 ```
