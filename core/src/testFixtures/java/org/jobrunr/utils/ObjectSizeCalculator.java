@@ -455,9 +455,7 @@ public final class ObjectSizeCalculator {
                     final Object max = getMax.invoke(usage);
                     maxMemory += (Long) max;
                 }
-            } catch (IllegalAccessException |
-                     IllegalArgumentException |
-                     InvocationTargetException ex) {
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 throw new AssertionError("java.lang.management not available in compact 1");
             }
 

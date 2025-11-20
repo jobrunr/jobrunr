@@ -13,7 +13,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
 
 class JobUtilsTest {
-    
+
     @Test
     void assertJobExists() {
         assertThatCode(() -> JobUtils.assertJobExists("org.jobrunr.stubs.TestJobRequest$TestJobRequestHandler.run(org.jobrunr.stubs.TestJobRequest)")).doesNotThrowAnyException();

@@ -45,6 +45,7 @@ public class Mocks {
         return dataSourceMock;
     }
 
+    @SuppressWarnings("unchecked")
     public static MongoClient mongoClient() {
         MongoClient mongoClientMock = mock(MongoClient.class);
         when(mongoClientMock.getCodecRegistry()).thenReturn(CodecRegistries.fromRegistries(
@@ -54,15 +55,15 @@ public class Mocks {
         when(mongoClientMock.getDatabase("jobrunr")).thenReturn(mongoDatabaseMock);
         when(mongoDatabaseMock.listCollectionNames()).thenReturn(mock(ListCollectionNamesIterable.class));
 
-        MongoCollection migrationCollectionMock = mock(MongoCollection.class);
+        MongoCollection<Document> migrationCollectionMock = mock(MongoCollection.class);
         when(migrationCollectionMock.find(any(Bson.class))).thenReturn(mock(FindIterable.class));
         when(migrationCollectionMock.insertOne(any())).thenReturn(mock(InsertOneResult.class));
         when(mongoDatabaseMock.getCollection(StorageProviderUtils.Migrations.NAME)).thenReturn(migrationCollectionMock);
 
-        ListIndexesIterable listIndicesMock = mock(ListIndexesIterable.class);
+        ListIndexesIterable<Document> listIndicesMock = mock(ListIndexesIterable.class);
         when(listIndicesMock.spliterator()).thenReturn(mock(Spliterator.class));
 
-        MongoCollection jobCollectionMock = mock(MongoCollection.class);
+        MongoCollection<Document> jobCollectionMock = mock(MongoCollection.class);
         when(jobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
 
         when(mongoDatabaseMock.getCollection(StorageProviderUtils.RecurringJobs.NAME, Document.class)).thenReturn(jobCollectionMock);
