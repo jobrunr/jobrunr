@@ -8,7 +8,7 @@ plugins {
 }
 
 quarkusExtension {
-    deploymentModule = "quarkus-jobrunr-deployment"
+    deploymentModule = 'quarkus-jobrunr-deployment'
 }
 
 compileJava {

@@ -131,12 +131,11 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("jobrunr.dashboard.enabled=true")
                 .withPropertyValues("jobrunr.miscellaneous.allow-anonymous-data-usage=true")
-                .withUserConfiguration(InMemoryStorageProvider.class).run(
-                        (context) -> {
-                            assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
-                            assertThat(context.getBean(JobRunrDashboardWebServer.class))
-                                    .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
-                        });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
+                    assertThat(context.getBean(JobRunrDashboardWebServer.class))
+                            .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", true);
+                });
     }
 
     @Test
@@ -144,24 +143,22 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withPropertyValues("jobrunr.dashboard.enabled=true")
                 .withPropertyValues("jobrunr.miscellaneous.allow-anonymous-data-usage=false")
-                .withUserConfiguration(InMemoryStorageProvider.class).run(
-                        (context) -> {
-                            assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
-                            assertThat(context.getBean(JobRunrDashboardWebServer.class))
-                                    .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
-                        });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(JobRunrDashboardWebServer.class);
+                    assertThat(context.getBean(JobRunrDashboardWebServer.class))
+                            .hasFieldOrPropertyWithValue("allowAnonymousDataUsage", false);
+                });
     }
 
     @Test
     void carbonAwareManagerAutoConfigurationIsDisabledByDefault() {
         this.contextRunner
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
-                .withUserConfiguration(InMemoryStorageProvider.class).run(
-                        (context) -> {
-                            BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
-                            CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
-                            assertThat(carbonAwareJobProcessingConfiguration).hasEnabled(false);
-                        });
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);
+                    CarbonAwareJobProcessingConfigurationReader carbonAwareJobProcessingConfiguration = backgroundJobServer.getConfiguration().getCarbonAwareJobProcessingConfiguration();
+                    assertThat(carbonAwareJobProcessingConfiguration).hasEnabled(false);
+                });
     }
 
     @Test

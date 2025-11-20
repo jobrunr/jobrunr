@@ -1,7 +1,6 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +94,7 @@ public class JobDetailsTestBuilder {
     }
 
     public JobDetailsTestBuilder withJobParameters(List<JobParameter> jobParameters) {
-        this.jobParameters = CollectionUtils.asArrayList(jobParameters);
+        this.jobParameters.addAll(jobParameters);
         return this;
     }
 
