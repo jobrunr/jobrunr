@@ -65,7 +65,7 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
-    void selectJacksonMapperIfNoOtherJsonSerializersPresent() {
+    void selectJacksonJsonMapperIfNoOtherJsonSerializersPresent() {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(Gson.class, kotlinx.serialization.json.Json.class))

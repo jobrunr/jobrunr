@@ -90,7 +90,11 @@ public abstract class JobMapperTest {
 
         String jobAsString = jobMapper.serializeJob(job);
 
-        assertThatCode(() -> jobMapper.deserializeJob(jobAsString)).doesNotThrowAnyException();
+
+        final Job actualJob = jobMapper.deserializeJob(jobAsString);
+        assertThat(actualJob)
+                .isNotNull()
+                .hasJobDetails(TestService.class, "doWorkWithPath", Paths.get("/tmp", "jobrunr", "log.txt"));
     }
 
     @Test
