@@ -30,7 +30,7 @@ class DatabaseMigrationsProviderTest {
         var provider = new DefaultSqlMigrationProvider();
         var commonMigrations = provider.getMigrations(DatabaseCreator.class).stream().map(SqlMigration::getFileName).collect(Collectors.toList());
 
-        for(var providerPackageAndClass : findAllSqlStorageProvidersInFactorySource()) {
+        for (var providerPackageAndClass : findAllSqlStorageProvidersInFactorySource()) {
             var providerClass = Class.forName(SqlStorageProvider.class.getPackage().getName() + providerPackageAndClass);
             var specificMigrations = provider.getMigrations(providerClass).stream().map(SqlMigration::getFileName).collect(Collectors.toList());
 

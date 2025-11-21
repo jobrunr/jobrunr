@@ -23,7 +23,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.completeVersion = completeVersion;
         this.version = substringBefore(completeVersion, "-");
         this.qualifier = substringAfter(completeVersion, "-");
-        String[] split = this.version.split("\\.");
+        String[] split = this.version.split("\\.", 0);
         this.majorVersion = split.length > 0 ? split[0] : "0";
         this.minorVersion = split.length > 1 ? split[1] : "0";
         this.patchVersion = split.length > 2 ? substringBefore(split[2], "_") : "0";

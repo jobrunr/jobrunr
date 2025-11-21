@@ -233,7 +233,7 @@ class AbstractStorageProviderTest {
         private boolean closeIsCalled;
         private Job job;
 
-        public JobChangeListenerForTest(JobId jobId) {
+        JobChangeListenerForTest(JobId jobId) {
             this.jobId = jobId;
             this.closeIsCalled = false;
         }

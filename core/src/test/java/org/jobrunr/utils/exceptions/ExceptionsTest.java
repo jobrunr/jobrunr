@@ -46,19 +46,23 @@ class ExceptionsTest {
     private static class RunnableForStorageException implements Runnable {
         private int attempts = 0;
         private final int maxRetries;
-        public static RunnableForStorageException AlwaysThrows() {
+
+        static RunnableForStorageException AlwaysThrows() {
             return new RunnableForStorageException(Integer.MAX_VALUE);
         }
-        public static RunnableForStorageException ThrowsAfterAttempt(int attempt) {
+
+        static RunnableForStorageException ThrowsAfterAttempt(int attempt) {
             return new RunnableForStorageException(attempt);
         }
+
         private RunnableForStorageException(int maxRetries) {
             this.maxRetries = maxRetries;
         }
+
         @Override
         public void run() {
             attempts++;
-            if(attempts < maxRetries) {
+            if (attempts < maxRetries) {
                 throw new StorageException("A storage exception occurred");
             }
         }
@@ -67,19 +71,23 @@ class ExceptionsTest {
     private static class SupplierForStorageException implements Supplier<String> {
         private int attempts = 0;
         private final int maxRetries;
-        public static SupplierForStorageException AlwaysThrows() {
+
+        static SupplierForStorageException AlwaysThrows() {
             return new SupplierForStorageException(Integer.MAX_VALUE);
         }
-        public static SupplierForStorageException ThrowsAfterAttempt(int attempt) {
+
+        static SupplierForStorageException ThrowsAfterAttempt(int attempt) {
             return new SupplierForStorageException(attempt);
         }
+
         private SupplierForStorageException(int maxRetries) {
             this.maxRetries = maxRetries;
         }
+
         @Override
         public String get() {
             attempts++;
-            if(attempts < maxRetries) {
+            if (attempts < maxRetries) {
                 throw new StorageException("A storage exception occurred");
             }
             return "some value";

@@ -204,8 +204,8 @@ public class Sql<T> {
             return getValueFromFieldOrProperty(object, paramName);
         } else if ("previousVersion".equals(paramName)) {
             return ((int) paramSuppliers.get("version").apply(object)) - 1;
-        } else if (paramName.contains("-") && params.containsKey(paramName.split("-")[0])) {
-            String[] splitParam = paramName.split("-");
+        } else if (paramName.contains("-") && params.containsKey(paramName.split("-", 0)[0])) {
+            String[] splitParam = paramName.split("-", 0);
             return ((List<?>) params.get(splitParam[0])).get(Integer.parseInt(splitParam[1]));
         } else {
             throw new IllegalArgumentException(String.format("Parameter %s is not known.", paramName));

@@ -26,6 +26,7 @@ dependencies {
 
     compileOnly 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
     compileOnly project(':language-support:jobrunr-kotlin-22-support')
 

@@ -9,7 +9,9 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 import static java.util.Arrays.stream;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.*;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.createObjectViaConstructor;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.findParamTypesFromDescriptorAsArray;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
@@ -27,8 +29,8 @@ public class InvokeSpecialInstruction extends VisitMethodInstruction {
             List<Object> parameters = getParametersUsingParamTypes(paramTypes);
 
             Object objectViaConstructor = createObjectViaConstructor(className, paramTypes, parameters.toArray());
-            if(isKotlinMethodReference(objectViaConstructor)) {
-                jobDetailsBuilder.setClassName(((Class)getValueFromFieldOrProperty(objectViaConstructor, "owner")).getName());
+            if (isKotlinMethodReference(objectViaConstructor)) {
+                jobDetailsBuilder.setClassName(((Class) getValueFromFieldOrProperty(objectViaConstructor, "owner")).getName());
                 jobDetailsBuilder.setMethodName((String) getValueFromFieldOrProperty(objectViaConstructor, "name"));
             }
             return objectViaConstructor;

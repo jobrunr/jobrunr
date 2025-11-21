@@ -34,7 +34,7 @@ class JobSchedulerTest {
 
     @Mock
     private StorageProvider storageProvider;
-    
+
     private TestService testService;
     private JobScheduler jobScheduler;
     private JobClientLogFilter jobClientLogFilter;

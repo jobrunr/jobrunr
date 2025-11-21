@@ -34,7 +34,7 @@ public class RunTestIfDockerImageExistsExecutionCondition implements ExecutionCo
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        if (line.contains(imageTag.split(":")[0])) {
+                        if (line.contains(imageTag.split(":", 0)[0])) {
                             foundDockerImage = true;
                             break;
                         }

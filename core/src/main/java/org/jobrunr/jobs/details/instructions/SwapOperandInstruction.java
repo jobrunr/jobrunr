@@ -2,7 +2,7 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsBuilder;
 
-import java.util.LinkedList;
+import java.util.Deque;
 
 public class SwapOperandInstruction extends ZeroOperandInstruction {
 
@@ -17,11 +17,11 @@ public class SwapOperandInstruction extends ZeroOperandInstruction {
 
     @Override
     public Object invokeInstruction() {
-        LinkedList<Object> stack = jobDetailsBuilder.getStack();
-        Object el1 = stack.get(0);
-        Object el2 = stack.get(1);
-        stack.set(0, el2);
-        stack.set(1, el1);
+        Deque<Object> stack = jobDetailsBuilder.getStack();
+        Object el1 = stack.pollFirst();
+        Object el2 = stack.pollFirst();
+        stack.addFirst(el1); // goes to position 1
+        stack.addFirst(el2); // goes to position 0
         return DO_NOT_PUT_ON_STACK;
     }
 

@@ -23,7 +23,7 @@ class StreamUtilsTest {
             output.addAll(xs);
         };
 
-        input.stream()
+        List<Integer> ignored = input.stream()
                 .collect(batchCollector(batchSize, batchProcessor));
 
         assertThat(output).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

@@ -201,7 +201,7 @@ public class DatabaseCreator {
 
     protected void runMigrationStatement(Connection connection, SqlMigration migration) throws IOException, SQLException {
         final String sql = migration.getMigrationSql();
-        for (String statement : sql.split(";")) {
+        for (String statement : sql.split(";", 0)) {
             if (isNullEmptyOrBlank(statement)) continue;
 
             try (final Statement stmt = connection.createStatement()) {
@@ -304,7 +304,7 @@ public class DatabaseCreator {
         private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
         private ScheduledExecutorService lockUpdateScheduler;
 
-        public MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
+        MigrationsTableLocker(ConnectionProvider connectionProvider, TablePrefixStatementUpdater tablePrefixStatementUpdater) {
             this.connectionProvider = connectionProvider;
             this.tablePrefixStatementUpdater = tablePrefixStatementUpdater;
         }

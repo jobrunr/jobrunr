@@ -19,7 +19,7 @@ public class TestMDCJobRequest implements JobRequest {
         this.key = key;
     }
 
-        @Override
+    @Override
     public Class<TestMDCJobRequestHandler> getJobRequestHandler() {
         return TestMDCJobRequestHandler.class;
     }

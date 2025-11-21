@@ -3,9 +3,8 @@ import CarbonAwareScheduledNotification from "./carbon-aware-scheduled-notificat
 
 describe('carbon aware scheduled notification', () => {
     it('does not show a notification if no carbon aware state', () => {
-        const job = {
-        };
-        render(<CarbonAwareScheduledNotification job={job} />)
+        const job = {};
+        render(<CarbonAwareScheduledNotification job={job}/>)
 
         expect(screen.queryByText("This job is scheduled")).toBeNull()
     });
@@ -22,7 +21,7 @@ describe('carbon aware scheduled notification', () => {
                 "reason": "Good to go!"
             }]
         };
-        render(<CarbonAwareScheduledNotification job={job} />)
+        render(<CarbonAwareScheduledNotification job={job}/>)
 
         expect(screen.getByText(/This job is scheduled Carbon Aware/i)).toBeInTheDocument()
         expect(screen.getByTitle(/Fri Jul 11 2025 10:00:00/i)).toBeInTheDocument()
@@ -40,7 +39,7 @@ describe('carbon aware scheduled notification', () => {
                 "scheduledAt": "2025-07-11T10:00"
             }]
         };
-        render(<CarbonAwareScheduledNotification job={job} />)
+        render(<CarbonAwareScheduledNotification job={job}/>)
 
         // See https://testing-library.com/docs/queries/bytext/
         expect(screen.getByText(/is disabled/i)).toBeInTheDocument()

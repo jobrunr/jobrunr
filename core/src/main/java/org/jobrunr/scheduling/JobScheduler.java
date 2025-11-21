@@ -91,7 +91,7 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
-        jobBuilderStream
+        List<Job> ignored = jobBuilderStream
                 .map(jobBuilder -> jobBuilder.build(jobDetailsGenerator))
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
@@ -143,10 +143,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <T> void enqueue(Stream<T> input, JobLambdaFromStream<T> jobFromStream) {
-        input
-                .map(x -> jobDetailsGenerator.toJobDetails(x, jobFromStream))
-                .map(Job::new)
-                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
+        saveJobs(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, jobFromStream)));
     }
 
     /**
@@ -193,10 +190,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param iocJobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <S, T> void enqueue(Stream<T> input, IocJobLambdaFromStream<S, T> iocJobFromStream) {
-        input
-                .map(x -> jobDetailsGenerator.toJobDetails(x, iocJobFromStream))
-                .map(Job::new)
-                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
+        saveJobs(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, iocJobFromStream)));
     }
 
     /**

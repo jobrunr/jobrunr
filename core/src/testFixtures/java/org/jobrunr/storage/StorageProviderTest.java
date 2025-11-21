@@ -933,7 +933,7 @@ public abstract class StorageProviderTest {
     @Disabled
     void testPerformance() {
         int amount = 1000000;
-        IntStream.range(0, amount)
+        var ignored = IntStream.range(0, amount)
                 .peek(i -> {
                     if (i % 10000 == 0) {
                         System.out.println("Saving job " + i);

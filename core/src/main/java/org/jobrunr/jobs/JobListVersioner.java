@@ -21,12 +21,12 @@ public class JobListVersioner implements AutoCloseable {
     }
 
     public void validateJobs() {
-        if(jobVersioners.get(0).isNewJob()) {
-            if(! jobVersioners.stream().allMatch(JobVersioner::isNewJob)) {
+        if (jobVersioners.get(0).isNewJob()) {
+            if (!jobVersioners.stream().allMatch(JobVersioner::isNewJob)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
         } else {
-            if(jobVersioners.stream().anyMatch(JobVersioner::isNewJob)) {
+            if (jobVersioners.stream().anyMatch(JobVersioner::isNewJob)) {
                 throw new IllegalArgumentException("All jobs must be either new (with id == null) or existing (with id != null)");
             }
         }

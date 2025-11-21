@@ -3,6 +3,7 @@ package org.jobrunr.jobs;
 import org.jobrunr.stubs.TestService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class JobDetailsTestBuilder {
 
@@ -92,8 +93,8 @@ public class JobDetailsTestBuilder {
         return this;
     }
 
-    public JobDetailsTestBuilder withJobParameters(ArrayList<JobParameter> jobParameters) {
-        this.jobParameters = jobParameters;
+    public JobDetailsTestBuilder withJobParameters(List<JobParameter> jobParameters) {
+        this.jobParameters.addAll(jobParameters);
         return this;
     }
 

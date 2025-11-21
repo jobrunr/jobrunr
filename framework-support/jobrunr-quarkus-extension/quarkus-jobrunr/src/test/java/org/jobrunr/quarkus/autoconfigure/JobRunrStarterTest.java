@@ -106,8 +106,8 @@ class JobRunrStarterTest {
         when(backgroundJobServerBuildTimeConfiguration.included()).thenReturn(false);
         when(backgroundJobServerRuntimeConfiguration.enabled()).thenReturn(true);
 
-        assertThatCode(() -> jobRunrStarter.startup(new StartupEvent())).
-                isInstanceOf(IllegalStateException.class)
+        assertThatCode(() -> jobRunrStarter.startup(new StartupEvent()))
+                .isInstanceOf(IllegalStateException.class)
                 .hasMessage("The BackgroundJobServer cannot be enabled, its resources were not included at build time. Please rebuild your project to include the required resources or disable the BackgroundJobServer.");
     }
 

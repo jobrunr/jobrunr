@@ -34,8 +34,7 @@ public class HttpResponse {
     }
 
     private HttpResponse data(String contentType, ThrowingConsumer<OutputStream> streamConsumer) {
-        data(200, contentType, streamConsumer);
-        return this;
+        return data(200, contentType, streamConsumer);
     }
 
     private HttpResponse data(int status, String contentType, ThrowingConsumer<OutputStream> streamConsumer) {

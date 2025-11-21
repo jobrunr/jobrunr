@@ -25,7 +25,6 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.utils.JobUtils.getJobSignature;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

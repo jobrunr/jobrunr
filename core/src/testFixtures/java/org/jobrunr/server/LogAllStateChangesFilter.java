@@ -4,7 +4,6 @@ import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.filters.ApplyStateFilter;
-import org.jobrunr.jobs.filters.ElectStateFilter;
 import org.jobrunr.jobs.filters.JobClientFilter;
 import org.jobrunr.jobs.filters.JobServerFilter;
 import org.jobrunr.jobs.states.JobState;
@@ -132,7 +131,8 @@ public class LogAllStateChangesFilter implements ApplyStateFilter, JobClientFilt
     }
 
     public List<String> getStateChanges() {
-        if (this.stateChanges.size() != 1) throw new IllegalStateException("There are more than 1 jobs with statechanges");
+        if (this.stateChanges.size() != 1)
+            throw new IllegalStateException("There are more than 1 jobs with statechanges");
         return getStateChanges(this.stateChanges.keySet().iterator().next());
     }
 

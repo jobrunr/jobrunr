@@ -13,7 +13,7 @@ class ClassPathResourceProviderTest {
 
     @Test
     void canListChildren() {
-        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+        try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
             final Stream<String> folderItems = resourceProvider
                     .listAllChildrenOnClasspath(ClassPathResourceProviderTest.class, "somefolder")
                     .map(path -> path.getFileName().toString());
@@ -24,7 +24,7 @@ class ClassPathResourceProviderTest {
 
     @Test
     void canListChildrenInJar() {
-        try(ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
+        try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
             final Stream<String> folderItems = resourceProvider
                     .listAllChildrenOnClasspath(Test.class)
                     .map(path -> path.getFileName().toString());
@@ -50,7 +50,7 @@ class ClassPathResourceProviderTest {
     }
 
     private void useClassPathResourceProvider(AtomicInteger atomicInteger, CountDownLatch countDownLatch) {
-        for(int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++) {
             try (ClassPathResourceProvider resourceProvider = new ClassPathResourceProvider()) {
                 final Stream<String> folderItems = resourceProvider
                         .listAllChildrenOnClasspath(Test.class)

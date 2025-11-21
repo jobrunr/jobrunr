@@ -120,7 +120,7 @@ class DatabaseCreatorTest {
 
         databaseCreator.runMigration(migration);
 
-        try(Connection c = dataSource.getConnection()) {
+        try (Connection c = dataSource.getConnection()) {
             boolean result = c.createStatement().execute("SELECT * FROM jobrunr_migrations;");
             assertThat(result).isTrue();
         }

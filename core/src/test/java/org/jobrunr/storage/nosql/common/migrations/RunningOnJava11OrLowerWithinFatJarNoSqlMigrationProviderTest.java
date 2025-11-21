@@ -1,6 +1,5 @@
 package org.jobrunr.storage.nosql.common.migrations;
 
-import org.assertj.core.api.Assertions;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

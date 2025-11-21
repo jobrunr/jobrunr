@@ -19,12 +19,10 @@ public class ReflectionTestClasses {
         }
     }
 
-    public static abstract class Level1JobRequest
-            <T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>> extends Level0JobRequest {
+    public static abstract class Level1JobRequest<T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>> extends Level0JobRequest {
     }
 
-    public static abstract class Level1JobRequestHandler
-            <T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>>
+    public static abstract class Level1JobRequestHandler<T extends Level1JobRequest<T, H>, H extends Level1JobRequestHandler<T, H>>
             extends Level0JobRequestHandler<T> implements JobRequestHandler<T> {
     }
 
@@ -66,6 +64,7 @@ public class ReflectionTestClasses {
 
     public static class MyAsyncJobRequestHandler implements AsyncJobRequestHandler<MyAsyncJobRequest> {
 
+        @Override
         public void runAsync(MyAsyncJobRequest jobRequest) {
             System.out.println("Run async...");
         }

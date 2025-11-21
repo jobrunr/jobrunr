@@ -104,7 +104,7 @@ class AsyncJobInterceptorTest {
     private static class JobContextMock extends JobContext {
         private final String jobSignature;
 
-        public JobContextMock(String signature) {
+        JobContextMock(String signature) {
             this.jobSignature = signature;
         }
 

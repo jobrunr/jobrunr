@@ -62,7 +62,7 @@ public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.Sche
         private final String poolName;
         private final ThreadFactory threadFactory;
 
-        public NamedThreadFactory(String poolName) {
+        NamedThreadFactory(String poolName) {
             this.poolName = poolName;
             threadFactory = Executors.defaultThreadFactory();
         }

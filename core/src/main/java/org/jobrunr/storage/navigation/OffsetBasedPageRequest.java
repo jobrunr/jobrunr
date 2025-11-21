@@ -5,7 +5,9 @@ import org.jobrunr.storage.Page;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.jobrunr.utils.StringUtils.*;
+import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
+import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
 
 public class OffsetBasedPageRequest extends PageRequest {
 

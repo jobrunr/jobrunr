@@ -39,10 +39,10 @@ import java.util.function.LongSupplier;
  * This factory creates 3 types:
  * <p>
  * <ul>
- * <li><b>Type 1 (default)</b>: this type is divided in 3 components, namely
+ * <li><b>Type 1 (default)</b>: this type is divided into 3 components, namely
  * time, counter and random. The counter component is incremented by 1 when the
  * time repeats. The random component is always randomized.
- * <li><b>Type 2 (plus 1)</b>: this type is divided in 2 components, namely time
+ * <li><b>Type 2 (plus 1)</b>: this type is divided into 2 components, namely time
  * and monotonic random. The monotonic random component is incremented by 1 when
  * the time repeats. This type of UUID is like a Monotonic ULID. It can be much
  * faster than the other types.
@@ -120,7 +120,6 @@ public final class UUIDv7Factory {
             return this.clock;
         }
 
-        @SuppressWarnings("unchecked")
         public Builder withClock(Clock clock) {
             this.clock = clock;
             return this;

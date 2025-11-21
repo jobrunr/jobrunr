@@ -115,7 +115,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     }
                 }
             });
-            future.whenComplete((result, e) -> {
+            CompletableFuture<?> unused = future.whenComplete((result, e) -> {
                 if (e != null) {
                     logError(e);
                 }

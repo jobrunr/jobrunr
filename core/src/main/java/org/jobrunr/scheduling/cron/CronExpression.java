@@ -98,7 +98,7 @@ public class CronExpression extends Schedule {
         if (getExpression().isEmpty()) {
             throw new InvalidCronExpressionException("Empty cron expression");
         }
-        String[] fields = getExpression().trim().toLowerCase().split("\\s+");
+        String[] fields = getExpression().trim().toLowerCase().split("\\s+", 0);
         int count = fields.length;
         if (count > 6 || count < 5) {
             throw new InvalidCronExpressionException(

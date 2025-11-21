@@ -1,7 +1,6 @@
 package org.jobrunr.server.dashboard.mappers;
 
 import org.jobrunr.server.dashboard.CarbonIntensityApiErrorNotification;
-import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotification;
 import org.jobrunr.storage.JobRunrMetadata;
 

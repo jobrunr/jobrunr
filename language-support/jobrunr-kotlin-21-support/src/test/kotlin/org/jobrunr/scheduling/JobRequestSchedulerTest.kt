@@ -7,7 +7,9 @@ import org.jobrunr.configuration.JobRunr
 import org.jobrunr.jobs.annotations.Job
 import org.jobrunr.jobs.lambdas.JobRequest
 import org.jobrunr.jobs.lambdas.JobRequestHandler
-import org.jobrunr.jobs.states.StateName.*
+import org.jobrunr.jobs.states.StateName.ENQUEUED
+import org.jobrunr.jobs.states.StateName.PROCESSING
+import org.jobrunr.jobs.states.StateName.SUCCEEDED
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.storage.InMemoryStorageProvider
 import org.jobrunr.storage.StorageProvider

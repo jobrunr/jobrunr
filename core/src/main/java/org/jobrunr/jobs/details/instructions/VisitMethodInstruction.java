@@ -2,9 +2,9 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.jobs.details.JobDetailsBuilder;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
@@ -37,7 +37,7 @@ public abstract class VisitMethodInstruction extends AbstractJVMInstruction {
     }
 
     protected List<Object> getParametersUsingParamTypes(Class<?>[] paramTypesAsArray) {
-        LinkedList<Class<?>> paramTypes = new LinkedList<>(Arrays.asList(paramTypesAsArray));
+        ArrayDeque<Class<?>> paramTypes = new ArrayDeque<>(Arrays.asList(paramTypesAsArray));
         List<Object> result = new ArrayList<>();
         while (!paramTypes.isEmpty()) {
             Class<?> paramType = paramTypes.pollLast();

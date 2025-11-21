@@ -19,6 +19,7 @@ import org.jobrunr.utils.mapper.JobParameterJsonMapperException
 import org.jobrunr.utils.mapper.JsonMapperUtils
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 fun SerializersModule.jobArgumentValueSerializer(className: String, actualClassName: String?): KSerializer<Any>? {
     return runCatching { serializer(Class.forName(actualClassName).kotlin as KClass<Any>) }.getOrNull()
         ?: try {

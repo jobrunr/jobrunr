@@ -489,7 +489,7 @@ class JobRunrDashboardLoggerTest {
             super(Level.INFO, message);
         }
 
-        public static InfoLog withMessage(String message) {
+        static InfoLog withMessage(String message) {
             return new InfoLog(message);
         }
     }
@@ -500,7 +500,7 @@ class JobRunrDashboardLoggerTest {
             super(Level.WARN, message);
         }
 
-        public static WarnLog withMessage(String message) {
+        static WarnLog withMessage(String message) {
             return new WarnLog(message);
         }
     }
@@ -511,7 +511,7 @@ class JobRunrDashboardLoggerTest {
             super(Level.ERROR, message);
         }
 
-        public static ErrorLog withMessage(String message) {
+        static ErrorLog withMessage(String message) {
             return new ErrorLog(message);
         }
     }
@@ -521,7 +521,7 @@ class JobRunrDashboardLoggerTest {
         private final Level level;
         private final String message;
 
-        protected LogCondition(Level level, String message) {
+        LogCondition(Level level, String message) {
             this.level = level;
             this.message = message;
         }
