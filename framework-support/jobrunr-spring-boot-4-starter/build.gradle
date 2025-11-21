@@ -16,8 +16,8 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC2')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.0-RC2')
+    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
+    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
 
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter-classic'
@@ -81,7 +81,7 @@ publishing {
             from components.java
 
             pom {
-                name = 'JobRunr Spring Boot Native'
+                name = 'JobRunr Spring Boot 4 Starter'
                 description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
                 url = 'https://github.com/jobrunr/jobrunr'
                 licenses {
