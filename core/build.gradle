@@ -138,6 +138,7 @@ dependencies {
     compileOnly 'com.google.code.gson:gson'
     compileOnly 'org.eclipse:yasson'
     compileOnly 'io.micrometer:micrometer-core'
+    compileOnly 'org.jspecify:jspecify'
 
     java17CompileOnly 'tools.jackson.core:jackson-databind'
 
@@ -183,6 +184,7 @@ dependencies {
     testFixturesApi 'org.assertj:assertj-core'
     testFixturesApi 'io.github.artsok:rerunner-jupiter'
     testFixturesApi 'org.awaitility:awaitility'
+    testFixturesApi 'org.jspecify:jspecify'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'io.micrometer:micrometer-core'

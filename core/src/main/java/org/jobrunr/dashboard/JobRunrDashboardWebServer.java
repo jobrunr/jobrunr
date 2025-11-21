@@ -9,6 +9,8 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +47,7 @@ public class JobRunrDashboardWebServer {
         this(storageProvider, jsonMapper, usingStandardDashboardConfiguration().andPort(port).andBasicAuthentication(username, password));
     }
 
-    public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
-        if (storageProvider == null)
-            throw new IllegalArgumentException("A StorageProvider is required to use a JobRunrDashboardWebServer. Please see the documentation on how to setup a job StorageProvider.");
+    public JobRunrDashboardWebServer(@NonNull StorageProvider storageProvider, JsonMapper jsonMapper, JobRunrDashboardWebServerConfiguration configuration) {
 
         this.storageProvider = new ThreadSafeStorageProvider(storageProvider);
         this.jsonMapper = jsonMapper;

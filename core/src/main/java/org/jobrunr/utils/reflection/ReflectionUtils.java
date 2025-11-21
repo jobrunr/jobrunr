@@ -3,6 +3,7 @@ package org.jobrunr.utils.reflection;
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -227,7 +228,7 @@ public class ReflectionUtils {
                 || (clazz1.isPrimitive() && Boolean.TYPE.equals(clazz1) && Integer.class.equals(clazz2));
     }
 
-    public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {
+    public static boolean objectContainsFieldOrProperty(@Nullable Object object, String fieldName) {
         if (object == null) return false;
         return objectContainsField(object, fieldName) || objectContainsProperty(object, fieldName);
     }
@@ -265,13 +266,13 @@ public class ReflectionUtils {
         }
     }
 
-    public static void setFieldUsingAutoboxing(String fieldName, Object object, Object value) {
+    public static void setFieldUsingAutoboxing(String fieldName, Object object, @Nullable Object value) {
         if (value == null) return;
 
         setFieldUsingAutoboxing(getField(object.getClass(), fieldName), object, value);
     }
 
-    public static void setFieldUsingAutoboxing(Field field, Object object, Object value) {
+    public static void setFieldUsingAutoboxing(Field field, Object object, @Nullable Object value) {
         try {
             if (value == null) return;
 

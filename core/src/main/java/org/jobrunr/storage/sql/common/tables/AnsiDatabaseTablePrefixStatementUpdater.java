@@ -1,5 +1,7 @@
 package org.jobrunr.storage.sql.common.tables;
 
+import org.jspecify.annotations.Nullable;
+
 import static org.jobrunr.storage.StorageProviderUtils.elementPrefixer;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
 import static org.jobrunr.utils.StringUtils.substringBefore;
@@ -23,7 +25,7 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
     }
 
     @Override
-    public String getSchema() {
+    public @Nullable String getSchema() {
         if (tablePrefix.contains(".")) {
             return substringBefore(tablePrefix, ".");
         }

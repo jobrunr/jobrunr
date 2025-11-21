@@ -1,5 +1,7 @@
 package org.jobrunr.server.lifecycle;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -23,7 +25,7 @@ public class BackgroundJobServerLifecycle {
         return readWriteLock.isWriteLocked();
     }
 
-    public boolean isTransitioningTo(BackgroundJobServerLifecycleEvent event) {
+    public boolean isTransitioningTo(@Nullable BackgroundJobServerLifecycleEvent event) {
         if (!isTransitioning()) return false;
         return Objects.equals(event, lifecycleEvent);
     }

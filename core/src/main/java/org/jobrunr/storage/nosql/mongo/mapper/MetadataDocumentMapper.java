@@ -2,6 +2,7 @@ package org.jobrunr.storage.nosql.mongo.mapper;
 
 import org.bson.Document;
 import org.jobrunr.storage.JobRunrMetadata;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Date;
 
@@ -30,7 +31,7 @@ public class MetadataDocumentMapper {
         return new Document("$set", document);
     }
 
-    public JobRunrMetadata toJobRunrMetadata(Document document) {
+    public @Nullable JobRunrMetadata toJobRunrMetadata(@Nullable Document document) {
         if (document == null) return null;
 
         return new JobRunrMetadata(

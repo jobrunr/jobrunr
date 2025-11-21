@@ -14,6 +14,7 @@ import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.utils.resilience.RateLimiter;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -206,7 +207,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     @Override
-    public JobRunrMetadata getMetadata(String key, String owner) {
+    public @Nullable JobRunrMetadata getMetadata(String key, String owner) {
         return this.metadata.get(JobRunrMetadata.toId(key, owner));
     }
 

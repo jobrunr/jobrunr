@@ -16,6 +16,7 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import static java.util.Collections.emptyList;
 
@@ -29,7 +30,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true", lookupIfMissing = true)
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
+    public @Nullable JobScheduler jobScheduler(StorageProvider storageProvider) {
         if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
@@ -41,7 +42,7 @@ public class JobRunrProducer {
     @DefaultBean
     @Singleton
     @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true", lookupIfMissing = true)
-    public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
+    public @Nullable JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
             return new JobRequestScheduler(storageProvider, emptyList());
         }

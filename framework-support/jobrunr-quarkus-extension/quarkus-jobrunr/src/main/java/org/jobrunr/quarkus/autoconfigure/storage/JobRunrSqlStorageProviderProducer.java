@@ -12,6 +12,7 @@ import org.jobrunr.quarkus.autoconfigure.JobRunrRuntimeConfiguration;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
+import org.jspecify.annotations.Nullable;
 
 import javax.sql.DataSource;
 import java.lang.annotation.Annotation;
@@ -22,7 +23,7 @@ public class JobRunrSqlStorageProviderProducer {
     @Produces
     @DefaultBean
     @Singleton
-    public StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
+    public @Nullable StorageProvider storageProvider(@Any Instance<DataSource> dataSources, JobMapper jobMapper, JobRunrRuntimeConfiguration configuration) {
         if (configuration.database().type().isPresent() && !configuration.database().type().get().equalsIgnoreCase("sql")) return null;
 
         String tablePrefix = configuration.database().tablePrefix().orElse(null);

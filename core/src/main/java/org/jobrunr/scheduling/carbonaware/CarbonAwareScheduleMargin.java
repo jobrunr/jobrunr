@@ -1,5 +1,8 @@
 package org.jobrunr.scheduling.carbonaware;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 
@@ -16,10 +19,7 @@ public class CarbonAwareScheduleMargin {
     private final Duration marginBefore;
     private final Duration marginAfter;
 
-    public CarbonAwareScheduleMargin(Duration marginBefore, Duration marginAfter) {
-        if (marginBefore == null || marginAfter == null) {
-            throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be non-null.", marginBefore, marginAfter));
-        }
+    public CarbonAwareScheduleMargin(@NonNull Duration marginBefore, @NonNull Duration marginAfter) {
         if (marginBefore.isNegative() || marginAfter.isNegative()) {
             throw new IllegalArgumentException(format("Expected marginBefore (='%s') and marginAfter (='%s') to be positive Durations.", marginBefore, marginAfter));
         }
@@ -27,7 +27,7 @@ public class CarbonAwareScheduleMargin {
         this.marginAfter = marginAfter;
     }
 
-    public static String getScheduleExpressionWithoutCarbonAwareMargin(String expressionWithOptionalMargin) {
+    public static @Nullable String getScheduleExpressionWithoutCarbonAwareMargin(String expressionWithOptionalMargin) {
         if (isNullOrEmpty(expressionWithOptionalMargin)) {
             return null;
         } else if (expressionWithOptionalMargin.contains(MARGIN_OPENING_TAG) && expressionWithOptionalMargin.contains(MARGIN_DELIMITER) && expressionWithOptionalMargin.contains(MARGIN_CLOSING_TAG)) {
@@ -36,7 +36,7 @@ public class CarbonAwareScheduleMargin {
         return expressionWithOptionalMargin;
     }
 
-    public static CarbonAwareScheduleMargin getCarbonAwareMarginFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
+    public static @Nullable CarbonAwareScheduleMargin getCarbonAwareMarginFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
         String margin = getCarbonAwareMarginAsStringFromScheduleExpression(scheduleWithOptionalCarbonAwareScheduleMargin);
         if (isNullOrEmpty(margin)) return null;
         String[] splitMargin = margin.split(MARGIN_DELIMITER, 0);

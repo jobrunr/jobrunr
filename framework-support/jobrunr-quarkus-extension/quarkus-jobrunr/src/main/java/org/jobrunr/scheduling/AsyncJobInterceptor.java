@@ -11,6 +11,7 @@ import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
 import org.jobrunr.utils.JobUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class AsyncJobInterceptor {
     JobScheduler jobScheduler;
 
     @AroundInvoke
-    public Object intercept(InvocationContext ctx) throws Exception {
+    public @Nullable Object intercept(InvocationContext ctx) throws Exception {
         JobDetails jobDetails = getJobDetails(ctx);
         var method = ctx.getMethod();
 

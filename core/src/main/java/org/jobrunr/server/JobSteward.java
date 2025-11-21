@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.tasks.steward.OnboardNewWorkTask;
 import org.jobrunr.server.tasks.steward.UpdateJobsInProgressTask;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +46,7 @@ public class JobSteward extends JobHandler implements Runnable {
         return jobsCurrentlyInProgress.keySet();
     }
 
-    public Thread getThreadProcessingJob(Job job) {
+    public @Nullable Thread getThreadProcessingJob(Job job) {
         return jobsCurrentlyInProgress.get(job);
     }
 

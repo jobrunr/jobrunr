@@ -1,6 +1,7 @@
 package org.jobrunr.storage.navigation;
 
 import org.jobrunr.storage.Page;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class OffsetBasedPageRequest extends PageRequest {
         return "order=" + getOrder() + "&offset=" + offset + "&limit=" + getLimit();
     }
 
-    public static OffsetBasedPageRequest fromString(String offsetBasedPageRequestAsString) {
+    public static @Nullable OffsetBasedPageRequest fromString(String offsetBasedPageRequestAsString) {
         if (isNullOrEmpty(offsetBasedPageRequestAsString)) return null;
 
         String order = lenientSubstringBetween(offsetBasedPageRequestAsString, "order=", "&");

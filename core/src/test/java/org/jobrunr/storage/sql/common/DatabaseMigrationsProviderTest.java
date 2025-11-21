@@ -1,10 +1,10 @@
 package org.jobrunr.storage.sql.common;
 
-import org.jetbrains.annotations.NotNull;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.migrations.DefaultSqlMigrationProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.mariadb.MariaDbStorageProviderStub;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ class DatabaseMigrationsProviderTest {
         }
     }
 
-    private static @NotNull List<String> findAllSqlStorageProvidersInFactorySource() throws IOException {
+    private static @NonNull List<String> findAllSqlStorageProvidersInFactorySource() throws IOException {
         var srcLineToLookFor = "return getStorageProviderClass(SqlStorageProvider.class.getPackage().getName() + \"";
         var providerFactoryPath = Paths.get("src/main/java/" + SqlStorageProviderFactory.class.getPackageName().replaceAll("\\.", "/") + "/" + SqlStorageProviderFactory.class.getSimpleName() + ".java");
 

@@ -1,5 +1,7 @@
 package org.jobrunr.utils;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -25,7 +27,7 @@ public class InstantUtils {
                 .orElse(null);
     }
 
-    public static Instant max(Instant instant1, Instant instant2) {
+    public static @Nullable Instant max(@Nullable Instant instant1, @Nullable Instant instant2) {
         if (instant1 == null && instant2 == null) return null;
         if (instant1 == null) return instant2;
         if (instant2 == null) return instant1;

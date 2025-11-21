@@ -1,9 +1,9 @@
 package org.jobrunr.server.carbonaware;
 
-import org.jetbrains.annotations.NotNull;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.ApiResponseStatus;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast.TimestampedCarbonIntensityForecast;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -167,7 +167,7 @@ class CarbonIntensityForecastTest {
                 .hasForecastEndPeriod(null);
     }
 
-    private static @NotNull CarbonIntensityForecast createCarbonIntensityForecast(List<TimestampedCarbonIntensityForecast> intensityForecast) {
+    private static @NonNull CarbonIntensityForecast createCarbonIntensityForecast(List<TimestampedCarbonIntensityForecast> intensityForecast) {
         return new CarbonIntensityForecast(new ApiResponseStatus("OK", ""), "ENTSO-E", "10Y1001A1001A82H", "Germany", "Europe/Berlin",
                 Instant.now().plus(1, DAYS), Duration.ofHours(3), intensityForecast);
     }
