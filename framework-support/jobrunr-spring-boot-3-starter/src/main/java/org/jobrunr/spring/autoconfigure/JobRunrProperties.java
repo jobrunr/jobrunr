@@ -11,20 +11,16 @@ import java.time.Duration;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_PAGE_REQUEST_SIZE;
 
 @ConfigurationProperties(prefix = "jobrunr")
 public class JobRunrProperties {
 
     private Database database = new Database();
-
     private Jobs jobs = new Jobs();
-
     private JobScheduler jobScheduler = new JobScheduler();
-
     private Dashboard dashboard = new Dashboard();
-
     private BackgroundJobServer backgroundJobServer = new BackgroundJobServer();
-
     private Miscellaneous miscellaneous = new Miscellaneous();
 
     public Database getDatabase() {
@@ -76,7 +72,7 @@ public class JobRunrProperties {
     }
 
     /**
-     * JobRunr dashboard related settings. These settings may not have an effect for certain NoSQL Databases (e.g. MongoDB).
+     * JobRunr database related settings. These settings may not have an effect for certain NoSQL Databases (e.g. MongoDB).
      */
     public static class Database {
         /**
@@ -259,7 +255,7 @@ public class JobRunrProperties {
         /**
          * Sets the maximum number of carbon aware jobs to update from awaiting to scheduled state per database round-trip.
          */
-        private Integer carbonAwaitingJobsRequestSize = 1000;
+        private Integer carbonAwaitingJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
 
         /**
          * Set the pollInterval multiplicand used to determine when a BackgroundJobServer has timed out and processing jobs are orphaned.
@@ -269,17 +265,17 @@ public class JobRunrProperties {
         /**
          * Sets the maximum number of jobs to update from scheduled to enqueued state per database round-trip.
          */
-        private Integer scheduledJobsRequestSize = 1000;
+        private Integer scheduledJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
 
         /**
-         * Sets the query size for misfired jobs per database round-trip (to retry them).
+         * Sets the maximum number of orphaned jobs to fetch and update per database round-trip (to retry them).
          */
-        private Integer orphanedJobsRequestSize = 1000;
+        private Integer orphanedJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
 
         /**
          * Sets the maximum number of jobs to update from succeeded to deleted state per database round-trip.
          */
-        private Integer succeededJobsRequestSize = 1000;
+        private Integer succeededJobsRequestSize = DEFAULT_PAGE_REQUEST_SIZE;
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
