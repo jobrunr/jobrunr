@@ -4,6 +4,7 @@ plugins {
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
     id 'net.ltgt.errorprone' version '4.3.0' apply false
+    id 'net.ltgt.nullaway' version '2.3.0' apply false
     id 'org.sonarqube' version '6.3.1.5724'
 }
 
@@ -88,6 +89,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'jacoco'
     apply plugin: 'net.ltgt.errorprone'
+    apply plugin: 'net.ltgt.nullaway'
 
     compileJava {
         options.release = 21
@@ -100,6 +102,10 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     tasks.withType(JavaCompile).configureEach {
+        options.errorprone.nullaway {
+            error()
+            annotatedPackages.add("org.jobrunr")
+        }
         options.errorprone.enabled = true
         //options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
@@ -119,8 +125,11 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     dependencies {
         implementation platform(project(':platform'))
         compileOnly 'org.apache.groovy:groovy-json:4.0.27'
+        compileOnly 'org.jspecify:jspecify'
 
         errorprone 'com.google.errorprone:error_prone_core:2.43.0'
+        errorprone 'com.uber.nullaway:nullaway:0.12.12'
+        annotationProcessor 'com.google.errorprone:error_prone_core:2.43.0'
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
