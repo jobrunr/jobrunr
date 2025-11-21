@@ -48,7 +48,7 @@ public class AmountRequest {
     @VisibleFor("testing")
     public List<OrderTerm> getAllOrderTerms(Set<String> allowedOrderTerms) {
         List<OrderTerm> result = new ArrayList<>();
-        final String[] sortOns = order.split(",");
+        final String[] sortOns = order.split(",", 0);
         for (String sortOn : sortOns) {
             String sortField = sortField(sortOn);
             if (!allowedOrderTerms.contains(sortField)) continue;

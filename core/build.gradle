@@ -96,10 +96,6 @@ tasks.named('compileTest25Java', JavaCompile) {
     options.release = 25
 }
 
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}
-
 tasks.register('test17', Test) {
     group = 'verification'
     testClassesDirs = sourceSets.test17.output.classesDirs

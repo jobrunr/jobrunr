@@ -39,7 +39,7 @@ public class CarbonAwareScheduleMargin {
     public static CarbonAwareScheduleMargin getCarbonAwareMarginFromScheduleExpression(String scheduleWithOptionalCarbonAwareScheduleMargin) {
         String margin = getCarbonAwareMarginAsStringFromScheduleExpression(scheduleWithOptionalCarbonAwareScheduleMargin);
         if (isNullOrEmpty(margin)) return null;
-        String[] splitMargin = margin.split(MARGIN_DELIMITER);
+        String[] splitMargin = margin.split(MARGIN_DELIMITER, 0);
         if (splitMargin.length != 2) {
             throw new IllegalArgumentException(format("Found String (='%s') formatted as a CarbonAwareScheduleMargin which does not have the expected length of 2 (got length=%s).", margin, splitMargin.length));
         }

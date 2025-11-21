@@ -201,7 +201,7 @@ public class DatabaseCreator {
 
     protected void runMigrationStatement(Connection connection, SqlMigration migration) throws IOException, SQLException {
         final String sql = migration.getMigrationSql();
-        for (String statement : sql.split(";")) {
+        for (String statement : sql.split(";", 0)) {
             if (isNullEmptyOrBlank(statement)) continue;
 
             try (final Statement stmt = connection.createStatement()) {

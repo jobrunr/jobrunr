@@ -10,8 +10,8 @@ public class DelegatingDatasourceExtractor {
     }
 
     public static DataSource extract(DataSource dataSource) {
-        if (dataSource instanceof DelegatingDataSource) {
-            return ((DelegatingDataSource) dataSource).getTargetDataSource();
+        if (dataSource instanceof DelegatingDataSource delegatingDataSource) {
+            return delegatingDataSource.getTargetDataSource();
         }
         return dataSource;
     }

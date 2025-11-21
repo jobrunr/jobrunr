@@ -35,7 +35,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
     }
 
     @Override
-    public JsonObject adaptToJson(JobDetails jobDetails) throws Exception {
+    public JsonObject adaptToJson(JobDetails jobDetails) {
         final JsonArrayBuilder parametersJsonArray = Json.createArrayBuilder();
         try {
             for (JobParameter jobState : jobDetails.getJobParameters()) {
@@ -56,7 +56,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
     }
 
     @Override
-    public JobDetails adaptFromJson(JsonObject jsonObject) throws Exception {
+    public JobDetails adaptFromJson(JsonObject jsonObject) {
         final JobDetails jobDetails = new JobDetails(
                 jsonObject.getString(FIELD_CLASS_NAME),
                 jsonObject.containsKey(FIELD_STATIC_FIELD_NAME)

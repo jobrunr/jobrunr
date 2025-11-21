@@ -183,8 +183,8 @@ public class JobRunrBeanFactoryInitializationAotProcessor implements BeanFactory
 
     private static String mapBeanNameToClassName(ConfigurableListableBeanFactory beanFactory, String bn) {
         BeanDefinition beanDefinition = beanFactory.getBeanDefinition(bn);
-        if (beanDefinition instanceof AnnotatedBeanDefinition) {
-            MethodMetadata factoryMethodMetadata = ((AnnotatedBeanDefinition) beanDefinition).getFactoryMethodMetadata();
+        if (beanDefinition instanceof AnnotatedBeanDefinition annotatedBeanDefinition) {
+            MethodMetadata factoryMethodMetadata = annotatedBeanDefinition.getFactoryMethodMetadata();
             if (factoryMethodMetadata != null) {
                 return factoryMethodMetadata.getReturnTypeName();
             }

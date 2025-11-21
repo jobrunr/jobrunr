@@ -70,7 +70,7 @@ public class DatabaseSqlMigrationFileProvider {
         try {
             final StringBuilder result = new StringBuilder();
             final String sql = migration.getMigrationSql();
-            for (String statement : sql.split(";")) {
+            for (String statement : sql.split(";", 0)) {
                 result.append(statementUpdater.updateStatement(statement)).append(";");
             }
             Files.write(Paths.get("./" + migration.getFileName()), result.toString().getBytes(StandardCharsets.UTF_8));

@@ -98,7 +98,7 @@ class CronFieldParser {
         }
         if (token.indexOf(',') > -1) {
             BitSet bitSet = new BitSet(this.length);
-            String[] items = token.split(",");
+            String[] items = token.split(",", 0);
             for (String item : items) {
                 bitSet.or(this.parse(item));
             }
@@ -120,7 +120,7 @@ class CronFieldParser {
 
     private BitSet parseStep(String token) {
         try {
-            String[] tokenParts = token.split("/");
+            String[] tokenParts = token.split("/", 0);
             if (tokenParts.length != 2) {
                 throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
             }
@@ -148,7 +148,7 @@ class CronFieldParser {
     }
 
     private BitSet parseRange(String token) {
-        String[] rangeParts = token.split("-");
+        String[] rangeParts = token.split("-", 0);
         if (rangeParts.length != 2) {
             throw new InvalidCronExpressionException(String.format(INVALID_FIELD, this.fieldName, token));
         }

@@ -30,7 +30,7 @@ public class TeenyHttpClient {
 
     public HttpResponse<String> get(String url, Object... params) {
         final HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(baseUri + String.format(url, params)))
+                .uri(createUri(url, params))
                 .build();
 
         return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
@@ -38,7 +38,7 @@ public class TeenyHttpClient {
 
     public HttpResponse<String> delete(String url, Object... params) {
         final HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(baseUri + String.format(url, params)))
+                .uri(createUri(url, params))
                 .DELETE()
                 .build();
 
@@ -55,10 +55,15 @@ public class TeenyHttpClient {
 
     public HttpResponse<String> post(String url, Object... params) {
         final HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(baseUri + String.format(url, params)))
+                .uri(createUri(url, params))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
 
         return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
+    }
+
+    @SuppressWarnings("AnnotateFormatMethod")
+    private URI createUri(String url, Object... params) {
+        return URI.create(baseUri + String.format(url, params));
     }
 }

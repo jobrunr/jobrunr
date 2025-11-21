@@ -9,7 +9,6 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.annotations.VisibleFor;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +32,6 @@ public class JobRunrDashboardWebServer {
     private final boolean allowAnonymousDataUsage;
 
     private WebServer webServer;
-
-    public static void main(String[] args) {
-        new JobRunrDashboardWebServer(null, new JacksonJsonMapper());
-    }
 
     public JobRunrDashboardWebServer(StorageProvider storageProvider, JsonMapper jsonMapper) {
         this(storageProvider, jsonMapper, 8000);

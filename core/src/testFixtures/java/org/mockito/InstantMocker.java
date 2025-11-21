@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
+@SuppressWarnings("ReturnValueIgnored")
 public class InstantMocker {
 
     public static final Instant FIXED_INSTANT_RIGHT_BEFORE_THE_HOUR = Instant.parse("2022-12-13T13:59:58Z");

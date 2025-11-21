@@ -21,10 +21,13 @@ import java.time.ZoneId;
 import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
+import static org.jobrunr.storage.StorageProvider.BATCH_SIZE;
 import static org.jobrunr.utils.InstantUtils.toInstant;
+import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 public abstract class AbstractJobScheduler {
 
@@ -118,6 +121,12 @@ public abstract class AbstractJobScheduler {
      */
     public void shutdown() {
         JobRunr.destroy();
+    }
+
+    protected <T> void saveJobs(Stream<T> stream, Function<T, Job> toJob) {
+        List<Job> ignored = stream
+                .map(toJob)
+                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
 
     JobId enqueue(UUID id, JobDetails jobDetails) {

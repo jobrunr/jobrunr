@@ -101,11 +101,11 @@ public class JacksonJsonMapper implements JsonMapper {
         return modules;
     }
 
-    private static final boolean isJSR310JavaTimeModule(Module m) {
+    private static boolean isJSR310JavaTimeModule(Module m) {
         return "jackson-datatype-jsr310".equals(m.getTypeId()) || "com.fasterxml.jackson.datatype.jsr310.JavaTimeModule".equals(m.getTypeId());
     }
 
-    private static final boolean isJobRunrModule(Module m) {
+    private static boolean isJobRunrModule(Module m) {
         return "org.jobrunr.utils.mapper.jackson.modules.JobRunrModule".equals(m.getTypeId());
     }
 }

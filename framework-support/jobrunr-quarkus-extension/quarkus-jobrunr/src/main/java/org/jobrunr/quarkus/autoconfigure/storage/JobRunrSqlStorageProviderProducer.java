@@ -84,8 +84,8 @@ public class JobRunrSqlStorageProviderProducer {
 
             @Override
             public boolean equals(Object obj) {
-                if (!(obj instanceof Named)) return false;
-                return value().equals(((Named) obj).value());
+                if (!(obj instanceof Named named)) return false;
+                return value().equals(named.value());
             }
         };
     }

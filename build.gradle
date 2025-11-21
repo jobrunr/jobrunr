@@ -101,17 +101,13 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.enabled = true
-        options.errorprone.disableWarningsInGeneratedCode = true
+        //options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
-            disable("ReturnValueIgnored")                       // for BatchCollector we rely on side effects to finish it
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
             disable("DoNotCallSuggester")                       // this is a Google-specific annotation
-            disable("AnnotateFormatMethod")                     // this is a Google-specific annotation
             disable("JavaDurationGetSecondsToToSeconds")        // we can't update to JDK9 just yet
-            disable("PatternMatchingInstanceof")                // we can't update to JDK9 just yet
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
-            disable("StringSplitter")                           // should not happen because of validation
             disable("TypeParameterUnusedInFormals")            // due to heavy reflection usage in JobRunr
         }
     }
@@ -124,7 +120,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         implementation platform(project(':platform'))
         compileOnly 'org.apache.groovy:groovy-json:4.0.27'
 
-        errorprone("com.google.errorprone:error_prone_core:2.43.0")
+        errorprone 'com.google.errorprone:error_prone_core:2.43.0'
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'

@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
 import static java.util.Collections.emptyList;
-import static org.jobrunr.storage.StorageProvider.BATCH_SIZE;
-import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 /**
  * Provides methods for creating fire-and-forget, delayed and recurring jobs as well as to delete existing background jobs.
@@ -76,9 +74,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
-        jobBuilderStream
-                .map(JobBuilder::build)
-                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
+        saveJobs(jobBuilderStream, JobBuilder::build);
     }
 
     /**
@@ -125,10 +121,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param input the stream of jobRequests for which to create fire-and-forget jobs
      */
     public void enqueue(Stream<? extends JobRequest> input) {
-        input
-                .map(JobDetails::new)
-                .map(Job::new)
-                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
+        saveJobs(input, x -> new Job(new JobDetails(x)));
     }
 
     /**
