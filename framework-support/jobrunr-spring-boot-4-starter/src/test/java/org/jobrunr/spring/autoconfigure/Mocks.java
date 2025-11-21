@@ -63,10 +63,14 @@ public class Mocks {
         ListIndexesIterable<Document> listIndicesMock = mock(ListIndexesIterable.class);
         when(listIndicesMock.spliterator()).thenReturn(mock(Spliterator.class));
 
+        MongoCollection<Document> recurringJobCollectionMock = mock(MongoCollection.class);
+        when(recurringJobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
+        when(recurringJobCollectionMock.updateMany(any(), any(Bson.class))).thenReturn(mock(UpdateResult.class));
+
         MongoCollection<Document> jobCollectionMock = mock(MongoCollection.class);
         when(jobCollectionMock.listIndexes()).thenReturn(listIndicesMock);
 
-        when(mongoDatabaseMock.getCollection(StorageProviderUtils.RecurringJobs.NAME, Document.class)).thenReturn(jobCollectionMock);
+        when(mongoDatabaseMock.getCollection(StorageProviderUtils.RecurringJobs.NAME, Document.class)).thenReturn(recurringJobCollectionMock);
         when(mongoDatabaseMock.getCollection(StorageProviderUtils.Jobs.NAME, Document.class)).thenReturn(jobCollectionMock);
         when(mongoDatabaseMock.getCollection(StorageProviderUtils.BackgroundJobServers.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
         when(mongoDatabaseMock.getCollection(StorageProviderUtils.Metadata.NAME, Document.class)).thenReturn(mock(MongoCollection.class));
