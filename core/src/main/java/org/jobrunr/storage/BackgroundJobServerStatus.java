@@ -2,6 +2,7 @@ package org.jobrunr.storage;
 
 import org.jobrunr.server.jmx.BackgroundJobServerStatusMBean;
 import org.jobrunr.server.jmx.JobServerStats;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,8 +16,8 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final int pollIntervalInSeconds;
     private final Duration deleteSucceededJobsAfter;
     private final Duration permanentlyDeleteDeletedJobsAfter;
-    private final Instant firstHeartbeat;
-    private final Instant lastHeartbeat;
+    private final @Nullable Instant firstHeartbeat;
+    private final @Nullable Instant lastHeartbeat;
     private final Boolean running;
     private final Long systemTotalMemory;
     private final Long systemFreeMemory;
@@ -26,14 +27,14 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     private final Long processAllocatedMemory;
     private final Double processCpuLoad;
 
-    public BackgroundJobServerStatus(UUID id, String name, int workerCount, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, JobServerStats jobServerStats) {
+    public BackgroundJobServerStatus(UUID id, String name, int workerCount, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, @Nullable Instant firstHeartbeat, @Nullable Instant lastHeartbeat, boolean isRunning, JobServerStats jobServerStats) {
         this(id, name, workerCount, pollIntervalInSeconds, deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, isRunning,
                 jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(),
                 jobServerStats.getProcessMaxMemory(), jobServerStats.getProcessFreeMemory(),
                 jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());
     }
 
-    public BackgroundJobServerStatus(UUID id, String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, Instant firstHeartbeat, Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
+    public BackgroundJobServerStatus(UUID id, String name, int workerPoolSize, int pollIntervalInSeconds, Duration deleteSucceededJobsAfter, Duration permanentlyDeleteDeletedJobsAfter, @Nullable Instant firstHeartbeat, @Nullable Instant lastHeartbeat, boolean isRunning, Long systemTotalMemory, Long systemFreeMemory, Double systemCpuLoad, Long processMaxMemory, Long processFreeMemory, Long processAllocatedMemory, Double processCpuLoad) {
         this.id = id;
         this.name = name;
         this.workerPoolSize = workerPoolSize;
@@ -83,12 +84,12 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     }
 
     @Override
-    public Instant getFirstHeartbeat() {
+    public @Nullable Instant getFirstHeartbeat() {
         return firstHeartbeat;
     }
 
     @Override
-    public Instant getLastHeartbeat() {
+    public @Nullable Instant getLastHeartbeat() {
         return lastHeartbeat;
     }
 

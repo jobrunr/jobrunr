@@ -14,16 +14,16 @@ public class StringUtils {
     private StringUtils() {
     }
 
-    public static boolean isNullOrEmpty(String s) {
+    public static boolean isNullOrEmpty(@Nullable String s) {
         return s == null || s.isEmpty();
     }
 
-    public static boolean isNotNullOrEmpty(String s) {
+    public static boolean isNotNullOrEmpty(@Nullable String s) {
         return !isNullOrEmpty(s);
     }
 
-    public static boolean isNullEmptyOrBlank(String s) {
-        return isNullOrEmpty(s) || isNullOrEmpty(s.trim());
+    public static boolean isNullEmptyOrBlank(@Nullable String s) {
+        return isNullOrEmpty(s) || isNullOrEmpty(s != null ? s.trim() : null);
     }
 
     public static String capitalize(String s) {
@@ -31,16 +31,13 @@ public class StringUtils {
     }
 
     public static String substringBefore(String s, String splitter) {
-        int endIndex = s.indexOf(splitter);
-        if (endIndex >= 0) {
-            return s.substring(0, endIndex);
-        }
-        return s;
+        final int endIndex = s.indexOf(splitter);
+        return endIndex >= 0 ? s.substring(0, endIndex) : s;
     }
 
-    public static @Nullable String substringAfter(String s, String splitter) {
+    public static String substringAfter(String s, String splitter) {
         final int indexOf = s.indexOf(splitter);
-        return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : null;
+        return indexOf >= 0 ? s.substring(indexOf + splitter.length()) : s;
     }
 
     public static String substringBeforeLast(String s, String splitter) {
@@ -79,17 +76,17 @@ public class StringUtils {
      * @param s     the String containing the substring, may be null
      * @param open  the String before the substring, may not be null
      * @param close the String after the substring, may not be null
-     * @return Returns the String between the given open and close String when possible or everything after the opening String.
+     * @return Returns the String between the given open and close String, everything after the opening String, or s if it does not contain open.
      */
-    public static @Nullable String lenientSubstringBetween(@Nullable String s, String open, String close) {
-        if (s != null && s.contains(open)) {
+    public static String lenientSubstringBetween(String s, String open, String close) {
+        if (s.contains(open)) {
             String result = substringAfter(s, open);
             if (result.contains(close)) {
                 return substringBefore(result, close);
             }
             return result;
         }
-        return null;
+        return s;
     }
 
     public static String md5Checksum(String input) {

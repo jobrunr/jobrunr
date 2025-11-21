@@ -1,10 +1,12 @@
 package org.jobrunr.jobs.context;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.annotations.UsedForSerialization;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.castNonNull;
 
 public class JobDashboardProgressBar {
 
@@ -20,11 +22,11 @@ public class JobDashboardProgressBar {
         this.jobDashboardProgress = jobDashboardProgress;
     }
 
-    public static JobDashboardProgressBar get(Job job) {
+    public static @Nullable JobDashboardProgressBar get(Job job) {
         Map<String, Object> jobMetadata = job.getMetadata();
         return jobMetadata.keySet().stream().filter(key -> key.startsWith(JOBRUNR_PROGRESSBAR_KEY))
                 .max(String::compareTo)
-                .map(key -> new JobDashboardProgressBar(cast(jobMetadata.get(key))))
+                .map(key -> new JobDashboardProgressBar(castNonNull(jobMetadata.get(key))))
                 .orElse(null);
     }
 
@@ -32,7 +34,7 @@ public class JobDashboardProgressBar {
         Map<String, Object> jobMetadata = job.getMetadata();
         String progressBarKey = progressBarKey(job.getJobStates().size());
         jobMetadata.putIfAbsent(progressBarKey, new JobDashboardProgress(totalAmount));
-        return cast(jobMetadata.get(progressBarKey));
+        return castNonNull(jobMetadata.get(progressBarKey));
     }
 
     /**
@@ -100,8 +102,8 @@ public class JobDashboardProgressBar {
         private Long failedAmount;
         private int progress;
 
+        @UsedForSerialization
         protected JobDashboardProgress() {
-            // for json deserialization
         }
 
         public JobDashboardProgress(Long totalAmount) {

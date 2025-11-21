@@ -8,6 +8,7 @@ import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -49,7 +50,7 @@ public class RecurringJob extends AbstractJob {
         this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy);
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy) {
+    public RecurringJob(@Nullable String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy) {
         this(id, jobDetails, schedule, zoneId, createdBy, Instant.now(Clock.system(zoneId)));
     }
 
@@ -57,7 +58,7 @@ public class RecurringJob extends AbstractJob {
         this(id, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, createdAt);
     }
 
-    public RecurringJob(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+    public RecurringJob(@Nullable String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
         this(id, 0, jobDetails, schedule, zoneId, createdBy, createdAt);
     }
 
@@ -65,7 +66,7 @@ public class RecurringJob extends AbstractJob {
         this(id, version, jobDetails, ScheduleExpressionType.createScheduleFromString(scheduleExpression), ZoneId.of(zoneId), createdBy, createdAt);
     }
 
-    public RecurringJob(String id, int version, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
+    public RecurringJob(@Nullable String id, int version, JobDetails jobDetails, Schedule schedule, ZoneId zoneId, CreatedBy createdBy, Instant createdAt) {
         super(jobDetails, version);
         this.id = validateAndSetId(id);
         this.zoneId = zoneId.getId();
@@ -156,7 +157,7 @@ public class RecurringJob extends AbstractJob {
         return getSchedule().next(createdAt, sinceInstant, ZoneId.of(zoneId));
     }
 
-    private String validateAndSetId(String input) {
+    private String validateAndSetId(@Nullable String input) {
         String result = Optional.ofNullable(input).orElse(getJobSignature().replace(" ", "").replace("$", "_")); //why: to support inner classes
 
         if (result.length() >= 128 && input == null) {

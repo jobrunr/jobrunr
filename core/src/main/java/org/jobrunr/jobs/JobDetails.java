@@ -1,7 +1,9 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.lambdas.JobRequest;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,18 +12,19 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.utils.CollectionUtils.asArrayList;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 
 public class JobDetails {
 
-    private final String className;
-    private final String staticFieldName;
-    private final String methodName;
-    private final ArrayList<JobParameter> jobParameters;
-    private Boolean cacheable;
+    private String className;
+    private final @Nullable String staticFieldName;
+    private String methodName;
+    private ArrayList<JobParameter> jobParameters;
+    private @Nullable Boolean cacheable;
 
+    @UsedForSerialization
     private JobDetails() {
-        this(null, null, null, null);
-        // used for deserialization
+        this.staticFieldName = null;
     }
 
     public JobDetails(JobRequest jobRequest) {
@@ -30,7 +33,7 @@ public class JobDetails {
         this.cacheable = true;
     }
 
-    public JobDetails(String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {
+    public JobDetails(String className, @Nullable String staticFieldName, String methodName, List<JobParameter> jobParameters) {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
@@ -42,7 +45,7 @@ public class JobDetails {
         return className;
     }
 
-    public String getStaticFieldName() {
+    public @Nullable String getStaticFieldName() {
         return staticFieldName;
     }
 
@@ -71,7 +74,7 @@ public class JobDetails {
                 .toArray();
     }
 
-    public Boolean getCacheable() {
+    public @Nullable Boolean getCacheable() {
         return cacheable;
     }
 
@@ -80,6 +83,6 @@ public class JobDetails {
     }
 
     private String getJobParameterDeserializableClassName(JobParameter jobParameter) {
-        return jobParameter.isNotDeserializable() ? jobParameter.getException().getClass().getName() : jobParameter.getClassName();
+        return jobParameter.isNotDeserializable() ? ensureNonNull(jobParameter.getException()).getClass().getName() : jobParameter.getClassName();
     }
 }

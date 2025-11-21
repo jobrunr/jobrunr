@@ -44,15 +44,20 @@ public class RequestUrl {
     }
 
     public <T> T param(String paramName, Class<T> clazz) {
+        String param = param(paramName);
+        if (param == null) {
+            throw new IllegalArgumentException(paramName + " cannot be cast to " + clazz + " : the param is null");
+        }
+
         if (String.class.equals(clazz)) {
-            return clazz.cast(param(paramName));
+            return clazz.cast(param);
         } else if (UUID.class.equals(clazz)) {
-            return clazz.cast(UUID.fromString(param(paramName)));
+            return clazz.cast(UUID.fromString(param));
         } else if (clazz.isEnum()) {
             return Stream.of(clazz.getEnumConstants())
-                    .filter(val -> ((Enum) val).name().equalsIgnoreCase(param(paramName)))
+                    .filter(val -> ((Enum) val).name().equalsIgnoreCase(param))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("No enum constant " + clazz.getCanonicalName() + "." + param(paramName)));
+                    .orElseThrow(() -> new IllegalArgumentException("No enum constant " + clazz.getCanonicalName() + "." + param));
         }
         throw new IllegalArgumentException(paramName);
     }
@@ -61,7 +66,7 @@ public class RequestUrl {
         return optionalQueryParam(queryParamName).orElse(null);
     }
 
-    public <T> T queryParam(String queryParamName, Class<T> clazz, T defaultValue) {
+    public <T> @Nullable T queryParam(String queryParamName, Class<T> clazz, @Nullable T defaultValue) {
         final Optional<String> queryParam = optionalQueryParam(queryParamName);
         if (queryParam.isPresent()) {
             return Autoboxer.autobox(queryParam.get(), clazz);

@@ -8,6 +8,7 @@ import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationException;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public abstract class Task {
     protected final BackgroundJobServer backgroundJobServer;
     protected final StorageProvider storageProvider;
     protected final JobFilterUtils jobFilterUtils;
-    protected TaskRunInfo runInfo;
+    protected @Nullable TaskRunInfo runInfo;
 
     protected Task(BackgroundJobServer backgroundJobServer) {
         this.LOGGER = LoggerFactory.getLogger(this.getClass());

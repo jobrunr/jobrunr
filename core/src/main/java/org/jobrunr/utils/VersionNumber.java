@@ -1,8 +1,11 @@
 package org.jobrunr.utils;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 
 import static java.util.Optional.ofNullable;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 import static org.jobrunr.utils.StringUtils.substringAfter;
@@ -17,7 +20,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final String minorVersion;
     private final String patchVersion;
     private final String updateVersion;
-    private final String qualifier;
+    private final @Nullable String qualifier;
 
     private VersionNumber(String completeVersion) {
         this.completeVersion = completeVersion;
@@ -90,7 +93,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (obj instanceof VersionNumber) {
             return completeVersion.equals(((VersionNumber) obj).completeVersion);
         }
@@ -134,7 +137,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         } else if (isNotNullOrEmpty(qualifier) && isNullOrEmpty(o.qualifier)) {
             return -1;
         } else {
-            return qualifier.compareTo(o.qualifier);
+            return ensureNonNull(qualifier).compareTo(o.qualifier);
         }
     }
 

@@ -1,16 +1,18 @@
 package org.jobrunr.jobs.exceptions;
 
+import org.jspecify.annotations.Nullable;
+
 public class JobParameterNotDeserializableException {
 
     private final String objectClassName;
     private final String exceptionClassName;
-    private final String exceptionMessage;
+    private final @Nullable String exceptionMessage;
 
     public JobParameterNotDeserializableException(String objectClassName, Exception e) {
         this(objectClassName, e.getClass().getName(), e.getMessage());
     }
 
-    public JobParameterNotDeserializableException(String objectClassName, String exceptionClassName, String exceptionMessage) {
+    public JobParameterNotDeserializableException(String objectClassName, String exceptionClassName, @Nullable String exceptionMessage) {
         this.objectClassName = objectClassName;
         this.exceptionClassName = exceptionClassName;
         this.exceptionMessage = exceptionMessage;

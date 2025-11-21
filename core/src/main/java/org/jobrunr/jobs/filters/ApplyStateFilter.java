@@ -2,6 +2,7 @@ package org.jobrunr.jobs.filters;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.states.JobState;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A filter that is triggered each time that the state of a Job has changed (except when the Job is deleted via the Dashboard).
@@ -24,5 +25,5 @@ public interface ApplyStateFilter extends JobFilter {
      * @param oldState the previous state of the job - can be null
      * @param newState the new state of the job. In most cases, this will match the actual state of the job unless the {@link RetryFilter} intervened.
      */
-    void onStateApplied(Job job, JobState oldState, JobState newState);
+    void onStateApplied(Job job, @Nullable JobState oldState, @Nullable JobState newState);
 }

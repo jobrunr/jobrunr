@@ -32,7 +32,7 @@ public class MDCMapper {
         Map<String, String> mdcContextMap = jobMetadata.entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith(JOBRUNR_MDC_KEY + "-"))
                 .collect(Collectors.toMap(entry -> entry.getKey().substring(4), entry -> entry.getValue().toString()));
-        mdcContextMap.put(JOBRUNR_MDC_JOB_ID_KEY, job.getId().toString());
+        mdcContextMap.put(JOBRUNR_MDC_JOB_ID_KEY, job.getId() != null ? job.getId().toString() : null);
         mdcContextMap.put(JOBRUNR_MDC_JOB_NAME_KEY, job.getJobName());
         mdcContextMap.put(JOBRUNR_MDC_JOB_SIGNATURE_KEY, job.getJobSignature());
         MDC.setContextMap(mdcContextMap);

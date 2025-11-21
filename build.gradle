@@ -105,6 +105,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.errorprone.nullaway {
             error()
             annotatedPackages.add("org.jobrunr")
+            externalInitAnnotations.add('org.jobrunr.utils.annotations.UsedForSerialization')
+            externalInitAnnotations.add('org.jobrunr.utils.annotations.Builder')
         }
         options.errorprone.enabled = true
         //options.errorprone.disableWarningsInGeneratedCode = true

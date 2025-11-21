@@ -15,6 +15,7 @@ import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -124,7 +125,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param job the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
-    public JobId enqueue(UUID id, JobLambda job) {
+    public JobId enqueue(@Nullable UUID id, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return enqueue(id, jobDetails);
     }
@@ -172,7 +173,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param iocJob the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the job
      */
-    public <S> JobId enqueue(UUID id, IocJobLambda<S> iocJob) {
+    public <S> JobId enqueue(@Nullable UUID id, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return enqueue(id, jobDetails);
     }
@@ -252,7 +253,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param job        the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public JobId schedule(UUID id, Temporal scheduleAt, JobLambda job) {
+    public JobId schedule(@Nullable UUID id, Temporal scheduleAt, JobLambda job) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(job);
         return schedule(id, scheduleAt, jobDetails);
     }
@@ -315,7 +316,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param iocJob     the {@link JobLambda} which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public <S> JobId schedule(UUID id, Temporal scheduleAt, IocJobLambda<S> iocJob) {
+    public <S> JobId schedule(@Nullable UUID id, Temporal scheduleAt, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return schedule(id, scheduleAt, jobDetails);
     }
@@ -409,7 +410,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @see org.jobrunr.scheduling.cron.Cron
      * @see org.jobrunr.scheduling.carbonaware.CarbonAware
      */
-    public String scheduleRecurrently(String id, String cron, JobLambda job) {
+    public String scheduleRecurrently(@Nullable String id, String cron, JobLambda job) {
         return scheduleRecurrently(id, cron, systemDefault(), job);
     }
 
@@ -431,7 +432,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @see org.jobrunr.scheduling.cron.Cron
      * @see org.jobrunr.scheduling.carbonaware.CarbonAware
      */
-    public <S> String scheduleRecurrently(String id, String cron, IocJobLambda<S> iocJob) {
+    public <S> String scheduleRecurrently(@Nullable String id, String cron, IocJobLambda<S> iocJob) {
         return scheduleRecurrently(id, cron, systemDefault(), iocJob);
     }
 
@@ -480,7 +481,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @see org.jobrunr.scheduling.cron.Cron
      * @see org.jobrunr.scheduling.carbonaware.CarbonAware
      */
-    public <S> String scheduleRecurrently(String id, String cron, ZoneId zoneId, IocJobLambda<S> iocJob) {
+    public <S> String scheduleRecurrently(@Nullable String id, String cron, ZoneId zoneId, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, ScheduleExpressionType.createScheduleFromString(cron), zoneId);
     }
@@ -546,7 +547,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param iocJob   the lambda which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
-    public <S> String scheduleRecurrently(String id, Duration duration, IocJobLambda<S> iocJob) {
+    public <S> String scheduleRecurrently(@Nullable String id, Duration duration, IocJobLambda<S> iocJob) {
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(iocJob);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
     }

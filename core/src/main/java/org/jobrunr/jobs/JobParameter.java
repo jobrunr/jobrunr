@@ -1,6 +1,8 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
+import org.jobrunr.utils.annotations.UsedForSerialization;
+import org.jspecify.annotations.Nullable;
 
 public class JobParameter {
 
@@ -8,11 +10,12 @@ public class JobParameter {
 
     private String className;
     private String actualClassName;
-    private Object object;
-    private transient JobParameterNotDeserializableException exception;
+    private @Nullable Object object;
+    private @Nullable
+    transient JobParameterNotDeserializableException exception;
 
+    @UsedForSerialization
     private JobParameter() {
-        // used for deserialization
     }
 
     private JobParameter(Class<?> clazz) {
@@ -27,15 +30,15 @@ public class JobParameter {
         this(object.getClass().getName(), object);
     }
 
-    public JobParameter(String className, Object object) {
+    public JobParameter(String className, @Nullable Object object) {
         this(className, isNotNullNorAnEnum(object) ? object.getClass().getName() : className, object);
     }
 
-    public JobParameter(String className, String actualClassName, Object object) {
+    public JobParameter(String className, String actualClassName, @Nullable Object object) {
         this(className, actualClassName, object, null);
     }
 
-    public JobParameter(String className, String actualClassName, Object object, JobParameterNotDeserializableException exception) {
+    public JobParameter(String className, String actualClassName, @Nullable Object object, @Nullable JobParameterNotDeserializableException exception) {
         this.className = className;
         this.actualClassName = actualClassName;
         this.object = object;
@@ -65,11 +68,11 @@ public class JobParameter {
      *
      * @return the actual job parameter
      */
-    public Object getObject() {
+    public @Nullable Object getObject() {
         return object;
     }
 
-    public JobParameterNotDeserializableException getException() {
+    public @Nullable JobParameterNotDeserializableException getException() {
         return exception;
     }
 
@@ -77,7 +80,7 @@ public class JobParameter {
         return exception != null;
     }
 
-    protected static boolean isNotNullNorAnEnum(Object object) {
+    protected static boolean isNotNullNorAnEnum(@Nullable Object object) {
         return object != null && !(object instanceof Enum);
     }
 }

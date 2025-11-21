@@ -8,6 +8,7 @@ import org.jobrunr.server.dashboard.mappers.SevereJobRunrExceptionNotificationMa
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.reflection.ReflectionUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class DashboardNotificationManager {
         storageProvider.deleteMetadata(notificationToDelete.getSimpleName());
     }
 
-    public <T extends DashboardNotification> T getDashboardNotification(Class<T> notificationClass) {
+    public <T extends DashboardNotification> @Nullable T getDashboardNotification(Class<T> notificationClass) {
         return storageProvider
                 .getMetadata(notificationClass.getSimpleName())
                 .stream()

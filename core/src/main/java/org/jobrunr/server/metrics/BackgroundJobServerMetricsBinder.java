@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
+
 public class BackgroundJobServerMetricsBinder implements AutoCloseable {
 
     private final BackgroundJobServer backgroundJobServer;
@@ -60,12 +62,12 @@ public class BackgroundJobServerMetricsBinder implements AutoCloseable {
 
     private double getFirstHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
         BackgroundJobServerStatus status = cache.get();
-        return status.isRunning() ? status.getFirstHeartbeat().getEpochSecond() : -1;
+        return status.isRunning() ? ensureNonNull(status.getFirstHeartbeat()).getEpochSecond() : -1;
     }
 
     private double getLastHeartbeatAsEpochSeconds(CachedValue<BackgroundJobServerStatus> cache) {
         BackgroundJobServerStatus status = cache.get();
-        return status.isRunning() ? status.getLastHeartbeat().getEpochSecond() : -1;
+        return status.isRunning() ? ensureNonNull(status.getLastHeartbeat()).getEpochSecond() : -1;
     }
 
     @Override

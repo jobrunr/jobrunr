@@ -1,8 +1,10 @@
 package org.jobrunr.jobs;
 
 import org.jobrunr.utils.JobUtils;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.resilience.Lockable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +20,14 @@ public abstract class AbstractJob implements Lockable {
     private final transient Lock locker;
 
     private volatile int version;
-    private String jobSignature;
-    private String jobName;
-    private Integer amountOfRetries;
+    private @Nullable String jobSignature;
+    private @Nullable String jobName;
+    private @Nullable Integer amountOfRetries;
     private ArrayList<String> labels;
     private JobDetails jobDetails;
 
+    @UsedForSerialization
     protected AbstractJob() {
-        // used for deserialization
         this.locker = new Lock();
         this.labels = new ArrayList<>();
     }
@@ -41,7 +43,7 @@ public abstract class AbstractJob implements Lockable {
         this.jobSignature = JobUtils.getJobSignature(jobDetails);
     }
 
-    public abstract Object getId();
+    public abstract @Nullable Object getId();
 
     public int getVersion() {
         return version;
@@ -60,11 +62,11 @@ public abstract class AbstractJob implements Lockable {
         this.version = version;
     }
 
-    public String getJobSignature() {
+    public @Nullable String getJobSignature() {
         return jobSignature;
     }
 
-    public String getJobName() {
+    public @Nullable String getJobName() {
         return jobName;
     }
 
@@ -72,7 +74,7 @@ public abstract class AbstractJob implements Lockable {
         this.jobName = jobName;
     }
 
-    public Integer getAmountOfRetries() {
+    public @Nullable Integer getAmountOfRetries() {
         return amountOfRetries;
     }
 

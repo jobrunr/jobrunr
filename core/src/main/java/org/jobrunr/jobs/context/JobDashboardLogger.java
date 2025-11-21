@@ -1,13 +1,14 @@
 package org.jobrunr.jobs.context;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 
 import java.time.Instant;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.castNonNull;
 
 public class JobDashboardLogger {
 
@@ -39,7 +40,7 @@ public class JobDashboardLogger {
         Map<String, Object> jobMetadata = job.getMetadata();
         String logKey = logKey(job.getJobStates().size());
         jobMetadata.putIfAbsent(logKey, new JobDashboardLogLines());
-        return cast(jobMetadata.get(logKey));
+        return castNonNull(jobMetadata.get(logKey));
     }
 
     /**
@@ -80,8 +81,8 @@ public class JobDashboardLogger {
         private Instant logInstant;
         private String logMessage;
 
+        @UsedForSerialization
         protected JobDashboardLogLine() {
-            // for json deserialization
         }
 
         public JobDashboardLogLine(Level level, String logMessage) {

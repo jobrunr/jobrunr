@@ -13,6 +13,7 @@ import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.utils.JobUtils;
+import org.jobrunr.utils.annotations.Builder;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -53,8 +54,8 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  */
 public class JobBuilder {
 
+    @Builder
     private JobBuilder() {
-        // why: builder pattern
     }
 
     private UUID jobId;

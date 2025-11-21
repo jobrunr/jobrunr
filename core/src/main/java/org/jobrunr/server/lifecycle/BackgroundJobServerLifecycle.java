@@ -10,7 +10,7 @@ public class BackgroundJobServerLifecycle {
 
     final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     final Condition readWriteFinished = readWriteLock.writeLock().newCondition();
-    volatile BackgroundJobServerLifecycleEvent lifecycleEvent;
+    volatile @Nullable BackgroundJobServerLifecycleEvent lifecycleEvent;
     volatile boolean isRunning = false;
 
     public LifecycleChangeLock goTo(BackgroundJobServerLifecycleEvent event) {

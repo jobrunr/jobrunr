@@ -11,7 +11,9 @@ public class LifecycleChangeLock extends AbstractLifecycleLock {
     }
 
     public void succeeded() {
-        this.backgroundJobServerLifecycle.isRunning = backgroundJobServerLifecycle.lifecycleEvent.isRunning;
+        if (backgroundJobServerLifecycle.lifecycleEvent != null) {
+            this.backgroundJobServerLifecycle.isRunning = backgroundJobServerLifecycle.lifecycleEvent.isRunning;
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class ConcurrentJobModificationException extends StorageException {
         this(concurrentUpdatedJob, null);
     }
 
-    public ConcurrentJobModificationException(Job concurrentUpdatedJob, Exception cause) {
+    public ConcurrentJobModificationException(Job concurrentUpdatedJob, @Nullable Exception cause) {
         this(singletonList(concurrentUpdatedJob), cause);
     }
 
@@ -23,7 +24,7 @@ public class ConcurrentJobModificationException extends StorageException {
         this(concurrentUpdatedJobs, null);
     }
 
-    public ConcurrentJobModificationException(List<Job> concurrentUpdatedJobs, Exception cause) {
+    public ConcurrentJobModificationException(List<Job> concurrentUpdatedJobs, @Nullable Exception cause) {
         super("The following jobs where concurrently updated: " + constructMessage(concurrentUpdatedJobs), cause);
         this.concurrentUpdatedJobs = concurrentUpdatedJobs;
     }

@@ -5,6 +5,7 @@ import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ServerTimedOutException;
 import org.jobrunr.storage.StorageProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,9 @@ public class ServerZooKeeper implements Runnable {
     private final DashboardNotificationManager dashboardNotificationManager;
     private final Duration timeoutDuration;
     private final AtomicInteger restartAttempts;
-    private UUID masterId;
-    private Instant lastSignalAlive;
-    private Instant lastServerTimeoutCheck;
+    private @Nullable UUID masterId;
+    private @Nullable Instant lastSignalAlive;
+    private @Nullable Instant lastServerTimeoutCheck;
 
     public ServerZooKeeper(BackgroundJobServer backgroundJobServer) {
         this.backgroundJobServer = backgroundJobServer;

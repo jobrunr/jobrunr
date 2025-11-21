@@ -1,5 +1,7 @@
 package org.jobrunr.server.jmx;
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -13,8 +15,10 @@ public interface BackgroundJobServerStatusMBean {
 
     int getPollIntervalInSeconds();
 
+    @Nullable
     Instant getFirstHeartbeat();
 
+    @Nullable
     Instant getLastHeartbeat();
 
     Duration getDeleteSucceededJobsAfter();

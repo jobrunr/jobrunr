@@ -9,6 +9,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.scheduling.interval.Interval;
 import org.jobrunr.storage.StorageProvider;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -104,7 +105,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param jobRequest the jobRequest which defines the fire-and-forget job.
      * @return the id of the job
      */
-    public JobId enqueue(UUID id, JobRequest jobRequest) {
+    public JobId enqueue(@Nullable UUID id, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
         return enqueue(id, jobDetails);
     }
@@ -184,7 +185,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param jobRequest the jobRequest which defines the fire-and-forget job
      * @return the id of the Job
      */
-    public JobId schedule(UUID id, Temporal scheduleAt, JobRequest jobRequest) {
+    public JobId schedule(@Nullable UUID id, Temporal scheduleAt, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
         return schedule(id, scheduleAt, jobDetails);
     }
@@ -251,7 +252,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @see org.jobrunr.scheduling.cron.Cron
      * @see org.jobrunr.scheduling.carbonaware.CarbonAware
      */
-    public String scheduleRecurrently(String id, String cron, JobRequest jobRequest) {
+    public String scheduleRecurrently(@Nullable String id, String cron, JobRequest jobRequest) {
         return scheduleRecurrently(id, cron, systemDefault(), jobRequest);
     }
 
@@ -311,7 +312,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param jobRequest the jobRequest which defines the recurring job
      * @return the id of this {@link RecurringJob} which can be used to alter or delete it
      */
-    public String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
+    public String scheduleRecurrently(@Nullable String id, Duration duration, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
     }

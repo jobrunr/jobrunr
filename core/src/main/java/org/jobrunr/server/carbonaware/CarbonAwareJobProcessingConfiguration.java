@@ -1,6 +1,7 @@
 package org.jobrunr.server.carbonaware;
 
 import org.jobrunr.server.BackgroundJobServerConfiguration;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -28,6 +29,7 @@ public class CarbonAwareJobProcessingConfiguration {
     Duration apiClientReadTimeout = DEFAULT_API_CLIENT_READ_TIMEOUT;
     Duration pollInterval = DEFAULT_POLL_INTERVAL;
 
+    @UsedForSerialization
     private CarbonAwareJobProcessingConfiguration() {
     }
 

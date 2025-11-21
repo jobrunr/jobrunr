@@ -10,6 +10,7 @@ import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
 import org.jobrunr.scheduling.cron.CronExpression;
+import org.jobrunr.utils.annotations.Builder;
 
 import java.time.Duration;
 import java.time.ZoneId;
@@ -50,6 +51,7 @@ public class RecurringJobBuilder {
     private Schedule schedule;
     private ZoneId zoneId;
 
+    @Builder
     private RecurringJobBuilder() {
         // why: builder pattern
     }

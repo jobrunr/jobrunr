@@ -2,13 +2,14 @@ package org.jobrunr.dashboard.ui.model;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.utils.JarUtils;
+import org.jspecify.annotations.Nullable;
 
 public class VersionUIModel {
 
     private String version;
     private boolean allowAnonymousDataUsage;
-    private String clusterId;
-    private String storageProviderType;
+    private @Nullable String clusterId;
+    private @Nullable String storageProviderType;
 
     private VersionUIModel() {
         this.version = JarUtils.getVersion(JobRunr.class);

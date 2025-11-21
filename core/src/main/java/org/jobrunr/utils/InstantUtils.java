@@ -21,7 +21,7 @@ public class InstantUtils {
         return max(instants.stream());
     }
 
-    public static Instant max(Stream<Instant> instants) {
+    public static @Nullable Instant max(Stream<Instant> instants) {
         return instants.filter(Objects::nonNull)
                 .max(Instant::compareTo)
                 .orElse(null);

@@ -3,6 +3,7 @@ package org.jobrunr.utils.reflection;
 import org.jobrunr.scheduling.exceptions.FieldNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 import static java.lang.Thread.currentThread;
 import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 import static org.jobrunr.utils.StringUtils.capitalize;
 
 public class ReflectionUtils {
@@ -224,7 +226,7 @@ public class ReflectionUtils {
     public static boolean isClassAssignable(Class<?> clazz1, Class<?> clazz2) {
         return clazz1.equals(clazz2)
                 || clazz1.isAssignableFrom(clazz2)
-                || (clazz1.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz1).equals(clazz2))
+                || (clazz1.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.containsKey(clazz1) && PRIMITIVE_TO_TYPE_MAPPING.get(clazz1).equals(clazz2))
                 || (clazz1.isPrimitive() && Boolean.TYPE.equals(clazz1) && Integer.class.equals(clazz2));
     }
 
@@ -286,7 +288,7 @@ public class ReflectionUtils {
         }
     }
 
-    public static <T> T autobox(Object value, Class<T> type) {
+    public static <T> @Nullable T autobox(@Nullable Object value, Class<T> type) {
         return Autoboxer.autobox(value, type);
     }
 
@@ -304,7 +306,7 @@ public class ReflectionUtils {
         }
     }
 
-    private static Class<?> loadClassUsingContextClassLoader(String className, ClassLoader classLoader) {
+    private static @Nullable Class<?> loadClassUsingContextClassLoader(String className, ClassLoader classLoader) {
         try {
             LOGGER.trace("Attempting to load class '{}' using ClassLoader '{}' (currentThread().getContextClassLoader())", className, classLoader);
             return Class.forName(className, true, classLoader);
@@ -329,7 +331,7 @@ public class ReflectionUtils {
                     }
                 }
 
-                if (argumentsMatch) return cast(constructor);
+                if (argumentsMatch) return ensureNonNull(cast(constructor));
             }
         }
 
@@ -348,8 +350,13 @@ public class ReflectionUtils {
      * Why: fewer warnings and @SuppressWarnings("unchecked")
      */
     @SuppressWarnings({"unchecked"})
-    public static <T> T cast(Object anObject) {
+    public static <T> @Nullable T cast(@Nullable Object anObject) {
         return (T) anObject;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public static <T> @NonNull T castNonNull(@Nullable Object anObject) {
+        return ensureNonNull((T) anObject);
     }
 
     private static boolean objectContainsField(Object object, String fieldName) {

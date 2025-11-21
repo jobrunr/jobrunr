@@ -14,6 +14,7 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 import static org.jobrunr.jobs.RecurringJob.CreatedBy.API;
 import static org.jobrunr.storage.StorageProvider.BATCH_SIZE;
 import static org.jobrunr.utils.InstantUtils.toInstant;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 public abstract class AbstractJobScheduler {
@@ -142,7 +144,7 @@ public abstract class AbstractJobScheduler {
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
 
-    String scheduleRecurrently(String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
+    String scheduleRecurrently(@Nullable String id, JobDetails jobDetails, Schedule schedule, ZoneId zoneId) {
         final RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, zoneId, API);
         return scheduleRecurrently(recurringJob);
     }
@@ -165,7 +167,7 @@ public abstract class AbstractJobScheduler {
         } catch (ConcurrentJobModificationException e) {
             LOGGER.info("Skipped Job with id {} as it already exists", job.getId());
         }
-        return new JobId(job.getId());
+        return new JobId(ensureNonNull(job.getId()));
     }
 
     List<Job> saveJobs(List<Job> jobs) {

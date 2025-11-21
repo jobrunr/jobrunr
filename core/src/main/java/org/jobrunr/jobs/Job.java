@@ -15,6 +15,7 @@ import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.utils.annotations.LockingJob;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 import org.jobrunr.utils.resilience.Lock;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.jobrunr.utils.uuid.UUIDv7Factory;
@@ -44,7 +45,7 @@ import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalState
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
 import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.reflection.ReflectionUtils.castNonNull;
 
 /**
  * Defines the job with its JobDetails, History and Job Metadata.
@@ -67,18 +68,18 @@ public class Job extends AbstractJob {
 
     private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();
 
-    private final UUID id;
+    private final @Nullable UUID id;
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
-    private String recurringJobId;
+    private @Nullable String recurringJobId;
     private transient final AtomicInteger stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();
     }
 
+    @UsedForSerialization
     private Job() {
-        // used for deserialization
         this.id = null;
         this.jobHistory = new CopyOnWriteArrayList<>();
         this.metadata = new ConcurrentHashMap<>();
@@ -97,11 +98,11 @@ public class Job extends AbstractJob {
         this(null, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
-    public Job(UUID id, JobDetails jobDetails, JobState jobState) {
+    public Job(@Nullable UUID id, JobDetails jobDetails, JobState jobState) {
         this(id, 0, jobDetails, singletonList(jobState), new ConcurrentHashMap<>());
     }
 
-    public Job(UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
+    public Job(@Nullable UUID id, int version, JobDetails jobDetails, List<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
         super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : newUUID();
@@ -111,7 +112,7 @@ public class Job extends AbstractJob {
     }
 
     @Override
-    public UUID getId() {
+    public @Nullable UUID getId() {
         return id;
     }
 
@@ -136,14 +137,14 @@ public class Job extends AbstractJob {
     }
 
     public <T extends JobState> T getJobState() {
-        return cast(getJobState(-1));
+        return castNonNull(getJobState(-1));
     }
 
-    public @Nullable JobState getJobState(int element) {
+    public JobState getJobState(int element) {
         if (element >= 0) {
             return jobHistory.get(element);
         } else {
-            if (Math.abs(element) > jobHistory.size()) return null;
+            if (Math.abs(element) > jobHistory.size()) throw new IllegalArgumentException("No job history for element " + element + " out of bounds");
             return jobHistory.get(jobHistory.size() + element);
         }
     }
@@ -216,8 +217,9 @@ public class Job extends AbstractJob {
         return this;
     }
 
-    public Instant getCreatedAt() {
-        return getJobState(0).getCreatedAt();
+    public @Nullable Instant getCreatedAt() {
+        JobState jobState = getJobState(0);
+        return jobState != null ? jobState.getCreatedAt() : null;
     }
 
     public Instant getUpdatedAt() {

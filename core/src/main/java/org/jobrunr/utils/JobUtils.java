@@ -9,6 +9,7 @@ import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,6 @@ import static org.jobrunr.utils.StringUtils.substringAfterLast;
 import static org.jobrunr.utils.StringUtils.substringBefore;
 import static org.jobrunr.utils.StringUtils.substringBeforeLast;
 import static org.jobrunr.utils.StringUtils.substringBetween;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
@@ -100,11 +100,17 @@ public class JobUtils {
     }
 
     public static Optional<Job> getJobAnnotation(JobDetails jobDetails) {
-        return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Job.class)).findFirst());
+        return getJobAnnotations(jobDetails)
+                .filter(Job.class::isInstance)
+                .map(Job.class::cast)
+                .findFirst();
     }
 
     public static Optional<Recurring> getRecurringAnnotation(JobDetails jobDetails) {
-        return cast(getJobAnnotations(jobDetails).filter(jobAnnotation -> jobAnnotation.annotationType().equals(Recurring.class)).findFirst());
+        return getJobAnnotations(jobDetails)
+                .filter(Recurring.class::isInstance)
+                .map(Recurring.class::cast)
+                .findFirst();
     }
 
     public static String getJobSignature(AbstractJob job) {
@@ -142,7 +148,7 @@ public class JobUtils {
 
     public static String[] getParameterTypeNamesFromJobSignature(String jobSignature) {
         String jobParameterTypesAsString = substringBetween(jobSignature, "(", ")");
-        if (jobParameterTypesAsString.replaceAll("\\s", "").isEmpty()) return new String[]{};
+        if (jobParameterTypesAsString == null || jobParameterTypesAsString.replaceAll("\\s", "").isEmpty()) return new String[]{};
         return Stream.of(jobParameterTypesAsString.split(",")).map(String::trim).toArray(String[]::new);
     }
 
@@ -162,7 +168,7 @@ public class JobUtils {
         return result;
     }
 
-    private static String getJobParameterValue(JobParameter jobParameter) {
+    private static @Nullable String getJobParameterValue(JobParameter jobParameter) {
         if (jobParameter.getClassName().equals(JobContext.class.getName())) {
             return JobContext.class.getSimpleName();
         } else if (jobParameter.getObject() == null) {

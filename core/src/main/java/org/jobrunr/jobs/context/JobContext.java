@@ -4,10 +4,12 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.utils.annotations.UsedForSerialization;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingRunnable;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingSupplier;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.jobrunr.utils.reflection.autobox.Autoboxer;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import static org.jobrunr.jobs.context.JobDashboardLogger.JOBRUNR_LOG_KEY;
 import static org.jobrunr.jobs.context.JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY;
 import static org.jobrunr.jobs.mappers.MDCMapper.JOBRUNR_MDC_KEY;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 import static org.jobrunr.utils.reflection.ReflectionUtils.autobox;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
@@ -36,16 +39,15 @@ public class JobContext {
     private static final String JOBRUNR_STEP_RESULT_PREFIX = "jr_step_result_";
     private static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = "jr_step_result_class_";
 
-    public static final JobContext Null = new JobContext(null);
+    public static final JobContext Null = new JobContext();
 
-    private final Job job;
+    private Job job;
 
-    private JobDashboardLogger jobDashboardLogger;
-    private JobDashboardProgressBar jobDashboardProgressBar;
+    private @Nullable JobDashboardLogger jobDashboardLogger;
+    private @Nullable JobDashboardProgressBar jobDashboardProgressBar;
 
+    @UsedForSerialization
     protected JobContext() {
-        // Needed for JSON-B deserialization
-        this(null);
     }
 
     /**
@@ -58,11 +60,11 @@ public class JobContext {
         this.job = job;
     }
 
-    public UUID getJobId() {
+    public @Nullable UUID getJobId() {
         return job.getId();
     }
 
-    public String getJobName() {
+    public @Nullable String getJobName() {
         return job.getJobName();
     }
 
@@ -74,7 +76,7 @@ public class JobContext {
         return job.getState();
     }
 
-    public Instant getCreatedAt() {
+    public @Nullable Instant getCreatedAt() {
         return job.getCreatedAt();
     }
 
@@ -82,7 +84,7 @@ public class JobContext {
         return job.getUpdatedAt();
     }
 
-    public String getJobSignature() {
+    public @Nullable String getJobSignature() {
         return job.getJobSignature();
     }
 
@@ -163,7 +165,7 @@ public class JobContext {
      * @param key the key to retrieve the metadata
      * @return the given value associated with the provided key.
      */
-    public <T> T getMetadata(String key) {
+    public <T> @Nullable T getMetadata(String key) {
         return cast(job.getMetadata().get(key));
     }
 
@@ -223,7 +225,7 @@ public class JobContext {
                 return getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
             }
             String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
-            return autobox(stepResultAsString, stepResultClass);
+            return ensureNonNull(autobox(stepResultAsString, stepResultClass));
         }
     }
 

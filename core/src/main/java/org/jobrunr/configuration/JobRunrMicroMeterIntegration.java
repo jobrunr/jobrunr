@@ -15,8 +15,8 @@ import org.jspecify.annotations.Nullable;
 public class JobRunrMicroMeterIntegration implements AutoCloseable {
 
     private final MeterRegistry meterRegistry;
-    private StorageProviderMetricsBinder storageProviderMetricsBinder;
-    private BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder;
+    private @Nullable StorageProviderMetricsBinder storageProviderMetricsBinder;
+    private @Nullable BackgroundJobServerMetricsBinder backgroundJobServerMetricsBinder;
 
     public JobRunrMicroMeterIntegration(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
@@ -31,7 +31,9 @@ public class JobRunrMicroMeterIntegration implements AutoCloseable {
 
     @Override
     public void close() {
-        storageProviderMetricsBinder.close();
+        if (storageProviderMetricsBinder != null) {
+            storageProviderMetricsBinder.close();
+        }
         if (backgroundJobServerMetricsBinder != null) {
             backgroundJobServerMetricsBinder.close();
         }

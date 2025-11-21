@@ -1,6 +1,7 @@
 package org.jobrunr.dashboard.server.http;
 
 import org.jobrunr.dashboard.server.http.url.RequestUrl;
+import org.jspecify.annotations.Nullable;
 
 public class HttpRequest {
 
@@ -10,7 +11,7 @@ public class HttpRequest {
         this.requestUrl = requestUrl;
     }
 
-    public String param(String paramName) {
+    public @Nullable String param(String paramName) {
         return requestUrl.param(paramName);
     }
 
@@ -22,7 +23,7 @@ public class HttpRequest {
         return requestUrl.fromQueryParams(clazz);
     }
 
-    public <T> T queryParam(String queryParamName, Class<T> clazz, T defaultValue) {
+    public <T> @Nullable T queryParam(String queryParamName, Class<T> clazz, @Nullable T defaultValue) {
         return requestUrl.queryParam(queryParamName, clazz, defaultValue);
     }
 }

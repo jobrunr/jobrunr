@@ -35,6 +35,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.utils.VersionNumber;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +61,7 @@ import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.RES
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.START;
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.STOP;
 import static org.jobrunr.utils.JobUtils.assertJobExists;
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 import static org.jobrunr.utils.VersionNumber.v;
 
 public class BackgroundJobServer implements BackgroundJobServerMBean {
@@ -79,11 +81,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final ConcurrentJobModificationResolver concurrentJobModificationResolver;
     private final BackgroundJobServerLifecycle lifecycle;
     private final BackgroundJobPerformerFactory backgroundJobPerformerFactory;
-    private volatile Instant firstHeartbeat;
-    private volatile Boolean isMaster;
-    private volatile VersionNumber dataVersion;
-    private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
-    private JobRunrExecutor jobExecutor;
+    private volatile @Nullable Instant firstHeartbeat;
+    private volatile @Nullable Boolean isMaster;
+    private volatile @Nullable VersionNumber dataVersion;
+    private volatile @Nullable PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
+    private @Nullable JobRunrExecutor jobExecutor;
 
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
@@ -207,10 +209,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public boolean isMaster() {
-        return isAnnounced() && isMaster;
+        return isAnnounced() && isMaster != null && isMaster;
     }
 
-    void setIsMaster(Boolean isMaster) {
+    void setIsMaster(@Nullable Boolean isMaster) {
         if (isStopping() || isStopped()) return;
 
         this.isMaster = isMaster;
@@ -283,7 +285,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     BackgroundJobRunner getBackgroundJobRunner(Job job) {
-        assertJobExists(job.getJobDetails());
+        assertJobExists(ensureNonNull(job.getJobDetails()));
         return backgroundJobRunners.stream()
                 .filter(jobRunner -> jobRunner.supports(job))
                 .findFirst()
@@ -292,7 +294,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     public void processJob(Job job) {
         BackgroundJobPerformer backgroundJobPerformer = backgroundJobPerformerFactory.newBackgroundJobPerformer(this, job);
-        jobExecutor.execute(backgroundJobPerformer);
+        ensureNonNull(jobExecutor).execute(backgroundJobPerformer);
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
@@ -312,14 +314,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
                 new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+
+        PlatformThreadPoolJobRunrExecutor threadPool = ensureNonNull(zookeeperThreadPool);
+        threadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        threadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        threadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
     }
 
     private void stopZooKeepers() {
         serverZooKeeper.stop();
-        zookeeperThreadPool.stop(Duration.ofSeconds(10));
+        ensureNonNull(zookeeperThreadPool).stop(Duration.ofSeconds(10));
         this.zookeeperThreadPool = null;
     }
 

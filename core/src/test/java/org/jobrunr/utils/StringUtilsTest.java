@@ -88,6 +88,6 @@ class StringUtilsTest {
     void testLenientSubstringBetween() {
         assertThat(lenientSubstringBetween("open=some.string&close", "open=", "&close")).isEqualTo("some.string");
         assertThat(lenientSubstringBetween("open=some.string", "open=", "&close")).isEqualTo("some.string");
-        assertThat(lenientSubstringBetween(null, "open=", "&close")).isNull();
+        assertThat(lenientSubstringBetween("does-not-contain-the-thing", "open=", "&close")).isEqualTo("does-not-contain-the-thing");
     }
 }

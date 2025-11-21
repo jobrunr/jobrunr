@@ -24,10 +24,14 @@ package org.jobrunr.utils.uuid;
  * SOFTWARE.
  */
 
+import org.jspecify.annotations.Nullable;
+
 import java.time.Clock;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.LongSupplier;
+
+import static org.jobrunr.utils.ObjectUtils.ensureNonNull;
 
 /**
  * Concrete factory for creating Unix epoch time-ordered unique identifiers
@@ -108,10 +112,17 @@ public final class UUIDv7Factory {
     public static class Builder {
 
         protected static final Clock DEFAULT_CLOCK = Clock.systemUTC();
-        protected Clock clock;
-        protected Random random;
+        protected @Nullable Clock clock;
+        protected @Nullable Random random;
         private Integer incrementType = INCREMENT_TYPE_DEFAULT;
-        private Long incrementMax;
+        private @Nullable Long incrementMax;
+
+        private Random getRandom() {
+            if (random == null) {
+                random = new Random();
+            }
+            return random;
+        }
 
         protected Clock getClock() {
             if (this.clock == null) {
@@ -156,13 +167,13 @@ public final class UUIDv7Factory {
                     if (incrementMax == null) {
                         return () -> {
                             // add n to rand_b, where 1 <= n <= 2^32
-                            return (this.random.nextLong() >>> 32) + 1;
+                            return (getRandom().nextLong() >>> 32) + 1;
                         };
                     } else {
                         final long positive = 0x7fffffffffffffffL;
                         return () -> {
                             // add n to rand_b, where 1 <= n <= incrementMax
-                            return ((this.random.nextLong() & positive) % incrementMax) + 1;
+                            return ((getRandom().nextLong() & positive) % ensureNonNull(incrementMax)) + 1;
                         };
                     }
                 case INCREMENT_TYPE_DEFAULT:

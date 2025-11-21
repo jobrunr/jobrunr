@@ -16,6 +16,7 @@ import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,9 +28,9 @@ public class JobRunrApiHandler extends RestHttpHandler {
 
     private final StorageProvider storageProvider;
     private final boolean allowAnonymousDataUsage;
-    private ProblemsManager problemsManager;
-    private RecurringJobsResult recurringJobsResult;
-    private VersionUIModel versionUIModel;
+    private @Nullable ProblemsManager problemsManager;
+    private @Nullable RecurringJobsResult recurringJobsResult;
+    private @Nullable VersionUIModel versionUIModel;
 
     public JobRunrApiHandler(StorageProvider storageProvider, JsonMapper jsonMapper, boolean allowAnonymousDataUsage) {
         super("/api", jsonMapper);

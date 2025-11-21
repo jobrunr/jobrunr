@@ -7,6 +7,7 @@ import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandler;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestMethodHandlers;
 import org.jobrunr.dashboard.server.http.url.MatchUrl;
+import org.jobrunr.dashboard.server.http.url.RequestUrl;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class RestHttpHandler extends AbstractHttpExchangeHandler {
                     .map(httpRequestMethodHandlers::get)
                     .ifPresent(httpRequestHandler -> processRequest(httpRequestHandler, new HttpRequest(actualUrl.toRequestUrl(matchingUrl.get())), new HttpResponse(httpExchange, jsonMapper)));
         } else {
-            processRequest(HttpRequestHandlers.notFound, new HttpRequest(null), new HttpResponse(httpExchange, jsonMapper));
+            processRequest(HttpRequestHandlers.notFound, new HttpRequest(new RequestUrl(actualUrl.getUrl(), new HashMap<>())), new HttpResponse(httpExchange, jsonMapper));
         }
     }
 

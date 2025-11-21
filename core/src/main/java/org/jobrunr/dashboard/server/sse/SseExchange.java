@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 public class SseExchange implements AutoCloseable {
 
     private final BufferedWriter writer;
-    private String lastSendMessage;
+    private @Nullable String lastSendMessage;
     private boolean closed;
 
     public SseExchange(HttpExchange httpExchange) throws IOException {
