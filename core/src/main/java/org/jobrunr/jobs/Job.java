@@ -55,6 +55,41 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  */
 public class Job extends AbstractJob {
 
+    public enum Priority {
+        HIGH,
+        MEDIUM,
+        LOW
+    }
+    private Priority priority = Priority.MEDIUM;
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    private int maxRetries = 3;
+    private int retryCount = 0;
+
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void incrementRetryCount() {
+        retryCount++;
+    }
+
+
     private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)");
     public static Map<String, Comparator<Job>> ALLOWED_SORT_COLUMNS = new HashMap<>();
 

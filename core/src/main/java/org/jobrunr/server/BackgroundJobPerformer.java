@@ -45,6 +45,18 @@ public class BackgroundJobPerformer implements Runnable {
             MDCMapper.loadMDCContextFromJob(job);
             performJob();
         } catch (Exception e) {
+            if (job.getRetryCount() < job.getMaxRetries()) {
+                job.incrementRetryCount();
+                job.enqueue();  // This adds a new EnqueuedState internally
+                backgroundJobServer.getStorageProvider().save(job);
+
+                LOGGER.warn("Retrying job {} (Attempt {}/{})",
+                        job.getId(), job.getRetryCount(), job.getMaxRetries());
+                return; // IMPORTANT: do not run other failure logic
+            }
+
+            // No retries left → normal failure logic
+            updateJobStateToFailedAndRunJobFilters("Job failed after max retries", e);
             if (isJobDeletedWhileProcessing(e)) {
                 // nothing to do anymore as Job is deleted
                 return;

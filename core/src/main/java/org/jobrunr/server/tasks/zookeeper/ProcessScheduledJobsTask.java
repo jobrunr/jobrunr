@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.time.Instant.now;
@@ -30,6 +31,9 @@ public class ProcessScheduledJobsTask extends AbstractJobZooKeeperTask {
 
     private List<Job> getJobsToSchedule(Instant scheduledBefore, List<Job> previousResults) {
         if (previousResults != null && previousResults.size() < pageRequestSize) return emptyList();
-        return storageProvider.getScheduledJobs(scheduledBefore, ascOnUpdatedAt(pageRequestSize));
+        List<Job> jobs = storageProvider.getScheduledJobs(scheduledBefore, ascOnUpdatedAt(pageRequestSize));
+        jobs.sort(Comparator.comparing(job -> job.getPriority().ordinal()));
+
+        return jobs;
     }
 }
