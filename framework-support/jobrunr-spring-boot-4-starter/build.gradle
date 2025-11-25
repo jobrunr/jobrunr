@@ -4,6 +4,8 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'org.springframework.boot' version '4.0.0'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 compileJava {
@@ -15,15 +17,11 @@ compileTestJava {
 }
 
 dependencies {
-    api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:4.0.0')
-
     api project(':core')
-    api 'org.springframework.boot:spring-boot-starter-classic'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
+    compileOnly 'org.springframework.boot:spring-boot-starter-classic'
     compileOnly 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'io.micrometer:micrometer-core'
     compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
@@ -119,10 +117,6 @@ publishing {
                     pomNode.dependencies.'*'.each() {
                         if (it.optional.text() == 'true') {
                             it.parent().remove(it)
-                        } else if (it.artifactId.text() == 'spring-boot-starter-classic') {
-                            it.scope.replaceNode {
-                                scope('provided')
-                            }
                         }
                     }
                 }
