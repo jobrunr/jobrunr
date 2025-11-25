@@ -1,10 +1,12 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 import java.text.SimpleDateFormat
 
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.springframework.boot' version '4.0.0'
+    id 'org.springframework.boot' version '4.0.0' apply false
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -14,6 +16,12 @@ compileJava {
 
 compileTestJava {
     options.release = 17
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(SpringBootPlugin.BOM_COORDINATES)
+    }
 }
 
 dependencies {
