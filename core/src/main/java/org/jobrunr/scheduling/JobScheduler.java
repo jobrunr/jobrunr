@@ -30,8 +30,6 @@ import java.util.stream.Stream;
 
 import static java.time.ZoneId.systemDefault;
 import static java.util.Collections.emptyList;
-import static org.jobrunr.storage.StorageProvider.BATCH_SIZE;
-import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 
 /**
  * Provides methods for creating fire-and-forget, delayed and recurring jobs as well as to delete existing background jobs.
@@ -91,9 +89,7 @@ public class JobScheduler extends AbstractJobScheduler {
      */
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
-        List<Job> ignored = jobBuilderStream
-                .map(jobBuilder -> jobBuilder.build(jobDetailsGenerator))
-                .collect(batchCollector(BATCH_SIZE, this::saveJobs));
+        saveJobsFromStream(jobBuilderStream, jobBuilder -> jobBuilder.build(jobDetailsGenerator));
     }
 
     /**
@@ -143,7 +139,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <T> void enqueue(Stream<T> input, JobLambdaFromStream<T> jobFromStream) {
-        saveJobs(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, jobFromStream)));
+        saveJobsFromStream(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, jobFromStream)));
     }
 
     /**
@@ -190,7 +186,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param iocJobFromStream the {@link JobLambda} which defines the fire-and-forget job to create for each item in the {@code input}
      */
     public <S, T> void enqueue(Stream<T> input, IocJobLambdaFromStream<S, T> iocJobFromStream) {
-        saveJobs(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, iocJobFromStream)));
+        saveJobsFromStream(input, x -> new Job(jobDetailsGenerator.toJobDetails(x, iocJobFromStream)));
     }
 
     /**

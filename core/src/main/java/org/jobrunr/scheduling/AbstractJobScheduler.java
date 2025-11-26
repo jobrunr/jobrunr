@@ -123,7 +123,7 @@ public abstract class AbstractJobScheduler {
         JobRunr.destroy();
     }
 
-    protected <T> void saveJobs(Stream<T> stream, Function<T, Job> toJob) {
+    <T> void saveJobsFromStream(Stream<T> stream, Function<T, Job> toJob) {
         List<Job> ignored = stream
                 .map(toJob)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));

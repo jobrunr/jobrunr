@@ -61,16 +61,16 @@ public class ForAllSubclassesExtension implements BeforeAllCallback, AfterAllCal
         }
     }
 
-    private static Class findClassWithForAllSubclassesAnnotation(ExtensionContext extensionContext) {
+    private static Class<?> findClassWithForAllSubclassesAnnotation(ExtensionContext extensionContext) {
         return findClassWithForAllSubclassesAnnotation(extensionContext.getRequiredTestClass());
     }
 
-    private static Class findClassWithForAllSubclassesAnnotation(Class clazz) {
+    private static Class<?> findClassWithForAllSubclassesAnnotation(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalStateException("Could not find class with CleanupAfterSubclassesExtension");
         }
 
-        final ExtendWith declaredAnnotation = (ExtendWith) clazz.getDeclaredAnnotation(ExtendWith.class);
+        final ExtendWith declaredAnnotation = clazz.getDeclaredAnnotation(ExtendWith.class);
         if (declaredAnnotation != null && Arrays.asList(declaredAnnotation.value()).contains(ForAllSubclassesExtension.class)) {
             return clazz;
         }

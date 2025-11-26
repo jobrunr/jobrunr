@@ -3,6 +3,7 @@ package org.jobrunr.tests.fromhost;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -15,7 +16,7 @@ public class HttpClient {
 
     public static String getJson(String getUrl) {
         try {
-            URL url = new URL(getUrl);
+            URL url = URI.create(getUrl).toURL();
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             try (AutoCloseable ignored = con::disconnect) {
@@ -35,7 +36,7 @@ public class HttpClient {
 
     public static boolean ok(String getUrl) {
         try {
-            URL url = new URL(getUrl);
+            URL url = URI.create(getUrl).toURL();
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             try (AutoCloseable ignored = con::disconnect) {

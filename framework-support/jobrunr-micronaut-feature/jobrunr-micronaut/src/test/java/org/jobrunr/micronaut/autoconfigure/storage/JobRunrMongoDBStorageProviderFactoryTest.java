@@ -8,6 +8,7 @@ import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.Test;
 
 import static org.jobrunr.micronaut.MicronautAssertions.assertThat;
