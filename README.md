@@ -139,9 +139,9 @@ Add the [*jobrunr-spring-boot-3-starter*](https://search.maven.org/artifact/org.
 ```
 # the job-scheduler is enabled by default
 # the background-job-server and dashboard are disabled by default
-org.jobrunr.job-scheduler.enabled=true
-org.jobrunr.background-job-server.enabled=true
-org.jobrunr.dashboard.enabled=true
+jobrunr.job-scheduler.enabled=true
+jobrunr.background-job-server.enabled=true
+jobrunr.dashboard.enabled=true
 ```
 
 #### Or do you prefer a fluent API?
