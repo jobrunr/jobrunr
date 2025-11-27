@@ -185,6 +185,7 @@ dependencies {
     testFixturesApi 'org.awaitility:awaitility'
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
+    testFixturesApi 'org.mongodb:mongodb-driver-sync'
     testFixturesApi 'io.micrometer:micrometer-core'
 
     testFixturesCompileOnly 'org.wiremock:wiremock'

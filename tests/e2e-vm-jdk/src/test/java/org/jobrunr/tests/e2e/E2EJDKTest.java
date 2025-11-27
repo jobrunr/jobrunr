@@ -153,7 +153,7 @@ class E2EJDKTest {
     }
 
     private static <T> T jobActivator(Class<T> clazz) {
-        return (T) testService;
+        return clazz.cast(testService);
     }
 
     private static String getJavaClassMajorVersion(Object object) throws IOException {

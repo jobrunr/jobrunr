@@ -74,7 +74,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      */
     @Override
     public void create(Stream<JobBuilder> jobBuilderStream) {
-        saveJobs(jobBuilderStream, JobBuilder::build);
+        saveJobsFromStream(jobBuilderStream, JobBuilder::build);
     }
 
     /**
@@ -121,7 +121,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param input the stream of jobRequests for which to create fire-and-forget jobs
      */
     public void enqueue(Stream<? extends JobRequest> input) {
-        saveJobs(input, x -> new Job(new JobDetails(x)));
+        saveJobsFromStream(input, x -> new Job(new JobDetails(x)));
     }
 
     /**

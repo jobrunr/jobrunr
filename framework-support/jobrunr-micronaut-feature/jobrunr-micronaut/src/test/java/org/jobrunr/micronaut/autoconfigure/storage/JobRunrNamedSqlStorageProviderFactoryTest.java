@@ -11,6 +11,7 @@ import jakarta.inject.Singleton;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.stubs.Mocks;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;

@@ -357,7 +357,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
-                .sorted(getJobComparator(amountRequest));
+                .sorted(toJobComparator(amountRequest));
     }
 
     private Stream<Job> getJobsStream(StateName state) {
@@ -391,10 +391,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         }
     }
 
-    private Comparator<Job> getJobComparator(AmountRequest amountRequest) {
+    public Comparator<Job> toJobComparator(AmountRequest amountRequest) {
         List<Comparator<Job>> comparators = amountRequest.getAllOrderTerms(Job.ALLOWED_SORT_COLUMNS.keySet()).stream()
                 .map(orderTerm -> {
-                    Comparator<Job> jobComparator = Job.ALLOWED_SORT_COLUMNS.get(orderTerm.getFieldName());
+                    Comparator<Job> jobComparator = Job.ALLOWED_SORT_COLUMNS.get(orderTerm.getFieldName()).asComparator();
                     return (OrderTerm.Order.ASC == orderTerm.getOrder()) ? jobComparator : jobComparator.reversed();
                 })
                 .collect(toList());
@@ -402,5 +402,4 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 .reduce(Comparator::thenComparing)
                 .orElse((unusedJobA, unusedJobB) -> 0); // default order
     }
-
 }

@@ -41,7 +41,7 @@ class JobSchedulerTest {
 
     private fun <T> get(type: Class<T>): T? {
         if (type.name == "TestService") {
-            return TestService() as T
+            return type.cast(TestService())
         } else if (type.name == "org.jobrunr.scheduling.KtJobSchedulerTest\$test enqueue lambda with service dependency\$jobId\$1") {
             throw IllegalArgumentException("Should be TestService, no?")
         }
