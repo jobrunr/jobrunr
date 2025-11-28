@@ -8,6 +8,7 @@ import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.runner.MockJobContext;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
+import org.jobrunr.utils.reflection.ReflectionUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,7 +99,7 @@ class AsyncJobInterceptorTest {
         lenient().when(context.getParameterValues()).thenReturn(params);
         lenient().when(context.getDeclaringType()).thenReturn(this.getClass());
 
-        return context;
+        return ReflectionUtils.cast(context);
     }
 
     private static class JobContextMock extends JobContext {

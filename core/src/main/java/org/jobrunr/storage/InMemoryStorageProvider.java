@@ -12,7 +12,6 @@ import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
-import org.jobrunr.storage.navigation.OrderTerm;
 import org.jobrunr.utils.resilience.RateLimiter;
 
 import java.time.Instant;
@@ -357,7 +356,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private Stream<Job> getJobsStream(StateName state, AmountRequest amountRequest) {
         return getJobsStream(state)
-                .sorted(toJobComparator(amountRequest));
+                .sorted(getJobComparator(amountRequest));
     }
 
     private Stream<Job> getJobsStream(StateName state) {
@@ -391,12 +390,9 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
         }
     }
 
-    public Comparator<Job> toJobComparator(AmountRequest amountRequest) {
+    private Comparator<Job> getJobComparator(AmountRequest amountRequest) {
         List<Comparator<Job>> comparators = amountRequest.getAllOrderTerms(Job.ALLOWED_SORT_COLUMNS.keySet()).stream()
-                .map(orderTerm -> {
-                    Comparator<Job> jobComparator = Job.ALLOWED_SORT_COLUMNS.get(orderTerm.getFieldName()).asComparator();
-                    return (OrderTerm.Order.ASC == orderTerm.getOrder()) ? jobComparator : jobComparator.reversed();
-                })
+                .map(orderTerm -> Job.ALLOWED_SORT_COLUMNS.toComparator(orderTerm))
                 .collect(toList());
         return comparators.stream()
                 .reduce(Comparator::thenComparing)

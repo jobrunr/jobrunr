@@ -15,21 +15,22 @@ public class TeenyHttpClient {
 
     public TeenyHttpClient(String baseUri) {
         this.baseUri = baseUri;
-        httpClient = HttpClient.newBuilder()
+        this.httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
+
     }
 
-    public HttpResponse<String> get(String url) {
-        final HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(baseUri + url))
+    public HttpResponse<String> get(String relativeUrl) {
+        final HttpRequest httpRequest = httpRequest()
+                .uri(relativeUrlToUri(relativeUrl))
                 .build();
 
         return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
     }
 
     public HttpResponse<String> get(String url, Object... params) {
-        final HttpRequest httpRequest = HttpRequest.newBuilder()
+        final HttpRequest httpRequest = httpRequest()
                 .uri(createUri(url, params))
                 .build();
 
@@ -37,12 +38,38 @@ public class TeenyHttpClient {
     }
 
     public HttpResponse<String> delete(String url, Object... params) {
-        final HttpRequest httpRequest = HttpRequest.newBuilder()
+        final HttpRequest httpRequest = httpRequest()
                 .uri(createUri(url, params))
                 .DELETE()
                 .build();
 
         return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
+    }
+
+    public HttpResponse<String> post(String url, Object... params) {
+        final HttpRequest httpRequest = httpRequest()
+                .uri(createUri(url, params))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
+    }
+
+    public HttpResponse<String> put(String url, Object... params) {
+        final HttpRequest httpRequest = httpRequest()
+                .uri(createUri(url, params))
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
+    }
+
+    private URI relativeUrlToUri(String relativeUrl) {
+        return URI.create(baseUri + relativeUrl);
+    }
+
+    private HttpRequest.Builder httpRequest() {
+        return HttpRequest.newBuilder();
     }
 
     private <T> T unchecked(Exceptions.ThrowingSupplier<T> throwingSupplier) {
@@ -51,15 +78,6 @@ public class TeenyHttpClient {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public HttpResponse<String> post(String url, Object... params) {
-        final HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(createUri(url, params))
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
-
-        return unchecked(() -> httpClient.send(httpRequest, BodyHandlers.ofString()));
     }
 
     @SuppressWarnings("AnnotateFormatMethod")

@@ -7,7 +7,6 @@ import org.jobrunr.jobs.details.instructions.AbstractJVMInstruction;
 import org.jobrunr.jobs.details.postprocess.CGLibPostProcessor;
 import org.jobrunr.jobs.details.postprocess.JobDetailsPostProcessor;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -16,16 +15,17 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.classExists;
 
+@SuppressWarnings("NonApiType")
 public abstract class JobDetailsBuilder {
 
-    private final Deque<AbstractJVMInstruction> instructions;
+    private final LinkedList<AbstractJVMInstruction> instructions;
     private final LinkedList<Object> stack;
     private final List<Object> localVariables;
+    private final List<JobDetailsPostProcessor> jobDetailsPostProcessors;
     private String jobDetailsClassName;
     private String jobDetailsStaticFieldName;
     private String jobDetailsMethodName;
     private List<JobParameter> jobDetailsJobParameters;
-    private List<JobDetailsPostProcessor> jobDetailsPostProcessors;
 
     protected JobDetailsBuilder(List<Object> localVariables) {
         this(localVariables, null, null);
@@ -33,14 +33,14 @@ public abstract class JobDetailsBuilder {
 
     @SuppressWarnings("JdkObsolete") // we want to keep the linked list here
     protected JobDetailsBuilder(List<Object> localVariables, String className, String methodName) {
-        this.instructions = new ArrayDeque<>();
+        this.instructions = new LinkedList<>();
         this.stack = new LinkedList<>();
         this.localVariables = localVariables;
+        this.jobDetailsPostProcessors = singletonList(new CGLibPostProcessor());
 
         setClassName(className);
         setMethodName(methodName);
         setJobParameters(new ArrayList<>());
-        jobDetailsPostProcessors = singletonList(new CGLibPostProcessor());
     }
 
     public void pushInstructionOnStack(AbstractJVMInstruction jvmInstruction) {
@@ -66,8 +66,7 @@ public abstract class JobDetailsBuilder {
         return instructions.pollFirst();
     }
 
-    @SuppressWarnings("NonApiType")
-    public LinkedList<Object> getStack() {
+    public final LinkedList<Object> getStack() {
         return stack;
     }
 

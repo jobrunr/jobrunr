@@ -28,7 +28,7 @@ public final class StreamUtils {
      * @param <T>            the type of elements being processed
      * @return a batch collector instance
      */
-    public static <T> Collector<T, List<T>, List<T>> batchCollector(int batchSize, Consumer<List<T>> batchProcessor) {
+    public static <T> Collector<T, List<T>, Long> batchCollector(int batchSize, Consumer<List<T>> batchProcessor) {
         return new BatchCollector<>(batchSize, batchProcessor);
     }
 
