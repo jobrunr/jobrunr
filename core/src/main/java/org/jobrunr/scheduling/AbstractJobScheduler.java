@@ -51,9 +51,26 @@ public abstract class AbstractJobScheduler {
         this.jobFilterUtils = new JobFilterUtils(new JobDefaultFilters(jobFilters));
     }
 
-    abstract JobId create(JobBuilder jobBuilder);
+    protected abstract Job buildJob(JobBuilder jobBuilder);
 
-    abstract void create(Stream<JobBuilder> jobBuilderStream);
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
+     *
+     * @param jobBuilder the {@link JobBuilder} with all the details of the job
+     * @return the id of the job
+     */
+    public JobId create(JobBuilder jobBuilder) {
+        return saveJob(buildJob(jobBuilder));
+    }
+
+    /**
+     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
+     *
+     * @param jobBuilderStream the jobBuilders for which to create jobs.
+     */
+    public void create(Stream<JobBuilder> jobBuilderStream) {
+        saveJobsUsingStream(jobBuilderStream, this::buildJob);
+    }
 
     /**
      * See {@link #delete(UUID)}
@@ -70,7 +87,7 @@ public abstract class AbstractJobScheduler {
     }
 
     /**
-     * Deletes a job and sets its state to DELETED. If the job is being processed, it will be interrupted.
+     * Deletes a job and sets its state to 'DELETED'. If the job is being processed, it will be interrupted.
      *
      * @param id the id of the job
      */
@@ -79,7 +96,7 @@ public abstract class AbstractJobScheduler {
     }
 
     /**
-     * Deletes a job and sets its state to DELETED. If the job is being processed, it will be interrupted.
+     * Deletes a job and sets its state to 'DELETED'. If the job is being processed, it will be interrupted.
      *
      * @param id     the id of the job
      * @param reason the reason why the job is deleted.
@@ -123,8 +140,8 @@ public abstract class AbstractJobScheduler {
         JobRunr.destroy();
     }
 
-    <T> void saveJobsFromStream(Stream<T> stream, Function<T, Job> toJob) {
-        List<Job> ignored = stream
+    <T> void saveJobsUsingStream(Stream<T> stream, Function<T, Job> toJob) {
+        Long ignored = stream
                 .map(toJob)
                 .collect(batchCollector(BATCH_SIZE, this::saveJobs));
     }
@@ -168,12 +185,13 @@ public abstract class AbstractJobScheduler {
         return new JobId(job.getId());
     }
 
-    List<Job> saveJobs(List<Job> jobs) {
+    void saveJobs(List<Job> jobs) {
+        if (jobs.isEmpty()) return;
+
         jobs.forEach(MDCMapper::saveMDCContextToJob);
         jobFilterUtils.runOnCreatingFilter(jobs);
         final List<Job> savedJobs = this.storageProvider.save(jobs);
         jobFilterUtils.runOnCreatedFilter(savedJobs);
-        return savedJobs;
     }
 
     private void validateRecurringJobSchedule(RecurringJob recurringJob) {

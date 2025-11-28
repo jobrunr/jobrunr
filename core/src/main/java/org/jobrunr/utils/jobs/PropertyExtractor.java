@@ -1,11 +1,14 @@
 package org.jobrunr.utils.jobs;
 
-import org.jobrunr.jobs.AbstractJob;
+import org.jobrunr.storage.navigation.OrderTerm.Order;
 
 import java.util.Comparator;
 import java.util.function.Function;
 
-public class PropertyExtractor<T extends AbstractJob, U extends Comparable<? super U>> {
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
+
+public class PropertyExtractor<T, U extends Comparable<? super U>> {
 
     private final Function<T, U> propertyExtractor;
 
@@ -13,11 +16,8 @@ public class PropertyExtractor<T extends AbstractJob, U extends Comparable<? sup
         this.propertyExtractor = propertyExtractor;
     }
 
-    public U extract(T job) {
-        return propertyExtractor.apply(job);
-    }
-
-    public Comparator<T> asComparator() {
-        return Comparator.comparing(propertyExtractor);
+    public Comparator<T> asComparator(Order order) {
+        if (order == Order.ASC) return Comparator.comparing(propertyExtractor, nullsLast(naturalOrder()));
+        return Comparator.comparing(propertyExtractor).reversed();
     }
 }

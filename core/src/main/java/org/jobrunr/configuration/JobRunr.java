@@ -5,7 +5,7 @@ import org.jobrunr.server.BackgroundJobServer;
 /**
  * This class provides the entry point for the JobRunr configuration. This is needed when you want to use the static methods
  * on {@link org.jobrunr.scheduling.BackgroundJob} to enqueue and schedule jobs. It also allows starting the Dashboard, which
- * will be available on port 8000.
+ * will be available on port 8000 by default.
  *
  * <h5>An example:</h5>
  * <pre>

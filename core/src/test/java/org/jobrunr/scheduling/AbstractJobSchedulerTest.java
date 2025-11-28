@@ -1,9 +1,10 @@
 package org.jobrunr.scheduling;
 
 
+import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetailsTestBuilder;
-import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
+import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
@@ -23,7 +24,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.chrono.HijrahDate;
 import java.time.temporal.ChronoUnit;
-import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -104,14 +104,10 @@ class AbstractJobSchedulerTest {
         storageProvider.setJobMapper(new JobMapper(jsonMapper));
 
         return new AbstractJobScheduler(storageProvider, emptyList()) {
-            @Override
-            JobId create(JobBuilder jobBuilder) {
-                return null;
-            }
 
             @Override
-            void create(Stream<JobBuilder> jobBuilderStream) {
-
+            protected Job buildJob(JobBuilder jobBuilder) {
+                return jobBuilder.build(new JobDetailsAsmGenerator());
             }
 
             @Override

@@ -29,7 +29,7 @@ import static java.util.Collections.emptyList;
 /**
  * Provides methods for creating fire-and-forget, delayed and recurring jobs as well as to delete existing background jobs.
  * <p>
- * This {@code JobRequestScheduler} allows to schedule jobs by means of an implementation of a {@code JobRequest}.
+ * This {@code JobRequestScheduler} allows to schedule jobs using an implementation of a {@code JobRequest}.
  *
  * @author Ronald Dehuysser
  */
@@ -56,30 +56,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new {@link org.jobrunr.jobs.Job} using a {@link JobBuilder} that can be enqueued or scheduled and provides an alternative to the job annotation.
-     *
-     * @param jobBuilder the {@link JobBuilder} with all the details of the job
-     * @return the id of the job
-     */
-    @Override
-    public JobId create(JobBuilder jobBuilder) {
-        Job job = jobBuilder.build();
-        return saveJob(job);
-    }
-
-    /**
-     * Creates a new {@link org.jobrunr.jobs.Job} for each {@link JobBuilder} and provides an alternative to the job annotation.
-     *
-     * @param jobBuilderStream the jobBuilders for which to create jobs.
-     */
-    @Override
-    public void create(Stream<JobBuilder> jobBuilderStream) {
-        saveJobsFromStream(jobBuilderStream, JobBuilder::build);
-    }
-
-    /**
      * Creates a new fire-and-forget job based on a given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
      *            jobScheduler.enqueue(new MyJobRequest());
@@ -94,7 +72,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new fire-and-forget job based on a given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
      *            jobScheduler.enqueue(id, new MyJobRequest());
@@ -111,7 +89,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates new fire-and-forget jobs for each item in the input stream. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
      *      Stream<MyJobRequest> workStream = getWorkStream();
@@ -121,12 +99,12 @@ public class JobRequestScheduler extends AbstractJobScheduler {
      * @param input the stream of jobRequests for which to create fire-and-forget jobs
      */
     public void enqueue(Stream<? extends JobRequest> input) {
-        saveJobsFromStream(input, x -> new Job(new JobDetails(x)));
+        saveJobsUsingStream(input, x -> new Job(new JobDetails(x)));
     }
 
     /**
      * Creates a new fire-and-forget job based on the given {@link JobRequest} and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      *
      * <h5>Supported {@link Temporal} implementations:</h5>
      * <ul>
@@ -157,7 +135,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new fire-and-forget job based on the given {@link JobRequest} and schedules it to be enqueued at the given moment of time. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * If a job with that id already exists, JobRunr will not save it again.
      *
      * <h5>Supported {@link Temporal} implementations:</h5>
@@ -191,8 +169,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the {@link RecurringJobBuilder} (using id, cron expression and {@link JobRequest}). JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
-     * If no zoneId is set on the builder the jobs will be scheduled using the systemDefault timezone.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
+     * If no zoneId is set on the builder, the jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
      * <pre>{@code
      *      jobRequestScheduler.createRecurrently(aRecurringJob()
@@ -212,7 +190,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new {@link RecurringJob} based on the given cron expression (or any string representation of a schedule expression) and the given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      jobScheduler.scheduleRecurrently(Cron.daily(), new MyJobRequest());
@@ -234,7 +212,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression) and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>Examples:</h5>
      * <pre>{@code
      *      jobScheduler.scheduleRecurrently("my-recurring-job", Cron.daily(), new MyJobRequest());
@@ -257,7 +235,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression), {@code ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      jobScheduler.scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), new MyJobRequest());
@@ -282,7 +260,7 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new {@link RecurringJob} based on the given duration and the given {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The first run of this {@link RecurringJob} will happen
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor. The first run of this {@link RecurringJob} will happen
      * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -298,8 +276,8 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     }
 
     /**
-     * Creates a new or alters the existing {@link RecurringJob} based on the given id, duration and jobRequest. JobRunr will try to find the JobRequestHandler in
-     * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The first run of this {@link RecurringJob} will happen
+     * Creates a new {@link RecurringJob}  or alters the existing {@link RecurringJob} based on the given id, duration and jobRequest. JobRunr will try to find the JobRequestHandler in
+     * the IoC container, or else it will try to create the handler by calling the default no-arg constructor. The first run of this {@link RecurringJob} will happen
      * after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -314,5 +292,10 @@ public class JobRequestScheduler extends AbstractJobScheduler {
     public String scheduleRecurrently(String id, Duration duration, JobRequest jobRequest) {
         JobDetails jobDetails = new JobDetails(jobRequest);
         return scheduleRecurrently(id, jobDetails, new Interval(duration), systemDefault());
+    }
+
+    @Override
+    protected Job buildJob(JobBuilder jobBuilder) {
+        return jobBuilder.build();
     }
 }
