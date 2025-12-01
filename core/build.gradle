@@ -201,9 +201,9 @@ normalization {
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
+    inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
-    outputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
-    commandLine 'sh', '-c', 'npm install'
+    commandLine 'sh', '-c', 'npm ci'
     outputs.cacheIf { true }
 }
 
