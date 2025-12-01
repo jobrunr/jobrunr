@@ -41,7 +41,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringCronAnnotationWillAutomaticallyBeRegistered() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -68,7 +68,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithDisabledRecurringCronAnnotationWillAutomaticallyBeDeleted() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -83,7 +83,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringCronAnnotationUsingJobContextWillAutomaticallyBeRegistered() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringCronJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -110,7 +110,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithDisabledRecurringIntervalAnnotationWillAutomaticallyBeDeleted() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -125,7 +125,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringIntervalAnnotationWillAutomaticallyBeRegistered() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringIntervalJobUsingJobContext.class, "myRecurringMethod", JobContext.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -152,7 +152,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithUnsupportedMethodsAnnotatedWithRecurringAnnotationWillThrowException() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyUnsupportedService.class, "myRecurringMethod", String.class);
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -161,7 +161,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationCronAndIntervalWillThrowException() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
@@ -174,7 +174,7 @@ class JobRunrRecurringJobSchedulerTest {
 
     @Test
     void beansWithMethodsAnnotatedWithRecurringAnnotationNoCronOrIntervalWillThrowException() {
-        final ExecutableMethod executableMethod = mock(ExecutableMethod.class);
+        final ExecutableMethod<?, ?> executableMethod = mock(ExecutableMethod.class);
         final Method method = getRequiredMethod(MyServiceWithRecurringJob.class, "myRecurringMethod");
         when(executableMethod.getTargetMethod()).thenReturn(method);
 
