@@ -110,6 +110,14 @@ public abstract class JobDetailsBuilder {
     }
 
     public void setMethodName(String name) {
+        if (name == null) {
+            throw new IllegalStateException(
+                "Could not determine method name from lambda bytecode. " +
+                "This may occur when Kotlin lambdas are compiled with '-Xlambdas=class' instead of " +
+                "the default '-Xlambdas=indy'. Please ensure your build configuration uses the Kotlin " +
+                "compiler's default lambda compilation mode."
+            );
+        }
         if (name.endsWith("$default") && classExists("kotlin.KotlinVersion")) {
             throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
         }
