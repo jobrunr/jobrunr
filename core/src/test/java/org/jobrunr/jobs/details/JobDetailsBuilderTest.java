@@ -50,6 +50,16 @@ class JobDetailsBuilderTest {
                 .hasMessage("The lambda you provided is not valid.");
     }
 
+    @Test
+    void setMethodNameWithNullThrowsHelpfulException() {
+        final JobDetailsBuilder jobDetailsBuilder = getJobDetailsBuilder();
+
+        assertThatThrownBy(() -> jobDetailsBuilder.setMethodName(null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Could not determine method name from lambda bytecode")
+                .hasMessageContaining("-Xlambdas=");
+    }
+
     private JobDetailsBuilder getJobDetailsBuilder() {
         return new JobDetailsBuilder(Arrays.asList("World", null), toFQClassName("org/jobrunr/examples/webapp/api/JobController"), "lambda$simpleJob$4ffb5ff$1") {
 
