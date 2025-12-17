@@ -29,15 +29,23 @@ public class Jackson3JsonMapper implements JsonMapper {
         this(tools.jackson.databind.json.JsonMapper.builder());
     }
 
-    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder builder) {
-        var typeValidator = BasicPolymorphicTypeValidator.builder()
+    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder) {
+        this(jsonMapperBuilder, BasicPolymorphicTypeValidator.builder());
+    }
+
+    public Jackson3JsonMapper(BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        this(tools.jackson.databind.json.JsonMapper.builder(), typeValidatorBuilder);
+    }
+
+    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder, BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        var typeValidator = typeValidatorBuilder
                 .allowIfSubType("org.jobrunr.")
                 .allowIfSubType("java.nio.")
                 .allowIfSubType("java.util.concurrent.")
                 .allowIfSubTypeIsArray()
                 .build();
 
-        this.jsonMapper = builder
+        this.jsonMapper = jsonMapperBuilder
                 .addMixIn(Job.class, JobMixin.class)
                 .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
                 .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
