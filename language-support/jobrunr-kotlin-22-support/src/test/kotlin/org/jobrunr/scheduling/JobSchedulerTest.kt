@@ -63,7 +63,6 @@ class JobSchedulerTest {
     @Test
     fun `test enqueue lambda with default parameter throws exception`() {
         val testService = TestService()
-        val jobId = jobScheduler.enqueue { testService.doWorkWithDefaultParameter() }
         assertThatCode { jobScheduler.enqueue { testService.doWorkWithDefaultParameter() } }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Unsupported lambda")
