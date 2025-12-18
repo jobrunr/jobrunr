@@ -4,7 +4,10 @@ package org.jobrunr.utils.mapper.jackson3;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
@@ -18,8 +21,11 @@ import tools.jackson.databind.exc.InvalidDefinitionException;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Jackson3JsonMapper implements JsonMapper {
 
@@ -39,10 +45,12 @@ public class Jackson3JsonMapper implements JsonMapper {
 
     public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder, BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
         var typeValidator = typeValidatorBuilder
-                .allowIfSubType("org.jobrunr.")
-                .allowIfSubType("java.nio.")
-                .allowIfSubType("java.util.concurrent.")
-                .allowIfSubTypeIsArray()
+                .allowIfSubType(JobState.class)
+                .allowIfSubType(AbstractJob.class)
+                .allowIfSubType(JobContext.Metadata.class)
+                .allowIfSubType(CopyOnWriteArrayList.class) // for Job History
+                .allowIfSubType(ConcurrentHashMap.class) // for Job Metadata
+                .allowIfSubType(Path.class)
                 .build();
 
         this.jsonMapper = jsonMapperBuilder

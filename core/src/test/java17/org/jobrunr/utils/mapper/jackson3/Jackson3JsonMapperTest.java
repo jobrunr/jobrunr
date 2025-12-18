@@ -1,6 +1,7 @@
 package org.jobrunr.utils.mapper.jackson3;
 
 import app.jobrunr.entities.Entity;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.AbstractJsonMapperTest;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,9 @@ class Jackson3JsonMapperTest extends AbstractJsonMapperTest {
 
     @Override
     public JsonMapper newJsonMapper() {
-        return new Jackson3JsonMapper();
+        var typeValidatorBuilder = BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType(TestService.Task.class);
+        return new Jackson3JsonMapper(typeValidatorBuilder);
     }
 
 
