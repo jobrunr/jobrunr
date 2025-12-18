@@ -14,6 +14,7 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,8 @@ class JobUtilsTest {
         assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("getProcessedJobs").build()))
                 .doesNotThrowAnyException();
         assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(System.class).withStaticFieldName("out").withMethodName("println").withJobParameter("Hello, World!").build()))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(DataSource.class).withMethodName("getConnection").build()))
                 .doesNotThrowAnyException();
 
         assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName("org.jobrunr.stubs.TestServiceThatDoesNotExist").withMethodName("doWork").withJobParameter(1).withJobParameter(2).build()))
@@ -96,6 +99,45 @@ class JobUtilsTest {
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.methodThatDoesNotExist(java.lang.Integer,java.lang.Integer)")).isFalse();
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.doWork(java.util.UUID,org.jobrunr.stubs.JobParameterThatDoesNotExist)")).isFalse();
         assertThat(JobUtils.jobExists("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer,java.lang.Integer,java.lang.Integer)")).isFalse(); // too many parameters
+    }
+
+    @Test
+    void jobSignature() {
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestJobRequest("input")).build()))
+                .isEqualTo("org.jobrunr.stubs.TestJobRequest$TestJobRequestHandler.run(org.jobrunr.stubs.TestJobRequest)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestServiceInterface.class).withMethodName("doWork").build()))
+                .isEqualTo("org.jobrunr.stubs.TestServiceInterface.doWork()");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork()");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(UUID.randomUUID()).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.util.UUID)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWorkThatTakesLong").withJobParameter(10L).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Long)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("getProcessedJobs").build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.getProcessedJobs()");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(System.class).withStaticFieldName("out").withMethodName("println").withJobParameter("Hello, World!").build()))
+                .isEqualTo("java.lang.System.out.println(java.lang.String)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(DataSource.class).withMethodName("getConnection").build()))
+                .isEqualTo("javax.sql.DataSource.getConnection()");
+
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName("org.jobrunr.stubs.TestServiceThatDoesNotExist").withMethodName("doWork").withJobParameter(1).withJobParameter(2).build()))
+                .isEqualTo("org.jobrunr.stubs.TestServiceThatDoesNotExist.doWork(java.lang.Integer, java.lang.Integer)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestInvalidJobRequest()).build()))
+                .isEqualTo("org.jobrunr.stubs.TestJobRequest$TestJobRequestHandler.run(org.jobrunr.stubs.TestInvalidJobRequest)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("methodThatDoesNotExist").withJobParameter(1).withJobParameter(2).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.methodThatDoesNotExist(java.lang.Integer, java.lang.Integer)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(new TestJobRequest("Hello, World!")).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer, org.jobrunr.stubs.TestJobRequest)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).withJobParameter(3).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer, java.lang.Integer)");
+
+        var notDeserializableParameter = new JobParameter(Integer.class.getName(), Integer.class.getName(), "2", new JobParameterNotDeserializableException(Integer.class.getName(), new IllegalAccessException("Boom")));
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(notDeserializableParameter).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer)");
+        assertThat(JobUtils.getJobSignature(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(notDeserializableParameter).build()))
+                .isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer)");
     }
 
     @Test
