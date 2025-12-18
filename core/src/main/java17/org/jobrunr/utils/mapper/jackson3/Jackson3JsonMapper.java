@@ -4,7 +4,10 @@ package org.jobrunr.utils.mapper.jackson3;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
@@ -18,8 +21,11 @@ import tools.jackson.databind.exc.InvalidDefinitionException;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Jackson3JsonMapper implements JsonMapper {
 
@@ -29,15 +35,25 @@ public class Jackson3JsonMapper implements JsonMapper {
         this(tools.jackson.databind.json.JsonMapper.builder());
     }
 
-    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder builder) {
-        var typeValidator = BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType("org.jobrunr.")
-                .allowIfSubType("java.nio.")
-                .allowIfSubType("java.util.concurrent.")
-                .allowIfSubTypeIsArray()
+    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder) {
+        this(jsonMapperBuilder, BasicPolymorphicTypeValidator.builder());
+    }
+
+    public Jackson3JsonMapper(BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        this(tools.jackson.databind.json.JsonMapper.builder(), typeValidatorBuilder);
+    }
+
+    public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder, BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        var typeValidator = typeValidatorBuilder
+                .allowIfSubType(JobState.class)
+                .allowIfSubType(AbstractJob.class)
+                .allowIfSubType(JobContext.Metadata.class)
+                .allowIfSubType(CopyOnWriteArrayList.class) // for Job History
+                .allowIfSubType(ConcurrentHashMap.class) // for Job Metadata
+                .allowIfSubType(Path.class)
                 .build();
 
-        this.jsonMapper = builder
+        this.jsonMapper = jsonMapperBuilder
                 .addMixIn(Job.class, JobMixin.class)
                 .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
                 .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
