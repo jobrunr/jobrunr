@@ -60,7 +60,14 @@ public class JobUtils {
     }
 
     public static void assertJobExists(JobDetails jobDetails) {
-        assertJobExists(getJobSignature(jobDetails));
+        String className = getJobClassName(jobDetails);
+        String methodName = jobDetails.getMethodName();
+        String[] jobParameterTypesNames = getDeserializableJobParametersForSignature(jobDetails);
+        if (jobParameterTypesNames.length == jobDetails.getJobParameters().size()) {
+            assertJobExists(className, methodName, jobParameterTypesNames);
+        } else {
+            throw new JobMethodNotFoundException(jobDetails);
+        }
     }
 
     public static void assertJobExists(String jobSignature) {
@@ -150,15 +157,25 @@ public class JobUtils {
         return substringBefore(jobSignature, "(");
     }
 
+    private static String[] getDeserializableJobParametersForSignature(JobDetails jobDetails) {
+        return jobDetails.getJobParameters().stream().filter(JobParameter::isDeserializable).map(JobUtils::getJobParameterForSignature).toArray(String[]::new);
+    }
+
     private static String getJobParameterForSignature(JobParameter jobParameter) {
-        return jobParameter.getObject() != null ? jobParameter.getObject().getClass().getName() : jobParameter.getClassName();
+        return jobParameter.isDeserializable() && jobParameter.getObject() != null
+                ? jobParameter.getObject().getClass().getName()
+                : jobParameter.getClassName();
     }
 
     private static String getJobClassAndMethodName(JobDetails jobDetails) {
-        String result = jobDetails.getClassName();
-        Optional<String> staticFieldName = Optional.ofNullable(jobDetails.getStaticFieldName());
-        if (staticFieldName.isPresent()) result += "." + staticFieldName.get();
+        String result = getJobClassName(jobDetails);
         result += "." + jobDetails.getMethodName();
+        return result;
+    }
+
+    private static String getJobClassName(JobDetails jobDetails) {
+        String result = jobDetails.getClassName();
+        if (jobDetails.getStaticFieldName() != null) result += "." + jobDetails.getStaticFieldName();
         return result;
     }
 

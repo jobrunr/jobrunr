@@ -58,7 +58,7 @@ public class JobDetails {
         return unmodifiableList(jobParameters);
     }
 
-    public Class[] getJobParameterTypes() {
+    public Class<?>[] getJobParameterTypes() {
         return jobParameters.stream()
                 .map(this::getJobParameterDeserializableClassName)
                 .map(ReflectionUtils::toClass)

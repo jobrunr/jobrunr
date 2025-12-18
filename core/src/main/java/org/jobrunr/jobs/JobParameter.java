@@ -73,8 +73,12 @@ public class JobParameter {
         return exception;
     }
 
+    public boolean isDeserializable() {
+        return exception == null;
+    }
+
     public boolean isNotDeserializable() {
-        return exception != null;
+        return !isDeserializable();
     }
 
     protected static boolean isNotNullNorAnEnum(Object object) {
