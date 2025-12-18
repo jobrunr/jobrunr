@@ -46,6 +46,38 @@ tasks.named('compileTestKotlin', KotlinCompile) {
     compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 }
 
+// 1. Create a new source set that uses the same test sources
+sourceSets {
+    testClassLambdas {
+        kotlin.srcDirs = ['src/test']
+        resources.srcDirs = ['src/test/resources']
+        compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+    }
+}
+
+// 2. Configure the auto-generated compile task with custom flags and JVM target
+tasks.named('compileTestClassLambdasKotlin') {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.addAll('-Xlambdas=class', '-Xsam-conversions=class')
+    }
+}
+
+// 3. Create a test task for this source set
+tasks.register('testWithClassLambdas', Test) {
+    description = 'Runs tests compiled with -Xlambdas=class -Xsam-conversions=class'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.testClassLambdas.output.classesDirs
+    classpath = sourceSets.testClassLambdas.runtimeClasspath
+}
+
+// 4. Make 'test' trigger both
+test {
+    finalizedBy testWithClassLambdas
+}
+
 java {
     withJavadocJar()
     withSourcesJar()
