@@ -25,7 +25,7 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
     private enum KotlinVersion {
         ONE_FOUR,
         ONE_FIVE,
-        ONE_SIX
+        ONE_SIX_OR_HIGHER
     }
 
     private final JobRunrJob jobRunrJob;
@@ -55,8 +55,8 @@ public class KotlinJobDetailsFinder extends AbstractJobDetailsFinder {
                         kotlinVersion = KotlinVersion.ONE_FOUR;
                     } else if (version[0] == 1 && version[1] == 5) {
                         kotlinVersion = KotlinVersion.ONE_FIVE;
-                    } else if (version[0] == 1 && version[1] == 6) {
-                        kotlinVersion = KotlinVersion.ONE_SIX;
+                    } else if ((version[0] == 1 && version[1] >= 6) || version[0] >= 1) {
+                        kotlinVersion = KotlinVersion.ONE_SIX_OR_HIGHER;
                     } else {
                         throw new UnsupportedOperationException("The Kotlin version " + version[0] + "." + version[1] + " is unsupported");
                     }
