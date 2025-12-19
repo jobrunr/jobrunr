@@ -18,7 +18,7 @@ public class JsonMapperFactory {
     public static JsonMapper createJsonMapper() {
         if (isJsonMapperClassPresent("kotlinx.serialization.json.Json")
                 && isJsonMapperClassPresent("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper")) {
-            LOGGER.info("Creating JsonMapper using Kotlin Serialization 2");
+            LOGGER.info("Creating JsonMapper using Kotlin Serialization");
             return ReflectionUtils.newInstance("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper");
         } else if (isJsonMapperClassPresent("com.fasterxml.jackson.databind.ObjectMapper")) {
             LOGGER.info("Creating JsonMapper using Jackson 2");
