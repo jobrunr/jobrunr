@@ -71,9 +71,9 @@ public abstract class JobDetailsBuilder {
     }
 
     public JobDetails getJobDetails() {
-        validateJobDetails();
         invokeInstructions();
 
+        validateJobDetails();
 
         final JobDetails jobDetails = new JobDetails(jobDetailsClassName, jobDetailsStaticFieldName, jobDetailsMethodName, jobDetailsJobParameters);
         return postProcessJobDetails(jobDetails);
