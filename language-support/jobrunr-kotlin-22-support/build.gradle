@@ -58,7 +58,10 @@ sourceSets {
     }
 }
 
-compileTestClassLambdasJava.enabled = false
+compileTestClassLambdasJava {
+    enabled = false
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 // Sets the compilation flags for the `testClassLambdas` source set
 tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
