@@ -71,14 +71,10 @@ public abstract class JobDetailsBuilder {
     }
 
     public JobDetails getJobDetails() {
-        if (jobDetailsMethodName == null) {
-            throw new IllegalStateException("Could not determine method name from lambda bytecode. This should not happen. Please report this as a bug with as much details as you can.");
-        }
-        if (jobDetailsMethodName.endsWith("$default") && classExists("kotlin.KotlinVersion")) {
-            throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
-        }
-
         invokeInstructions();
+
+        validateJobDetails();
+
         final JobDetails jobDetails = new JobDetails(jobDetailsClassName, jobDetailsStaticFieldName, jobDetailsMethodName, jobDetailsJobParameters);
         return postProcessJobDetails(jobDetails);
     }
@@ -103,6 +99,15 @@ public abstract class JobDetailsBuilder {
                 instruction.invokeInstructionAndPushOnStack();
                 instruction = pollFirstInstruction();
             }
+        }
+    }
+
+    private void validateJobDetails() {
+        if (jobDetailsMethodName == null) {
+            throw new IllegalStateException("Could not determine method name from lambda bytecode. This should not happen. Please report this as a bug with as much details as you can.");
+        }
+        if (jobDetailsMethodName.endsWith("$default") && classExists("kotlin.KotlinVersion")) {
+            throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
         }
     }
 
