@@ -46,17 +46,18 @@ tasks.named('compileTestKotlin', KotlinCompile) {
     compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 }
 
-// 1. Create a new source set that uses the same test sources
+// Following is to compile a select number of tests with the `-Xsam-conversions=class` compilation flag.
+// This is to tests that JobRunr supports Kotlin lambdas event with class-based SAM conversions.
 sourceSets {
     testClassLambdas {
-        kotlin.srcDirs = ['src/test']
+        kotlin.srcDirs = ['src/test/kotlin/org/jobrunr/scheduling', 'src/test/kotlin/org/jobrunr/jobs/details']
         resources.srcDirs = ['src/test/resources']
         compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
     }
 }
 
-// 2. Configure the auto-generated compile task with custom flags and JVM target
+// Sets the compilation flags for the `testClassLambdas` source set
 tasks.named('compileTestClassLambdasKotlin') {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
@@ -64,7 +65,6 @@ tasks.named('compileTestClassLambdasKotlin') {
     }
 }
 
-// 3. Create a test task for this source set
 tasks.register('testWithClassLambdas', Test) {
     description = 'Runs tests compiled with -Xlambdas=class -Xsam-conversions=class'
     group = 'verification'
@@ -73,10 +73,8 @@ tasks.register('testWithClassLambdas', Test) {
     classpath = sourceSets.testClassLambdas.runtimeClasspath
 }
 
-// 4. Make 'test' trigger both
-test {
-    finalizedBy testWithClassLambdas
-}
+// Important otherwise the test is not going to run
+check.dependsOn testWithClassLambdas
 
 java {
     withJavadocJar()
