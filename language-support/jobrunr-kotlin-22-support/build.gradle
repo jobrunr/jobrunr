@@ -50,6 +50,7 @@ tasks.named('compileTestKotlin', KotlinCompile) {
 // This is to tests that JobRunr supports Kotlin lambdas even with class-based SAM conversions.
 sourceSets {
     testClassLambdas {
+        java.srcDirs = []
         kotlin.srcDirs = ['src/test/kotlin/org/jobrunr/scheduling', 'src/test/kotlin/org/jobrunr/jobs/details']
         resources.srcDirs = ['src/test/resources']
         compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
