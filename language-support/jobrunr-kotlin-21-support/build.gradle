@@ -58,6 +58,8 @@ sourceSets {
     }
 }
 
+compileTestClassLambdasJava.enabled = false
+
 // Sets the compilation flags for the `testClassLambdas` source set
 tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
     compilerOptions {
