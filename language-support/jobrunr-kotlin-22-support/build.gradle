@@ -58,7 +58,7 @@ sourceSets {
 }
 
 // Sets the compilation flags for the `testClassLambdas` source set
-tasks.named('compileTestClassLambdasKotlin') {
+tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
         freeCompilerArgs.addAll('-Xlambdas=class', '-Xsam-conversions=class')
