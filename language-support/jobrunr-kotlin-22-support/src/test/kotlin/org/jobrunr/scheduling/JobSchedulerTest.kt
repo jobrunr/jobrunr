@@ -2,51 +2,41 @@ package org.jobrunr.scheduling
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
 import org.assertj.core.api.Assertions.assertThatCode
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
-import org.jobrunr.configuration.JobRunrConfiguration
 import org.jobrunr.jobs.states.StateName.ENQUEUED
 import org.jobrunr.jobs.states.StateName.PROCESSING
 import org.jobrunr.jobs.states.StateName.SCHEDULED
 import org.jobrunr.jobs.states.StateName.SUCCEEDED
-import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.server.JobActivator
 import org.jobrunr.storage.InMemoryStorageProvider
 import org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt
-import org.jobrunr.storage.StorageProvider
-import org.jobrunr.utils.mapper.JsonMapper
+import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.internal.util.reflection.Whitebox
+import org.mockito.Mock
 import java.time.Duration.ofMillis
 import java.time.Instant.now
 import java.util.concurrent.TimeUnit
 
 class JobSchedulerTest {
 
-    private lateinit var storageProvider: StorageProvider
+    @Mock
+    private val storageProvider = InMemoryStorageProvider()
 
-    private lateinit var jobScheduler: JobScheduler
-
-    @BeforeEach
-    fun setUp() {
-        storageProvider = InMemoryStorageProvider()
-        jobScheduler = JobRunr.configure()
-            .useJobActivator(object : JobActivator {
-                override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
-            })
-            .useStorageProvider(storageProvider)
-            .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
-            .initialize()
-            .jobScheduler
-    }
+    private val jobScheduler = JobRunr.configure()
+        .useJsonMapper(JacksonJsonMapper()) // also be testing jackson specific features
+        .useStorageProvider(storageProvider)
+        .useJobActivator(object : JobActivator {
+            override fun <T : Any> activateJob(type: Class<T>): T? = get(type)
+        })
+        .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration().andPollInterval(ofMillis(200)))
+        .initialize()
+        .jobScheduler
 
     @AfterEach
     fun cleanUp() {
@@ -60,15 +50,6 @@ class JobSchedulerTest {
             throw IllegalArgumentException("Should be TestService, no?")
         }
         return null
-    }
-
-    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-    @Test
-    fun `uses KotlinxSerializationJsonMapper by default`() {
-        val jobRunrConfiguration = Whitebox.getInternalState<JobRunrConfiguration>(JobRunr::class.java, "jobRunrConfiguration")
-        val jsonMapper = Whitebox.getInternalState<JsonMapper>(jobRunrConfiguration, "jsonMapper")
-
-        assertThat(jsonMapper).isInstanceOf(KotlinxSerializationJsonMapper::class.java)
     }
 
     @Test
