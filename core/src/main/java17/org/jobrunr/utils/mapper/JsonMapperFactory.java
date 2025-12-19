@@ -17,17 +17,21 @@ public class JsonMapperFactory {
     private static Function<String, Boolean> isJsonMapperClassPresent = ReflectionUtils::classExists;
 
     public static JsonMapper createJsonMapper() {
-        if (isJsonMapperClassPresent("tools.jackson.databind.ObjectMapper")) {
-            LOGGER.debug("Creating JsonMapper using Jackson 3");
+        if (isJsonMapperClassPresent("kotlinx.serialization.json.Json")
+                && isJsonMapperClassPresent("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper")) {
+            LOGGER.info("Creating JsonMapper using Kotlin Serialization 2");
+            return ReflectionUtils.newInstance("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper");
+        } else if (isJsonMapperClassPresent("tools.jackson.databind.ObjectMapper")) {
+            LOGGER.info("Creating JsonMapper using Jackson 3");
             return new Jackson3JsonMapper();
         } else if (isJsonMapperClassPresent("com.fasterxml.jackson.databind.ObjectMapper")) {
-            LOGGER.debug("Creating JsonMapper using Jackson 2");
+            LOGGER.info("Creating JsonMapper using Jackson 2");
             return new JacksonJsonMapper();
         } else if (isJsonMapperClassPresent("com.google.gson.Gson")) {
-            LOGGER.debug("Creating JsonMapper using Gson");
+            LOGGER.info("Creating JsonMapper using Gson");
             return new GsonJsonMapper();
         } else if (isJsonMapperClassPresent("jakarta.json.bind.JsonbBuilder")) {
-            LOGGER.debug("Creating JsonMapper using JSON-B");
+            LOGGER.info("Creating JsonMapper using JSON-B");
             return new JsonbJsonMapper();
         }
         return null;

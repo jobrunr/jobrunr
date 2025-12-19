@@ -5,7 +5,6 @@ import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.AsyncJobPostProcessor;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -30,7 +29,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -186,7 +184,6 @@ public class JobRunrAutoConfiguration {
 
 
     @Configuration
-    @ConditionalOnMissingClass(value = {"kotlinx.serialization.json.Json"})
     public static class JobRunrJsonMapperAutoConfiguration implements BeanClassLoaderAware {
 
         @Override
@@ -198,18 +195,6 @@ public class JobRunrAutoConfiguration {
         @ConditionalOnMissingBean
         public JsonMapper jobRunrJsonMapper() {
             return JsonMapperFactory.createJsonMapper();
-        }
-    }
-
-
-    @Configuration
-    @ConditionalOnClass(value = {kotlinx.serialization.json.Json.class, KotlinxSerializationJsonMapper.class})
-    public static class JobRunrKotlinxSerializationJsonMapperAutoConfiguration {
-
-        @Bean(name = "jobRunrJsonMapper")
-        @ConditionalOnMissingBean
-        public JsonMapper kotlinxSerializationJsonMapper() {
-            return new KotlinxSerializationJsonMapper();
         }
     }
 
