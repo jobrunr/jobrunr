@@ -107,7 +107,7 @@ public abstract class JobDetailsBuilder {
             throw new IllegalStateException("Could not determine method name from lambda bytecode. This should not happen. Please report this as a bug with as much details as you can.");
         }
         if (jobDetailsMethodName.endsWith("$default") && classExists("kotlin.KotlinVersion")) {
-            throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
+            throw new IllegalStateException("Unsupported lambda", new UnsupportedOperationException("You are (probably) using Kotlin default parameter values which is not supported by JobRunr."));
         }
     }
 
