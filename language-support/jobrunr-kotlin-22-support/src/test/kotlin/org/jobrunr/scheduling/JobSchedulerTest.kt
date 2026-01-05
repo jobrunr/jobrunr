@@ -68,7 +68,7 @@ class JobSchedulerTest {
     fun `test enqueue lambda with default parameter throws exception`() {
         val testService = TestService()
         assertThatCode { jobScheduler.enqueue { testService.doWorkWithDefaultParameter() } }
-            .isInstanceOf(IllegalArgumentException::class.java)
+            .isInstanceOf(IllegalStateException::class.java)
             .hasMessage("Unsupported lambda")
             .hasRootCauseMessage("You are (probably) using Kotlin default parameter values which is not supported by JobRunr.")
     }
