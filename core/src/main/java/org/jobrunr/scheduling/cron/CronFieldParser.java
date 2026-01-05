@@ -137,7 +137,8 @@ class CronFieldParser {
             }
             BitSet numSet = this.parse(numSetPart);
             BitSet stepsSet = new BitSet(this.length);
-            for (int i = numSet.nextSetBit(0); i < this.length; i += stepSize) {
+            int bound = fieldType == CronFieldType.MONTH ? this.length + 1 : this.length;
+            for (int i = numSet.nextSetBit(0); i < bound; i += stepSize) {
                 stepsSet.set(i);
             }
             stepsSet.and(numSet);
