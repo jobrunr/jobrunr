@@ -64,6 +64,7 @@ import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.classThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.jobParameterThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.jobs.states.StateName.AWAITING;
@@ -638,9 +639,8 @@ public class BackgroundJobByJobLambdaTest {
     void jobToClassThatDoesNotExistGoesToFailedState() {
         Job job = storageProvider.save(anEnqueuedJob().withJobDetails(classThatDoesNotExistJobDetails()).build());
         await().atMost(3, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
-        FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
-        assertThat(failedState.getException()).isInstanceOf(JobClassNotFoundException.class);
         Job failedJob = storageProvider.getJobById(job.getId());
+        assertThat(((FailedState) failedJob.getJobState()).getException()).isInstanceOf(JobClassNotFoundException.class);
         assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
     }
 
@@ -648,10 +648,19 @@ public class BackgroundJobByJobLambdaTest {
     void jobToMethodThatDoesNotExistGoesToFailedState() {
         Job job = storageProvider.save(anEnqueuedJob().withJobDetails(methodThatDoesNotExistJobDetails()).build());
         await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
-        FailedState failedState = storageProvider.getJobById(job.getId()).getJobState();
-        assertThat(failedState.getException()).isInstanceOf(JobMethodNotFoundException.class);
-        await().during(1, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
         Job failedJob = storageProvider.getJobById(job.getId());
+        assertThat(((FailedState) failedJob.getJobState()).getException()).isInstanceOf(JobMethodNotFoundException.class);
+        assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
+    }
+
+    @Test
+    void jobToParameterThatDoesNotExistGoesToFailedState() {
+        Job job = storageProvider.save(anEnqueuedJob().withJobDetails(jobParameterThatDoesNotExistJobDetails()).build());
+        await().atMost(30, SECONDS).until(() -> storageProvider.getJobById(job.getId()).hasState(FAILED));
+        Job failedJob = storageProvider.getJobById(job.getId());
+        assertThat(((FailedState) failedJob.getJobState()).getException())
+                .isInstanceOf(JobMethodNotFoundException.class)
+                .hasMessageContaining("JobParameterNotDeserializableException: one of the JobParameters of type");
         assertThat(failedJob).hasStates(ENQUEUED, PROCESSING, FAILED);
     }
 
