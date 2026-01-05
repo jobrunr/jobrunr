@@ -1,21 +1,28 @@
 package org.jobrunr.scheduling
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.Serializable
 import org.awaitility.Awaitility.await
 import org.awaitility.Durations.TEN_SECONDS
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
+import org.jobrunr.configuration.JobRunrConfiguration
 import org.jobrunr.jobs.annotations.Job
 import org.jobrunr.jobs.lambdas.JobRequest
 import org.jobrunr.jobs.lambdas.JobRequestHandler
 import org.jobrunr.jobs.states.StateName.ENQUEUED
 import org.jobrunr.jobs.states.StateName.PROCESSING
 import org.jobrunr.jobs.states.StateName.SUCCEEDED
+import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper
 import org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration
 import org.jobrunr.storage.InMemoryStorageProvider
 import org.jobrunr.storage.StorageProvider
+import org.jobrunr.utils.mapper.JsonMapper
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.internal.util.reflection.Whitebox
 import java.time.Duration.ofMillis
 
 class JobRequestSchedulerTest {
@@ -36,6 +43,16 @@ class JobRequestSchedulerTest {
         JobRunr.destroy()
     }
 
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    @Test
+    fun `uses KotlinxSerializationJsonMapper by default`() {
+        val jobRunrConfiguration = Whitebox.getInternalState<JobRunrConfiguration>(JobRunr::class.java, "jobRunrConfiguration")
+        val jsonMapper = Whitebox.getInternalState<JsonMapper>(jobRunrConfiguration, "jsonMapper")
+
+        assertThat(jsonMapper).isInstanceOf(KotlinxSerializationJsonMapper::class.java)
+    }
+
+    @Serializable
     class AnnotationNotFoundKotlinJobRequest(val input: String) : JobRequest {
         override fun getJobRequestHandler() = AnnotationNotFoundKotlinJobRequestHandler::class.java
     }
@@ -61,6 +78,7 @@ class JobRequestSchedulerTest {
             .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
     }
 
+    @Serializable
     class AnnotationFoundKotlinJobRequest(val input: String) : JobRequest {
         override fun getJobRequestHandler() = AnnotationFoundKotlinJobRequestHandler::class.java
     }

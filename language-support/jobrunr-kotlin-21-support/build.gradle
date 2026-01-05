@@ -46,6 +46,43 @@ tasks.named('compileTestKotlin', KotlinCompile) {
     compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
 }
 
+// Following is to compile a select number of tests with the `-Xsam-conversions=class` compilation flag.
+// This is to tests that JobRunr supports Kotlin lambdas even with class-based SAM conversions.
+sourceSets {
+    testClassLambdas {
+        java.srcDirs = []
+        kotlin.srcDirs = ['src/test/kotlin/org/jobrunr/scheduling', 'src/test/kotlin/org/jobrunr/jobs/details']
+        resources.srcDirs = ['src/test/resources']
+        compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+    }
+}
+
+compileTestClassLambdasJava {
+    enabled = false
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+// Sets the compilation flags for the `testClassLambdas` source set
+tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.addAll('-Xlambdas=class', '-Xsam-conversions=class')
+    }
+}
+
+tasks.register('testWithClassLambdas', Test) {
+    description = 'Runs tests compiled with -Xlambdas=class -Xsam-conversions=class'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.testClassLambdas.output.classesDirs
+    classpath = sourceSets.testClassLambdas.runtimeClasspath
+    shouldRunAfter test
+}
+
+// Important otherwise the test is not going to run
+check.dependsOn testWithClassLambdas
+
 java {
     withJavadocJar()
     withSourcesJar()
