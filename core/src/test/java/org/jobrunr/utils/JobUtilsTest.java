@@ -27,35 +27,21 @@ class JobUtilsTest {
 
     @Test
     void assertJobExistsGivenJobDetails() {
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestJobRequest("input")).build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestServiceInterface.class).withMethodName("doWork").build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(UUID.randomUUID()).build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWorkThatTakesLong").withJobParameter(10L).build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("getProcessedJobs").build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(System.class).withStaticFieldName("out").withMethodName("println").withJobParameter("Hello, World!").build()))
-                .doesNotThrowAnyException();
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(DataSource.class).withMethodName("getConnection").build()))
-                .doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestJobRequest("input")).build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestServiceInterface.class).withMethodName("doWork").build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(UUID.randomUUID()).build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWorkThatTakesLong").withJobParameter(10L).build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("getProcessedJobs").build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(System.class).withStaticFieldName("out").withMethodName("println").withJobParameter("Hello, World!").build())).doesNotThrowAnyException();
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(DataSource.class).withMethodName("getConnection").build())).doesNotThrowAnyException();
 
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName("org.jobrunr.stubs.TestServiceThatDoesNotExist").withMethodName("doWork").withJobParameter(1).withJobParameter(2).build()))
-                .isInstanceOf(JobClassNotFoundException.class);
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestInvalidJobRequest()).build()))
-                .isInstanceOf(JobMethodNotFoundException.class);
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("methodThatDoesNotExist").withJobParameter(1).withJobParameter(2).build()))
-                .isInstanceOf(JobMethodNotFoundException.class);
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(new TestJobRequest("Hello, World!")).build())) // wrong parameter type
-                .isInstanceOf(JobMethodNotFoundException.class);
-        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).withJobParameter(3).build())) // too many parameters
-                .isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName("org.jobrunr.stubs.TestServiceThatDoesNotExist").withMethodName("doWork").withJobParameter(1).withJobParameter(2).build())).isInstanceOf(JobClassNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestJobRequestHandler.class).withMethodName("run").withJobParameter(new TestInvalidJobRequest()).build())).isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("methodThatDoesNotExist").withJobParameter(1).withJobParameter(2).build())).isInstanceOf(JobMethodNotFoundException.class);
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(new TestJobRequest("Hello, World!")).build())).isInstanceOf(JobMethodNotFoundException.class); // wrong parameter type
+        assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(1).withJobParameter(2).withJobParameter(3).build())).isInstanceOf(JobMethodNotFoundException.class); // too many parameters
 
         var notDeserializableParameter = new JobParameter(Integer.class.getName(), Integer.class.getName(), 2, new JobParameterNotDeserializableException(Integer.class.getName(), new IllegalAccessException("Boom")));
         assertThatCode(() -> JobUtils.assertJobExists(jobDetails().withClassName(TestService.class).withMethodName("doWork").withJobParameter(notDeserializableParameter).build()))
