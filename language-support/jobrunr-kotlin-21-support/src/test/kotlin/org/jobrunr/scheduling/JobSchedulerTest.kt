@@ -7,7 +7,6 @@ import org.awaitility.Awaitility.await
 import org.awaitility.Durations
 import org.jobrunr.JobRunrAssertions.assertThat
 import org.jobrunr.configuration.JobRunr
-import org.jobrunr.jobs.mappers.JobMapper
 import org.jobrunr.jobs.states.StateName.ENQUEUED
 import org.jobrunr.jobs.states.StateName.PROCESSING
 import org.jobrunr.jobs.states.StateName.SCHEDULED
@@ -26,11 +25,10 @@ import java.util.concurrent.TimeUnit
 class JobSchedulerTest {
 
     @Mock
-    private val storageProvider = InMemoryStorageProvider().also {
-        it.setJobMapper(JobMapper(JacksonJsonMapper()))
-    }
+    private val storageProvider = InMemoryStorageProvider()
 
     private val jobScheduler = JobRunr.configure()
+        .useJsonMapper(JacksonJsonMapper()) // also testing jackson specific features
         .useStorageProvider(storageProvider)
         .useJobActivator(object : JobActivator {
             override fun <T : Any> activateJob(type: Class<T>): T? = get(type)

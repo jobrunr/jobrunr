@@ -25,6 +25,8 @@ class KotlinxSerializationJsonMapper(
         private val LOGGER = LoggerFactory.getLogger(KotlinxSerializationJsonMapper::class.java)
     }
 
+    constructor() : this(jobRunrSerializersModule)
+
     constructor(serializersModule: SerializersModule) : this(Json {
         encodeDefaults = true
         ignoreUnknownKeys = true
@@ -33,8 +35,6 @@ class KotlinxSerializationJsonMapper(
 
         this.serializersModule = serializersModule + jobRunrSerializersModule
     })
-
-    constructor() : this(jobRunrSerializersModule)
 
     override fun serialize(obj: Any): String? = rethrowSerializationException {
         fun <T : Any> encode(obj: Any): String? {
