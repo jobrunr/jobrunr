@@ -34,6 +34,7 @@ public class JsonMapperFactory {
             LOGGER.info("Creating JobRunr JsonMapper using JSON-B");
             return new JsonbJsonMapper();
         }
+        LOGGER.warn("Could not autoconfigure JobRunr JsonMapper. You will need add a Json Library (Jackson, Gson, ...) to the classpath or you need to manually provide JobRunr with a JobRunr JsonMapper instance.");
         return null;
     }
 
