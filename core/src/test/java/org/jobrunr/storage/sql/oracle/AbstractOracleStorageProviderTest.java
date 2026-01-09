@@ -43,7 +43,7 @@ public abstract class AbstractOracleStorageProviderTest extends SqlStorageProvid
             System.out.println(sqlContainer.getLogs());
             System.out.println("==========================================================================================");
 
-            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl().replace("xepdb1", "FREEPDB1"), sqlContainer.getUsername(), sqlContainer.getPassword());
+            dataSource = toHikariDataSource(sqlContainer.getJdbcUrl(), sqlContainer.getUsername(), sqlContainer.getPassword());
         }
 
         return dataSource;
