@@ -21,7 +21,7 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    implementation platform('io.quarkus:quarkus-bom:3.27.0')
+    implementation platform('io.quarkus:quarkus-bom:3.27.1')
 
     api project(':core')
     implementation 'io.quarkus:quarkus-core'
