@@ -22,6 +22,7 @@ public class SseExchange implements AutoCloseable {
         responseHeaders.add("Connection", "keep-alive");
         responseHeaders.add("Language", "en-US");
         responseHeaders.add("Charset", "UTF-8");
+        responseHeaders.add("X-Accel-Buffering", "no"); // why: prevents nginx proxy buffering
         httpExchange.sendResponseHeaders(200, 0);
         this.writer.write("\n\n");
     }
