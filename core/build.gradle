@@ -334,14 +334,15 @@ def getGitBranch() {
 tasks.register('uiBuildOutputVerification') {
     doLast {
         def outputDir = file('src/main/resources/org/jobrunr/dashboard/frontend/build')
+
         if (!outputDir.exists()) {
             throw new GradleException("UI build output missing! This means that the task 'npmRunBuild' hasn't run...")
         }
 
-        def sourcesLastModifiedAt = fileTree('src/main/resources/org/jobrunr/dashboard/frontend').files.collect { f -> f.lastModified() }.max()
-        def outputLastModifiedAt = fileTree(outputDir).files.collect(f -> f.lastModified()).max()
-        if (outputLastModifiedAt < sourcesLastModifiedAt) {
-            throw new GradleException("UI output is stale! The sources are newer than the build artifacts. This means that the task 'npmRunBuild' hasn't run...")
+        def npmTask = tasks.named('npmRunBuild').get()
+
+        if (!npmTask?.state?.executed && !npmTask?.state?.upToDate) {
+            throw new GradleException("Task 'npmRunBuild' didn't run! Include it in your build.")
         }
 
         println "✓ UI build output validated"
