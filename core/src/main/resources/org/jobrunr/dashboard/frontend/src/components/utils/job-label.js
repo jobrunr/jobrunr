@@ -1,25 +1,14 @@
 import Chip from "@mui/material/Chip";
+import {stringToColor} from "../../utils/helper-functions.js";
 
 const JobLabel = (props) => {
-    let backgroundColor = getRandomColor(props?.text);
+    let backgroundColor = stringToColor(props?.text);
     let foregroundColor = getContrastYIQ(backgroundColor);
     return (
         <Chip label={props?.text}
               style={{backgroundColor: backgroundColor, color: foregroundColor, marginRight: '0.5rem', height: '22px'}}
               size="small"/>
     );
-}
-
-function getRandomColor(text) {
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-        hash = text.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const c = (hash & 0x00FFFFFF)
-        .toString(16)
-        .toUpperCase();
-
-    return "#" + "00000".substring(0, 6 - c.length) + c;
 }
 
 function getContrastYIQ(hexColor) {
