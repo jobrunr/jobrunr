@@ -2,6 +2,10 @@ when:
   event:
     - tag
 
+
+workspace:
+  path: jobrunr/src
+
 steps:
   - name: prepare-docker-build-container
     image: docker
