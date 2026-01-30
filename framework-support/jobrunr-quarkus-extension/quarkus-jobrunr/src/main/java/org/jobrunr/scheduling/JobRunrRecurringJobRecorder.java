@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import io.quarkus.arc.runtime.BeanContainer;
+import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 import io.smallrye.common.expression.Expression;
 import org.eclipse.microprofile.config.Config;
@@ -26,13 +27,14 @@ public class JobRunrRecurringJobRecorder {
 
     private static final Logger LOGGER = Logger.getLogger(JobRunrRecurringJobRecorder.class);
 
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    RuntimeValue<JobRunrRuntimeConfiguration> runtimeConfigValue;
 
-    public JobRunrRecurringJobRecorder(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
-        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    public JobRunrRecurringJobRecorder(RuntimeValue<JobRunrRuntimeConfiguration> runtimeConfigValue) {
+        this.runtimeConfigValue = runtimeConfigValue;
     }
 
     public void schedule(BeanContainer container, String id, String cron, String interval, String zoneId, String className, String methodName, List<JobParameter> parameterList) {
+        var jobRunrRuntimeConfiguration = this.runtimeConfigValue.getValue();
         if (!jobRunrRuntimeConfiguration.jobScheduler().enabled()) return;
 
         JobScheduler scheduler = container.beanInstance(JobScheduler.class);
