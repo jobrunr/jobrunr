@@ -1,6 +1,7 @@
 package org.jobrunr.scheduling;
 
 import io.quarkus.arc.runtime.BeanContainer;
+import io.quarkus.runtime.RuntimeValue;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.jobrunr.jobs.JobDetails;
@@ -58,7 +59,7 @@ class JobRunrRecurringJobRecorderTest {
 
     @BeforeEach
     void setUpJobRunrRecorder() {
-        jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder(jobRunrRuntimeConfiguration);
+        jobRunrRecurringJobRecorder = new JobRunrRecurringJobRecorder(new RuntimeValue<>(jobRunrRuntimeConfiguration));
         lenient().when(beanContainer.beanInstance(JobScheduler.class)).thenReturn(jobScheduler);
 
         when(jobRunrRuntimeConfiguration.jobScheduler()).thenReturn(jobSchedulerConfiguration);

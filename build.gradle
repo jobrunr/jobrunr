@@ -120,7 +120,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         implementation platform(project(':platform'))
         compileOnly 'org.apache.groovy:groovy-json:4.0.29'
 
-        errorprone 'com.google.errorprone:error_prone_core:2.46.0'
+        errorprone 'com.google.errorprone:error_prone_core:2.42.0'
 
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
