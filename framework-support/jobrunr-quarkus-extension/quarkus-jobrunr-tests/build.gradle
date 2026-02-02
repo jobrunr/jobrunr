@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'io.quarkus' version '3.31.1'
+    id 'io.quarkus' version '3.27.1'
 }
 
 compileJava {
@@ -13,7 +13,7 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.31.1')
+    api platform('io.quarkus:quarkus-bom:3.27.1')
 
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr-deployment')
