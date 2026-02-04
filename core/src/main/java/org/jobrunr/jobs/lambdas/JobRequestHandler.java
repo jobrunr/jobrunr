@@ -25,7 +25,7 @@ public interface JobRequestHandler<T extends JobRequest> {
      * @deprecated use {@link org.jobrunr.server.runner.ThreadLocalJobContext} instead
      */
     @Deprecated
-    default JobContext jobContext() throws Exception {
+    default JobContext jobContext() {
         return ThreadLocalJobContext.getJobContext();
     }
 }
