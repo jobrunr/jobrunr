@@ -1,7 +1,11 @@
 package org.jobrunr.storage.sql.common;
 
+import ch.qos.logback.LoggerAssert;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.assertj.core.api.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
@@ -23,7 +27,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -105,6 +111,20 @@ class DatabaseCreatorTablePrefixTest {
                 .areAtLeastOne(stringContaining("CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs"))
                 .areAtLeastOne(stringContaining("CREATE INDEX SOME_PREFIX_jobrunr_state_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs (state)"))
                 .areAtLeastOne(stringContaining("DROP INDEX SOME_PREFIX_jobrunr_job_updated_at_idx ON SOME_SCHEMA.SOME_PREFIX_jobrunr_jobs"));
+    }
+
+    @Test
+    void testLogsStatementWithTablePrefixInCaseOfAnException() throws SQLException {
+        when(connection.getMetaData()).thenReturn(databaseMetaData);
+        when(databaseMetaData.getDatabaseProductName()).thenReturn("SQL Server");
+        when(statement.execute(any())).thenThrow(new SQLException());
+        final DatabaseCreator databaseCreator = getDatabaseCreator(dataSource, "SOME_SCHEMA.SOME_PREFIX_", SQLServerStorageProvider.class);
+        final ListAppender<ILoggingEvent> loggerDbCreator = LoggerAssert.initFor(databaseCreator);
+
+        assertThatCode(databaseCreator::runMigrations).isInstanceOf(JobRunrException.class);
+
+        LoggerAssert.assertThat(loggerDbCreator)
+                .hasWarningMessageContaining("Error running statement: CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_migrations");
     }
 
     @NotNull
