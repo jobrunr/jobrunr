@@ -203,10 +203,12 @@ public class DatabaseCreator {
         final String sql = migration.getMigrationSql();
         for (String statement : sql.split(";", 0)) {
             if (isNullEmptyOrBlank(statement)) continue;
-
+            final String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
             try (final Statement stmt = connection.createStatement()) {
-                String updatedStatement = tablePrefixStatementUpdater.updateStatement(statement).trim();
                 stmt.execute(updatedStatement);
+            } catch (Exception e) {
+                LOGGER.warn("Error running statement: {}", updatedStatement, e);
+                throw e;
             }
         }
     }
