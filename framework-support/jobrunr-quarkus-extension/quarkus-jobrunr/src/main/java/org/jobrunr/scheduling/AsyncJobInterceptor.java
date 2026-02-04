@@ -8,7 +8,6 @@ import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.AsyncJob;
 import org.jobrunr.jobs.annotations.Job;
-import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
 import org.jobrunr.utils.JobUtils;
 import org.slf4j.Logger;
@@ -49,8 +48,7 @@ public class AsyncJobInterceptor {
     }
 
     private static boolean isRunningActualJob(JobDetails jobDetails) {
-        JobContext jobContext = ThreadLocalJobContext.getJobContext();
-        return jobContext != null && jobContext.getJobSignature().equals(JobUtils.getJobSignature(jobDetails));
+        return ThreadLocalJobContext.hasJobContext() && ThreadLocalJobContext.getJobContext().getJobSignature().equals(JobUtils.getJobSignature(jobDetails));
     }
 
 }

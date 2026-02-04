@@ -5,7 +5,6 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.annotations.Job;
-import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.server.runner.ThreadLocalJobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +44,8 @@ public class AsyncJobInterceptor implements MethodInterceptor {
     }
 
     private static boolean isRunningActualJob(MethodInvocation invocation) {
-        JobContext jobContext = ThreadLocalJobContext.getJobContext();
         // if another @AsyncJob is created it must have a different class name due to limitations of Spring Proxies.
-        return jobContext != null && jobContext.getJobSignature().startsWith(invocation.getMethod().getDeclaringClass().getName() + ".");
+        return ThreadLocalJobContext.hasJobContext() && ThreadLocalJobContext.getJobContext().getJobSignature().startsWith(invocation.getMethod().getDeclaringClass().getName() + ".");
     }
 
     private static JobDetails getJobDetails(MethodInvocation methodInvocation) {

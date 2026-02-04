@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.server.runner.ThreadLocalJobContext;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingRunnable;
 import org.jobrunr.utils.exceptions.Exceptions.ThrowingSupplier;
 import org.jobrunr.utils.reflection.ReflectionUtils;
@@ -24,11 +25,48 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
  * The JobContext class gives access to the Job id, the Job name, the state, ... .
- * <p>
+ *
+ * <h3>Usage</h3>
  * Using the {@link #getMetadata()}, it also allows to store some data between different job retries so jobs can be made re-entrant.
  * This comes in handy when your job exists out of multiple steps, and you want to keep track of which step already succeeded. Then,
  * in case of a failure, you can skip the steps that already completed successfully.
  * As soon as the job is completed successfully the metadata is cleared (for storage purpose reasons).
+ *
+ * <p>
+ * It may also be used to keep track of the progress of a job on the Dashboard:
+ *
+ * <pre>{@code
+ * public void doWork(JobContext jobContext) {
+ *  JobDashboardProgressBar progressBar = jobContext().progressBar(100);
+ *
+ *  for(Element e : elements) {
+ *      progressBar.increaseByOne();
+ *  }
+ * }
+ * }</pre>
+ *
+ * <p>
+ * Or used for logging purposes also reported to the Dashboard:
+ *
+ * <pre>{@code
+ * public void doWork(JobContext jobContext) {
+ *  jobContext.logger().info('this will appear in the dashboard');
+ * }
+ * }</pre>
+ *
+ * <p>
+ * Alternatively, you may use {@link ThreadLocalJobContext#getJobContext()}:
+ * <pre>{@code
+ * public void doWork() {
+ *  var jobContext = ThreadLocalJobContext.getJobContext();
+ *  jobContext.logger().info('this will appear in the dashboard');
+ * }
+ * }</pre>
+ * <br>
+ * <b>Note</b>: We recommend the use of the parametric approach to avoid mistakenly calling the {@code doWork} method outside a JobRunr execution context.
+ *
+ * <h3>Testing</h3>
+ * To test a method that uses a {@link JobContext}, use MockThreadLocalJobContext from JobRunr's test-fixtures to set a mock JobContext.
  */
 public class JobContext {
 

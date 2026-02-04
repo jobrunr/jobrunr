@@ -22,7 +22,9 @@ public interface JobRequestHandler<T extends JobRequest> {
      * Gives access to the JobContext for the current job in a thread-safe manner. It will be available only during the {@link #run(JobRequest)} method.
      *
      * @return the {@link JobContext} for the current Job
+     * @deprecated use {@link org.jobrunr.server.runner.ThreadLocalJobContext} instead
      */
+    @Deprecated
     default JobContext jobContext() {
         return ThreadLocalJobContext.getJobContext();
     }
