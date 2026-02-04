@@ -32,4 +32,8 @@ public class ThreadLocalJobContext {
         }
         return jobContext;
     }
+
+    public static boolean hasJobContext() {
+        return jobContextThreadLocal.get() != null;
+    }
 }
