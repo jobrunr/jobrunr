@@ -27,7 +27,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -57,6 +61,7 @@ public class DatabaseCreator {
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
     private final MigrationsTableLocker migrationsTableLocker;
+    private Set<String> appliedMigrationsCache;
 
     public static void main(String[] args) {
         if (args.length < 3) {
@@ -109,12 +114,17 @@ public class DatabaseCreator {
     }
 
     public void runMigrations() {
-        boolean isMigrationTableMissing = isMigrationsTableMissing();
+        if (isMigrationsTableMissing()) {
+            appliedMigrationsCache = Collections.emptySet();
+        } else {
+            loadAppliedMigrations();
+        }
         List<SqlMigration> migrationsToRun = getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
-                .filter(x -> isMigrationTableMissing || isNewMigration(x))
+                .filter(migration -> !isMigrationApplied(migration))
                 .collect(toList());
+        appliedMigrationsCache = null;
         runMigrations(migrationsToRun);
     }
 
@@ -232,8 +242,29 @@ public class DatabaseCreator {
         }
     }
 
-    private boolean isNewMigration(SqlMigration migration) {
-        return !isMigrationApplied(migration);
+    /**
+     * Loads all applied migration script names in a single query into cache,
+     * replacing per-migration queries (N+1 problem).
+     */
+    private void loadAppliedMigrations() {
+        try (final Connection conn = getConnection();
+             final Statement st = conn.createStatement();
+             final ResultSet rs = st.executeQuery("select script from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations"))) {
+            Map<String, Integer> migrationCounts = new HashMap<>();
+            while (rs.next()) {
+                migrationCounts.merge(rs.getString(1), 1, Integer::sum);
+            }
+            for (Map.Entry<String, Integer> entry : migrationCounts.entrySet()) {
+                if (entry.getValue() > 1) {
+                    throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
+                            "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
+                }
+            }
+            appliedMigrationsCache = migrationCounts.keySet();
+        } catch (SQLException sqlException) {
+            LOGGER.debug("Error loading applied migrations", sqlException);
+            throw new StorageException(sqlException);
+        }
     }
 
     private boolean isCreateMigrationsTableMigration(SqlMigration migration) {
@@ -241,6 +272,9 @@ public class DatabaseCreator {
     }
 
     protected boolean isMigrationApplied(SqlMigration migration) {
+        if (appliedMigrationsCache != null) {
+            return appliedMigrationsCache.contains(migration.getFileName());
+        }
         try (final Connection conn = getConnection();
              final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
             boolean result = false;
