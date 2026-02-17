@@ -11,7 +11,6 @@ import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
 
 public class OffsetBasedPageRequest extends PageRequest {
 
-    public static final Page emptyPage = new Page(0, emptyList(), 0, 0, null, null, null);
     public static final long DEFAULT_OFFSET = 0L;
 
     private final long offset;

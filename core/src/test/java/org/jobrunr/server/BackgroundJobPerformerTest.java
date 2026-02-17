@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
@@ -285,8 +286,7 @@ class BackgroundJobPerformerTest {
         });
 
         BackgroundJobPerformer backgroundJobPerformer = new BackgroundJobPerformer(backgroundJobServer, job);
-        backgroundJobPerformer.run();
-
+        assertThatCode(backgroundJobPerformer::run).doesNotThrowAnyException();
     }
 
     @Test

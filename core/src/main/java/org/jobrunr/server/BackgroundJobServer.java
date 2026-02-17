@@ -336,16 +336,18 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void runStartupTasks() {
+        ExecutorService startupTasksExecutor = Executors.newSingleThreadExecutor();
         try {
-            ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
-            singleThreadExecutor.execute(new StartupTask(
+            startupTasksExecutor.execute(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
                     new MigrateFromV5toV6Task(this),
-                    new ShutdownExecutorServiceTask(singleThreadExecutor)
+                    new ShutdownExecutorServiceTask(startupTasksExecutor)
             ));
         } catch (Exception notImportant) {
             // server is shut down immediately
+        } finally {
+            startupTasksExecutor.shutdown();
         }
     }
 

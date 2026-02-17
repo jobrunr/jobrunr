@@ -36,8 +36,10 @@ public class ScheduledTooEarlyByJobZooKeeperConcurrentStateChange implements All
     @Override
     public ConcurrentJobModificationResolveResult resolve(Job localJob, Job storageProviderJob) {
         //why: we use the JobVersioner to bump the version so it matched the one from the DB
-        new JobVersioner(localJob);
-        storageProvider.save(localJob);
-        return ConcurrentJobModificationResolveResult.succeeded(localJob);
+        try(JobVersioner jobVersioner = new JobVersioner(localJob)) {
+            storageProvider.save(localJob);
+            jobVersioner.commitVersion();
+            return ConcurrentJobModificationResolveResult.succeeded(localJob);
+        }
     }
 }
