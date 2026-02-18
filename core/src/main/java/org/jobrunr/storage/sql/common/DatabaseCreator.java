@@ -124,8 +124,8 @@ public class DatabaseCreator {
                 .sorted(comparing(SqlMigration::getFileName))
                 .filter(migration -> !isMigrationApplied(migration))
                 .collect(toList());
-        appliedMigrationsCache = null;
         runMigrations(migrationsToRun);
+        loadAppliedMigrations();
     }
 
     public void validateTables() {
@@ -272,28 +272,7 @@ public class DatabaseCreator {
     }
 
     protected boolean isMigrationApplied(SqlMigration migration) {
-        if (appliedMigrationsCache != null) {
-            return appliedMigrationsCache.contains(migration.getFileName());
-        }
-        try (final Connection conn = getConnection();
-             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
-            boolean result = false;
-            pSt.setString(1, migration.getFileName());
-            try (ResultSet rs = pSt.executeQuery()) {
-                if (rs.next()) {
-                    int numberOfRows = rs.getInt(1);
-                    if (numberOfRows > 1) {
-                        throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                                "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
-                    }
-                    result = numberOfRows == 1;
-                }
-            }
-            return result;
-        } catch (SQLException sqlException) {
-            LOGGER.debug("Error checking if migration {} is already applied", migration.getFileName(), sqlException);
-            throw new StorageException(sqlException);
-        }
+        return appliedMigrationsCache.contains(migration.getFileName());
     }
 
     private Connection getConnection() {
