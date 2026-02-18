@@ -1,22 +1,27 @@
 when:
-  event:
-    - manual
+  - event: manual
+  - event: cron
+    cron: sonarqube
 
 steps:
-  - name: prepare
-    image: plugins/docker
+  - name: prepare-docker-build-container
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     commands:
-      - docker build -f PrepareDockerfile -t jobrunr.io/build-container:1.4.1 .
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
 
-  - name: build
-    image: jobrunr.io/build-container:1.4.1
+  - name: build-and-upload-to-maven-central
+    image: container-registry.jobrunr.io/build-container:latest
     commands:
       - rm -rf /tmp/reports/*
       - find /drone/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - |
         bash -lc '
           set -e -o pipefail
-          ./gradlew --no-daemon -Djib.console=plain --info clean build jacocoTestReport sonar \
+          ./gradlew --no-daemon -Djib.console=plain --info --continue clean build jacocoTestReport sonar \
             | grep -Ev "^(Found locally available resource with matching checksum|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.)"
         '
     environment:
