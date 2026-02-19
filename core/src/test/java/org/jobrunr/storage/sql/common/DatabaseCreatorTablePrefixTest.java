@@ -32,6 +32,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +58,7 @@ class DatabaseCreatorTablePrefixTest {
     void setUpDatabaseMocks() throws SQLException {
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.createStatement()).thenReturn(statement);
+        lenient().when(statement.executeQuery(anyString())).thenReturn(resultSet);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(connection.getMetaData()).thenReturn(databaseMetaData);
         when(databaseMetaData.getTables(null, null, "%", null)).thenReturn(resultSet);

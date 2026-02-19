@@ -54,6 +54,7 @@ class DefaultSqlStorageProviderTest {
     @BeforeEach
     void setUp() throws SQLException {
         when(connection.createStatement()).thenReturn(statement);
+        lenient().when(statement.executeQuery(anyString())).thenReturn(resultSet);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         lenient().when(connection.prepareStatement(anyString(), eq(ResultSet.TYPE_FORWARD_ONLY), eq(ResultSet.CONCUR_READ_ONLY))).thenReturn(preparedStatement);
         when(datasource.getConnection()).thenReturn(connection);
