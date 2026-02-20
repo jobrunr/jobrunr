@@ -20,6 +20,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -35,6 +38,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock timerReentrantLock;
     private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
+    private final ExecutorService notificationExecutor;
     private volatile Timer timer;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
@@ -43,6 +47,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.timerReentrantLock = new ReentrantLock();
         this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
+        this.notificationExecutor = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -68,6 +73,15 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     public void close() {
         stopTimerToSendUpdates();
         onChangeListeners.clear();
+        notificationExecutor.shutdown();
+        try {
+            if (!notificationExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                notificationExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            notificationExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -114,7 +128,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
                 }
-            });
+            }, notificationExecutor);
             CompletableFuture<?> unused = future.whenComplete((result, e) -> {
                 if (e != null) {
                     logError(e);
