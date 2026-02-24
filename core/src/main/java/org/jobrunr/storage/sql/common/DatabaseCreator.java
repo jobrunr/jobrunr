@@ -61,7 +61,6 @@ public class DatabaseCreator {
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
     private final MigrationsTableLocker migrationsTableLocker;
-    private Set<String> appliedMigrationsCache;
 
     public static void main(String[] args) {
         if (args.length < 3) {
@@ -114,18 +113,15 @@ public class DatabaseCreator {
     }
 
     public void runMigrations() {
-        if (isMigrationsTableMissing()) {
-            appliedMigrationsCache = Collections.emptySet();
-        } else {
-            loadAppliedMigrations();
-        }
+        Set<String> appliedMigrations = isMigrationsTableMissing()
+                ? Collections.emptySet()
+                : loadAppliedMigrations();
         List<SqlMigration> migrationsToRun = getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
-                .filter(migration -> !isMigrationApplied(migration))
+                .filter(migration -> !appliedMigrations.contains(migration.getFileName()))
                 .collect(toList());
         runMigrations(migrationsToRun);
-        loadAppliedMigrations();
     }
 
     public void validateTables() {
@@ -246,7 +242,7 @@ public class DatabaseCreator {
      * Loads all applied migration script names in a single query into cache,
      * replacing per-migration queries (N+1 problem).
      */
-    private void loadAppliedMigrations() {
+    protected Set<String> loadAppliedMigrations() {
         try (final Connection conn = getConnection();
              final Statement st = conn.createStatement();
              final ResultSet rs = st.executeQuery("select script from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations"))) {
@@ -260,7 +256,7 @@ public class DatabaseCreator {
                             "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
                 }
             }
-            appliedMigrationsCache = migrationCounts.keySet();
+            return migrationCounts.keySet();
         } catch (SQLException sqlException) {
             LOGGER.debug("Error loading applied migrations", sqlException);
             throw new StorageException(sqlException);
@@ -269,10 +265,6 @@ public class DatabaseCreator {
 
     private boolean isCreateMigrationsTableMigration(SqlMigration migration) {
         return migration.getFileName().endsWith("v000__create_migrations_table.sql");
-    }
-
-    protected boolean isMigrationApplied(SqlMigration migration) {
-        return appliedMigrationsCache.contains(migration.getFileName());
     }
 
     private Connection getConnection() {
