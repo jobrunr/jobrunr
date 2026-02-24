@@ -4,6 +4,7 @@ import org.jobrunr.utils.StringUtils;
 import org.jobrunr.utils.annotations.VisibleFor;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
@@ -17,6 +18,7 @@ import static org.jobrunr.utils.CollectionUtils.mapOf;
  */
 public class CarbonAwareJobProcessingConfigurationReader {
     private final CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration;
+    static final String CARBON_INTENSITY_FORECAST_API_ROOT_URL = "/carbon-intensity/forecast";
 
     public CarbonAwareJobProcessingConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
@@ -31,11 +33,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     public static String getCarbonIntensityForecastApiRootUrl(String baseUrl) {
-        return baseUrl + getCarbonIntensityForecastApiPath();
-    }
-
-    public static String getCarbonIntensityForecastApiPath() {
-        return "/carbon-intensity/forecast";
+        return baseUrl + CARBON_INTENSITY_FORECAST_API_ROOT_URL;
     }
 
     public Duration getPollInterval() {
@@ -43,7 +41,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     URL getCarbonIntensityForecastApiFullPathUrl() throws MalformedURLException {
-        return new URL(getCarbonIntensityApiBaseUrl() + getCarbonIntensityForecastQueryString());
+        return URI.create(getCarbonIntensityApiBaseUrl() + getCarbonIntensityForecastQueryString()).toURL();
     }
 
     public String getDataProvider() {

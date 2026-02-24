@@ -26,7 +26,7 @@ public class RecurringJob extends AbstractJob {
         ANNOTATION
     }
 
-    public static Map<String, Function<RecurringJob, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
+    protected static final Map<String, Function<RecurringJob, Comparable<?>>> ALLOWED_SORT_COLUMNS = new HashMap<>();
 
     static {
         ALLOWED_SORT_COLUMNS.put(StorageProviderUtils.RecurringJobs.FIELD_ID, RecurringJob::getId);
@@ -172,9 +172,9 @@ public class RecurringJob extends AbstractJob {
     }
 
     private JobState getNextState(Instant nextRun, String reason) {
-        Schedule schedule = getSchedule();
-        return schedule.isCarbonAware()
-                ? new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason)
+        Schedule currentSchedule = getSchedule();
+        return currentSchedule.isCarbonAware()
+                ? new CarbonAwareAwaitingState(nextRun, currentSchedule.getCarbonAwareScheduleMargin(), reason)
                 : new ScheduledState(nextRun, reason);
     }
 

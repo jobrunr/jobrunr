@@ -4,7 +4,6 @@ import org.jobrunr.jobs.Job;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -54,7 +53,7 @@ public class JobDashboardLogger {
 
     public static class JobDashboardLogLines implements JobContext.Metadata {
 
-        /* Must be data structure that can be serialized to json and that allows iteration while being updated */
+        /* Must be data structure that can be serialized to json and that allows iteration while being updated. Field cannot be final */
         private ConcurrentLinkedQueue<JobDashboardLogLine> logLines;
 
         public JobDashboardLogLines() {
@@ -69,7 +68,7 @@ public class JobDashboardLogger {
             logLines.add(line);
         }
 
-        public Queue<JobDashboardLogLine> getLogLines() {
+        public ConcurrentLinkedQueue<JobDashboardLogLine> getLogLines() {
             return logLines;
         }
     }

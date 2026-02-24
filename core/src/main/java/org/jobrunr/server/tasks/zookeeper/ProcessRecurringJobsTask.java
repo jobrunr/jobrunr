@@ -52,14 +52,14 @@ public class ProcessRecurringJobsTask extends AbstractJobZooKeeperTask {
 
     private void fillRecurringJobRunsWithLatestScheduledAtForCarbonAware() {
         for (RecurringJob recurringJob : recurringJobs) {
-            Schedule schedule = recurringJob.getSchedule();
-            if (schedule.isNotCarbonAware()) continue;
+            Schedule currentSchedule = recurringJob.getSchedule();
+            if (currentSchedule.isNotCarbonAware()) continue;
 
             Instant scheduledAt = getLatestScheduledAtOfJobsInStorageProviderForAnyState(recurringJob);
             if (scheduledAt == null) continue;
 
             Instant nextRun = recurringJob.getNextRun(runStartTime());
-            if (isInstantBeforeOrEqualTo(nextRun.minus(schedule.getCarbonAwareScheduleMargin().getMarginBefore()), scheduledAt)) {
+            if (isInstantBeforeOrEqualTo(nextRun.minus(currentSchedule.getCarbonAwareScheduleMargin().getMarginBefore()), scheduledAt)) {
                 this.recurringJobRuns.put(recurringJob.getId(), nextRun);
             }
         }

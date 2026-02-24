@@ -101,6 +101,6 @@ public class CarbonAwareAwaitingState extends AbstractJobState implements Schedu
     public Instant getScheduledAt() {
         // why: this acts as a deadline for the awaiting state interval.
         // PreferredInstant can be null if not triggered from a recurring job.
-        return to;
+        return this.getTo();
     }
 }

@@ -32,7 +32,7 @@ class AsyncJobInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new AsyncJobInterceptor();
+        interceptor = new AsyncJobInterceptor(jobScheduler);
         Whitebox.setInternalState(interceptor, "jobScheduler", jobScheduler);
     }
 

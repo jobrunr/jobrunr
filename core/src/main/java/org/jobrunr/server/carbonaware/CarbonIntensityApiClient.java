@@ -35,7 +35,7 @@ public class CarbonIntensityApiClient {
             return CarbonIntensityForecast.fromException(apiClientEx);
         } catch (Exception e) {
             LOGGER.error("Error processing carbon intensity forecast for area code '{}': {}", carbonAwareJobProcessingConfiguration.getAreaCode(), e.getMessage(), e);
-            return CarbonIntensityForecast.fromException(e);
+            return CarbonIntensityForecast.fromException();
         }
     }
 

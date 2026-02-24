@@ -17,7 +17,7 @@ public class PollIntervalInSecondsTimeBoxIsTooSmallProblem extends Problem {
     }
 
     @SuppressWarnings("NonApiType")
-    public ArrayList<JobRunrMetadata> getPollIntervalInSecondsTimeBoxIsTooSmallMetadataSet() {
+    public List<JobRunrMetadata> getPollIntervalInSecondsTimeBoxIsTooSmallMetadataSet() {
         return pollIntervalInSecondsTimeBoxIsTooSmallMetadataSet;
     }
 }

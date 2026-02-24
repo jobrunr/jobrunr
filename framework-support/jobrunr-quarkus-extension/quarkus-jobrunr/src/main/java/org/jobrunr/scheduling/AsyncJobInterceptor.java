@@ -22,11 +22,13 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 @AsyncJob
 @Interceptor
 public class AsyncJobInterceptor {
-
+    private final JobScheduler jobScheduler;
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncJobInterceptor.class);
 
     @Inject
-    JobScheduler jobScheduler;
+    AsyncJobInterceptor(JobScheduler jobScheduler) {
+        this.jobScheduler = jobScheduler;
+    }
 
     @AroundInvoke
     public Object intercept(InvocationContext ctx) throws Exception {

@@ -37,6 +37,9 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  * </ul>
  */
 public class CarbonAware {
+    private CarbonAware() {
+        /* This utility class should not be instantiated */
+    }
 
     /**
      * Allows relaxing the scheduling of a job to minimize carbon impact.

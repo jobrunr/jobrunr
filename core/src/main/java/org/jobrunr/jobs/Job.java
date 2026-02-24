@@ -54,7 +54,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class Job extends AbstractJob {
 
     private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)");
-    public static JobSortColumns ALLOWED_SORT_COLUMNS = new JobSortColumns();
+    public static final JobSortColumns ALLOWED_SORT_COLUMNS = new JobSortColumns();
 
     static {
         ALLOWED_SORT_COLUMNS.add(FIELD_CREATED_AT, Job::getCreatedAt);
@@ -68,7 +68,7 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
-    private transient final AtomicInteger stateIndexBeforeStateChange;
+    private final transient AtomicInteger stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();

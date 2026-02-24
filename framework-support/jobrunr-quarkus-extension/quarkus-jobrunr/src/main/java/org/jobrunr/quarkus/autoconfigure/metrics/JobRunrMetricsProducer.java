@@ -20,8 +20,12 @@ public class JobRunrMetricsProducer {
     }
 
     public static class StorageProviderMetricsProducer {
+        private final JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
         @Inject
-        JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+        StorageProviderMetricsProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+            this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+        }
 
         @Produces
         @DefaultBean
@@ -36,8 +40,12 @@ public class JobRunrMetricsProducer {
     }
 
     public static class BackgroundJobServerMetricsProducer {
+        private final JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+
         @Inject
-        JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+        BackgroundJobServerMetricsProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+            this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+        }
 
         @Produces
         @DefaultBean

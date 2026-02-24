@@ -15,9 +15,12 @@ import static org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration.using
 
 @Singleton
 public class JobRunrDashboardProducer {
+    private final JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Inject
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    JobRunrDashboardProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
 
     @Produces
     @DefaultBean

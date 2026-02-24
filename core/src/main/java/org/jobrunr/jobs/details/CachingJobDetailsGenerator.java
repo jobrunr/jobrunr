@@ -109,8 +109,8 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         private JobDetails initOrGetJobDetails(Supplier<JobDetails> jobDetailsSupplier, Supplier<List<JobParameterRetriever>> jobParameterRetrieverSupplier, Supplier<JobDetails> getJobDetailsUsingCache) {
             if (this.jobDetails == null) {
-                JobDetails jobDetails = initJobDetails(jobDetailsSupplier, jobParameterRetrieverSupplier);
-                if (jobDetails != null) return jobDetails;
+                JobDetails getJobDetails = initJobDetails(jobDetailsSupplier, jobParameterRetrieverSupplier);
+                if (getJobDetails != null) return getJobDetails;
             }
 
             if (TRUE.equals(this.jobDetails.getCacheable())) {
@@ -154,7 +154,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails.setCacheable(
                         declaredFields.isEmpty()
                                 && jobParameters.size() == parameterRetrievers.size()
-                                && (!itemFromStream.isPresent() || parameterRetrievers.stream().anyMatch(r -> r instanceof ItemFromStreamJobParameterRetriever))
+                                && (!itemFromStream.isPresent() || parameterRetrievers.stream().anyMatch(ItemFromStreamJobParameterRetriever.class::isInstance))
                 );
                 return parameterRetrievers;
             } catch (Exception e) {
