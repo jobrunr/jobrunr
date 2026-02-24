@@ -21,7 +21,8 @@ import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,7 +48,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.timerReentrantLock = new ReentrantLock();
         this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
-        this.notificationExecutor = Executors.newSingleThreadExecutor();
+        this.notificationExecutor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS,
+                new SynchronousQueue<>(), new ThreadPoolExecutor.DiscardPolicy());
     }
 
     @Override
@@ -73,15 +75,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     public void close() {
         stopTimerToSendUpdates();
         onChangeListeners.clear();
-        notificationExecutor.shutdown();
-        try {
-            if (!notificationExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
-                notificationExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            notificationExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        notificationExecutor.shutdownNow();
     }
 
     @Override
