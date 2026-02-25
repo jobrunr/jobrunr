@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -52,7 +51,7 @@ public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
     private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
-
+    private static final String JOBRUNR_MIGRATIONS = "jobrunr_migrations";
     private final ConnectionProvider connectionProvider;
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
@@ -221,7 +220,7 @@ public class DatabaseCreator {
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
-        try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
+        try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
             pSt.setString(3, now().truncatedTo(MICROS).toString());
@@ -240,7 +239,7 @@ public class DatabaseCreator {
 
     protected boolean isMigrationApplied(SqlMigration migration) {
         try (final Connection conn = getConnection();
-             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
+             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " where script = ?")) {
             boolean result = false;
             pSt.setString(1, migration.getFileName());
             try (ResultSet rs = pSt.executeQuery()) {
@@ -326,7 +325,7 @@ public class DatabaseCreator {
         private void startMigrationsTableLockUpdateTimer() {
             lockUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
             // We do not want to cancel but just recurrently fire-and-forget
-            ScheduledFuture<?> unused = lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
+            lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
         }
 
         private void removeMigrationsTableLock() {
@@ -364,13 +363,13 @@ public class DatabaseCreator {
             } catch (SQLException e) {
                 throw shouldNotHappenException(e);
             } catch (Exception e) {
-                LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the jobrunr_migrations table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
+                LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
                 throw e;
             }
         }
 
         private boolean isMigrationsTableLocked() throws SQLException {
-            try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 ResultSet rs = pSt.executeQuery();
                 if (rs.next()) {
@@ -386,7 +385,7 @@ public class DatabaseCreator {
         }
 
         private void insertLock(Connection connection) throws SQLException {
-            try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
+            try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " values (?, ?, ?)")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 pSt.setString(2, TABLE_LOCKER_SCRIPT);
                 pSt.setString(3, now().truncatedTo(MICROS).toString());
@@ -398,7 +397,7 @@ public class DatabaseCreator {
 
         // why: dropping and creating new indexes can take a good amount of time. Here we update the installedOn column so it can be awaited and monitored by other servers.
         private void updateLock(Connection connection) throws SQLException {
-            try (final PreparedStatement pSt = connection.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " set installedOn = ? where id = ? and script = ?")) {
+            try (final PreparedStatement pSt = connection.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " set installedOn = ? where id = ? and script = ?")) {
                 pSt.setString(1, now().truncatedTo(MICROS).toString());
                 pSt.setString(2, TABLE_LOCKER_UUID);
                 pSt.setString(3, TABLE_LOCKER_SCRIPT);
@@ -409,7 +408,7 @@ public class DatabaseCreator {
         }
 
         private void removeLock(Connection conn) throws SQLException {
-            try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS) + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
                 if (updateCount == 0)

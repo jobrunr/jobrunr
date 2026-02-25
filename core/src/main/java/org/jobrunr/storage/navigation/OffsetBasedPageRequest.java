@@ -48,7 +48,7 @@ public class OffsetBasedPageRequest extends PageRequest {
 
     @Override
     public <T> Page<T> mapToNewPage(long total, List<T> items) {
-        return new Page<>(total, items, offset, calculateCurrentPage(), this, previousPageRequest(total), nextPageRequest(total));
+        return new Page<>(total, items, offset, calculateCurrentPage(), this, previousPageRequest(), nextPageRequest(total));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class OffsetBasedPageRequest extends PageRequest {
         return new Page<>(0, emptyList(), offset, 0, this, null, null);
     }
 
-    private OffsetBasedPageRequest previousPageRequest(long ignored) {
+    private OffsetBasedPageRequest previousPageRequest() {
         if (getOffset() >= getLimit()) {
             return new OffsetBasedPageRequest(getOrder(), getOffset() - getLimit(), getLimit());
         }

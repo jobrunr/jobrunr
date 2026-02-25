@@ -14,7 +14,7 @@ import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 public class UnresolvableConcurrentJobModificationException extends ConcurrentJobModificationException implements DiagnosticsAware {
 
-    private final List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults;
+    private final transient List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults;
 
     public UnresolvableConcurrentJobModificationException(List<ConcurrentJobModificationResolveResult> concurrentJobModificationResolveResults, Exception cause) {
         super(concurrentJobModificationResolveResults.stream().map(ConcurrentJobModificationResolveResult::getLocalJob).collect(toList()), cause);

@@ -57,6 +57,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
     private final Map<String, JobRunrMetadata> metadata = new ConcurrentHashMap<>();
+    private final static String LOCKER = "locker";
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -336,8 +337,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
-        JobRunrMetadata metadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
-        metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
+        JobRunrMetadata succeededJobsMetadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
+        succeededJobsMetadata.setValue(new AtomicLong(parseLong(succeededJobsMetadata.getValue()) + amount).toString());
     }
 
     public void clear() {
@@ -367,14 +368,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
+        setFieldUsingAutoboxing(LOCKER, result, getValueFromFieldOrProperty(job, LOCKER));
         return result;
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
         final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
         final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
+        setFieldUsingAutoboxing(LOCKER, result, getValueFromFieldOrProperty(recurringJob, LOCKER));
         return result;
     }
 

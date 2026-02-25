@@ -33,6 +33,8 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
     private final JobDetailsAdapter jobDetailsAdapter;
     private final JobHistoryAdapter jobHistoryAdapter;
     private final JobMetadataAdapter jobMetadataAdapter;
+    private static final String AMOUNT_OF_RETRIES = "amountOfRetries";
+    private static final String RECURRING_JOB_ID = "recurringJobId";
 
     public JobAdapter() {
         Jsonb jsonb = JsonbBuilder.create(new JsonbConfig()
@@ -52,14 +54,14 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", job.getId())
                 .add("jobName", job.getJobName())
-                .add("amountOfRetries", job.getAmountOfRetries())
+                .add(AMOUNT_OF_RETRIES, job.getAmountOfRetries())
                 .add("labels", jobLabelsAdapter.adaptToJson(job.getLabels()))
                 .add("jobSignature", job.getJobSignature())
                 .add("version", job.getVersion())
                 .add("metadata", jobMetadataAdapter.adaptToJson(job.getMetadata()))
                 .add("jobDetails", jobDetailsAdapter.adaptToJson(job.getJobDetails()))
                 .add("jobHistory", jobHistoryAdapter.adaptToJson(job.getJobStates()))
-                .add("recurringJobId", job.getRecurringJobId().orElse(null));
+                .add(RECURRING_JOB_ID, job.getRecurringJobId().orElse(null));
 
         return builder.build();
     }
@@ -76,8 +78,8 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
         job.setLabels(jobLabels);
-        job.setAmountOfRetries(jsonObject.containsKey("amountOfRetries") && !jsonObject.isNull("amountOfRetries") ? jsonObject.getInt("amountOfRetries") : null);
-        job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && !jsonObject.isNull("recurringJobId") ? jsonObject.getString("recurringJobId") : null);
+        job.setAmountOfRetries(jsonObject.containsKey(AMOUNT_OF_RETRIES) && !jsonObject.isNull(AMOUNT_OF_RETRIES) ? jsonObject.getInt(AMOUNT_OF_RETRIES) : null);
+        job.setRecurringJobId(jsonObject.containsKey(RECURRING_JOB_ID) && !jsonObject.isNull(RECURRING_JOB_ID) ? jsonObject.getString(RECURRING_JOB_ID) : null);
         return job;
     }
 }

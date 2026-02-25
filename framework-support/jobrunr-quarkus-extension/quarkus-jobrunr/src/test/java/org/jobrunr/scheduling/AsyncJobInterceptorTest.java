@@ -92,11 +92,12 @@ class AsyncJobInterceptorTest {
     }
 
     private void someMethodThatIsNotAnnotatedWithJob() {
+        // used for testing
     }
 
     @Job
     private void someMethodWithJobAnnotation() {
-
+        // used for testing
     }
 
     @Job

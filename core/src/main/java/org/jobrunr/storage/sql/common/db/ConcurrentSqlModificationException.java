@@ -10,7 +10,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class ConcurrentSqlModificationException extends StorageException {
 
-    private final List<?> items;
+    private final transient List<?> items;
     private final int[] insertOrUpdateResult;
 
     public static ConcurrentSqlModificationException concurrentDatabaseModificationException(Object item, int insertOrUpdateResult) {

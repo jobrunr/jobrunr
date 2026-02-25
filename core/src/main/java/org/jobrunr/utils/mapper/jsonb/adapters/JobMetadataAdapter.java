@@ -24,6 +24,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, JsonObject> {
 
     private final JobRunrJsonb jsonb;
+    private static final String AT_CLASS = "@class";
 
     public JobMetadataAdapter(JobRunrJsonb jsonb) {
         this.jsonb = jsonb;
@@ -32,7 +33,7 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
     @Override
     public JsonObject adaptToJson(Map<String, Object> map) {
         final JsonObjectBuilder metadataJsonObjectBuilder = Json.createObjectBuilder()
-                .add("@class", "java.util.concurrent.ConcurrentHashMap");
+                .add(AT_CLASS, "java.util.concurrent.ConcurrentHashMap");
 
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String key = entry.getKey();
@@ -40,7 +41,7 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
             final JsonValue jsonValue = this.jsonb.fromJsonToJsonValue(object);
             if (OBJECT.equals(jsonValue.getValueType())) {
                 final JsonObjectBuilder childObjectBuilder = nullSafeJsonObjectBuilder((JsonObject) jsonValue)
-                        .add("@class", object.getClass().getName());
+                        .add(AT_CLASS, object.getClass().getName());
                 metadataJsonObjectBuilder.add(key, childObjectBuilder);
             } else if (ARRAY.equals(jsonValue.getValueType())) {
                 throw new UnsupportedOperationException("Not supported: " + jsonValue.getValueType());
@@ -56,12 +57,12 @@ public class JobMetadataAdapter implements JsonbAdapter<Map<String, Object>, Jso
         final ConcurrentHashMap<String, Object> result = new ConcurrentHashMap<>();
         for (Map.Entry<String, JsonValue> entry : jsonMetadataObject.entrySet()) {
             String key = entry.getKey();
-            if ("@class".equals(key)) continue;
+            if (AT_CLASS.equals(key)) continue;
 
             final JsonValue jsonValue = entry.getValue();
             if (OBJECT.equals(jsonValue.getValueType())) {
                 final JsonObject jsonObject = jsonValue.asJsonObject();
-                final Object o = jsonb.fromJsonValue(jsonObject, toClass(jsonObject.getString("@class")));
+                final Object o = jsonb.fromJsonValue(jsonObject, toClass(jsonObject.getString(AT_CLASS)));
                 result.put(key, o);
             } else if (STRING.equals(jsonValue.getValueType())) {
                 result.put(key, ((JsonString) jsonValue).getString());

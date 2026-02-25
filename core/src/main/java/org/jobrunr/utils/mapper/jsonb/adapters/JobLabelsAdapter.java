@@ -13,6 +13,7 @@ import java.util.List;
 public class JobLabelsAdapter implements JsonbAdapter<List<String>, JsonArray> {
 
     public JobLabelsAdapter() {
+        // for serialization
     }
 
     @Override

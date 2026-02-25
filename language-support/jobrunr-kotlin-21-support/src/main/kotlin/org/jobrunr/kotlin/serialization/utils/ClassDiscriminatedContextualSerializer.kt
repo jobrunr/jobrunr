@@ -27,6 +27,8 @@ import kotlinx.serialization.json.long
 import kotlinx.serialization.json.longOrNull
 
 object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
+    private const val AT_CLASS = "@class";
+
     @OptIn(InternalSerializationApi::class)
     override val descriptor = buildSerialDescriptor(Any::class.qualifiedName!!, SerialKind.CONTEXTUAL) {}
 
@@ -38,7 +40,7 @@ object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
         when (val jsonElement = encoder.json.encodeToJsonElement(serializer, value)) {
             is JsonObject -> {
                 val jsonMap = jsonElement.jsonObject.toMutableMap()
-                jsonMap["@class"] = JsonPrimitive(value::class.java.name)
+                jsonMap[AT_CLASS] = JsonPrimitive(value::class.java.name)
                 encoder.encodeSerializableValue(JsonObject.serializer(), JsonObject(jsonMap))
             }
 
@@ -60,8 +62,8 @@ object ClassDiscriminatedContextualSerializer : KSerializer<Any> {
 
         val jsonElement = decoder.decodeJsonElement()
 
-        if (jsonElement is JsonObject && "@class" in jsonElement) {
-            val serializer = decoder.serializersModule.serializer(Class.forName(jsonElement["@class"]!!.jsonPrimitive.content).kotlin)
+        if (jsonElement is JsonObject && AT_CLASS in jsonElement) {
+            val serializer = decoder.serializersModule.serializer(Class.forName(jsonElement[AT_CLASS]!!.jsonPrimitive.content).kotlin)
             val elementToDecode = if ("value" in jsonElement) jsonElement["value"]!! else jsonElement
 
             return decoder.json.decodeFromJsonElement(serializer as DeserializationStrategy<Any>, elementToDecode)

@@ -13,6 +13,8 @@ import org.jobrunr.server.BackgroundJobServer;
 @Readiness
 @ApplicationScoped
 public class JobRunrHealthCheck implements HealthCheck {
+    private static final String BACKGROUND_JOB_SERVER = "backgroundJobServer";
+    private static final String BACKGROUND_JOB_SERVER_STATUS = "backgroundJobServerStatus";
 
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
@@ -29,19 +31,19 @@ public class JobRunrHealthCheck implements HealthCheck {
         if (!jobRunrRuntimeConfiguration.backgroundJobServer().enabled()) {
             healthResponseBuilder
                     .up()
-                    .withData("backgroundJobServer", "disabled");
+                    .withData(BACKGROUND_JOB_SERVER, "disabled");
         } else {
             final BackgroundJobServer backgroundJobServer = backgroundJobServerInstance.get();
             if (backgroundJobServer.isRunning()) {
                 healthResponseBuilder
                         .up()
-                        .withData("backgroundJobServer", "enabled")
-                        .withData("backgroundJobServerStatus", "running");
+                        .withData(BACKGROUND_JOB_SERVER, "enabled")
+                        .withData(BACKGROUND_JOB_SERVER_STATUS, "running");
             } else {
                 healthResponseBuilder
                         .down()
-                        .withData("backgroundJobServer", "enabled")
-                        .withData("backgroundJobServerStatus", "stopped");
+                        .withData(BACKGROUND_JOB_SERVER, "enabled")
+                        .withData(BACKGROUND_JOB_SERVER_STATUS, "stopped");
             }
         }
         return healthResponseBuilder.build();

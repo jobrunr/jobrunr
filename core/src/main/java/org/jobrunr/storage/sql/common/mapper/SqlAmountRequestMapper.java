@@ -20,11 +20,11 @@ public class SqlAmountRequestMapper {
         this.allowedSortColumns = allowedSortColumns;
     }
 
-    public String mapToSqlQuery(AmountRequest pageRequest, Sql table) {
+    public <T> String mapToSqlQuery(AmountRequest pageRequest, Sql<T> table) {
         return mapToSqlQuery(pageRequest, table, SqlAmountRequestMapper::orderTermToSqlString);
     }
 
-    public String mapToSqlQuery(AmountRequest amountRequest, Sql table, Function<OrderTerm, String> orderTermMapper) {
+    public <T> String mapToSqlQuery(AmountRequest amountRequest, Sql<T> table, Function<OrderTerm, String> orderTermMapper) {
         table.with("limit", amountRequest.getLimit());
         return orderClause(amountRequest, orderTermMapper) + " " + dialect.limit();
     }
