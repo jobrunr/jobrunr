@@ -23,7 +23,7 @@ public class RecurringJob extends AbstractJob {
         ANNOTATION
     }
 
-    protected static final RecurringJobSortColumns ALLOWED_SORT_COLUMNS = new RecurringJobSortColumns();
+    public static final RecurringJobSortColumns ALLOWED_SORT_COLUMNS = new RecurringJobSortColumns();
 
     private String id;
     private String scheduleExpression;
@@ -164,9 +164,8 @@ public class RecurringJob extends AbstractJob {
     }
 
     private JobState getNextState(Instant nextRun, String reason) {
-        Schedule currentSchedule = getSchedule();
-        return currentSchedule.isCarbonAware()
-                ? new CarbonAwareAwaitingState(nextRun, currentSchedule.getCarbonAwareScheduleMargin(), reason)
+        return getSchedule().isCarbonAware()
+                ? new CarbonAwareAwaitingState(nextRun, getSchedule().getCarbonAwareScheduleMargin(), reason)
                 : new ScheduledState(nextRun, reason);
     }
 

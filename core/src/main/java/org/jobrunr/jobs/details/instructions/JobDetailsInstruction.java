@@ -45,11 +45,13 @@ public class JobDetailsInstruction extends VisitMethodInstruction {
         } else if (owner.startsWith("java")) {
             return getObject();
         } else {
-            final long before = System.nanoTime();
             final Object result = getObject();
-            final long after = System.nanoTime();
-            if (LOGGER.isWarnEnabled() && (after - before) > 3_000_000) {
-                LOGGER.warn("You are using a custom method ({}.{}({})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/en/documentation/background-methods/best-practices/ on how to use JobRunr effectively.", getClassName(), getMethodName(), Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
+            if (LOGGER.isWarnEnabled()) {
+                final long after = System.nanoTime();
+                final long before = System.nanoTime();
+                if ((after - before) > 3_000_000) {
+                    LOGGER.warn("You are using a custom method ({}.{}({})) while enqueueing that takes a lot of time. See https://www.jobrunr.io/en/documentation/background-methods/best-practices/ on how to use JobRunr effectively.", getClassName(), getMethodName(), Stream.of(findParamTypesFromDescriptorAsArray(descriptor)).map(Class::getSimpleName).collect(joining(", ")));
+                }
             }
             return result;
         }

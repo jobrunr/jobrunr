@@ -11,11 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JobLabelsAdapter implements JsonbAdapter<List<String>, JsonArray> {
-
-    public JobLabelsAdapter() {
-        // for serialization
-    }
-
+    
     @Override
     public JsonArray adaptToJson(List<String> labels) {
         final JsonArrayBuilder historyJsonObject = Json.createArrayBuilder();

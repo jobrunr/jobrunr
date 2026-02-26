@@ -54,7 +54,7 @@ public class JobDashboardLogger {
 
     public static class JobDashboardLogLines implements JobContext.Metadata {
 
-        /* Must be data structure that can be serialized to json and that allows iteration while being updated. Field cannot be final */
+        /* Must be data structure that can be serialized to json and that allows iteration while being updated. */
         private ConcurrentLinkedQueue<JobDashboardLogLine> logLines;
 
         public JobDashboardLogLines() {
