@@ -21,8 +21,8 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 @AsyncJob
 @Interceptor
 public class AsyncJobInterceptor {
-    private final JobScheduler jobScheduler;
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncJobInterceptor.class);
+    private final JobScheduler jobScheduler;
 
     @Inject
     AsyncJobInterceptor(JobScheduler jobScheduler) {

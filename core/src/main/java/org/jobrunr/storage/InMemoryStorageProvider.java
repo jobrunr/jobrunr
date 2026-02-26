@@ -52,12 +52,10 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
-
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
     private final Map<String, JobRunrMetadata> metadata = new ConcurrentHashMap<>();
-    private final static String LOCKER = "locker";
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
@@ -368,14 +366,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        setFieldUsingAutoboxing(LOCKER, result, getValueFromFieldOrProperty(job, LOCKER));
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
         return result;
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
         final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
         final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
-        setFieldUsingAutoboxing(LOCKER, result, getValueFromFieldOrProperty(recurringJob, LOCKER));
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
         return result;
     }
 

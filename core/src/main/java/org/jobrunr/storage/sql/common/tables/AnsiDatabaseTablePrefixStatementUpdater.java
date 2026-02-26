@@ -8,9 +8,6 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
 
     protected final String tablePrefix;
     protected final String indexPrefix;
-    private static final String CREATE_INDEX = "CREATE INDEX ";
-    private static final String DROP_INDEX = "DROP INDEX ";
-    private static final String CREATE_UNIQUE_INDEX = "CREATE UNIQUE INDEX ";
 
     public AnsiDatabaseTablePrefixStatementUpdater(String tablePrefix) {
         this.tablePrefix = tablePrefix;
@@ -39,22 +36,22 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
     }
 
     private boolean isIndexStatement(String statement) {
-        return statement.contains(CREATE_INDEX) || statement.contains(CREATE_UNIQUE_INDEX) || statement.contains(DROP_INDEX);
+        return statement.contains("CREATE INDEX ") || statement.contains("CREATE UNIQUE INDEX ") || statement.contains("DROP INDEX ");
     }
 
     protected String updateStatementWithTablePrefixForIndexStatement(String statement) {
         String updatedStatement;
         if (statement.toUpperCase().contains(" ON ")) {
             updatedStatement = statement
-                    .replace("CREATE UNIQUE INDEX jobrunr_", CREATE_UNIQUE_INDEX + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
-                    .replace("CREATE INDEX jobrunr_", CREATE_INDEX + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
-                    .replace("DROP INDEX jobrunr_", DROP_INDEX + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("CREATE UNIQUE INDEX jobrunr_", "CREATE UNIQUE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("DROP INDEX jobrunr_", "DROP INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
                     .replace("ON jobrunr_", "ON " + elementPrefixer(tablePrefix, DEFAULT_PREFIX));
         } else {
             updatedStatement = statement
-                    .replace("CREATE UNIQUE INDEX jobrunr_", CREATE_UNIQUE_INDEX + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
-                    .replace("CREATE INDEX jobrunr_", CREATE_INDEX + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
-                    .replace("DROP INDEX jobrunr_", DROP_INDEX + elementPrefixer(tablePrefix, DEFAULT_PREFIX));
+                    .replace("CREATE UNIQUE INDEX jobrunr_", "CREATE UNIQUE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("CREATE INDEX jobrunr_", "CREATE INDEX " + elementPrefixer(indexPrefix, DEFAULT_PREFIX))
+                    .replace("DROP INDEX jobrunr_", "DROP INDEX " + elementPrefixer(tablePrefix, DEFAULT_PREFIX));
         }
         return updatedStatement;
     }

@@ -18,7 +18,6 @@ import static org.jobrunr.utils.CollectionUtils.mapOf;
  */
 public class CarbonAwareJobProcessingConfigurationReader {
     private final CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration;
-    static final String CARBON_INTENSITY_FORECAST_API_ROOT_URL = "/carbon-intensity/forecast";
 
     public CarbonAwareJobProcessingConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
@@ -33,7 +32,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     public static String getCarbonIntensityForecastApiRootUrl(String baseUrl) {
-        return baseUrl + CARBON_INTENSITY_FORECAST_API_ROOT_URL;
+        return baseUrl + "/carbon-intensity/forecast";
     }
 
     public Duration getPollInterval() {
