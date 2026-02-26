@@ -47,6 +47,7 @@ public class BackgroundJobPerformer implements Runnable {
         } catch (Exception e) {
             if (isJobDeletedWhileProcessing(e)) {
                 // nothing to do anymore as Job is deleted
+                return;
             } else if (isJobServerStopped(e)) {
                 updateJobStateToFailedAndRunJobFilters("Job processing was stopped as background job server has stopped", e);
                 Thread.currentThread().interrupt();

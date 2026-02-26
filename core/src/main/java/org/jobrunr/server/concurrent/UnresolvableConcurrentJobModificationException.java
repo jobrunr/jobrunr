@@ -53,9 +53,15 @@ public class UnresolvableConcurrentJobModificationException extends ConcurrentJo
             final JobState jobState = job.getJobState(-i);
             result.append(jobState.getName());
             if (jobState instanceof ProcessingState) {
-                result.append(" (updated at " + jobState.getUpdatedAt() + " on BackgroundJobServer " + ((ProcessingState) jobState).getServerId() + " and started at " + jobState.getCreatedAt() + ")");
+                result.append(" (updated at ")
+                        .append(jobState.getUpdatedAt())
+                        .append(" on BackgroundJobServer ")
+                        .append(((ProcessingState) jobState).getServerId())
+                        .append(" and started at ")
+                        .append(jobState.getCreatedAt())
+                        .append(")");
             } else {
-                result.append(" (at " + jobState.getUpdatedAt() + ")");
+                result.append(" (at ").append(jobState.getUpdatedAt()).append(")");
             }
             if (i < jobStatesToShow) {
                 result.append(" ← ");

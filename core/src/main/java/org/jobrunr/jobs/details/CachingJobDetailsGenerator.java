@@ -109,8 +109,8 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
 
         private JobDetails initOrGetJobDetails(Supplier<JobDetails> jobDetailsSupplier, Supplier<List<JobParameterRetriever>> jobParameterRetrieverSupplier, Supplier<JobDetails> getJobDetailsUsingCache) {
             if (this.jobDetails == null) {
-                JobDetails getJobDetails = initJobDetails(jobDetailsSupplier, jobParameterRetrieverSupplier);
-                if (getJobDetails != null) return getJobDetails;
+                JobDetails jobDetails = initJobDetails(jobDetailsSupplier, jobParameterRetrieverSupplier);
+                if (jobDetails != null) return jobDetails;
             }
 
             if (TRUE.equals(this.jobDetails.getCacheable())) {

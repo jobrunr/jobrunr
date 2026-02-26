@@ -337,8 +337,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
-        JobRunrMetadata succeededJobsMetadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
-        succeededJobsMetadata.setValue(new AtomicLong(parseLong(succeededJobsMetadata.getValue()) + amount).toString());
+        JobRunrMetadata jobRunrMetadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
+        jobRunrMetadata.setValue(new AtomicLong(parseLong(jobRunrMetadata.getValue()) + amount).toString());
     }
 
     public void clear() {

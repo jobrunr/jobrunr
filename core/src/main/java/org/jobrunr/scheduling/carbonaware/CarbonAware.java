@@ -38,7 +38,7 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  */
 public class CarbonAware {
     private CarbonAware() {
-        /* This utility class should not be instantiated */
+        // needed for SonarQube
     }
 
     /**

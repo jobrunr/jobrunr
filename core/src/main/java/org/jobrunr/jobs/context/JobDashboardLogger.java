@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
@@ -68,7 +69,7 @@ public class JobDashboardLogger {
             logLines.add(line);
         }
 
-        public ConcurrentLinkedQueue<JobDashboardLogLine> getLogLines() {
+        public Queue<JobDashboardLogLine> getLogLines() {
             return logLines;
         }
     }

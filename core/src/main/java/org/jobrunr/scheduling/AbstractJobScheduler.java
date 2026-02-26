@@ -195,8 +195,8 @@ public abstract class AbstractJobScheduler {
     }
 
     private void validateRecurringJobSchedule(RecurringJob recurringJob) {
-        Schedule currentSchedule = recurringJob.getSchedule();
-        currentSchedule.validate();
-        storageProvider.validateRecurringJobInterval(currentSchedule.durationBetweenSchedules());
+        Schedule schedule = recurringJob.getSchedule();
+        schedule.validate();
+        storageProvider.validateRecurringJobInterval(schedule.durationBetweenSchedules());
     }
 }

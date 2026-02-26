@@ -365,7 +365,7 @@ public class DatabaseCreator {
             } catch (SQLException e) {
                 throw shouldNotHappenException(e);
             } catch (Exception e) {
-                LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
+                LOGGER.error("Error waiting for database migrations to finish. Manually review your database migrations in the jobrunr_migrations table and then delete the migration lock entry with id '{}' before trying again.", TABLE_LOCKER_UUID, e);
                 throw e;
             }
         }
