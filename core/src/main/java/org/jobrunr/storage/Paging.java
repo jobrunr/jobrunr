@@ -4,8 +4,6 @@ import org.jobrunr.storage.navigation.AmountRequest;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 
 public class Paging {
-    private static final String ASC = ":ASC";
-    private static final String DESC = ":DESC";
 
     private Paging() {
     } // for sonarqube
@@ -14,23 +12,23 @@ public class Paging {
         private AmountBasedList() {}
 
         public static AmountRequest ascOnUpdatedAt(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ASC, amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":ASC", amount);
         }
 
         public static AmountRequest descOnUpdatedAt(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + DESC, amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":DESC", amount);
         }
 
         public static AmountRequest ascOnCreatedAt(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_CREATED_AT + ASC, amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_CREATED_AT + ":ASC", amount);
         }
 
         public static AmountRequest ascOnScheduledAt(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ASC, amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":ASC", amount);
         }
 
         public static AmountRequest descOnScheduledAt(int amount) {
-            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + DESC, amount);
+            return new AmountRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":DESC", amount);
         }
     }
 
@@ -50,7 +48,7 @@ public class Paging {
         }
 
         public static OffsetBasedPageRequest ascOnUpdatedAt(int offset, int amount) {
-            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ASC, offset, amount);
+            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":ASC", offset, amount);
         }
 
         public static OffsetBasedPageRequest descOnUpdatedAt(int amount) {
@@ -58,7 +56,7 @@ public class Paging {
         }
 
         public static OffsetBasedPageRequest descOnUpdatedAt(int offset, int amount) {
-            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + DESC, offset, amount);
+            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":DESC", offset, amount);
         }
 
         public static OffsetBasedPageRequest ascOnScheduledAt(int amount) {
@@ -66,7 +64,7 @@ public class Paging {
         }
 
         public static OffsetBasedPageRequest ascOnScheduledAt(int offset, int amount) {
-            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ASC, offset, amount);
+            return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":ASC", offset, amount);
         }
     }
 }
