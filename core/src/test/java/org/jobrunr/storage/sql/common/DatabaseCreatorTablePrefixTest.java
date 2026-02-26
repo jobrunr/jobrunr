@@ -7,7 +7,6 @@ import org.assertj.core.api.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.sql.SqlStorageProvider;
-import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.db2.DB2StorageProvider;
 import org.jobrunr.storage.sql.oracle.OracleStorageProvider;
 import org.jobrunr.storage.sql.sqlserver.SQLServerStorageProvider;
@@ -25,7 +24,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
@@ -131,8 +132,8 @@ class DatabaseCreatorTablePrefixTest {
     private static DatabaseCreator getDatabaseCreator(DataSource dataSource, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         return new DatabaseCreator(dataSource, tablePrefix, sqlStorageProviderClass) {
             @Override
-            protected boolean isMigrationApplied(SqlMigration migration) {
-                return false;
+            protected Set<String> loadAppliedMigrations() {
+                return Collections.emptySet();
             }
         };
     }

@@ -27,7 +27,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -109,11 +113,13 @@ public class DatabaseCreator {
     }
 
     public void runMigrations() {
-        boolean isMigrationTableMissing = isMigrationsTableMissing();
+        Set<String> appliedMigrations = isMigrationsTableMissing()
+                ? Collections.emptySet()
+                : loadAppliedMigrations();
         List<SqlMigration> migrationsToRun = getMigrations()
                 .filter(migration -> migration.getFileName().endsWith(".sql"))
                 .sorted(comparing(SqlMigration::getFileName))
-                .filter(x -> isMigrationTableMissing || isNewMigration(x))
+                .filter(migration -> !appliedMigrations.contains(migration.getFileName()))
                 .collect(toList());
         runMigrations(migrationsToRun);
     }
@@ -232,34 +238,33 @@ public class DatabaseCreator {
         }
     }
 
-    private boolean isNewMigration(SqlMigration migration) {
-        return !isMigrationApplied(migration);
+    /**
+     * Loads all applied migration script names in a single query into cache,
+     * replacing per-migration queries (N+1 problem).
+     */
+    protected Set<String> loadAppliedMigrations() {
+        try (final Connection conn = getConnection();
+             final Statement st = conn.createStatement();
+             final ResultSet rs = st.executeQuery("select script from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations"))) {
+            Map<String, Integer> migrationCounts = new HashMap<>();
+            while (rs.next()) {
+                migrationCounts.merge(rs.getString(1), 1, Integer::sum);
+            }
+            for (Map.Entry<String, Integer> entry : migrationCounts.entrySet()) {
+                if (entry.getValue() > 1) {
+                    throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
+                            "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
+                }
+            }
+            return migrationCounts.keySet();
+        } catch (SQLException sqlException) {
+            LOGGER.debug("Error loading applied migrations", sqlException);
+            throw new StorageException(sqlException);
+        }
     }
 
     private boolean isCreateMigrationsTableMigration(SqlMigration migration) {
         return migration.getFileName().endsWith("v000__create_migrations_table.sql");
-    }
-
-    protected boolean isMigrationApplied(SqlMigration migration) {
-        try (final Connection conn = getConnection();
-             final PreparedStatement pSt = conn.prepareStatement("select count(*) from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where script = ?")) {
-            boolean result = false;
-            pSt.setString(1, migration.getFileName());
-            try (ResultSet rs = pSt.executeQuery()) {
-                if (rs.next()) {
-                    int numberOfRows = rs.getInt(1);
-                    if (numberOfRows > 1) {
-                        throw new IllegalStateException("A migration was applied multiple times (probably because it took too long and the process was killed). " +
-                                "Please verify your migrations manually, cleanup the migrations_table and remove duplicate entries.");
-                    }
-                    result = numberOfRows == 1;
-                }
-            }
-            return result;
-        } catch (SQLException sqlException) {
-            LOGGER.debug("Error checking if migration {} is already applied", migration.getFileName(), sqlException);
-            throw new StorageException(sqlException);
-        }
     }
 
     private Connection getConnection() {
