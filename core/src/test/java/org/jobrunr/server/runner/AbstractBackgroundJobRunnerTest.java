@@ -1,5 +1,6 @@
 package org.jobrunr.server.runner;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.runner.AbstractBackgroundJobRunner.BackgroundJobWorker;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,8 @@ class AbstractBackgroundJobRunnerTest {
         final AbstractBackgroundJobRunner backgroundJobRunner = getJobRunner(BackgroundJobWorker::new);
 
         backgroundJobRunner.run(job);
-        assertThat(ThreadLocalJobContext.getJobContext()).isNull();
+        assertThatCode(ThreadLocalJobContext::getJobContext).isInstanceOf(JobRunrException.class)
+                .hasMessageContaining("No JobContext available. This method can only be called from within a job being executed by a JobRunr worker.");
     }
 
     @Test
@@ -60,7 +62,8 @@ class AbstractBackgroundJobRunnerTest {
         final AbstractBackgroundJobRunner backgroundJobRunner = getJobRunner(BackgroundJobWorker::new);
 
         assertThatCode(() -> backgroundJobRunner.run(job)).isInstanceOf(Exception.class);
-        assertThat(ThreadLocalJobContext.getJobContext()).isNull();
+        assertThatCode(ThreadLocalJobContext::getJobContext).isInstanceOf(JobRunrException.class)
+                .hasMessageContaining("No JobContext available. This method can only be called from within a job being executed by a JobRunr worker.");
     }
 
     private AbstractBackgroundJobRunner getJobRunner() {

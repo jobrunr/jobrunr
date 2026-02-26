@@ -1,6 +1,7 @@
 package org.jobrunr.jobs.context;
 
 import org.assertj.core.api.Assertions;
+import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -197,6 +198,20 @@ public class JobContextTest {
     }
 
     @Test
+    void jobContextRunsStepOnlyOnceSupplierCanThrowNonRetryableException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        assertThatCode(() -> jobContext.runStepOnce("my-step", this::getSomethingThatThrowsAnNonRetryableException))
+                .isInstanceOf(StepExecutionException.class)
+                .isInstanceOf(JobRunrException.class)
+                .hasMessageContaining("Exception during execution of step 'my-step'")
+                .isInstanceOfSatisfying(JobRunrException.class, x -> assertThat(x.isProblematicAndDoNotRetry()).isTrue());
+    }
+
+
+    @Test
     void jobContextIsThreadSafeUsingJackson() throws InterruptedException {
         jobContextIsThreadsafe(new JobMapper(new JacksonJsonMapper()));
     }
@@ -286,5 +301,9 @@ public class JobContextTest {
             throw new Exception("Something went wrong");
         }
         return "test-" + counter.get();
+    }
+
+    private void getSomethingThatThrowsAnNonRetryableException() {
+        throw new JobRunrException("Something went wrong", true);
     }
 }

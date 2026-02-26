@@ -224,7 +224,11 @@ public class JobBuilder {
      */
     protected Job build(JobDetailsGenerator jobDetailsGenerator) {
         if (jobLambda == null) {
-            throw new IllegalArgumentException("A jobLambda must be present.");
+            if (jobRequest != null) {
+                throw new IllegalArgumentException("When using a JobRequest, you must use the JobRequestScheduler instead of the JobScheduler. Or did you call `withJobRequest` by mistake?");
+            }
+
+            throw new IllegalArgumentException("A jobLambda must be present. Did you forget to call `withDetails`?");
         }
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
         return build(jobDetails);
@@ -237,7 +241,10 @@ public class JobBuilder {
      */
     protected Job build() {
         if (jobRequest == null) {
-            throw new IllegalArgumentException("JobRequest must be present.");
+            if (jobLambda != null) {
+                throw new IllegalArgumentException("When using a jobLambda, you must use the JobScheduler instead of the JobRequestScheduler. Or did you call `withDetails` by mistake?");
+            }
+            throw new IllegalArgumentException("A JobRequest must be present. Did you forget to call `withJobRequest`?");
         }
         JobDetails jobDetails = new JobDetails(jobRequest);
         return build(jobDetails);
