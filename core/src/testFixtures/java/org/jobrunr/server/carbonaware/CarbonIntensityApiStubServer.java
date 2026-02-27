@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.time.ZoneId.systemDefault;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.CARBON_INTENSITY_FORECAST_PATH;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRootUrl;
 
 public class CarbonIntensityApiStubServer {
@@ -121,7 +122,7 @@ public class CarbonIntensityApiStubServer {
         webServer.createContext(new HttpExchangeHandler() {
             @Override
             public String getContextPath() {
-                return "/carbon-intensity/forecast";
+                return CARBON_INTENSITY_FORECAST_PATH;
             }
 
             @Override

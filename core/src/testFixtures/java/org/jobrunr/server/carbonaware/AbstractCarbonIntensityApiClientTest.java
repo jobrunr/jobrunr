@@ -11,9 +11,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.time.Duration;
 import java.time.Instant;
 
-import static java.lang.String.format;
 import static java.time.Instant.parse;
 import static org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert.assertThat;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.CARBON_INTENSITY_FORECAST_PATH;
 
 abstract class AbstractCarbonIntensityApiClientTest {
 
@@ -80,7 +80,7 @@ abstract class AbstractCarbonIntensityApiClientTest {
 
     @Test
     void fetchCarbonIntensityForecastWithResponseCode404SetsResponseStatus() {
-        var url = format("/carbon-intensity/forecast" + "?areaCode=BE");
+        var url = CARBON_INTENSITY_FORECAST_PATH + "?areaCode=BE";
         WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(url)).willReturn(WireMock.notFound().withResponseBody(new Body("<html><body>404 Not Found</body></html>"))));
         var apiClient = createCarbonAwareApiClient("BE");
         var logger = LoggerAssert.initFor(apiClient);

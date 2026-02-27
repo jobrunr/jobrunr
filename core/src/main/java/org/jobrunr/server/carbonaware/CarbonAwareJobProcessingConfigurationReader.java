@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static java.util.Optional.ofNullable;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.CARBON_INTENSITY_FORECAST_PATH;
 import static org.jobrunr.utils.CollectionUtils.mapOf;
 
 /**
  * Internal class for JobRunr to access all {@link CarbonAwareJobProcessingConfiguration} details
  */
 public class CarbonAwareJobProcessingConfigurationReader {
+
     private final CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration;
 
     public CarbonAwareJobProcessingConfigurationReader(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
@@ -32,7 +34,7 @@ public class CarbonAwareJobProcessingConfigurationReader {
     }
 
     public static String getCarbonIntensityForecastApiRootUrl(String baseUrl) {
-        return baseUrl + "/carbon-intensity/forecast";
+        return baseUrl + CARBON_INTENSITY_FORECAST_PATH;
     }
 
     public Duration getPollInterval() {
