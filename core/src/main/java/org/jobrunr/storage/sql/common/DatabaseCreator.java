@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -326,7 +327,7 @@ public class DatabaseCreator {
         private void startMigrationsTableLockUpdateTimer() {
             lockUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
             // We do not want to cancel but just recurrently fire-and-forget
-            lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
+            ScheduledFuture<?> ignored = lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
         }
 
         private void removeMigrationsTableLock() {
