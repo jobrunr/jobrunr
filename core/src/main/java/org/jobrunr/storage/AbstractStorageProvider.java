@@ -103,20 +103,19 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
         if (!jobStatsChangeListeners.isEmpty()) {
-            CompletableFuture<?> future = runAsync(() -> {
+            CompletableFuture<Void> ignored = runAsync(() -> {
                 try {
                     if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
                     if (changeListenerNotificationRateLimit.isRateLimited()) return;
                     JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
                     jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
+                } catch (Exception e) {
+                    logError(e);
                 } finally {
                     if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
                         notifyJobStatsChangeListenersReentrantLock.unlock();
                     }
                 }
-            });
-            future.whenComplete((result, e) -> {
-                if (e != null) {logError(e);}
             });
         }
     }

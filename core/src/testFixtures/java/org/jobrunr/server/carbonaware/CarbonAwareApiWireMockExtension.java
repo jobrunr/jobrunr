@@ -29,6 +29,7 @@ import static java.time.ZoneId.systemDefault;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
+import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.CARBON_INTENSITY_FORECAST_PATH;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiRootUrl;
 
@@ -75,7 +76,7 @@ public class CarbonAwareApiWireMockExtension implements Extension, BeforeEachCal
     }
 
     public void mockResponseWhenRequestingAreaCode(String areaCode, String response) {
-        var url = format("/carbon-intensity/forecast" + "?areaCode=%s", areaCode);
+        var url = format("%s?areaCode=%s", CARBON_INTENSITY_FORECAST_PATH, areaCode);
         WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(url))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")

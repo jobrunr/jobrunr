@@ -12,6 +12,7 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 public class CarbonAwareJobProcessingConfiguration {
 
     public static final String DEFAULT_CARBON_INTENSITY_API_URL = getCarbonIntensityForecastApiRootUrl("https://api.jobrunr.io");
+    public static final String CARBON_INTENSITY_FORECAST_PATH = "/carbon-intensity/forecast";
     public static final Duration DEFAULT_API_CLIENT_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     public static final Duration DEFAULT_API_CLIENT_READ_TIMEOUT = Duration.ofSeconds(3);
     public static final Integer DEFAULT_API_CLIENT_RETRIES_ON_EXCEPTION = 3;
