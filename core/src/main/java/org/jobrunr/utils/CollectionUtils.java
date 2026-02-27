@@ -87,7 +87,7 @@ public class CollectionUtils {
         if (isNullOrEmpty(items)) return null;
         return items.get(items.size() - 1);
     }
-
+    
     public static <K, V> Map<K, V> mapOf(K key1, V value1) {
         Map<K, V> result = new HashMap<>();
         result.put(key1, value1);

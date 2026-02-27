@@ -9,6 +9,8 @@ public class Paging {
     } // for sonarqube
 
     public static class AmountBasedList {
+        private AmountBasedList() {}
+
         public static AmountRequest ascOnUpdatedAt(int amount) {
             return new AmountRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":ASC", amount);
         }
@@ -31,12 +33,13 @@ public class Paging {
     }
 
     public static class OffsetBasedPage {
+        private OffsetBasedPage() {}
 
-        public static OffsetBasedPageRequest next(Page page) {
+        public static OffsetBasedPageRequest next(Page<?> page) {
             return OffsetBasedPageRequest.fromString(page.getNextPageRequest());
         }
 
-        public static OffsetBasedPageRequest previous(Page page) {
+        public static OffsetBasedPageRequest previous(Page<?> page) {
             return OffsetBasedPageRequest.fromString(page.getPreviousPageRequest());
         }
 

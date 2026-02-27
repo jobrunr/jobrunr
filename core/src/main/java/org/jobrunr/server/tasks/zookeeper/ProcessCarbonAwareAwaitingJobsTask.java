@@ -157,13 +157,13 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
 
     @VisibleFor("testing")
     void updateCarbonIntensityForecast() {
-        CarbonIntensityForecast carbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
-        if (carbonIntensityForecast.hasNoForecast() && !carbonIntensityForecast.hasError()) {
+        CarbonIntensityForecast newCarbonIntensityForecast = carbonIntensityApiClient.fetchCarbonIntensityForecast();
+        if (newCarbonIntensityForecast.hasNoForecast() && !newCarbonIntensityForecast.hasError()) {
             LOGGER.warn("No new carbon intensity forecast available. Keeping the old forecast.");
             return;
         }
-        this.carbonIntensityForecast = carbonIntensityForecast;
-        updateForecastInStorageProvider(carbonIntensityForecast);
+        this.carbonIntensityForecast = newCarbonIntensityForecast;
+        updateForecastInStorageProvider(newCarbonIntensityForecast);
     }
 
     private void updateForecastInStorageProvider(CarbonIntensityForecast carbonIntensityForecast) {

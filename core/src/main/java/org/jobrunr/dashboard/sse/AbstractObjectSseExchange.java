@@ -10,7 +10,7 @@ public abstract class AbstractObjectSseExchange extends SseExchange {
 
     private final JsonMapper jsonMapper;
 
-    public AbstractObjectSseExchange(HttpExchange httpExchange, JsonMapper jsonMapper) throws IOException {
+    protected AbstractObjectSseExchange(HttpExchange httpExchange, JsonMapper jsonMapper) throws IOException {
         super(httpExchange);
         this.jsonMapper = jsonMapper;
     }

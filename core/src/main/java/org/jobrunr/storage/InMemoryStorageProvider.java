@@ -52,7 +52,6 @@ import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
-
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
@@ -336,8 +335,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
-        JobRunrMetadata metadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
-        metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
+        JobRunrMetadata jobRunrMetadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
+        jobRunrMetadata.setValue(new AtomicLong(parseLong(jobRunrMetadata.getValue()) + amount).toString());
     }
 
     public void clear() {

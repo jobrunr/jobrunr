@@ -56,7 +56,6 @@ public class DatabaseCreator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
     private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
-
     private final ConnectionProvider connectionProvider;
     private final TablePrefixStatementUpdater tablePrefixStatementUpdater;
     private final DatabaseMigrationsProvider databaseMigrationsProvider;
@@ -333,7 +332,7 @@ public class DatabaseCreator {
         private void startMigrationsTableLockUpdateTimer() {
             lockUpdateScheduler = Executors.newSingleThreadScheduledExecutor();
             // We do not want to cancel but just recurrently fire-and-forget
-            ScheduledFuture<?> unused = lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
+            ScheduledFuture<?> ignored = lockUpdateScheduler.scheduleAtFixedRate(this::updateMigrationsTableLock, 5, 5, TimeUnit.SECONDS);
         }
 
         private void removeMigrationsTableLock() {

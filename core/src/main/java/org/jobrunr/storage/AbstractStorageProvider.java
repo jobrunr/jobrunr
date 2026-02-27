@@ -115,10 +115,8 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     }
                 }
             });
-            CompletableFuture<?> unused = future.whenComplete((result, e) -> {
-                if (e != null) {
-                    logError(e);
-                }
+            future.whenComplete((result, e) -> {
+                if (e != null) {logError(e);}
             });
         }
     }
@@ -140,47 +138,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                     List<JobRunrMetadata> jobRunrMetadata = getMetadata(metadataName);
                     listeners.forEach(listener -> listener.onChange(jobRunrMetadata));
                 });
-            }
-        } catch (Exception e) {
-            logError(e);
-        }
-    }
-
-    private void notifyJobChangeListeners() {
-        try {
-            final Map<JobId, List<JobChangeListener>> listenerByJob = StreamUtils
-                    .ofType(onChangeListeners, JobChangeListener.class)
-                    .collect(groupingBy(JobChangeListener::getJobId));
-            if (!listenerByJob.isEmpty()) {
-                listenerByJob.forEach((jobId, listeners) -> {
-                    try {
-                        Job job = getJobById(jobId);
-                        listeners.forEach(listener -> listener.onChange(job));
-                    } catch (JobNotFoundException jobNotFoundException) {
-                        // somebody is listening for a Job that does not exist
-                        listeners.forEach(jobChangeListener -> {
-                            try {
-                                jobChangeListener.close();
-                            } catch (Exception e) {
-                                // Not relevant?
-                            }
-                        });
-                    }
-                });
-            }
-        } catch (Exception e) {
-            logError(e);
-        }
-    }
-
-    private void notifyBackgroundJobServerStatusChangeListeners() {
-        try {
-            final List<BackgroundJobServerStatusChangeListener> serverChangeListeners = StreamUtils
-                    .ofType(onChangeListeners, BackgroundJobServerStatusChangeListener.class)
-                    .collect(toList());
-            if (!serverChangeListeners.isEmpty()) {
-                List<BackgroundJobServerStatus> servers = getBackgroundJobServers();
-                serverChangeListeners.forEach(listener -> listener.onChange(servers));
             }
         } catch (Exception e) {
             logError(e);
@@ -216,6 +173,47 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
             notifyJobChangeListeners();
             notifyBackgroundJobServerStatusChangeListeners();
             notifyMetadataChangeListeners();
+        }
+
+        private void notifyJobChangeListeners() {
+            try {
+                final Map<JobId, List<JobChangeListener>> listenerByJob = StreamUtils
+                        .ofType(onChangeListeners, JobChangeListener.class)
+                        .collect(groupingBy(JobChangeListener::getJobId));
+                if (!listenerByJob.isEmpty()) {
+                    listenerByJob.forEach((jobId, listeners) -> {
+                        try {
+                            Job job = getJobById(jobId);
+                            listeners.forEach(listener -> listener.onChange(job));
+                        } catch (JobNotFoundException jobNotFoundException) {
+                            // somebody is listening for a Job that does not exist
+                            listeners.forEach(jobChangeListener -> {
+                                try {
+                                    jobChangeListener.close();
+                                } catch (Exception e) {
+                                    // Not relevant?
+                                }
+                            });
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                logError(e);
+            }
+        }
+
+        private void notifyBackgroundJobServerStatusChangeListeners() {
+            try {
+                final List<BackgroundJobServerStatusChangeListener> serverChangeListeners = StreamUtils
+                        .ofType(onChangeListeners, BackgroundJobServerStatusChangeListener.class)
+                        .collect(toList());
+                if (!serverChangeListeners.isEmpty()) {
+                    List<BackgroundJobServerStatus> servers = getBackgroundJobServers();
+                    serverChangeListeners.forEach(listener -> listener.onChange(servers));
+                }
+            } catch (Exception e) {
+                logError(e);
+            }
         }
     }
 }

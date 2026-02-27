@@ -4,6 +4,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.adapter.JsonbAdapter;
 import org.jobrunr.jobs.JobDetails;
@@ -25,6 +26,7 @@ import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_METHOD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_STATIC_FIELD_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.getActualClassName;
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
+import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
 public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
@@ -80,7 +82,7 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
                 if (JobContext.class.equals(objectClass)) {
                     result.add(new JobParameter(methodClassName, JobContext.Null));
                 } else if (jsonObject.containsKey(FIELD_JOB_PARAMETER_OBJECT)) {
-                    Object object = jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
+                    Object object = getObjectFromJson(jsonObject, objectClass);
                     result.add(new JobParameter(methodClassName, object));
                 } else {
                     result.add(new JobParameter(methodClassName, null));
@@ -90,5 +92,12 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
             }
         }
         return result;
+    }
+
+    private Object getObjectFromJson(JsonObject jsonObject, Class<?> objectClass) {
+        if (objectClass.isEnum() && jsonObject.get("object") instanceof JsonString) {
+            return Enum.valueOf(cast(objectClass), jsonObject.getString("object"));
+        }
+        return jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
     }
 }

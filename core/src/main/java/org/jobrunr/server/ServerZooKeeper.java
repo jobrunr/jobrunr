@@ -38,7 +38,7 @@ public class ServerZooKeeper implements Runnable {
         this.restartAttempts = new AtomicInteger();
         this.lastSignalAlive = Instant.now();
         this.lastServerTimeoutCheck = Instant.now();
-        LOGGER.trace(systemSupportsSleepDetection()
+        if (LOGGER.isTraceEnabled()) LOGGER.trace(systemSupportsSleepDetection()
                 ? "JobRunr can detect desktop sleeping."
                 : "JobRunr can not detect desktop sleeping.");
     }
@@ -88,7 +88,7 @@ public class ServerZooKeeper implements Runnable {
                 new Thread(this::resetServer).start();
             } else {
                 LOGGER.error("FATAL - {} restarted 3 times but still times out by other servers. Shutting down.", backgroundJobServer, e);
-                new Thread(() -> this.stopServer()).start();
+                new Thread(this::stopServer).start();
             }
         }
     }

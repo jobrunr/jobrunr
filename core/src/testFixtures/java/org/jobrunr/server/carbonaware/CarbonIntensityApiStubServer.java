@@ -121,7 +121,7 @@ public class CarbonIntensityApiStubServer {
         webServer.createContext(new HttpExchangeHandler() {
             @Override
             public String getContextPath() {
-                return CarbonAwareJobProcessingConfigurationReader.getCarbonIntensityForecastApiPath();
+                return "/carbon-intensity/forecast";
             }
 
             @Override
