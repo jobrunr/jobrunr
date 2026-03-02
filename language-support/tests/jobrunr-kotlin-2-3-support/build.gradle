@@ -58,6 +58,11 @@ sourceSets {
     }
 }
 
+compileTestClassLambdasJava {
+    enabled = false
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
