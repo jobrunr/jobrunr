@@ -32,7 +32,7 @@ public enum ScheduleExpressionType {
         if (scheduleExpression.toUpperCase().startsWith("P")) {
             return INTERVAL.createSchedule(scheduleExpression);
         }
-        if (scheduleExpression.matches(".*\\s.*")) {
+        if (scheduleExpression.trim().matches("^(\\S+(?:\\s+\\S+){4,5})(?:\\s+\\[([\\w/]+)])?$")) {
             return CRON_EXPRESSION.createSchedule(scheduleExpression);
         }
         throw new ScheduleException(scheduleExpression);

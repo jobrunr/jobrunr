@@ -38,6 +38,7 @@ public class ClassPathResourceProvider implements AutoCloseable {
         try {
             lock.tryLock(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IllegalStateException("Unable to open lock. Make sure the ClassPathResourceProvider is used inside a try-with-resources block?", e);
         }
     }

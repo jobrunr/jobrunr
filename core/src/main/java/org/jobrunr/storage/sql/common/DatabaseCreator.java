@@ -54,6 +54,8 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
 
 public class DatabaseCreator {
 
+    private static final String JOBRUNR_MIGRATIONS_TABLE = "jobrunr_migrations";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseCreator.class);
     private static final String[] JOBRUNR_TABLES = new String[]{"jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata"};
     private final ConnectionProvider connectionProvider;
@@ -133,7 +135,7 @@ public class DatabaseCreator {
     }
 
     private boolean isMigrationsTableMissing() {
-        String migrationsFQTableName = tablePrefixStatementUpdater.getFQTableName("JOBRUNR_MIGRATIONS").toUpperCase();
+        String migrationsFQTableName = tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE).toUpperCase();
         return getAllTableNames().stream().map(String::toUpperCase).noneMatch(x -> x.contains(migrationsFQTableName));
     }
 
@@ -228,7 +230,7 @@ public class DatabaseCreator {
     }
 
     protected void updateMigrationsTable(Connection connection, SqlMigration migration) throws SQLException {
-        try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
+        try (PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE) + " values (?, ?, ?)")) {
             pSt.setString(1, UUID.randomUUID().toString());
             pSt.setString(2, migration.getFileName());
             pSt.setString(3, now().truncatedTo(MICROS).toString());
@@ -244,7 +246,7 @@ public class DatabaseCreator {
     protected Set<String> loadAppliedMigrations() {
         try (final Connection conn = getConnection();
              final Statement st = conn.createStatement();
-             final ResultSet rs = st.executeQuery("select script from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations"))) {
+             final ResultSet rs = st.executeQuery("select script from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE))) {
             Map<String, Integer> migrationCounts = new HashMap<>();
             while (rs.next()) {
                 migrationCounts.merge(rs.getString(1), 1, Integer::sum);
@@ -376,7 +378,7 @@ public class DatabaseCreator {
         }
 
         private boolean isMigrationsTableLocked() throws SQLException {
-            try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            try (final Connection conn = getConnection(); final PreparedStatement pSt = conn.prepareStatement("select * from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE) + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 ResultSet rs = pSt.executeQuery();
                 if (rs.next()) {
@@ -392,7 +394,7 @@ public class DatabaseCreator {
         }
 
         private void insertLock(Connection connection) throws SQLException {
-            try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " values (?, ?, ?)")) {
+            try (final PreparedStatement pSt = connection.prepareStatement("insert into " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE) + " values (?, ?, ?)")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 pSt.setString(2, TABLE_LOCKER_SCRIPT);
                 pSt.setString(3, now().truncatedTo(MICROS).toString());
@@ -404,7 +406,7 @@ public class DatabaseCreator {
 
         // why: dropping and creating new indexes can take a good amount of time. Here we update the installedOn column so it can be awaited and monitored by other servers.
         private void updateLock(Connection connection) throws SQLException {
-            try (final PreparedStatement pSt = connection.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " set installedOn = ? where id = ? and script = ?")) {
+            try (final PreparedStatement pSt = connection.prepareStatement("update " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE) + " set installedOn = ? where id = ? and script = ?")) {
                 pSt.setString(1, now().truncatedTo(MICROS).toString());
                 pSt.setString(2, TABLE_LOCKER_UUID);
                 pSt.setString(3, TABLE_LOCKER_SCRIPT);
@@ -415,7 +417,7 @@ public class DatabaseCreator {
         }
 
         private void removeLock(Connection conn) throws SQLException {
-            try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName("jobrunr_migrations") + " where id = ?")) {
+            try (final PreparedStatement pSt = conn.prepareStatement("delete from " + tablePrefixStatementUpdater.getFQTableName(JOBRUNR_MIGRATIONS_TABLE) + " where id = ?")) {
                 pSt.setString(1, TABLE_LOCKER_UUID);
                 int updateCount = pSt.executeUpdate();
                 if (updateCount == 0)

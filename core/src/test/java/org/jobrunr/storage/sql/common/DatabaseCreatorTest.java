@@ -67,9 +67,9 @@ class DatabaseCreatorTest {
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
 
         Set<String> appliedMigrations = databaseCreator.loadAppliedMigrations();
-        migrations.forEach(migration -> assertThat(appliedMigrations.contains(migration.getFileName()))
+        migrations.forEach(migration -> assertThat(appliedMigrations)
                 .describedAs("Expecting %s to be applied", migration)
-                .isTrue());
+                .contains(migration.getFileName()));
     }
 
     @Test
