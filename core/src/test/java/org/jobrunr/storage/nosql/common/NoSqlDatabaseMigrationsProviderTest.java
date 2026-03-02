@@ -4,6 +4,7 @@ import org.jobrunr.storage.nosql.common.migrations.NoSqlMigration;
 import org.jobrunr.storage.nosql.documentdb.AmazonDocumentDBStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.nosql.mongo.migrations.M001_CreateJobCollection;
+import org.jobrunr.storage.nosql.mongo.migrations.M007_UpdateJobsCollectionReplaceIndices;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
@@ -44,7 +45,7 @@ class NoSqlDatabaseMigrationsProviderTest {
 
     private boolean migration007IsDocumentDBMigration(NoSqlMigration migration) {
         try {
-            return migration.getMigrationClass().getName().equals("org.jobrunr.storage.nosql.documentdb.migrations.M007_UpdateJobsCollectionReplaceIndices");
+            return migration.getMigrationClass().getName().equals(M007_UpdateJobsCollectionReplaceIndices.class.getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

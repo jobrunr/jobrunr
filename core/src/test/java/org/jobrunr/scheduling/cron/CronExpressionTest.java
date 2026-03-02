@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling.cron;
 
+import org.jobrunr.scheduling.ScheduleExpressionType;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,7 +35,8 @@ class CronExpressionTest {
     void testCron(String cronExpression, String baseDate, String expectedResult) {
         try {
             Instant inputInstant = LocalDateTime.parse(baseDate, dateTimeFormatter).toInstant(UTC);
-            CronExpression cron = new CronExpression(cronExpression);
+            CronExpression cron = (CronExpression) ScheduleExpressionType.createScheduleFromString(cronExpression);
+            //CronExpression cron = new CronExpression(cronExpression);
             Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, UTC);
             Instant expectedInstant = LocalDateTime.parse(expectedResult, dateTimeFormatter).toInstant(UTC);
 

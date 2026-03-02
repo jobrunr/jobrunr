@@ -88,16 +88,16 @@ public class JobDetailsAdapter implements JsonbAdapter<JobDetails, JsonObject> {
                     result.add(new JobParameter(methodClassName, null));
                 }
             } catch (Exception e) {
-                result.add(new JobParameter(methodClassName, actualClassName, jsonObject.get("object"), new JobParameterNotDeserializableException(methodClassName, e)));
+                result.add(new JobParameter(methodClassName, actualClassName, jsonObject.get(FIELD_JOB_PARAMETER_OBJECT), new JobParameterNotDeserializableException(methodClassName, e)));
             }
         }
         return result;
     }
 
     private Object getObjectFromJson(JsonObject jsonObject, Class<?> objectClass) {
-        if (objectClass.isEnum() && jsonObject.get("object") instanceof JsonString) {
-            return Enum.valueOf(cast(objectClass), jsonObject.getString("object"));
+        if (objectClass.isEnum() && jsonObject.get(FIELD_JOB_PARAMETER_OBJECT) instanceof JsonString) {
+            return Enum.valueOf(cast(objectClass), jsonObject.getString(FIELD_JOB_PARAMETER_OBJECT));
         }
-        return jsonb.fromJsonValue(jsonObject.get("object"), objectClass);
+        return jsonb.fromJsonValue(jsonObject.get(FIELD_JOB_PARAMETER_OBJECT), objectClass);
     }
 }

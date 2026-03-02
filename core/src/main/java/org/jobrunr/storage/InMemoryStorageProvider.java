@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
@@ -364,16 +365,17 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     private Job deepClone(Job job) {
-        final String serializedJobAsString = jobMapper.serializeJob(job);
-        final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
-        return result;
+        return deepClone(job, jobMapper::serializeJob, jobMapper::deserializeJob);
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
-        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
-        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
+        return deepClone(recurringJob, jobMapper::serializeRecurringJob, jobMapper::deserializeRecurringJob);
+
+    }
+
+    private <T extends AbstractJob> T deepClone(T t, Function<T, String> serializationFunction, Function<String, T> deserializationFunction) {
+        final T result = deserializationFunction.apply(serializationFunction.apply(t));
+        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(t, "locker"));
         return result;
     }
 
@@ -391,7 +393,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private Comparator<Job> getJobComparator(AmountRequest amountRequest) {
         List<Comparator<Job>> comparators = amountRequest.getAllOrderTerms(Job.ALLOWED_SORT_COLUMNS.keySet()).stream()
-                .map(orderTerm -> Job.ALLOWED_SORT_COLUMNS.toComparator(orderTerm))
+                .map(Job.ALLOWED_SORT_COLUMNS::toComparator)
                 .collect(toList());
         return comparators.stream()
                 .reduce(Comparator::thenComparing)
