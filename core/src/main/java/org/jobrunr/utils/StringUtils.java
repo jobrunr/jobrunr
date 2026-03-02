@@ -109,7 +109,7 @@ public class StringUtils {
 
     public static String urlEncode(String string) {
         try {
-            return URLEncoder.encode(string, UTF_8.toString());
+            return URLEncoder.encode(string, UTF_8.name());
         } catch (Exception e) {
             return string;
         }
