@@ -204,7 +204,7 @@ tasks.register('npmInstall', Exec) {
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
     commandLine 'sh', '-c', 'npm ci'
-    outputs.cacheIf { true }
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
@@ -213,7 +213,7 @@ tasks.register('npmRunBuild', Exec) {
     inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     commandLine 'sh', '-c', 'npm run build'
-    outputs.cacheIf { true }
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunTest', Exec) {
