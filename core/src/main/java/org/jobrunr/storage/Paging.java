@@ -5,8 +5,8 @@ import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 
 public class Paging {
 
-    public static String ASC = "ASC";
-    public static String DESC = "DESC";
+    public static final String ASC = "ASC";
+    public static final String DESC = "DESC";
 
     private Paging() {
     } // for sonarqube
