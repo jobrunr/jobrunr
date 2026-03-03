@@ -7,6 +7,7 @@ import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
+import org.jobrunr.utils.ThreadUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
@@ -16,17 +17,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -37,19 +35,26 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final Set<StorageProviderChangeListener> onChangeListeners;
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
-    private final ReentrantLock timerReentrantLock;
+    private final ReentrantLock schedulerLock;
     private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
-    private final ExecutorService notificationExecutor;
-    private volatile Timer timer;
+    private final AtomicBoolean jobStatsNotificationQueued;
+    private final ScheduledThreadPoolExecutor scheduler;
+    private volatile ScheduledFuture<?> scheduledFuture;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
-        this.timerReentrantLock = new ReentrantLock();
+        this.schedulerLock = new ReentrantLock();
         this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
-        this.notificationExecutor = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(), new ThreadPoolExecutor.DiscardPolicy());
+        this.jobStatsNotificationQueued = new AtomicBoolean(false);
+
+        this.scheduler = new ScheduledThreadPoolExecutor(
+                1,
+                ThreadUtils.daemonThreadFactory("storage-notifier"),
+                new ThreadPoolExecutor.DiscardPolicy()
+        );
+        this.scheduler.setRemoveOnCancelPolicy(true);
     }
 
     @Override
@@ -60,22 +65,22 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.add(listener);
-        startTimerToSendUpdates();
+        startSchedulerToSendUpdates();
     }
 
     @Override
     public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.remove(listener);
         if (onChangeListeners.isEmpty()) {
-            stopTimerToSendUpdates();
+            stopSchedulerToSendUpdates();
         }
     }
 
     @Override
     public void close() {
-        stopTimerToSendUpdates();
+        stopSchedulerToSendUpdates();
         onChangeListeners.clear();
-        notificationExecutor.shutdownNow();
+        scheduler.shutdownNow();
     }
 
     @Override
@@ -101,33 +106,36 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListenersIf(boolean mustNotify) {
-        if (mustNotify) {
-            notifyJobStatsOnChangeListeners();
-        }
+        if (!mustNotify) return;
+
+        if (!jobStatsNotificationQueued.compareAndSet(false, true)) return;
+
+        scheduler.execute(() -> {
+            try {
+                notifyJobStatsOnChangeListeners();
+            } finally {
+                jobStatsNotificationQueued.set(false);
+            }
+        });
     }
 
     protected void notifyJobStatsOnChangeListeners() {
         final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
-        if (!jobStatsChangeListeners.isEmpty()) {
-            CompletableFuture<?> future = runAsync(() -> {
-                try {
-                    if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
-                    if (changeListenerNotificationRateLimit.isRateLimited()) return;
-                    JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
-                    jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
-                } finally {
-                    if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
-                        notifyJobStatsChangeListenersReentrantLock.unlock();
-                    }
-                }
-            }, notificationExecutor);
-            CompletableFuture<?> unused = future.whenComplete((result, e) -> {
-                if (e != null) {
-                    logError(e);
-                }
-            });
+        if (jobStatsChangeListeners.isEmpty()) return;
+
+        if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
+        try {
+            if (changeListenerNotificationRateLimit.isRateLimited()) return;
+            JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
+            jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
+        } catch (Exception e) {
+          logError(e);
+        } finally {
+            if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
+                notifyJobStatsChangeListenersReentrantLock.unlock();
+            }
         }
     }
 
@@ -195,35 +203,48 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
-    void startTimerToSendUpdates() {
-        if (timer == null && timerReentrantLock.tryLock()) {
-            timer = new Timer(true);
-            timer.schedule(new NotifyOnChangeListeners(), 3000, 5000);
-            timerReentrantLock.unlock();
+    void startSchedulerToSendUpdates() {
+        if (scheduledFuture == null && schedulerLock.tryLock()) {
+            try {
+                if (scheduledFuture == null) {
+                    scheduledFuture = scheduler.scheduleWithFixedDelay(new NotifyOnChangeListeners(), 3, 5, TimeUnit.SECONDS);
+                }
+            } finally {
+                schedulerLock.unlock();
+            }
         }
     }
 
-    void stopTimerToSendUpdates() {
-        if (timer != null && timerReentrantLock.tryLock()) {
-            timer.cancel();
-            timer = null;
-            timerReentrantLock.unlock();
+    void stopSchedulerToSendUpdates() {
+        if (scheduledFuture != null && schedulerLock.tryLock()) {
+            try {
+                if (scheduledFuture != null) {
+                    scheduledFuture.cancel(false);
+                    scheduledFuture = null;
+                }
+            } finally {
+                schedulerLock.unlock();
+            }
         }
     }
 
     private void logError(Throwable e) {
-        if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
+        if (scheduler.isShutdown() || scheduler.isTerminated()) return; // is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 
-    class NotifyOnChangeListeners extends TimerTask {
+    class NotifyOnChangeListeners implements Runnable {
 
         @Override
         public void run() {
-            notifyJobStatsOnChangeListeners();
-            notifyJobChangeListeners();
-            notifyBackgroundJobServerStatusChangeListeners();
-            notifyMetadataChangeListeners();
+            try {
+                notifyJobStatsOnChangeListeners();
+                notifyJobChangeListeners();
+                notifyBackgroundJobServerStatusChangeListeners();
+                notifyMetadataChangeListeners();
+            } catch (Throwable e) {
+                logError(e);
+            }
         }
     }
 }
