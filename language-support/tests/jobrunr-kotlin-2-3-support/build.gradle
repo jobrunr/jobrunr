@@ -1,0 +1,82 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id 'com.github.ben-manes.versions' version '0.53.0'
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '2.3.10'
+}
+
+dependencies {
+    testImplementation project(':core')
+    testImplementation testFixtures(project(":core"))
+
+    testImplementation project(':language-support:jobrunr-kotlin-support')
+
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+}
+
+dependencyUpdates {
+    rejectVersionIf {
+        it.candidate.group.startsWith('org.jetbrains.kotlin') && !it.candidate.version.startsWith('2.3')
+    }
+}
+
+compileJava {
+    options.release = 8
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+    }
+}
+
+tasks.named('compileTestKotlin', KotlinCompile) {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_21)
+}
+
+sourceSets {
+    test {
+        java.srcDirs = []
+        kotlin.srcDirs = ['../../jobrunr-kotlin-support/src/test/kotlin']
+        resources.srcDirs = ['../../jobrunr-kotlin-support/src/test/resources']
+        compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+    }
+    testClassLambdas {
+        java.srcDirs = []
+        kotlin.srcDirs = ['../../jobrunr-kotlin-support/src/test/kotlin/org/jobrunr/scheduling', '../../jobrunr-kotlin-support/src/test/kotlin/org/jobrunr/jobs/details']
+        resources.srcDirs = ['../../jobrunr-kotlin-support/src/test/resources']
+        compileClasspath += sourceSets.main.output + sourceSets.test.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.runtimeClasspath
+    }
+}
+
+compileTestClassLambdasJava {
+    enabled = false
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.named('compileTestClassLambdasKotlin', KotlinCompile) {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.addAll('-Xlambdas=class', '-Xsam-conversions=class')
+    }
+}
+
+tasks.register('testWithClassLambdas', Test) {
+    description = 'Runs tests compiled with -Xlambdas=class -Xsam-conversions=class'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.testClassLambdas.output.classesDirs
+    classpath = sourceSets.testClassLambdas.runtimeClasspath
+    shouldRunAfter test
+}
+
+check.dependsOn testWithClassLambdas
