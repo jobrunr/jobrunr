@@ -21,9 +21,12 @@ import static java.util.Collections.emptyList;
 
 @Singleton
 public class JobRunrProducer {
+    private final JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Inject
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    JobRunrProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
 
     @Produces
     @DefaultBean

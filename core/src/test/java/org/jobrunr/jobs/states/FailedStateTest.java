@@ -1,5 +1,6 @@
 package org.jobrunr.jobs.states;
 
+import org.jobrunr.JobRunrException;
 import org.jobrunr.scheduling.exceptions.JobClassNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobMethodNotFoundException;
 import org.jobrunr.scheduling.exceptions.JobNotFoundException;
@@ -109,6 +110,20 @@ class FailedStateTest {
 
         assertThat(failedState.getException())
                 .isInstanceOf(JobNotFoundException.class);
+    }
+
+    @Test
+    void getExceptionWithoutDoNotRetry() {
+        final FailedState failedState = new FailedState("JobRunr message", new CustomException());
+
+        assertThat(failedState.mustNotRetry()).isFalse();
+    }
+
+    @Test
+    void getExceptionWithDoNotRetry() {
+        final FailedState failedState = new FailedState("JobRunr message", new JobRunrException("Boem", true));
+
+        assertThat(failedState.mustNotRetry()).isTrue();
     }
 
     public static class CustomException extends Exception {

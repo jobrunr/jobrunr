@@ -5,6 +5,8 @@ import java.time.Duration;
 
 public class DurationUtils {
 
+    private DurationUtils() {}
+
     public static BigDecimal toBigDecimal(Duration duration) {
         return BigDecimal.valueOf(duration.toNanos()).scaleByPowerOfTen(-9);
     }

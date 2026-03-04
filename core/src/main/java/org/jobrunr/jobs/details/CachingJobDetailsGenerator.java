@@ -154,7 +154,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
                 jobDetails.setCacheable(
                         declaredFields.isEmpty()
                                 && jobParameters.size() == parameterRetrievers.size()
-                                && (!itemFromStream.isPresent() || parameterRetrievers.stream().anyMatch(r -> r instanceof ItemFromStreamJobParameterRetriever))
+                                && (!itemFromStream.isPresent() || parameterRetrievers.stream().anyMatch(ItemFromStreamJobParameterRetriever.class::isInstance))
                 );
                 return parameterRetrievers;
             } catch (Exception e) {

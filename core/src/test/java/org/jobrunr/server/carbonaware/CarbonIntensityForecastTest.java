@@ -20,7 +20,7 @@ class CarbonIntensityForecastTest {
 
     @Test
     void fromExceptionHasError() {
-        var forecast = CarbonIntensityForecast.fromException(new IllegalArgumentException("whoopsie"));
+        var forecast = CarbonIntensityForecast.fromException();
         assertThat(forecast.hasError()).isTrue();
         assertThat(forecast.getApiResponseStatus().getCode()).isEqualTo("500");
         assertThat(forecast.getApiResponseStatus().getMessage()).isEqualTo("HTTP Internal Server Error");

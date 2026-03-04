@@ -19,7 +19,6 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
-import org.jobrunr.server.tasks.startup.ShutdownExecutorServiceTask;
 import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
@@ -336,16 +335,17 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void runStartupTasks() {
+        ExecutorService startupTasksExecutor = Executors.newSingleThreadExecutor();
         try {
-            ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
-            singleThreadExecutor.execute(new StartupTask(
+            startupTasksExecutor.execute(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new MigrateFromV5toV6Task(this),
-                    new ShutdownExecutorServiceTask(singleThreadExecutor)
+                    new MigrateFromV5toV6Task(this)
             ));
         } catch (Exception notImportant) {
             // server is shut down immediately
+        } finally {
+            startupTasksExecutor.shutdown();
         }
     }
 

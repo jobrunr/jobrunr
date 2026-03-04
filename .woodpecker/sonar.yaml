@@ -1,0 +1,36 @@
+when:
+  - event: manual
+  - event: cron
+    cron: sonarqube
+
+workspace:
+  path: jobrunr/src
+
+steps:
+  - name: prepare-docker-build-container
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+
+  - name: build-and-run-sonarqube-analysis
+    image: container-registry.jobrunr.io/build-container:latest
+    commands:
+      - rm -rf /tmp/reports/*
+      - find /woodpecker/jobrunr/src/.gradle -name "*.lock" -type f -delete
+      - |
+        bash -lc '
+          set -e -o pipefail
+          gradle --no-daemon -Djib.console=plain --info --continue clean build jacocoTestReport sonar \
+            | grep -Ev "^(Found locally available resource with matching checksum|Build cache key for|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.|Caching disabled for |[[:space:]]+Caching not enabled\\.)"
+        '
+    environment:
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD

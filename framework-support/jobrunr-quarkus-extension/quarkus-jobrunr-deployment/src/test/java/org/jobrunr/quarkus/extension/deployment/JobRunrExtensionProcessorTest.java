@@ -152,7 +152,7 @@ class JobRunrExtensionProcessorTest {
 
     @Test
     void kotlinxSerializationClassRetrievalIsInSyncWithKotlinLanguageSupportProject() throws IOException {
-        var kotlinSrc = new String(Files.readAllBytes(Paths.get("../../../language-support/jobrunr-kotlin-22-support/src/main/kotlin/org/jobrunr/kotlin/utils/mapper/KotlinxSerializationJsonMapper.kt")), UTF_8);
+        var kotlinSrc = new String(Files.readAllBytes(Paths.get("../../../language-support/jobrunr-kotlin-support/src/main/kotlin/org/jobrunr/kotlin/utils/mapper/KotlinxSerializationJsonMapper.kt")), UTF_8);
         var processorSrc = new String(Files.readAllBytes(Paths.get("src/main/java/org/jobrunr/quarkus/extension/deployment/JobRunrExtensionProcessor.java")), UTF_8);
 
         assertThat(kotlinSrc).contains("class KotlinxSerializationJsonMapper");

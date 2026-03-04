@@ -56,15 +56,15 @@ public class RetryFilter implements ElectStateFilter {
     }
 
     protected long getExponentialBackoffPolicy(Job job, int seed) {
-        return (long) Math.pow(seed, (double) getFailureCount(job));
+        return (long) Math.pow(seed, getFailureCount(job));
     }
 
     private boolean maxAmountOfRetriesReached(Job job) {
         return getFailureCount(job) > getMaxNumberOfRetries(job);
     }
 
-    private long getFailureCount(Job job) {
-        return job.getJobStates().stream().filter(FAILED_STATES).count();
+    private int getFailureCount(Job job) {
+        return Math.toIntExact(job.getJobStates().stream().filter(FAILED_STATES).count());
     }
 
     private static boolean isJobNotFoundException(JobState newState) {
