@@ -37,7 +37,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock schedulerLock;
     private final AtomicBoolean jobStatsNotificationPending;
-    private ScheduledExecutorService scheduler;
+    private volatile ScheduledExecutorService scheduler;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
@@ -101,7 +101,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListeners() {
-        if (jobStatsNotificationAlreadyQueued()) return;
+        if (noListenersRegistered() || jobStatsNotificationAlreadyQueued()) return;
         runInBackgroundThread(this::notifyJobStatsOnChangeListenersOnCurrentThread);
     }
 
@@ -140,7 +140,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     private void runInBackgroundThread(Runnable runnable) {
-        if (scheduler == null) return; // why: no listeners
+        if (noListenersRegistered()) return; // why: no listeners
         if (schedulerLock.tryLock()) {
             try {
                 if (scheduler != null && !scheduler.isShutdown()) {
@@ -241,6 +241,10 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         } catch (Exception e) {
             logError(e);
         }
+    }
+
+    private boolean noListenersRegistered() {
+        return scheduler == null;
     }
 
     private boolean jobStatsNotificationAlreadyQueued() {
