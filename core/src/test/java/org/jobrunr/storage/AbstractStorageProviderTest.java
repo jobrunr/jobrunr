@@ -167,7 +167,7 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    void updateScheduledFutureIsStoppedIfNoChangeListeners() {
+    void scheduledExecutorServiceIsStoppedIfNoChangeListeners() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);
@@ -180,7 +180,7 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    void updateScheduledFutureIsStoppedWhenStorageProviderIsStopped() {
+    void scheduledExecutorServiceIsStoppedWhenStorageProviderIsStopped() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);

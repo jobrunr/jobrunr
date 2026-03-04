@@ -277,7 +277,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         try {
             final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
             long deletedCount = deleteResult.getDeletedCount();
-            notifyMetadataChangeListeners(deletedCount > 0);
+            notifyMetadataChangeListenersIf(deletedCount > 0);
         } catch (MongoException e) {
             throw new StorageException(e);
         }
@@ -288,7 +288,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         try {
             final DeleteResult deleteResult = metadataCollection.deleteOne(eq(toMongoId(Metadata.FIELD_ID), JobRunrMetadata.toId(name, owner)));
             long deletedCount = deleteResult.getDeletedCount();
-            notifyMetadataChangeListeners(deletedCount > 0);
+            notifyMetadataChangeListenersIf(deletedCount > 0);
         } catch (MongoException e) {
             throw new StorageException(e);
         }

@@ -1,4 +1,4 @@
-package org.jobrunr.server.threadpool;
+package org.jobrunr.utils.threadpool;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,7 +17,6 @@ public class NamedThreadFactory implements ThreadFactory {
     public Thread newThread(Runnable runnable) {
         Thread thread = new Thread(runnable, this.threadNamePrefix + "-" + this.threadCount.getAndIncrement());
         thread.setDaemon(daemon);
-        thread.setPriority(Thread.NORM_PRIORITY);
         return thread;
     }
 }

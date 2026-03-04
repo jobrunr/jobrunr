@@ -1,5 +1,6 @@
 package org.jobrunr.server.threadpool;
 
+import org.jobrunr.utils.threadpool.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

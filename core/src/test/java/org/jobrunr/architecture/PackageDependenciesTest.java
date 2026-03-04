@@ -130,7 +130,7 @@ class PackageDependenciesTest {
     ArchRule jobRunrStorageClassesDependenciesTest = classes()
             .that().resideInAPackage("org.jobrunr.storage")
             .should().onlyDependOnClassesThat(
-                    resideInAnyPackage("org.jobrunr.server.threadpool..", "org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.jobrunr.server.jmx..", "org.slf4j..", "java..")
+                    resideInAnyPackage("org.jobrunr.jobs..", "org.jobrunr.storage..", "org.jobrunr.utils..", "org.jobrunr.server.jmx..", "org.slf4j..", "java..")
                             .or(assignableFrom(BackgroundJobServer.class))
                             .or(assignableFrom(BackgroundJobServerConfiguration.class)));
 
