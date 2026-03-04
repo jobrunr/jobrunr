@@ -2,12 +2,12 @@ package org.jobrunr.storage;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
+import org.jobrunr.server.threadpool.NamedThreadFactory;
 import org.jobrunr.storage.listeners.BackgroundJobServerStatusChangeListener;
 import org.jobrunr.storage.listeners.JobChangeListener;
 import org.jobrunr.storage.listeners.JobStatsChangeListener;
 import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
-import org.jobrunr.utils.ThreadUtils;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
 import org.slf4j.Logger;
@@ -18,11 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -36,25 +34,15 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
     private final ReentrantLock schedulerLock;
-    private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
-    private final AtomicBoolean jobStatsNotificationQueued;
-    private final ScheduledThreadPoolExecutor scheduler;
-    private volatile ScheduledFuture<?> scheduledFuture;
+    private final ReentrantLock jobStatsNotificationLock;
+    private ScheduledThreadPoolExecutor scheduler;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
         this.schedulerLock = new ReentrantLock();
-        this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
-        this.jobStatsNotificationQueued = new AtomicBoolean(false);
-
-        this.scheduler = new ScheduledThreadPoolExecutor(
-                1,
-                ThreadUtils.daemonThreadFactory("storage-notifier"),
-                new ThreadPoolExecutor.DiscardPolicy()
-        );
-        this.scheduler.setRemoveOnCancelPolicy(true);
+        this.jobStatsNotificationLock = new ReentrantLock();
     }
 
     @Override
@@ -80,7 +68,6 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     public void close() {
         stopSchedulerToSendUpdates();
         onChangeListeners.clear();
-        scheduler.shutdownNow();
     }
 
     @Override
@@ -108,15 +95,15 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     protected void notifyJobStatsOnChangeListenersIf(boolean mustNotify) {
         if (!mustNotify) return;
 
-        if (!jobStatsNotificationQueued.compareAndSet(false, true)) return;
-
-        scheduler.execute(() -> {
+        if (schedulerLock.tryLock()) {
             try {
-                notifyJobStatsOnChangeListeners();
+                if (scheduler != null && !scheduler.isShutdown()) {
+                    scheduler.execute(this::notifyJobStatsOnChangeListeners);
+                }
             } finally {
-                jobStatsNotificationQueued.set(false);
+                schedulerLock.unlock();
             }
-        });
+        }
     }
 
     protected void notifyJobStatsOnChangeListeners() {
@@ -124,18 +111,16 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
                 .ofType(onChangeListeners, JobStatsChangeListener.class)
                 .collect(toList());
         if (jobStatsChangeListeners.isEmpty()) return;
+        if (changeListenerNotificationRateLimit.isRateLimited()) return;
+        if (!jobStatsNotificationLock.tryLock()) return;
 
-        if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
         try {
-            if (changeListenerNotificationRateLimit.isRateLimited()) return;
             JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
             jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
         } catch (Exception e) {
-          logError(e);
+            logError(e);
         } finally {
-            if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
-                notifyJobStatsChangeListenersReentrantLock.unlock();
-            }
+            jobStatsNotificationLock.unlock();
         }
     }
 
@@ -203,33 +188,33 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
-    void startSchedulerToSendUpdates() {
-        if (scheduledFuture == null && schedulerLock.tryLock()) {
-            try {
-                if (scheduledFuture == null) {
-                    scheduledFuture = scheduler.scheduleWithFixedDelay(new NotifyOnChangeListeners(), 3, 5, TimeUnit.SECONDS);
-                }
-            } finally {
-                schedulerLock.unlock();
+    private void startSchedulerToSendUpdates() {
+        schedulerLock.lock();
+        try {
+            if (scheduler == null || scheduler.isShutdown()) {
+                scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("jobrunr-storage-notifier", true), new ThreadPoolExecutor.DiscardPolicy());
+                scheduler.setRemoveOnCancelPolicy(true);
+                scheduler.scheduleWithFixedDelay(new NotifyOnChangeListeners(), 3, 5, TimeUnit.SECONDS);
             }
+        } finally {
+            schedulerLock.unlock();
         }
     }
 
-    void stopSchedulerToSendUpdates() {
-        if (scheduledFuture != null && schedulerLock.tryLock()) {
-            try {
-                if (scheduledFuture != null) {
-                    scheduledFuture.cancel(false);
-                    scheduledFuture = null;
-                }
-            } finally {
-                schedulerLock.unlock();
+    private void stopSchedulerToSendUpdates() {
+        schedulerLock.lock();
+        try {
+            if (scheduler != null) {
+                scheduler.shutdownNow();
+                scheduler = null;
             }
+        } finally {
+            schedulerLock.unlock();
         }
     }
 
     private void logError(Throwable e) {
-        if (scheduler.isShutdown() || scheduler.isTerminated()) return; // is being stopped so not interested in it
+        if (scheduler == null || scheduler.isShutdown() || scheduler.isTerminated()) return; // is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 

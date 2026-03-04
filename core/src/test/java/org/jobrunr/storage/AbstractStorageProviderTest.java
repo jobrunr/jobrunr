@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.Instant.now;
@@ -171,12 +171,12 @@ class AbstractStorageProviderTest {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);
-        final Future<?> futureAfterAddingChangeListener = getInternalState(storageProvider, "scheduledFuture");
-        assertThat(futureAfterAddingChangeListener).isNotNull();
+        final ScheduledThreadPoolExecutor schedulerAfterAddingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterAddingChangeListener).isNotNull();
 
         storageProvider.removeJobStorageOnChangeListener(changeListener);
-        final Future<?> futureAfterRemovingChangeListener = getInternalState(storageProvider, "scheduledFuture");
-        assertThat(futureAfterRemovingChangeListener).isNull();
+        final ScheduledThreadPoolExecutor schedulerAfterRemovingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterRemovingChangeListener).isNull();
     }
 
     @Test
@@ -184,12 +184,12 @@ class AbstractStorageProviderTest {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);
-        final Future<?> timerAfterAddingChangeListener = getInternalState(storageProvider, "scheduledFuture");
-        assertThat(timerAfterAddingChangeListener).isNotNull();
+        final ScheduledThreadPoolExecutor schedulerAfterAddingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterAddingChangeListener).isNotNull();
 
         storageProvider.close();
-        final Future<?> timerAfterClosingStorageProvider = getInternalState(storageProvider, "scheduledFuture");
-        assertThat(timerAfterClosingStorageProvider).isNull();
+        final ScheduledThreadPoolExecutor schedulerAfterClosingStorageProvider = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterClosingStorageProvider).isNull();
     }
 
     private static class BackgroundJobServerStatusChangeListenerForTest implements BackgroundJobServerStatusChangeListener {
