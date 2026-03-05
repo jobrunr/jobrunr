@@ -32,14 +32,10 @@ public abstract class AbstractJobFilters<T extends AbstractJob> {
     }
 
     protected List<JobFilter> initJobFilters(AbstractJob job, List<JobFilter> jobFilters) {
-        try {
-            final ArrayList<JobFilter> result = new ArrayList<>(jobFilters);
-            keepOnlyLastElectStateFilter(result);
-            addJobFiltersFromJobAnnotation(job, result);
-            return result;
-        } catch (JobNotFoundException e) {
-            return new ArrayList<>();
-        }
+        final ArrayList<JobFilter> result = new ArrayList<>(jobFilters);
+        keepOnlyLastElectStateFilter(result);
+        addJobFiltersFromJobAnnotation(job, result);
+        return result;
     }
 
     abstract Logger getLogger();
@@ -52,14 +48,18 @@ public abstract class AbstractJobFilters<T extends AbstractJob> {
     }
 
     private static void addJobFiltersFromJobAnnotation(AbstractJob job, List<JobFilter> result) {
-        final Optional<Job> jobAnnotation = JobUtils.getJobAnnotation(job.getJobDetails());
-        if (jobAnnotation.isPresent()) {
-            final Optional<ElectStateFilter> electStateFilter = getElectStateFilter(jobAnnotation.get());
-            if (electStateFilter.isPresent()) { // only one elect state filter can be present
-                result.removeIf(jobFilter -> ElectStateFilter.class.isAssignableFrom(jobFilter.getClass()));
-                result.add(electStateFilter.get());
+        try {
+            final Optional<Job> jobAnnotation = JobUtils.getJobAnnotation(job.getJobDetails());
+            if (jobAnnotation.isPresent()) {
+                final Optional<ElectStateFilter> electStateFilter = getElectStateFilter(jobAnnotation.get());
+                if (electStateFilter.isPresent()) { // only one elect state filter can be present
+                    result.removeIf(jobFilter -> ElectStateFilter.class.isAssignableFrom(jobFilter.getClass()));
+                    result.add(electStateFilter.get());
+                }
+                result.addAll(getOtherJobFilter(jobAnnotation.get()));
             }
-            result.addAll(getOtherJobFilter(jobAnnotation.get()));
+        } catch (JobNotFoundException e) {
+            // why: we cannot add custom job filters as Job is not found
         }
     }
 

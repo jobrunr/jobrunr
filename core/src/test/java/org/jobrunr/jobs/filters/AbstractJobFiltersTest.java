@@ -3,13 +3,34 @@ package org.jobrunr.jobs.filters;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.jobrunr.jobs.Job;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobDetailsTestBuilder.methodThatDoesNotExistJobDetails;
+import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 
 class AbstractJobFiltersTest {
+
+    @Test
+    void jobFiltersAreInheritedFromJobDefaultFilterAndAppendedWithCustomFilters() {
+        Job jobWithMethodThatDoesNotExist = aSucceededJob().build();
+
+        JobPerformingFilters jobPerformingFilters = new JobPerformingFilters(jobWithMethodThatDoesNotExist, new JobDefaultFilters(new MyJobFilter()));
+
+        assertThat(jobPerformingFilters.jobFilters()).hasSize(3);
+    }
+
+    @Test
+    void jobFiltersAreInheritedFromJobDefaultFilterAndAppendedWithCustomFiltersEvenIfJobDoesNotExist() {
+        Job jobWithMethodThatDoesNotExist = aSucceededJob().withJobDetails(methodThatDoesNotExistJobDetails()).build();
+
+        JobPerformingFilters jobPerformingFilters = new JobPerformingFilters(jobWithMethodThatDoesNotExist, new JobDefaultFilters(new MyJobFilter()));
+
+        assertThat(jobPerformingFilters.jobFilters()).hasSize(3);
+    }
 
     @Test
     void ifJobFilterIsTooSlowAMessageIsLogged() {
