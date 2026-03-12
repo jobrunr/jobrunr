@@ -237,9 +237,10 @@ tasks.register('npmRunTest', Exec) {
 // ⚠️These steps are essential for the frontend to be build and tested properly.
 // Please don't remove, unless you've a different way to achieve the same thing.
 // The steps make sure the tasks are included in the build and test pipeline of gradle.
+npmRunTest.shouldRunAfter test
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
-test.dependsOn npmRunTest
+check.dependsOn npmRunTest
 
 jar {
     from(sourceSets.java17.output) {
