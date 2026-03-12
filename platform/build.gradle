@@ -4,8 +4,6 @@ plugins {
     id 'signing'
 }
 
-version = System.getenv('CI_COMMIT_TAG')?.replace("v", "") ?: "v1.0.0-SNAPSHOT".replace("v", "")
-
 dependencies {
     constraints {
         api 'org.slf4j:slf4j-api:2.0.17'
