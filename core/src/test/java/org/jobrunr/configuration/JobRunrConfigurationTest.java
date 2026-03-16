@@ -120,6 +120,21 @@ class JobRunrConfigurationTest {
     }
 
     @Test
+    void getStorageProviderReturnsStorageProvider() {
+        JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .initialize();
+        assertThat(JobRunr.getStorageProvider()).isSameAs(storageProvider);
+    }
+
+    @Test
+    void getStorageProviderThrowsExceptionIfNoStorageProviderIsConfigured() {
+        JobRunr.configure();
+        assertThatThrownBy(JobRunr::getStorageProvider).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("The storage provider is not configured");
+    }
+
+    @Test
     void dashboardCanBeConfigured() {
         assertThatCode(() -> JobRunr.configure()
                 .useStorageProvider(storageProvider)
