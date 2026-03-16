@@ -1,7 +1,6 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id 'com.github.ben-manes.versions' version '0.53.0'
     id 'java-library'
     id 'java-test-fixtures'
     id 'maven-publish'
@@ -210,7 +209,12 @@ tasks.register('npmInstall', Exec) {
 tasks.register('npmRunBuild', Exec) {
     dependsOn 'npmInstall'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(
+            fileTree('src/main/resources/org/jobrunr/dashboard/frontend') {
+                exclude "node_modules/**"
+                exclude "build/**"
+            }
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     commandLine 'sh', '-c', 'npm run build'
     outputs.cacheIf { true }
@@ -219,7 +223,12 @@ tasks.register('npmRunBuild', Exec) {
 tasks.register('npmRunTest', Exec) {
     dependsOn 'npmRunBuild'
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
-    inputs.dir('src/main/resources/org/jobrunr/dashboard/frontend').withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(
+            fileTree('src/main/resources/org/jobrunr/dashboard/frontend') {
+                exclude "node_modules/**"
+                exclude "build/**"
+            }
+    ).withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('/tmp/reports/core/frontend')
     commandLine 'sh', '-c', 'npm run test'
     outputs.cacheIf { true }
@@ -228,9 +237,10 @@ tasks.register('npmRunTest', Exec) {
 // ⚠️These steps are essential for the frontend to be build and tested properly.
 // Please don't remove, unless you've a different way to achieve the same thing.
 // The steps make sure the tasks are included in the build and test pipeline of gradle.
+npmRunTest.shouldRunAfter test
 processResources.dependsOn npmRunBuild
 sourcesJar.dependsOn npmRunBuild
-test.dependsOn npmRunTest
+check.dependsOn npmRunTest
 
 jar {
     from(sourceSets.java17.output) {

@@ -35,7 +35,7 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
-    compileOnly project(':language-support:jobrunr-kotlin-22-support')
+    compileOnly project(':language-support:jobrunr-kotlin-support')
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'

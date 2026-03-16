@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Timer;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,14 +51,14 @@ class JobRunrSseHandlerTest {
 
         jobRunrSseHandler.handle(httpExchange1);
         jobRunrSseHandler.handle(httpExchange2);
-        final Timer timerBeforeClosingSseHandler = getInternalState(storageProvider, "timer");
-        assertThat(timerBeforeClosingSseHandler).isNotNull();
+        final ScheduledThreadPoolExecutor schedulerBeforeClosingSseHandler = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerBeforeClosingSseHandler).isNotNull();
 
         jobRunrSseHandler.close();
 
         verify(storageProvider, times(2)).removeJobStorageOnChangeListener(any());
-        final Timer timerAfterClosingSseHandler = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterClosingSseHandler).isNull();
+        final ScheduledThreadPoolExecutor schedulerAfterClosingSseHandler = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterClosingSseHandler).isNull();
     }
 
     private HttpExchange createHttpExchangeMock() {
