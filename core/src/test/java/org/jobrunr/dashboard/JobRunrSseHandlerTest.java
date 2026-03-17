@@ -58,7 +58,7 @@ class JobRunrSseHandlerTest {
 
         verify(storageProvider, times(2)).removeJobStorageOnChangeListener(any());
         final ScheduledThreadPoolExecutor schedulerAfterClosingSseHandler = getInternalState(storageProvider, "scheduler");
-        assertThat(schedulerAfterClosingSseHandler).isNull();
+        assertThat(schedulerAfterClosingSseHandler.isShutdown()).isTrue();
     }
 
     private HttpExchange createHttpExchangeMock() {

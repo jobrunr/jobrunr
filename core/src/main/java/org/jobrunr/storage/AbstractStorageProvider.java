@@ -19,11 +19,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -101,8 +103,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListeners() {
-        if (noListenersRegistered() || jobStatsNotificationAlreadyQueued()) return;
-        runInBackgroundThread(this::notifyJobStatsOnChangeListenersOnCurrentThread);
+        runInBackgroundThread(this::notifyJobStatsOnChangeListenersOnCurrentThread, this::jobStatsNotificationNotQueued);
     }
 
     protected void notifyMetadataChangeListenersIf(boolean mustNotify) {
@@ -118,7 +119,7 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private void startSchedulerToSendUpdates() {
         schedulerLock.lock();
         try {
-            if (scheduler == null || scheduler.isShutdown()) {
+            if (noSchedulerAvailable()) {
                 scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("jobrunr-storage-notifier", true));
                 ScheduledFuture<?> ignored = scheduler.scheduleWithFixedDelay(new NotifyOnChangeListeners(), 3, 5, TimeUnit.SECONDS);
             }
@@ -132,28 +133,30 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         try {
             if (scheduler != null) {
                 scheduler.shutdownNow();
-                scheduler = null;
             }
         } finally {
+            jobStatsNotificationPending.set(false);
             schedulerLock.unlock();
         }
     }
 
     private void runInBackgroundThread(Runnable runnable) {
+        runInBackgroundThread(runnable, () -> true);
+    }
+
+    private void runInBackgroundThread(Runnable runnable, Supplier<Boolean> shouldNotify) {
         if (noListenersRegistered()) return; // why: no listeners
-        if (schedulerLock.tryLock()) {
-            try {
-                if (scheduler != null && !scheduler.isShutdown()) {
-                    scheduler.execute(runnable);
-                }
-            } finally {
-                schedulerLock.unlock();
+        try {
+            if (schedulerAvailable() && shouldNotify.get()) {
+                scheduler.execute(runnable);
             }
+        } catch (RejectedExecutionException e) {
+            LOGGER.debug("Notification task was rejected", e);
         }
     }
 
     private void logError(Throwable e) {
-        if (scheduler == null || scheduler.isShutdown() || scheduler.isTerminated()) return; // is being stopped so not interested in it
+        if (noSchedulerAvailable()) return; // is being stopped so not interested in it
         LOGGER.warn("Error notifying JobStorageChangeListeners", e);
     }
 
@@ -243,12 +246,16 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
         }
     }
 
-    private boolean noListenersRegistered() {
-        return scheduler == null;
+    private boolean schedulerAvailable() {
+        return !noSchedulerAvailable();
     }
 
-    private boolean jobStatsNotificationAlreadyQueued() {
-        return !jobStatsNotificationNotQueued();
+    private boolean noSchedulerAvailable() {
+        return scheduler == null || scheduler.isShutdown();
+    }
+
+    private boolean noListenersRegistered() {
+        return scheduler == null;
     }
 
     private boolean jobStatsNotificationNotQueued() {

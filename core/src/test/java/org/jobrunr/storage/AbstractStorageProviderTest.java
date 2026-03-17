@@ -176,7 +176,7 @@ class AbstractStorageProviderTest {
 
         storageProvider.removeJobStorageOnChangeListener(changeListener);
         final ScheduledThreadPoolExecutor schedulerAfterRemovingChangeListener = getInternalState(storageProvider, "scheduler");
-        assertThat(schedulerAfterRemovingChangeListener).isNull();
+        assertThat(schedulerAfterRemovingChangeListener.isShutdown()).isTrue();
     }
 
     @Test
@@ -189,7 +189,7 @@ class AbstractStorageProviderTest {
 
         storageProvider.close();
         final ScheduledThreadPoolExecutor schedulerAfterClosingStorageProvider = getInternalState(storageProvider, "scheduler");
-        assertThat(schedulerAfterClosingStorageProvider).isNull();
+        assertThat(schedulerAfterClosingStorageProvider.isShutdown()).isTrue();
     }
 
     private static class BackgroundJobServerStatusChangeListenerForTest implements BackgroundJobServerStatusChangeListener {
