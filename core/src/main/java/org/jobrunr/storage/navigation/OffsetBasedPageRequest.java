@@ -3,6 +3,7 @@ package org.jobrunr.storage.navigation;
 import org.jobrunr.storage.Page;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
@@ -11,7 +12,7 @@ import static org.jobrunr.utils.StringUtils.lenientSubstringBetween;
 
 public class OffsetBasedPageRequest extends PageRequest {
 
-    public static final Page emptyPage = new Page(0, emptyList(), 0, 0, null, null, null);
+    public static final Page<?> emptyPage = new Page<>(0, emptyList(), 0, 0, null, null, null);
     public static final long DEFAULT_OFFSET = 0L;
 
     private final long offset;
@@ -44,6 +45,16 @@ public class OffsetBasedPageRequest extends PageRequest {
                 order,
                 isNotNullOrEmpty(offset) ? Integer.parseInt(offset) : 0L,
                 isNotNullOrEmpty(limit) ? Integer.parseInt(limit) : DEFAULT_LIMIT
+        );
+    }
+
+    public static OffsetBasedPageRequest fromQueryParams(Map<String, String> params) {
+        if (params == null || params.isEmpty()) return null;
+
+        return new OffsetBasedPageRequest(
+                params.get("order"),
+                isNotNullOrEmpty(params.get("offset")) ? Integer.parseInt(params.get("offset")) : 0L,
+                isNotNullOrEmpty(params.get("limit")) ? Integer.parseInt(params.get("limit")) : DEFAULT_LIMIT
         );
     }
 

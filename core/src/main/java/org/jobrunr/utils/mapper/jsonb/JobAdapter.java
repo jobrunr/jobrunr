@@ -48,7 +48,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
     }
 
     @Override
-    public JsonObject adaptToJson(Job job) throws Exception {
+    public JsonObject adaptToJson(Job job) {
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", job.getId())
                 .add("jobName", job.getJobName())
@@ -65,7 +65,7 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
     }
 
     @Override
-    public Job adaptFromJson(JsonObject jsonObject) throws Exception {
+    public Job adaptFromJson(JsonObject jsonObject) {
         final UUID id = jsonObject.isNull("id") ? null : UUID.fromString(jsonObject.getString("id"));
         final int version = jsonObject.getInt("version", 0);
         final List<String> jobLabels = jobLabelsAdapter.adaptFromJson(jsonObject.getJsonArray("labels"));

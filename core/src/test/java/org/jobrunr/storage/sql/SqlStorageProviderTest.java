@@ -3,6 +3,7 @@ package org.jobrunr.storage.sql;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.storage.sql.common.db.Sql;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -42,9 +43,8 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource());
+        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), null, DatabaseOptions.CREATE, rateLimit().withoutLimits());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
     }
 
