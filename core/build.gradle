@@ -125,6 +125,9 @@ tasks.register('runFrontEndDevelopment', JavaExec) {
     mainClass = 'org.jobrunr.dashboard.FrontEndDevelopment'
 }
 
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}
 
 dependencies {
     api platform(project(':platform'))

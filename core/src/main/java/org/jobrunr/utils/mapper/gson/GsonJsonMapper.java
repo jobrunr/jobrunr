@@ -1,9 +1,12 @@
 package org.jobrunr.utils.mapper.gson;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
@@ -41,12 +44,11 @@ public class GsonJsonMapper implements JsonMapper {
 
     public GsonJsonMapper(GsonBuilder gsonBuilder) {
         this.gson = initGson(gsonBuilder);
-        fixGsonNotBeingExtensible(gson);
+//        fixGsonNotBeingExtensible(gson);
     }
 
     public GsonJsonMapper(Gson gson) {
         this.gson = gson;
-        fixGsonNotBeingExtensible(gson);
     }
 
     protected Gson initGson(GsonBuilder gsonBuilder) {
@@ -54,6 +56,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobState.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(Map.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobContext.Metadata.class))
+                .registerTypeAdapterFactory(JobTypeAdapter.FACTORY)
                 .registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe())
                 .registerTypeAdapter(File.class, new FileAdapter().nullSafe())
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
@@ -61,7 +64,19 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(Duration.class, new DurationAdapter().nullSafe())
+                .registerTypeAdapter(JobDetails.class, new JobDetailsDeserializer())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
+                .addDeserializationExclusionStrategy(new ExclusionStrategy() {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f) {
+                        return JobState.class.isAssignableFrom(f.getDeclaringClass()) && f.getName().equals("state");
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz) {
+                        return false;
+                    }
+                })
                 .create();
     }
 

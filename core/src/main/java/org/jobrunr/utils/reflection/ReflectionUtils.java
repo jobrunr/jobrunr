@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -192,6 +194,18 @@ public class ReflectionUtils {
         } else {
             return Optional.empty();
         }
+    }
+
+    public static <T> T invokeMethod(Method m, Object o, Object... params) {
+        try {
+            return cast(m.invoke(o, params));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean isStaticMethod(Method method) {
+        return Modifier.isStatic(method.getModifiers());
     }
 
     public static Field getField(Class<?> clazz, String fieldName) {

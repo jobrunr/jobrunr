@@ -46,8 +46,6 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
-import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
@@ -367,14 +365,14 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
         final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(job, "locker"));
+        result.setLocker(job.getLocker());
         return result;
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
         final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
         final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(recurringJob, "locker"));
+        result.setLocker(recurringJob.getLocker());
         return result;
     }
 

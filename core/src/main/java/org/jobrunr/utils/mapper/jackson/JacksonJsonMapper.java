@@ -12,11 +12,21 @@ import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
+import org.jobrunr.jobs.states.DeletedState;
+import org.jobrunr.jobs.states.EnqueuedState;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.ScheduledState;
+import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrModule;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
+import org.jobrunr.utils.mapper.jackson.modules.JobStateMixin;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,6 +57,14 @@ public class JacksonJsonMapper implements JsonMapper {
     protected ObjectMapper initObjectMapper(ObjectMapper objectMapper, boolean moduleAutoDiscover) {
         return objectMapper
                 .addMixIn(Job.class, JobMixin.class)
+                .addMixIn(JobDetails.class, JobDetailsMixin.class)
+                .addMixIn(CarbonAwareAwaitingState.class, JobStateMixin.class)
+                .addMixIn(ScheduledState.class, JobStateMixin.class)
+                .addMixIn(EnqueuedState.class, JobStateMixin.class)
+                .addMixIn(ProcessingState.class, JobStateMixin.class)
+                .addMixIn(SucceededState.class, JobStateMixin.class)
+                .addMixIn(FailedState.class, JobStateMixin.class)
+                .addMixIn(DeletedState.class, JobStateMixin.class)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.DEFAULT)
