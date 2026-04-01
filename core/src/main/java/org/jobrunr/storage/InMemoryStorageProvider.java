@@ -48,7 +48,6 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
-
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
     private final Map<UUID, BackgroundJobServerStatus> backgroundJobServers = new ConcurrentHashMap<>();
     private final List<RecurringJob> recurringJobs = new CopyOnWriteArrayList<>();
@@ -332,8 +331,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     @Override
     public void publishTotalAmountOfSucceededJobs(int amount) {
-        JobRunrMetadata metadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
-        metadata.setValue(new AtomicLong(parseLong(metadata.getValue()) + amount).toString());
+        JobRunrMetadata jobRunrMetadata = this.metadata.computeIfAbsent(STATS_ID, input -> new JobRunrMetadata(STATS_NAME, STATS_OWNER, new AtomicLong(0).toString()));
+        jobRunrMetadata.setValue(new AtomicLong(parseLong(jobRunrMetadata.getValue()) + amount).toString());
     }
 
     public void clear() {
@@ -388,7 +387,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private Comparator<Job> getJobComparator(AmountRequest amountRequest) {
         List<Comparator<Job>> comparators = amountRequest.getAllOrderTerms(Job.ALLOWED_SORT_COLUMNS.keySet()).stream()
-                .map(orderTerm -> Job.ALLOWED_SORT_COLUMNS.toComparator(orderTerm))
+                .map(Job.ALLOWED_SORT_COLUMNS::toComparator)
                 .collect(toList());
         return comparators.stream()
                 .reduce(Comparator::thenComparing)

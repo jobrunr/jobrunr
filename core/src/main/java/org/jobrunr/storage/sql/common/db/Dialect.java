@@ -88,7 +88,7 @@ public interface Dialect {
         ps.setString(i, duration.toString());
     }
 
-    default void setEnum(PreparedStatement ps, int i, String paramName, Enum enumValue) throws SQLException {
+    default void setEnum(PreparedStatement ps, int i, String paramName, Enum<?> enumValue) throws SQLException {
         ps.setString(i, ((Enum<?>) enumValue).name());
     }
 

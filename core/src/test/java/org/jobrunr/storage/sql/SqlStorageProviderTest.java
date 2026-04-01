@@ -32,7 +32,7 @@ public abstract class SqlStorageProviderTest extends StorageProviderTest {
 
     @BeforeAll
     static void clearParsedStatementCache() {
-        final Map<?, ?> parsedStatementCache = getInternalState(Sql.forType(null), "parsedStatementCache");
+        final Map<?, ?> parsedStatementCache = getInternalState(Sql.forType(), "parsedStatementCache");
         parsedStatementCache.clear();
     }
 

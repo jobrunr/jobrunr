@@ -45,6 +45,7 @@ class StorageProviderMetricsBinderTest {
 
         List<Gauge> meters = meterRegistry.getMeters().stream().map(Gauge.class::cast).collect(toList());
         assertThat(meters)
+                .isNotEmpty()
                 .allSatisfy(meter -> {
                     Meter.Id id = meter.getId();
                     assertThat(id.getName()).isEqualTo("jobrunr.jobs.by-state");

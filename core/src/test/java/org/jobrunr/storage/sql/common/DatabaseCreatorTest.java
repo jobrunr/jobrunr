@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 import static ch.qos.logback.LoggerAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,9 +66,10 @@ class DatabaseCreatorTest {
         final DatabaseCreator databaseCreator = new DatabaseCreator(createDataSource("jdbc:sqlite:" + SQLITE_DB1));
         assertThatCode(databaseCreator::runMigrations).doesNotThrowAnyException();
 
-        migrations.forEach(migration -> assertThat(databaseCreator.isMigrationApplied(migration))
+        Set<String> appliedMigrations = databaseCreator.loadAppliedMigrations();
+        migrations.forEach(migration -> assertThat(appliedMigrations)
                 .describedAs("Expecting %s to be applied", migration)
-                .isTrue());
+                .contains(migration.getFileName()));
     }
 
     @Test

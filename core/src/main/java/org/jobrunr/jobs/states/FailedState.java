@@ -17,7 +17,7 @@ public class FailedState extends AbstractJobState {
     private String exceptionCauseType;
     private String exceptionCauseMessage;
     private String stackTrace;
-    private boolean doNotRetry;
+    private Boolean doNotRetry;
 
     protected FailedState() { // for json deserialization
         this(null, null, null, null, null, null, false, Instant.now());

@@ -12,7 +12,7 @@ public class SqlOffsetBasedPageRequestMapper extends SqlAmountRequestMapper {
         super(dialect, allowedSortColumns);
     }
 
-    public String mapToSqlQuery(OffsetBasedPageRequest pageRequest, Sql table) {
+    public <T> String mapToSqlQuery(OffsetBasedPageRequest pageRequest, Sql<T> table) {
         table.with("limit", pageRequest.getLimit());
         table.with("offset", pageRequest.getOffset());
         return orderClause(pageRequest) + " " + dialect.limitAndOffset();

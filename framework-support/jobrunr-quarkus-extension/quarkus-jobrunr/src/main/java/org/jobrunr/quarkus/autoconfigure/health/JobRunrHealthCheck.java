@@ -13,7 +13,6 @@ import org.jobrunr.server.BackgroundJobServer;
 @Readiness
 @ApplicationScoped
 public class JobRunrHealthCheck implements HealthCheck {
-
     JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     Instance<BackgroundJobServer> backgroundJobServerInstance;

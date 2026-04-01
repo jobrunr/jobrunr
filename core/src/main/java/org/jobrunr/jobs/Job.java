@@ -8,7 +8,6 @@ import org.jobrunr.jobs.states.FailedState;
 import org.jobrunr.jobs.states.IllegalJobStateChangeException;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.SchedulableState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.states.SucceededState;
@@ -38,9 +37,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
 import static org.jobrunr.jobs.states.AllowedJobStateStateChanges.isIllegalStateChange;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_CREATED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT;
-import static org.jobrunr.storage.StorageProviderUtils.Jobs.FIELD_UPDATED_AT;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 /**
@@ -54,13 +50,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class Job extends AbstractJob {
 
     private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)");
-    public static JobSortColumns ALLOWED_SORT_COLUMNS = new JobSortColumns();
-
-    static {
-        ALLOWED_SORT_COLUMNS.add(FIELD_CREATED_AT, Job::getCreatedAt);
-        ALLOWED_SORT_COLUMNS.add(FIELD_UPDATED_AT, Job::getUpdatedAt);
-        ALLOWED_SORT_COLUMNS.add(FIELD_SCHEDULED_AT, job -> job.getJobState() instanceof SchedulableState ? ((SchedulableState) job.getJobState()).getScheduledAt() : null);
-    }
+    public static final JobSortColumns ALLOWED_SORT_COLUMNS = new JobSortColumns();
 
     private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();
 
@@ -68,7 +58,7 @@ public class Job extends AbstractJob {
     private final CopyOnWriteArrayList<JobState> jobHistory;
     private final ConcurrentMap<String, Object> metadata;
     private String recurringJobId;
-    private transient final AtomicInteger stateIndexBeforeStateChange;
+    private final transient AtomicInteger stateIndexBeforeStateChange;
 
     public static UUID newUUID() {
         return UUID_FACTORY.create();

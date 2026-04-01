@@ -64,3 +64,4 @@ public class AnsiDatabaseTablePrefixStatementUpdater implements TablePrefixState
         return substringAfterLast(tablePrefix, ".");
     }
 }
+

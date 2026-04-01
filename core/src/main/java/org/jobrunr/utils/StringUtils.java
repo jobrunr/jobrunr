@@ -82,7 +82,7 @@ public class StringUtils {
     public static String lenientSubstringBetween(String s, String open, String close) {
         if (s != null && s.contains(open)) {
             String result = substringAfter(s, open);
-            if (result.contains(close)) {
+            if (result != null && result.contains(close)) {
                 return substringBefore(result, close);
             }
             return result;
@@ -109,7 +109,7 @@ public class StringUtils {
 
     public static String urlEncode(String string) {
         try {
-            return URLEncoder.encode(string, UTF_8.toString());
+            return URLEncoder.encode(string, UTF_8.name());
         } catch (Exception e) {
             return string;
         }

@@ -19,9 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.Instant.now;
@@ -93,7 +93,7 @@ class AbstractStorageProviderTest {
         });
 
         long startTimeMillis = System.currentTimeMillis();
-        storageProvider.notifyJobStatsOnChangeListeners();
+        storageProvider.notifyJobStatsOnChangeListenersIf(true);
         long endTimeMillis = System.currentTimeMillis();
 
         assertThat(endTimeMillis - startTimeMillis).isLessThan(1000);
@@ -167,29 +167,29 @@ class AbstractStorageProviderTest {
     }
 
     @Test
-    void updateTimerIsStoppedIfNoChangeListeners() {
+    void scheduledExecutorServiceIsStoppedIfNoChangeListeners() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);
-        final Timer timerAfterAddingChangeListener = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterAddingChangeListener).isNotNull();
+        final ScheduledThreadPoolExecutor schedulerAfterAddingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterAddingChangeListener).isNotNull();
 
         storageProvider.removeJobStorageOnChangeListener(changeListener);
-        final Timer timerAfterRemovingChangeListener = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterRemovingChangeListener).isNull();
+        final ScheduledThreadPoolExecutor schedulerAfterRemovingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterRemovingChangeListener.isShutdown()).isTrue();
     }
 
     @Test
-    void updateTimerIsStoppedWhenStorageProviderIsStopped() {
+    void scheduledExecutorServiceIsStoppedWhenStorageProviderIsStopped() {
         final JobStatsChangeListenerForTest changeListener = new JobStatsChangeListenerForTest();
 
         storageProvider.addJobStorageOnChangeListener(changeListener);
-        final Timer timerAfterAddingChangeListener = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterAddingChangeListener).isNotNull();
+        final ScheduledThreadPoolExecutor schedulerAfterAddingChangeListener = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterAddingChangeListener).isNotNull();
 
         storageProvider.close();
-        final Timer timerAfterClosingStorageProvider = getInternalState(storageProvider, "timer");
-        assertThat(timerAfterClosingStorageProvider).isNull();
+        final ScheduledThreadPoolExecutor schedulerAfterClosingStorageProvider = getInternalState(storageProvider, "scheduler");
+        assertThat(schedulerAfterClosingStorageProvider.isShutdown()).isTrue();
     }
 
     private static class BackgroundJobServerStatusChangeListenerForTest implements BackgroundJobServerStatusChangeListener {

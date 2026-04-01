@@ -24,9 +24,12 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 
 @Singleton
 public class JobRunrBackgroundJobServerProducer {
+    private final JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
 
     @Inject
-    JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration;
+    JobRunrBackgroundJobServerProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
+        this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
 
     @Produces
     @DefaultBean

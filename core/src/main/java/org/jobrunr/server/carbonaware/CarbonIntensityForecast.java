@@ -26,7 +26,7 @@ public class CarbonIntensityForecast {
     public CarbonIntensityForecast() {
     }
 
-    public static CarbonIntensityForecast fromException(Exception ex) {
+    public static CarbonIntensityForecast fromException() {
         return new CarbonIntensityForecast(new ApiResponseStatus("500", "HTTP Internal Server Error"), null, null, null, null, null, null, null);
     }
 

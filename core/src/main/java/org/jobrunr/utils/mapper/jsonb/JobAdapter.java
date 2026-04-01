@@ -23,6 +23,7 @@ import org.jobrunr.utils.mapper.jsonb.serializer.PathTypeSerializer;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import static org.jobrunr.utils.mapper.jsonb.NullSafeJsonBuilder.nullSafeJsonObjectBuilder;
 
@@ -76,8 +77,15 @@ public class JobAdapter implements JsonbAdapter<Job, JsonObject> {
         final Job job = new Job(id, version, jobDetails, jobHistory, jobMetadata);
         job.setJobName(jsonObject.getString("jobName"));
         job.setLabels(jobLabels);
-        job.setAmountOfRetries(jsonObject.containsKey("amountOfRetries") && !jsonObject.isNull("amountOfRetries") ? jsonObject.getInt("amountOfRetries") : null);
-        job.setRecurringJobId(jsonObject.containsKey("recurringJobId") && !jsonObject.isNull("recurringJobId") ? jsonObject.getString("recurringJobId") : null);
+        job.setAmountOfRetries(JsonbUtils.getIntegerOrNull(jsonObject, "amountOfRetries"));
+        setStringField(jsonObject, "recurringJobId", job::setRecurringJobId);
         return job;
     }
+
+    private void setStringField(JsonObject jsonObject, String fieldName, Consumer<String> value) {
+        if (jsonObject.containsKey(fieldName) && !jsonObject.isNull(fieldName)) {
+            value.accept(jsonObject.getString(fieldName));
+        }
+    }
 }
+
