@@ -56,7 +56,7 @@ dependencies {
         api 'org.testcontainers:testcontainers-postgresql:2.0.3'
         api 'org.testcontainers:testcontainers-db2:2.0.3'
         api 'org.testcontainers:testcontainers-mongodb:2.0.3'
-        api 'com.microsoft.playwright:playwright:1.57.0'
+        api 'com.microsoft.playwright:playwright:1.59.0'
         api 'org.wiremock:wiremock:3.13.2'
     }
 }
