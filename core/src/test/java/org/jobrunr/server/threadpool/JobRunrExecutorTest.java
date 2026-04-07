@@ -5,6 +5,7 @@ import org.jobrunr.server.JobSteward;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +27,8 @@ class JobRunrExecutorTest {
     @Spy
     private JobRunrExecutor jobRunrExecutor = new VirtualThreadJobRunrExecutor(10, "test");
 
+    @Captor
+    private ArgumentCaptor<Duration> executorStopDurationCaptor;
 
     @Test
     void stopShouldSplitTotalInterruptDurationAndPollJobStewardUntilAllWorkersAreIdle() {
@@ -39,9 +42,8 @@ class JobRunrExecutorTest {
         jobRunrExecutor.stop(jobSteward, totalDuration);
 
         // THEN
-        ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
-        verify(jobRunrExecutor).stop(durationCaptor.capture());
-        assertThat(durationCaptor.getValue()).isEqualTo(Duration.ofMillis(900));
+        verify(jobRunrExecutor).stop(executorStopDurationCaptor.capture());
+        assertThat(executorStopDurationCaptor.getValue()).isEqualTo(Duration.ofMillis(750));
 
         verify(jobSteward, atLeast(2)).getOccupiedWorkerCount();
     }
@@ -58,8 +60,9 @@ class JobRunrExecutorTest {
         long endTime = System.currentTimeMillis();
 
         // THEN
-        assertThat(endTime - startTime).isLessThan(100);
-        verify(jobRunrExecutor).stop(any(Duration.class));
+        assertThat(endTime - startTime).isLessThan(300);
+        verify(jobRunrExecutor).stop(executorStopDurationCaptor.capture());
+        assertThat(executorStopDurationCaptor.getValue()).isEqualTo(Duration.ZERO);
     }
 
     @Test

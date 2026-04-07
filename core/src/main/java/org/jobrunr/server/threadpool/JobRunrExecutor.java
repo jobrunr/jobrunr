@@ -13,8 +13,9 @@ public interface JobRunrExecutor extends Executor {
     void start();
 
     default void stop(JobSteward jobSteward, Duration totalInterruptDuration) {
-        Duration backgroundJobPerformerSaveDuration = totalInterruptDuration.dividedBy(10);
+        Duration backgroundJobPerformerSaveDuration = Duration.ofMillis(250); // wait for max 250ms for all jobs to be saved
         Duration executorStopDuration = totalInterruptDuration.minus(backgroundJobPerformerSaveDuration);
+        executorStopDuration = executorStopDuration.isNegative() ? Duration.ZERO : executorStopDuration;
         stop(executorStopDuration);
         Instant deadline = Instant.now().plus(backgroundJobPerformerSaveDuration);
         while (jobSteward.getOccupiedWorkerCount() > 0 && Instant.now().isBefore(deadline)) {
