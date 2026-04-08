@@ -30,28 +30,28 @@ class JdkTest {
     void jdk17OpenJDK() {
         assertThat(buildAndTestOnImage("openjdk:17-jdk-slim", "61.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'ScheduledThreadPool' started");
+                .contains("ThreadManager of type 'PlatformThreadPoolJobRunrExecutor' started");
     }
 
     @Test
     void jdk21EclipseTemurin() {
         assertThat(buildAndTestOnImage("eclipse-temurin:21", "65.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     @Test
     void jdk21GraalVM() {
         assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-community:21", "65.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     @Test
     void jdk25OpenJDK() {
         assertThat(buildAndTestOnImage("openjdk:25", "69.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     private String buildAndTestOnImage(String dockerfile, String javaClassVersion) {
