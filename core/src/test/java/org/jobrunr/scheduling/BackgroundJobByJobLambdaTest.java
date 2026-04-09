@@ -136,7 +136,7 @@ public class BackgroundJobByJobLambdaTest {
                 .withId(jobId)
                 .withName("My Job Name")
                 .withAmountOfRetries(3)
-                .withDetails(() -> testService.doWorkAndReturnResult("some string")));
+                .withJobLambda(() -> testService.doWorkAndReturnResult("some string")));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
                 .hasJobName("My Job Name")
@@ -147,7 +147,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testCreateViaBuilderAndAnnotationMustFail() {
         assertThatThrownBy(() -> BackgroundJob.create(aJob()
-                .withDetails(() -> testService.doWorkWithAnnotation(3, "Jef Klak"))))
+                .withJobLambda(() -> testService.doWorkWithAnnotation(3, "Jef Klak"))))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
     }
@@ -277,7 +277,7 @@ public class BackgroundJobByJobLambdaTest {
     @Test
     void testCreateStreamWithJobBuilder() {
         BackgroundJob.create(getWorkStream()
-                .map(uuid -> aJob().withDetails(() -> System.out.println("this is a test")))
+                .map(uuid -> aJob().withJobLambda(() -> System.out.println("this is a test")))
         );
 
         await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(storageProvider.countJobs(SUCCEEDED)).isEqualTo(5));
@@ -394,7 +394,7 @@ public class BackgroundJobByJobLambdaTest {
     void testRecurringCronJobFromBuilder() {
         BackgroundJob.createRecurrently(aRecurringJob()
                 .withCron(EVERY_SECOND)
-                .withDetails(() -> testService.doWork(5)));
+                .withJobLambda(() -> testService.doWork(5)));
         await().atMost(25, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 3);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -470,7 +470,7 @@ public class BackgroundJobByJobLambdaTest {
     void testRecurringIntervalJobFromBuilder() {
         BackgroundJob.createRecurrently(aRecurringJob()
                 .withInterval(Duration.ofSeconds(1))
-                .withDetails(() -> testService.doWork(5)));
+                .withJobLambda(() -> testService.doWork(5)));
         await().atMost(15, SECONDS).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);

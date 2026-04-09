@@ -30,7 +30,7 @@ import static org.jobrunr.utils.JobUtils.assertJobExists;
  *            MyService service = new MyService();
  *            jobScheduler.createRecurrently(aRecurringJob()
  *                                  .withCron("* * 0 * * *")
- *                                  .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+ *                                  .withJobLambda(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
  *       }</pre>
  * <h5>A JobRequest example:</h5>
  * <pre>{@code
@@ -124,10 +124,34 @@ public class RecurringJobBuilder {
      *
      * @param jobLambda the lambda which defines the job
      * @return the same builder instance that can be given to the {@link JobScheduler#createRecurrently(RecurringJobBuilder)} method
+     * @deprecated use {@link RecurringJobBuilder#withJobLambda(JobLambda)} instead
      */
+    @Deprecated
     public RecurringJobBuilder withDetails(JobLambda jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    /**
+     * Allows to provide the job details by means of Java 8 lambda. The IoC container will be used to resolve an actual instance of the requested service.
+     *
+     * @param ioCJobLambda the lambda which defines the job
+     * @return the same builder instance that can be given to the {@link JobScheduler#createRecurrently(RecurringJobBuilder)} method
+     * @deprecated use {@link RecurringJobBuilder#withJobLambda(IocJobLambda)} instead
+     */
+    @Deprecated
+    public <S> RecurringJobBuilder withDetails(IocJobLambda<S> ioCJobLambda) {
+        return this.withJobLambda(ioCJobLambda);
+    }
+
+    /**
+     * Allows to provide the job details by means of Java 8 lambda.
+     *
+     * @param jobLambda the lambda which defines the job
+     * @return the same builder instance that can be given to the {@link JobScheduler#createRecurrently(RecurringJobBuilder)} method
+     */
+    public RecurringJobBuilder withJobLambda(JobLambda jobLambda) {
         if (this.jobRequest != null) {
-            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobRunrJob = jobLambda;
         return this;
@@ -139,9 +163,9 @@ public class RecurringJobBuilder {
      * @param ioCJobLambda the lambda which defines the job
      * @return the same builder instance that can be given to the {@link JobScheduler#createRecurrently(RecurringJobBuilder)} method
      */
-    public <S> RecurringJobBuilder withDetails(IocJobLambda<S> ioCJobLambda) {
+    public <S> RecurringJobBuilder withJobLambda(IocJobLambda<S> ioCJobLambda) {
         if (this.jobRequest != null) {
-            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobRunrJob = ioCJobLambda;
         return this;
@@ -155,7 +179,7 @@ public class RecurringJobBuilder {
      */
     public RecurringJobBuilder withJobRequest(JobRequest jobRequest) {
         if (this.jobRunrJob != null) {
-            throw new IllegalArgumentException("withJobLambda() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobLambda() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobRequest = jobRequest;
         return this;
@@ -192,13 +216,13 @@ public class RecurringJobBuilder {
      * <pre>{@code
      *      aRecurringJob()
      *          .withScheduleExpression(CarbonAware.dailyBefore(7))
-     *          .withDetails(() -> service.doWork());
+     *          .withJobLambda(() -> service.doWork());
      * }</pre>
      *
      * <pre>{@code
      *      aRecurringJob()
      *          .withScheduleExpression("0 0 * * * [PT0H/PT7H]")
-     *          .withDetails(() -> service.doWork());
+     *          .withJobLambda(() -> service.doWork());
      * }</pre>
      *
      * @param scheduleExpression the schedule expression that will be used to create the recurringJobs.
