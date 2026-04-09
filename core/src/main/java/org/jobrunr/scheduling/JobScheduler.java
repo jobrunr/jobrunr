@@ -302,7 +302,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * <pre>{@code
      *      jobScheduler.createRecurrently(aRecurringJob()
      *                                          .withCron("* * 0 * * *")
-     *                                          .withDetails(() -> service.doWork());
+     *                                          .withJobLambda(() -> service.doWork());
      * }</pre>
      *
      * @param recurringJobBuilder the builder describing your recurring job.
