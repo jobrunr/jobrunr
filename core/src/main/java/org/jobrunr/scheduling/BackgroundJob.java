@@ -486,7 +486,7 @@ public class BackgroundJob {
      *
      *      BackgroundJob.createRecurrently(aRecurringJob()
      *                                        .withCron("* * 0 * * *")
-     *                                        .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+     *                                        .withJobLambda(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
      * }</pre>
      *
      * @param recurringJobBuilder the builder defining the recurring job

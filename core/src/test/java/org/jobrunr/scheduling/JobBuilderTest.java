@@ -39,7 +39,7 @@ class JobBuilderTest {
     @Test
     void testJobBuilderCannotBeCombinedWithAnnotation() {
         assertThatThrownBy(() -> aJob()
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
@@ -49,7 +49,7 @@ class JobBuilderTest {
     void testDefaultJobWithJobLambda() {
         UUID uuid = UUID.randomUUID();
         Job job = aJob()
-                .withDetails(() -> testService.doWorkWithUUID(uuid))
+                .withJobLambda(() -> testService.doWorkWithUUID(uuid))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -62,7 +62,7 @@ class JobBuilderTest {
     void testDefaultJobWithIoCJobLambda() {
         UUID uuid = UUID.randomUUID();
         Job job = aJob()
-                .<TestService>withDetails(x -> x.doWorkWithUUID(uuid))
+                .<TestService>withJobLambda(x -> x.doWorkWithUUID(uuid))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -96,7 +96,7 @@ class JobBuilderTest {
         UUID id = UUID.randomUUID();
         Job job = aJob()
                 .withId(id)
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -108,7 +108,7 @@ class JobBuilderTest {
     void testWithJobName() {
         Job job = aJob()
                 .withName("My job name")
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -120,7 +120,7 @@ class JobBuilderTest {
     void testWithScheduleIn() {
         Job job = aJob()
                 .scheduleIn(Duration.ofMinutes(1))
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job).hasState(StateName.SCHEDULED);
@@ -132,7 +132,7 @@ class JobBuilderTest {
     void testWithScheduleAt() {
         Job job = aJob()
                 .scheduleAt(Instant.now().plusSeconds(60))
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job).hasState(StateName.SCHEDULED);
@@ -145,7 +145,7 @@ class JobBuilderTest {
         Instant deadline = now().plus(10, DAYS);
         Job job = aJob()
                 .scheduleAt(before(deadline))
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
         assertThat(job).hasState(StateName.AWAITING);
         CarbonAwareAwaitingState carbonAwareAwaitingState = job.getJobState();
@@ -168,7 +168,7 @@ class JobBuilderTest {
 
         Job job = aJob()
                 .withAmountOfRetries(amountOfRetries)
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -180,7 +180,7 @@ class JobBuilderTest {
     void testWithLabels() {
         Job job = aJob()
                 .withLabels(List.of("TestLabel", "Email"))
-                .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                 .build(jobDetailsGenerator);
 
         assertThat(job)
@@ -193,7 +193,7 @@ class JobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
                         .withLabels("TestLabel", "Email", "Automated", "Too many")
-                        .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                        .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                         .build(jobDetailsGenerator));
     }
 
@@ -202,7 +202,7 @@ class JobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
                         .withLabels("Label longer than 45 characters should throw an exception")
-                        .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                        .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                         .build(jobDetailsGenerator));
     }
 
@@ -211,11 +211,11 @@ class JobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
                         .withJobRequest(jobRequest)
-                        .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID())));
+                        .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID())));
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
-                        .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                        .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                         .withJobRequest(jobRequest));
     }
 
@@ -227,7 +227,7 @@ class JobBuilderTest {
                         .build(jobDetailsGenerator));
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aJob()
-                        .withDetails(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                        .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
                         .build());
     }
 }

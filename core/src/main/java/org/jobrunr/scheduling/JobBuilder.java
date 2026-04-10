@@ -40,7 +40,7 @@ import static org.jobrunr.utils.InstantUtils.toInstant;
  *                                  .withId(UUID.fromString(idRequestParam))
  *                                  .withAmountOfRetries(3)
  *                                  .scheduleIn(Duration.ofSeconds(10))
- *                                  .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+ *                                  .withJobLambda(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
  *       }</pre>
  * <h5>A JobRequest example:</h5>
  * <pre>{@code
@@ -123,14 +123,14 @@ public class JobBuilder {
      * <pre>{@code
      * aJob()
      *     .scheduleAt(Instant.now().plusSeconds(60))
-     *     .withDetails(...)
+     *     .withJobLambda(...)
      * }</pre>
      *
      * <h5>Example with {@code CarbonAwarePeriod}:</h5>
      * <pre>{@code
      * aJob()
      *     .scheduleAt(CarbonAware.before(Instant.now().plus(2, DAYS))
-     *     .withDetails(...)
+     *     .withJobLambda(...)
      * }</pre>
      *
      * @param scheduleAt the moment on which the job will be scheduled
@@ -180,10 +180,34 @@ public class JobBuilder {
      *
      * @param jobLambda the lambda which defines the job
      * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
+     * @deprecated use {@link JobBuilder#withJobLambda(JobLambda)} instead
      */
+    @Deprecated
     public JobBuilder withDetails(JobLambda jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    /**
+     * Allows to provide the job details by means of Java 8 lambda. The IoC container will be used to resolve an actual instance of the requested service.
+     *
+     * @param jobLambda the lambda which defines the job
+     * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
+     * @deprecated use {@link JobBuilder#withJobLambda(IocJobLambda)} instead
+     */
+    @Deprecated
+    public <S> JobBuilder withDetails(IocJobLambda<S> jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    /**
+     * Allows to provide the job details by means of Java 8 lambda.
+     *
+     * @param jobLambda the lambda which defines the job
+     * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
+     */
+    public JobBuilder withJobLambda(JobLambda jobLambda) {
         if (this.jobRequest != null) {
-            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobLambda = jobLambda;
         return this;
@@ -195,9 +219,9 @@ public class JobBuilder {
      * @param jobLambda the lambda which defines the job
      * @return the same builder instance that can be given to the {@link JobScheduler#create(JobBuilder)} method
      */
-    public <S> JobBuilder withDetails(IocJobLambda<S> jobLambda) {
+    public <S> JobBuilder withJobLambda(IocJobLambda<S> jobLambda) {
         if (this.jobRequest != null) {
-            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobRequest() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobLambda = jobLambda;
         return this;
@@ -211,7 +235,7 @@ public class JobBuilder {
      */
     public JobBuilder withJobRequest(JobRequest jobRequest) {
         if (this.jobLambda != null) {
-            throw new IllegalArgumentException("withJobLambda() is already called, only 1 of [withDetails(), withJobRequest()] should be called.");
+            throw new IllegalArgumentException("withJobLambda() is already called, only 1 of [withJobLambda(), withJobRequest()] should be called.");
         }
         this.jobRequest = jobRequest;
         return this;
@@ -228,7 +252,7 @@ public class JobBuilder {
                 throw new IllegalArgumentException("When using a JobRequest, you must use the JobRequestScheduler instead of the JobScheduler. Or did you call `withJobRequest` by mistake?");
             }
 
-            throw new IllegalArgumentException("A jobLambda must be present. Did you forget to call `withDetails`?");
+            throw new IllegalArgumentException("A jobLambda must be present. Did you forget to call `withJobLambda`?");
         }
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails(jobLambda);
         return build(jobDetails);
@@ -242,7 +266,7 @@ public class JobBuilder {
     protected Job build() {
         if (jobRequest == null) {
             if (jobLambda != null) {
-                throw new IllegalArgumentException("When using a jobLambda, you must use the JobScheduler instead of the JobRequestScheduler. Or did you call `withDetails` by mistake?");
+                throw new IllegalArgumentException("When using a jobLambda, you must use the JobScheduler instead of the JobRequestScheduler. Or did you call `withJobLambda` by mistake?");
             }
             throw new IllegalArgumentException("A JobRequest must be present. Did you forget to call `withJobRequest`?");
         }
