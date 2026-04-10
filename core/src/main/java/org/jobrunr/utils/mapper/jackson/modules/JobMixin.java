@@ -2,6 +2,7 @@ package org.jobrunr.utils.mapper.jackson.modules;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.states.JobState;
@@ -22,6 +23,6 @@ public abstract class JobMixin {
             @JsonProperty("metadata") ConcurrentMap<String, Object> metadata
     ) {}
 
-//    @JsonIgnoreProperties({"recurringJobId"})
-//    CopyOnWriteArrayList<JobState> jobHistory;
+    @JsonIgnoreProperties({"recurringJobId"})
+    CopyOnWriteArrayList<JobState> jobHistory;
 }

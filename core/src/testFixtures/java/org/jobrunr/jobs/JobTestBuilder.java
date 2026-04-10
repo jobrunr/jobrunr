@@ -37,7 +37,6 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
@@ -76,7 +75,7 @@ public class JobTestBuilder {
                 .withId(job.getId())
                 .withName(job.getJobName())
                 .withVersion(job.getVersion())
-                .withLock(getInternalState(job, "locker"))
+                .withLock(job.getLocker())
                 .withJobDetails(job.getJobDetails())
                 .withStates(job.getJobStates())
                 .withMetadata(job.getMetadata());
