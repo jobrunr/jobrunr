@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -102,6 +103,12 @@ public class TestService implements TestServiceInterface {
         processedJobs += (countA + countB);
         LOGGER.debug("Doing some work... " + processedJobs);
     }
+
+    public void doWork(Map<String, Object> input) {
+
+    }
+
+    public void doWork(Set<?> input) {}
 
     @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {

@@ -72,7 +72,10 @@ public class RequestUrl {
         Map<String, String> fieldValues = queryParams.entrySet().stream()
                 .collect(toMap(Entry::getKey, e -> e.getValue().get(0)));
 
-        return ReflectionUtils.newInstanceAndSetFieldValues(clazz, fieldValues);
+        return ReflectionUtils.findMethod(clazz, "fromQueryParams", Map.class)
+                .filter(ReflectionUtils::isStaticMethod)
+                .map(m -> ReflectionUtils.<T>invokeMethod(m, null, fieldValues))
+                .orElseGet(() -> ReflectionUtils.newInstanceAndSetFieldValues(clazz, fieldValues));
     }
 
     private Map<String, List<String>> initQueryParams(String url) {

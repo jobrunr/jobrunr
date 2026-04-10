@@ -15,8 +15,8 @@ public abstract class AbstractJob implements Lockable {
 
     private static final int MAX_AMOUNT_OF_LABELS = 3;
     private static final int MAX_LABEL_LENGTH = 45;
-    private final transient Lock locker;
 
+    private transient Lock locker;
     private volatile int version;
     private String jobSignature;
     private String jobName;
@@ -98,6 +98,24 @@ public abstract class AbstractJob implements Lockable {
 
     public JobDetails getJobDetails() {
         return jobDetails;
+    }
+
+    /**
+     * INTERNAL: returns a lock. The lock is meant for internal use only.
+     *
+     * @return a job locker
+     */
+    public Lock getLocker() {
+        return locker;
+    }
+
+    /**
+     * INTERNAL: method to set a job locker. This is visible for internal use only.
+     *
+     * @param locker the job locker
+     */
+    public void setLocker(Lock locker) {
+        this.locker = locker;
     }
 
     @Override

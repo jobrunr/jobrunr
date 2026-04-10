@@ -31,10 +31,14 @@ public class JobDetails {
     }
 
     public JobDetails(String className, String staticFieldName, String methodName, List<JobParameter> jobParameters) {
+        this(className, staticFieldName, methodName, asArrayList(jobParameters));
+    }
+
+    public JobDetails(String className, String staticFieldName, String methodName, ArrayList<JobParameter> jobParameters) {
         this.className = className;
         this.staticFieldName = staticFieldName;
         this.methodName = methodName;
-        this.jobParameters = asArrayList(jobParameters);
+        this.jobParameters = jobParameters;
         this.cacheable = false;
     }
 

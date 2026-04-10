@@ -1,18 +1,15 @@
 package org.jobrunr.storage.nosql.mongo;
 
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.conversions.Bson;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderTest;
@@ -25,10 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public abstract class AbstractMongoDBStorageProviderTest extends StorageProviderTest {
 
@@ -58,11 +51,6 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
         return dbStorageProvider;
     }
 
-    @Override
-    protected ThrowingStorageProvider makeThrowingStorageProvider(StorageProvider storageProvider) {
-        return new ThrowingMongoDBStorageProvider(storageProvider);
-    }
-
     @AfterAll
     public static void closeMongoClient() {
         mongoClient.close();
@@ -84,21 +72,5 @@ public abstract class AbstractMongoDBStorageProviderTest extends StorageProvider
 
         }
         return mongoClient;
-    }
-
-    protected static class ThrowingMongoDBStorageProvider extends ThrowingStorageProvider {
-
-        public ThrowingMongoDBStorageProvider(StorageProvider storageProvider) {
-            super(storageProvider, "jobCollection");
-        }
-
-        @Override
-        protected void makeStorageProviderThrowException(StorageProvider storageProvider) {
-            MongoCollection mockedJobCollection = mock(MongoCollection.class);
-            MongoException mongoException = mock(MongoException.class);
-            lenient().when(mockedJobCollection.updateOne(any(), (Bson) any())).thenThrow(mongoException);
-            lenient().when(mockedJobCollection.bulkWrite(any())).thenThrow(mongoException);
-            setInternalState(storageProvider, "jobCollection", mockedJobCollection);
-        }
     }
 }

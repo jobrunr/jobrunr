@@ -1,5 +1,7 @@
 package org.jobrunr.stubs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
@@ -15,7 +17,8 @@ public class TestMDCJobRequest implements JobRequest {
         this(null);
     }
 
-    public TestMDCJobRequest(String key) {
+    @JsonCreator
+    public TestMDCJobRequest(@JsonProperty("key") String key) {
         this.key = key;
     }
 

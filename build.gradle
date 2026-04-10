@@ -147,6 +147,10 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
+    tasks.withType(Test).configureEach {
+        jvmArgs '--illegal-final-field-mutation=deny'
+    }
+
     tasks.clean.doFirst {
         def projectName = project.name
         delete "/tmp/reports/$projectName"

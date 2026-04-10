@@ -16,7 +16,6 @@ import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.resilience.Lock;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -38,7 +37,6 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
@@ -77,7 +75,7 @@ public class JobTestBuilder {
                 .withId(job.getId())
                 .withName(job.getJobName())
                 .withVersion(job.getVersion())
-                .withLock(getInternalState(job, "locker"))
+                .withLock(job.getLocker())
                 .withJobDetails(job.getJobDetails())
                 .withStates(job.getJobStates())
                 .withMetadata(job.getMetadata());
@@ -353,7 +351,7 @@ public class JobTestBuilder {
     public Job build() {
         Job job = new Job(id, ofNullable(this.version).orElse(0), jobDetails, states, new ConcurrentHashMap<>(metadata));
         if (locker != null) {
-            Whitebox.setInternalState(job, "locker", locker);
+            job.setLocker(locker);
         }
         if (amountOfRetries != null) {
             job.setAmountOfRetries(amountOfRetries);

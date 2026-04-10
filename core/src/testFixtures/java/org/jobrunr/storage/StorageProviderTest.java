@@ -77,8 +77,6 @@ import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class StorageProviderTest {
@@ -113,15 +111,6 @@ public abstract class StorageProviderTest {
     protected abstract void cleanup(int testMethodIndex);
 
     protected abstract StorageProvider getStorageProvider();
-
-    protected ThrowingStorageProvider makeThrowingStorageProvider(StorageProvider storageProvider) {
-        return new ThrowingStorageProvider(storageProvider, "TODO") {
-            @Override
-            protected void makeStorageProviderThrowException(StorageProvider storageProvider) {
-                throw new UnsupportedOperationException("Implement me!");
-            }
-        };
-    }
 
     @Test
     void testAnnounceAndListBackgroundJobServers() {
@@ -365,10 +354,8 @@ public abstract class StorageProviderTest {
         Job enqueuedJob = storageProvider.save(job);
 
         job.startProcessingOn(backgroundJobServer);
-        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
-            assertThatThrownBy(() -> storageProvider.save(enqueuedJob))
-                    .isInstanceOf(StorageException.class);
-        }
+        assertThatThrownBy(() -> storageProvider.save(aCopyOf(job).withVersion(0).build()))
+                .isInstanceOf(StorageException.class);
 
         job.updateProcessing();
         assertThatCode(() -> storageProvider.save(enqueuedJob)).doesNotThrowAnyException();
@@ -648,10 +635,8 @@ public abstract class StorageProviderTest {
         final List<Job> savedJobs = storageProvider.save(jobs);
         savedJobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
 
-        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
-            assertThatThrownBy(() -> storageProvider.save(savedJobs))
-                    .isInstanceOf(StorageException.class);
-        }
+        assertThatThrownBy(() -> storageProvider.save(aCopyOf(jobs.get(0)).withVersion(0).build()))
+                .isInstanceOf(StorageException.class);
 
         savedJobs.forEach(Job::updateProcessing);
         storageProvider.save(savedJobs);
@@ -981,40 +966,6 @@ public abstract class StorageProviderTest {
         @Override
         public void onChange(List<JobRunrMetadata> metadata) {
             this.changes.add(metadata);
-        }
-    }
-
-    public static abstract class ThrowingStorageProvider implements AutoCloseable {
-
-        private final StorageProvider storageProvider;
-        private final String fieldNameForReset;
-        private Object originalState;
-
-        public ThrowingStorageProvider(StorageProvider storageProvider, String fieldNameForReset) {
-            this.storageProvider = storageProvider;
-            this.fieldNameForReset = fieldNameForReset;
-
-            try {
-                saveInternalStorageProviderState(storageProvider);
-                makeStorageProviderThrowException(storageProvider);
-            } catch (Exception e) {
-                throw new RuntimeException("Exception setting up ThrowingStorageProvider", e);
-            }
-        }
-
-        @Override
-        public void close() {
-            resetStorageProviderUsingInternalState(storageProvider);
-        }
-
-        protected void saveInternalStorageProviderState(StorageProvider storageProvider) {
-            this.originalState = getInternalState(storageProvider, fieldNameForReset);
-        }
-
-        protected abstract void makeStorageProviderThrowException(StorageProvider storageProvider) throws Exception;
-
-        protected void resetStorageProviderUsingInternalState(StorageProvider storageProvider) {
-            setInternalState(storageProvider, fieldNameForReset, originalState);
         }
     }
 }

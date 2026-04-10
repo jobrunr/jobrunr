@@ -24,7 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
@@ -47,10 +46,6 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
-import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
-import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
-import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
@@ -60,7 +55,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
-        this(rateLimit().at1Request().per(SECOND));
+        this(RateLimiter.ONE_REQUEST_PER_SECOND);
     }
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {
@@ -365,17 +360,16 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     private Job deepClone(Job job) {
-        return deepClone(job, jobMapper::serializeJob, jobMapper::deserializeJob);
+        final String serializedJobAsString = jobMapper.serializeJob(job);
+        final Job result = jobMapper.deserializeJob(serializedJobAsString);
+        result.setLocker(job.getLocker());
+        return result;
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
-        return deepClone(recurringJob, jobMapper::serializeRecurringJob, jobMapper::deserializeRecurringJob);
-
-    }
-
-    private <T extends AbstractJob> T deepClone(T t, Function<T, String> serializationFunction, Function<String, T> deserializationFunction) {
-        final T result = deserializationFunction.apply(serializationFunction.apply(t));
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(t, "locker"));
+        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
+        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
+        result.setLocker(recurringJob.getLocker());
         return result;
     }
 

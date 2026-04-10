@@ -10,7 +10,9 @@ import static java.time.Instant.now;
 
 public class RateLimiter {
 
+
     public static final Duration SECOND = ofSeconds(1);
+    public static final RateLimiter ONE_REQUEST_PER_SECOND = Builder.rateLimit().at1Request().per(SECOND);
 
     private final ReentrantLock lock;
     private final Duration perDuration;
