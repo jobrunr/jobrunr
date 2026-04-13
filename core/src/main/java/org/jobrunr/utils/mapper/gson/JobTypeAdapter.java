@@ -33,7 +33,7 @@ public class JobTypeAdapter extends TypeAdapter<Job> {
     public static final TypeAdapterFactory FACTORY = new TypeAdapterFactory() {
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-            return Job.class.isAssignableFrom(type.getRawType()) ? (TypeAdapter<T>) new JobTypeAdapter(gson) : null;
+            return Job.class.isAssignableFrom(type.getRawType()) ? (TypeAdapter<T>) new JobTypeAdapter(gson).nullSafe() : null;
         }
     };
 
