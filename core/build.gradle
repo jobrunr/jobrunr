@@ -217,7 +217,7 @@ tasks.register('npmRunBuild', Exec) {
     ).withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     commandLine 'sh', '-c', 'npm run build'
-    outputs.cacheIf { false }
+    outputs.cacheIf { true }
 }
 
 tasks.register('npmRunTest', Exec) {
