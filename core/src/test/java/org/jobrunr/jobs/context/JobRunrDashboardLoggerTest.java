@@ -436,6 +436,8 @@ class JobRunrDashboardLoggerTest {
     @Test
     void fluentApiLogsInfoMessage() {
         when(slfLogger.isInfoEnabled()).thenReturn(true);
+        Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
 
         jobRunrDashboardLogger.atInfo()
                 .setMessage("simple {} message")
@@ -445,11 +447,14 @@ class JobRunrDashboardLoggerTest {
                 .log();
 
         verify(slfLogger).info("some marker key=value simple {} message", new Object[]{"@"});
+        assertThat(job).hasMetadata(InfoLog.withMessage("some marker key=value simple @ message"));
     }
 
     @Test
     void fluentApiLogsWarnMessage() {
         when(slfLogger.isWarnEnabled()).thenReturn(true);
+        Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
 
         jobRunrDashboardLogger.atWarn()
                 .setMessage("simple {} message")
@@ -459,11 +464,14 @@ class JobRunrDashboardLoggerTest {
                 .log();
 
         verify(slfLogger).warn("some marker key=value simple {} message", new Object[]{"@"});
+        assertThat(job).hasMetadata(WarnLog.withMessage("some marker key=value simple @ message"));
     }
 
     @Test
     void fluentApiLogsErrorMessage() {
         when(slfLogger.isErrorEnabled()).thenReturn(true);
+        Job job = aJobInProgress().build();
+        JobRunrDashboardLogger.setJob(job);
 
         jobRunrDashboardLogger.atError()
                 .setMessage("simple {} message")
@@ -473,6 +481,7 @@ class JobRunrDashboardLoggerTest {
                 .log();
 
         verify(slfLogger).error("some marker key=value simple {} message", new Object[]{"@"});
+        assertThat(job).hasMetadata(ErrorLog.withMessage("some marker key=value simple @ message"));
     }
 
     @Test
