@@ -27,6 +27,8 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -431,6 +433,76 @@ class JobRunrDashboardLoggerTest {
     @Test
     void JobRunrDashboardLoggerIsThreadSafeUsingJsonB() throws InterruptedException {
         JobRunrDashboardLoggerIsThreadSafeUsing(new JobMapper(new JsonbJsonMapper()));
+    }
+
+    @Test
+    void fluentApiLogsInfoMessage() {
+        when(slfLogger.isInfoEnabled()).thenReturn(true);
+
+        jobRunrDashboardLogger.atInfo()
+                .setMessage("simple {} message")
+                .addArgument("@")
+                .addMarker(marker)
+                .addKeyValue("key", "value")
+                .log();
+
+        verify(slfLogger).info("some marker key=value simple {} message", new Object[]{"@"});
+    }
+
+    @Test
+    void fluentApiLogsWarnMessage() {
+        when(slfLogger.isWarnEnabled()).thenReturn(true);
+
+        jobRunrDashboardLogger.atWarn()
+                .setMessage("simple {} message")
+                .addArgument("@")
+                .addMarker(marker)
+                .addKeyValue("key", "value")
+                .log();
+
+        verify(slfLogger).warn("some marker key=value simple {} message", new Object[]{"@"});
+    }
+
+    @Test
+    void fluentApiLogsErrorMessage() {
+        when(slfLogger.isErrorEnabled()).thenReturn(true);
+
+        jobRunrDashboardLogger.atError()
+                .setMessage("simple {} message")
+                .addArgument("@")
+                .addMarker(marker)
+                .addKeyValue("key", "value")
+                .log();
+
+        verify(slfLogger).error("some marker key=value simple {} message", new Object[]{"@"});
+    }
+
+    @Test
+    void fluentApiLogsDebugMessage() {
+        when(slfLogger.isDebugEnabled()).thenReturn(true);
+
+        jobRunrDashboardLogger.atDebug()
+                .setMessage("simple {} message")
+                .addArgument("@")
+                .addMarker(marker)
+                .addKeyValue("key", "value")
+                .log();
+
+        verify(slfLogger).debug("some marker key=value simple {} message", new Object[]{"@"});
+    }
+
+    @Test
+    void fluentApiLogsTraceMessage() {
+        when(slfLogger.isTraceEnabled()).thenReturn(true);
+
+        jobRunrDashboardLogger.atTrace()
+                .setMessage("simple {} message")
+                .addArgument("@")
+                .addMarker(marker)
+                .addKeyValue("key", "value")
+                .log();
+
+        verify(slfLogger).trace("some marker key=value simple {} message", new Object[]{"@"});
     }
 
     void JobRunrDashboardLoggerIsThreadSafeUsing(JobMapper jobMapper) throws InterruptedException {
