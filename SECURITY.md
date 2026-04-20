@@ -19,8 +19,8 @@ Here you can find the different supported JobRunr Pro versions that are supporte
 | ------- | ------------------ |
 | LATEST   | :white_check_mark: |
 | < LATEST   | :x:  |
-| 5.3.x  |  :white_check_mark: |
-| <= 5.3.x   | :x:  |
+| 7.5.x  |  :white_check_mark: |
+| <= 7.5.x   | :x:  |
 
 
 ## Reporting a Vulnerability
