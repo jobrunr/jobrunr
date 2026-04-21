@@ -60,7 +60,7 @@ class DatabaseCreatorTablePrefixTest {
         when(connection.createStatement()).thenReturn(statement);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
         when(connection.getMetaData()).thenReturn(databaseMetaData);
-        when(databaseMetaData.getTables(null, null, "%", null)).thenReturn(resultSet);
+        when(databaseMetaData.getTables(null, null, "%jobrunr%", null)).thenReturn(resultSet);
         when(preparedStatement.executeUpdate()).thenReturn(1);
     }
 
