@@ -15,7 +15,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.resilience.Lock;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -57,7 +56,6 @@ public class JobTestBuilder {
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
-    private Lock locker;
     private boolean withoutStateChanges = true;
 
     private JobTestBuilder() {
@@ -75,7 +73,6 @@ public class JobTestBuilder {
                 .withId(job.getId())
                 .withName(job.getJobName())
                 .withVersion(job.getVersion())
-                .withLock(job.getLocker())
                 .withJobDetails(job.getJobDetails())
                 .withStates(job.getJobStates())
                 .withMetadata(job.getMetadata());
@@ -338,11 +335,6 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withLock(Lock lock) {
-        this.locker = lock;
-        return this;
-    }
-
     public JobTestBuilder withInitialStateChanges() {
         this.withoutStateChanges = false;
         return this;
@@ -350,9 +342,6 @@ public class JobTestBuilder {
 
     public Job build() {
         Job job = new Job(id, ofNullable(this.version).orElse(0), jobDetails, states, new ConcurrentHashMap<>(metadata));
-        if (locker != null) {
-            job.setLocker(locker);
-        }
         if (amountOfRetries != null) {
             job.setAmountOfRetries(amountOfRetries);
         }

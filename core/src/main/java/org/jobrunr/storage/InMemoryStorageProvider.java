@@ -361,16 +361,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private Job deepClone(Job job) {
         final String serializedJobAsString = jobMapper.serializeJob(job);
-        final Job result = jobMapper.deserializeJob(serializedJobAsString);
-        result.setLocker(job.getLocker());
-        return result;
+        return jobMapper.deserializeJob(serializedJobAsString);
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
         final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
-        final RecurringJob result = jobMapper.deserializeRecurringJob(serializedJobAsString);
-        result.setLocker(recurringJob.getLocker());
-        return result;
+        return jobMapper.deserializeRecurringJob(serializedJobAsString);
     }
 
     private synchronized void saveJob(Job job) {
