@@ -30,7 +30,6 @@ import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -322,14 +321,10 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void jobRunrHealthIndicatorAutoConfiguration() {
-        SpringApplication mockApp = mock(SpringApplication.class);
         this.contextRunner.withPropertyValues("jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
-            context.publishEvent(new ApplicationReadyEvent(
-                    mockApp,
-                    new String[]{},
-                    context,
-                    Duration.ZERO
-            ));
+            ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
+            context.publishEvent(event);
+
             assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
             assertThat(context.getBean(JobRunrHealthIndicator.class).health().getStatus()).isEqualTo(Status.UP);
         });
