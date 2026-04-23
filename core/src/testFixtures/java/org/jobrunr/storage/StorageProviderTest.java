@@ -158,6 +158,14 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    protected void testBackgroundServerAnnouncingTwice() {
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
+        storageProvider.announceBackgroundJobServer(serverStatus1);
+        assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
+        assertThatCode(() -> storageProvider.announceBackgroundJobServer(serverStatus1)).doesNotThrowAnyException();
+    }
+
+    @Test
     void testRemoveTimedOutBackgroundJobServers() {
         final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
