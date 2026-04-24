@@ -13,13 +13,7 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
-import org.jobrunr.jobs.states.DeletedState;
-import org.jobrunr.jobs.states.EnqueuedState;
-import org.jobrunr.jobs.states.FailedState;
-import org.jobrunr.jobs.states.ProcessingState;
-import org.jobrunr.jobs.states.ScheduledState;
-import org.jobrunr.jobs.states.SucceededState;
+import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
@@ -58,13 +52,7 @@ public class JacksonJsonMapper implements JsonMapper {
         return objectMapper
                 .addMixIn(Job.class, JobMixin.class)
                 .addMixIn(JobDetails.class, JobDetailsMixin.class)
-                .addMixIn(CarbonAwareAwaitingState.class, JobStateMixin.class)
-                .addMixIn(ScheduledState.class, JobStateMixin.class)
-                .addMixIn(EnqueuedState.class, JobStateMixin.class)
-                .addMixIn(ProcessingState.class, JobStateMixin.class)
-                .addMixIn(SucceededState.class, JobStateMixin.class)
-                .addMixIn(FailedState.class, JobStateMixin.class)
-                .addMixIn(DeletedState.class, JobStateMixin.class)
+                .addMixIn(AbstractJobState.class, JobStateMixin.class)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.DEFAULT)
