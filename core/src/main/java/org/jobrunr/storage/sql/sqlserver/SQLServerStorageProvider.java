@@ -2,6 +2,7 @@ package org.jobrunr.storage.sql.sqlserver;
 
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
+import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 
@@ -20,7 +21,11 @@ public class SQLServerStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public SQLServerStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        super(dataSource, new SQLServerDialect(), tablePrefix, databaseOptions);
+        this(dataSource, tablePrefix, databaseOptions, RateLimiter.ONE_REQUEST_PER_SECOND);
+    }
+
+    public SQLServerStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+        super(dataSource, new SQLServerDialect(), tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
     }
 
 }
