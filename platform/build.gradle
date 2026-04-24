@@ -41,7 +41,7 @@ dependencies {
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
         api 'org.awaitility:awaitility:4.3.0'
         api 'org.assertj:assertj-core:3.27.7'
-        api 'com.tngtech.archunit:archunit-junit5:1.4.1'
+        api 'com.tngtech.archunit:archunit-junit5:1.4.2'
         api 'net.javacrumbs.json-unit:json-unit-assertj:5.1.0'
         api 'org.mockito:mockito-inline:5.2.0'
         api 'org.mockito:mockito-junit-jupiter:5.22.0'
