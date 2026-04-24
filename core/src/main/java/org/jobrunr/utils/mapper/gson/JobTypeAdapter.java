@@ -25,7 +25,6 @@ public class JobTypeAdapter extends TypeAdapter<Job> {
     private static final TypeToken<List<String>> LABELS_TYPE = new TypeToken<List<String>>() {};
 
     private final Gson gson;
-    private final ClassNameObjectTypeAdapter objectAdapter;
     private final TypeAdapter<JobDetails> jobDetailsAdapter;
     private final TypeAdapter<List<JobState>> jobHistoryAdapter;
     private final TypeAdapter<List<String>> labelsAdapter;
@@ -39,7 +38,6 @@ public class JobTypeAdapter extends TypeAdapter<Job> {
 
     JobTypeAdapter(Gson gson) {
         this.gson = gson;
-        this.objectAdapter = new ClassNameObjectTypeAdapter(gson);
         this.jobDetailsAdapter = gson.getAdapter(JobDetails.class);
         this.jobHistoryAdapter = gson.getAdapter(JOB_HISTORY_TYPE);
         this.labelsAdapter = gson.getAdapter(LABELS_TYPE);
@@ -58,7 +56,10 @@ public class JobTypeAdapter extends TypeAdapter<Job> {
         int version = jsonObject.get("version").getAsInt();
         JobDetails jobDetails = jobDetailsAdapter.fromJsonTree(jsonObject.get("jobDetails"));
         List<JobState> jobHistory = jobHistoryAdapter.fromJsonTree(jsonObject.get("jobHistory"));
-        ConcurrentHashMap<String, Object> metadata = cast(objectAdapter.fromJsonTree(jsonObject.get("metadata")));
+        ConcurrentHashMap<String, Object> metadata = cast(GsonJsonElementUtils.deserializeElement(
+                jsonObject.get("metadata"),
+                (clazz, json) -> gson.getAdapter(TypeToken.get(clazz)).fromJsonTree(json)
+        ));
 
         Job job = new Job(id, version, jobDetails, jobHistory, metadata);
         job.setJobName(jsonObject.get("jobName").getAsString());
