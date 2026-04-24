@@ -92,7 +92,7 @@ public class Job extends AbstractJob {
         this(id, version, jobDetails, new CopyOnWriteArrayList<>(jobHistory), metadata);
     }
 
-    public Job(UUID id, int version, JobDetails jobDetails, CopyOnWriteArrayList<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
+    protected Job(UUID id, int version, JobDetails jobDetails, CopyOnWriteArrayList<JobState> jobHistory, ConcurrentMap<String, Object> metadata) {
         super(jobDetails, version);
         if (jobHistory.isEmpty()) throw new IllegalStateException("A job should have at least one initial state");
         this.id = id != null ? id : newUUID();
