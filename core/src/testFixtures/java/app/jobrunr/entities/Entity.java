@@ -1,5 +1,8 @@
 package app.jobrunr.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class Entity {
@@ -9,7 +12,8 @@ public class Entity {
         this(null);
     }
 
-    public Entity(String name) {
+    @JsonCreator
+    public Entity(@JsonProperty("name") String name) {
         this.name = name;
     }
 
