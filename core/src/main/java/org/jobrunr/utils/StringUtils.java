@@ -107,6 +107,7 @@ public class StringUtils {
         }
     }
 
+    @SuppressWarnings("JdkObsolete")
     public static String urlEncode(String string) {
         try {
             return URLEncoder.encode(string, UTF_8.name());

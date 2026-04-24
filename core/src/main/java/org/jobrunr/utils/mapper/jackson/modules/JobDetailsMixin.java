@@ -10,6 +10,7 @@ import java.util.ArrayList;
 @JsonAutoDetect(creatorVisibility = JsonAutoDetect.Visibility.ANY)
 public abstract class JobDetailsMixin {
     @JsonCreator
+    @SuppressWarnings("NonApiType")
     public JobDetailsMixin(
             @JsonProperty("className") String className,
             @JsonProperty("staticFieldName") String staticFieldName,

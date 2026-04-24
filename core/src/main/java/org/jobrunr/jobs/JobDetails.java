@@ -34,6 +34,7 @@ public class JobDetails {
         this(className, staticFieldName, methodName, asArrayList(jobParameters));
     }
 
+    @SuppressWarnings("NonApiType")
     public JobDetails(String className, String staticFieldName, String methodName, ArrayList<JobParameter> jobParameters) {
         this.className = className;
         this.staticFieldName = staticFieldName;
