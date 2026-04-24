@@ -10,7 +10,6 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
 
@@ -32,7 +31,6 @@ class DB2TablePrefixStorageProviderTest extends AbstractDB2StorageProviderTest {
     protected StorageProvider getStorageProvider() {
         final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_SCHEMA.SOME_PREFIX_", DatabaseOptions.CREATE, rateLimit().withoutLimits());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
     }
 
