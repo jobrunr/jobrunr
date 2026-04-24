@@ -12,7 +12,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +32,6 @@ class AsyncJobInterceptorTest {
     @BeforeEach
     void setUp() {
         interceptor = new AsyncJobInterceptor(jobScheduler);
-        Whitebox.setInternalState(interceptor, "jobScheduler", jobScheduler);
     }
 
     @Test
