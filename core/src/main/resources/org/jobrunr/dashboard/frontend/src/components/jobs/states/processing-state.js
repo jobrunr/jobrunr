@@ -25,7 +25,8 @@ const Console = styled("div")(() => ({
         userSelect: 'none',
     },
     '& > dl dd': {
-        margin: '-0.2em 0 -0.2em 220px'
+        margin: '-0.2em 0 -0.2em 220px',
+        whiteSpace: 'pre-wrap',
     },
     '& > dl.WARN dd': {
         color: 'orange'

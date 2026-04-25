@@ -32,7 +32,7 @@ class AsyncJobInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new AsyncJobInterceptor();
+        interceptor = new AsyncJobInterceptor(jobScheduler);
         Whitebox.setInternalState(interceptor, "jobScheduler", jobScheduler);
     }
 
@@ -92,11 +92,12 @@ class AsyncJobInterceptorTest {
     }
 
     private void someMethodThatIsNotAnnotatedWithJob() {
+        // used for testing
     }
 
     @Job
     private void someMethodWithJobAnnotation() {
-
+        // used for testing
     }
 
     @Job

@@ -61,8 +61,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
     private JobDetailsGenerator jobDetailsGenerator;
 
     private enum SomeEnum {
-        Value1,
-        Value2
+        VALUE_1,
     }
 
     @BeforeEach
@@ -524,7 +523,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 float someFloat = 5.3F;
                 long someLong = 3L;
                 boolean someBoolean = true;
-                SomeEnum someEnum = SomeEnum.Value1;
+                SomeEnum someEnum = SomeEnum.VALUE_1;
                 System.out.println("This is a test: " + testId + "; " + someInt + "; " + someDouble + "; " + someFloat + "; " + someLong + "; " + someBoolean + "; " + someEnum + "; " + now);
             };
             JobDetails jobDetails = toJobDetails(job);
@@ -533,7 +532,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
                     .hasStaticFieldName("out")
                     .hasMethodName("println")
                     .hasArg(obj -> obj.toString().startsWith("This is a test: " + id)
-                            && obj.toString().contains(" 6; 5.3; 5.3; 3; true; Value1;")
+                            && obj.toString().contains(" 6; 5.3; 5.3; 3; true; VALUE_1;")
                             && obj.toString().contains(now.toString()));
         }
     }

@@ -18,12 +18,14 @@ import java.util.UUID;
 
 @Controller("/jobrunr")
 public class JobRunrFunctionalityController {
+    private final JobScheduler jobScheduler;
+    private final StorageProvider storageProvider;
 
     @Inject
-    JobScheduler jobScheduler;
-
-    @Inject
-    StorageProvider storageProvider;
+    JobRunrFunctionalityController(JobScheduler jobScheduler, StorageProvider storageProvider) {
+        this.jobScheduler = jobScheduler;
+        this.storageProvider = storageProvider;
+    }
 
     @Post("/jobs")
     @Produces(MediaType.TEXT_PLAIN)

@@ -6,7 +6,7 @@ public abstract class AbstractLifecycleLock implements AutoCloseable {
 
     protected final BackgroundJobServerLifecycle backgroundJobServerLifecycle;
 
-    public AbstractLifecycleLock(BackgroundJobServerLifecycle backgroundJobServerLifecycle) {
+    protected AbstractLifecycleLock(BackgroundJobServerLifecycle backgroundJobServerLifecycle) {
         lock(readWriteLock(backgroundJobServerLifecycle));
         this.backgroundJobServerLifecycle = backgroundJobServerLifecycle;
     }

@@ -26,8 +26,8 @@ import static org.jobrunr.scheduling.RecurringJobBuilder.aRecurringJob;
 
 class RecurringJobBuilderTest {
 
-    private static final String every5Seconds = "*/5 * * * * *";
-    private static final String duration1Minute = "PT1M";
+    private static final String EVERY_5_SECONDS = "*/5 * * * * *";
+    private static final String DURATION_1_MINUTE = "PT1M";
 
     private final JobDetailsGenerator jobDetailsGenerator = new JobDetailsAsmGenerator();
     private final JobRequest jobRequest = new TestJobRequest("Not important");
@@ -37,13 +37,13 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(() -> testService.doWork())
-                .withCron(every5Seconds)
+                .withJobLambda(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds)
+                .hasScheduleExpression(EVERY_5_SECONDS)
                 .hasJobDetails(TestService.class, "doWork")
                 .hasCreatedBy(API);
     }
@@ -51,13 +51,13 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithJobLambdaUsingInterface() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(TestServiceInterface::doWork)
-                .withCron(every5Seconds)
+                .withJobLambda(TestServiceInterface::doWork)
+                .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds)
+                .hasScheduleExpression(EVERY_5_SECONDS)
                 .hasJobDetails(TestServiceInterface.class, "doWork")
                 .hasCreatedBy(API);
     }
@@ -65,13 +65,13 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithIoCJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .<TestService>withDetails(TestService::doWork)
-                .withCron(every5Seconds)
+                .<TestService>withJobLambda(TestService::doWork)
+                .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds)
+                .hasScheduleExpression(EVERY_5_SECONDS)
                 .hasJobDetails(TestService.class, "doWork");
     }
 
@@ -79,12 +79,12 @@ class RecurringJobBuilderTest {
     void testDefaultJobWithJobRequest() {
         RecurringJob recurringJob = aRecurringJob()
                 .withJobRequest(jobRequest)
-                .withCron(every5Seconds)
+                .withCron(EVERY_5_SECONDS)
                 .build();
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(every5Seconds)
+                .hasScheduleExpression(EVERY_5_SECONDS)
                 .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", jobRequest)
                 .hasCreatedBy(API);
     }
@@ -93,7 +93,7 @@ class RecurringJobBuilderTest {
     void testJobRequestWithInvalidJobRequest() {
         assertThatCode(() -> aRecurringJob()
                 .withJobRequest(new TestInvalidJobRequest())
-                .withCron(every5Seconds)
+                .withCron(EVERY_5_SECONDS)
                 .build())
                 .isInstanceOf(JobMethodNotFoundException.class);
     }
@@ -103,55 +103,55 @@ class RecurringJobBuilderTest {
         String id = UUID.randomUUID().toString();
         RecurringJob recurringJob = aRecurringJob()
                 .withId(id)
-                .withDetails(() -> testService.doWork())
-                .withCron(every5Seconds)
+                .withJobLambda(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId(id)
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
     void testWithJobName() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(() -> testService.doWork())
-                .withCron(every5Seconds)
+                .withJobLambda(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
                 .withName("My job name")
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasJobName("My job name")
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
     void testWithAmountOfRetries() {
         RecurringJob recurringJob = aRecurringJob()
                 .withAmountOfRetries(10)
-                .withCron(every5Seconds)
-                .withDetails(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasRetries(10)
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
     void testWithLabels() {
         RecurringJob recurringJob = aRecurringJob()
                 .withLabels(List.of("TestLabel", "Email"))
-                .withCron(every5Seconds)
-                .withDetails(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasLabels(List.of("TestLabel", "Email"))
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
@@ -159,8 +159,8 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withLabels("TestLabel", "Email", "Automated", "Too many")
-                        .withCron(every5Seconds)
-                        .withDetails(() -> testService.doWork())
+                        .withCron(EVERY_5_SECONDS)
+                        .withJobLambda(() -> testService.doWork())
                         .build(jobDetailsGenerator));
     }
 
@@ -169,8 +169,8 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withLabels("Label longer than 45 characters should throw an exception")
-                        .withCron(every5Seconds)
-                        .withDetails(() -> testService.doWork())
+                        .withCron(EVERY_5_SECONDS)
+                        .withJobLambda(() -> testService.doWork())
                         .build(jobDetailsGenerator));
     }
 
@@ -178,19 +178,19 @@ class RecurringJobBuilderTest {
     void testWithInterval() {
         RecurringJob recurringJob = aRecurringJob()
                 .withInterval(Duration.ofMinutes(1))
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasId()
-                .hasScheduleExpression(duration1Minute);
+                .hasScheduleExpression(DURATION_1_MINUTE);
     }
 
     @Test
     void testWithScheduleExpression() {
         RecurringJob recurringJob = aRecurringJob()
                 .withScheduleExpression(CarbonAware.dailyBefore(7))
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -202,43 +202,43 @@ class RecurringJobBuilderTest {
     void testWithZoneId() {
         RecurringJob recurringJob = aRecurringJob()
                 .withZoneId(ZoneId.of("Europe/Brussels"))
-                .withCron(every5Seconds)
-                .withDetails(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasZoneId("Europe/Brussels")
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
     void testWithDefaultZoneId() {
         RecurringJob recurringJob = aRecurringJob()
-                .withCron(every5Seconds)
-                .withDetails(() -> testService.doWork())
+                .withCron(EVERY_5_SECONDS)
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
                 .hasZoneId(systemDefault().toString())
                 .hasId()
-                .hasScheduleExpression(every5Seconds);
+                .hasScheduleExpression(EVERY_5_SECONDS);
     }
 
     @Test
     void testJobDetailsCanOnlyBeSet1Way() {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .withJobRequest(jobRequest)
-                        .withCron(every5Seconds)
+                        .withCron(EVERY_5_SECONDS)
                         .build(jobDetailsGenerator));
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withJobRequest(jobRequest)
-                        .withDetails(() -> testService.doWork())
-                        .withCron(every5Seconds)
+                        .withJobLambda(() -> testService.doWork())
+                        .withCron(EVERY_5_SECONDS)
                         .build(jobDetailsGenerator));
     }
 
@@ -247,13 +247,13 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withJobRequest(jobRequest)
-                        .withCron(every5Seconds)
+                        .withCron(EVERY_5_SECONDS)
                         .build(jobDetailsGenerator));
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDetails(() -> testService.doWork())
-                        .withCron(every5Seconds)
+                        .withJobLambda(() -> testService.doWork())
+                        .withCron(EVERY_5_SECONDS)
                         .build());
     }
 
@@ -269,7 +269,7 @@ class RecurringJobBuilderTest {
     void scheduleCanOnlyBeSet1Way() {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withCron(every5Seconds)
+                        .withCron(EVERY_5_SECONDS)
                         .withInterval(Duration.ofMinutes(1))
                         .withJobRequest(jobRequest)
                         .build());
@@ -277,7 +277,7 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withInterval(Duration.ofMinutes(1))
-                        .withCron(every5Seconds)
+                        .withCron(EVERY_5_SECONDS)
                         .withJobRequest(jobRequest)
                         .build());
 
@@ -285,7 +285,7 @@ class RecurringJobBuilderTest {
                 .isThrownBy(() -> aRecurringJob()
                         .withScheduleExpression(CarbonAware.dailyBefore(10))
                         .withInterval(Duration.ofMinutes(1))
-                        .withCron(every5Seconds)
+                        .withCron(EVERY_5_SECONDS)
                         .withJobRequest(jobRequest)
                         .build());
     }

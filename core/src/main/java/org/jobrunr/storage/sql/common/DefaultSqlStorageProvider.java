@@ -179,7 +179,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final int amountDeleted = metadataTable(conn).deleteByName(name);
             transaction.commit();
-            notifyMetadataChangeListeners(amountDeleted > 0);
+            notifyMetadataChangeListenersIf(amountDeleted > 0);
         } catch (SQLException e) {
             throw new StorageException(e);
         }
@@ -190,7 +190,7 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
         try (final Connection conn = dataSource.getConnection(); final Transaction transaction = new Transaction(conn)) {
             final int amountDeleted = metadataTable(conn).deleteByNameAndOwner(name, owner);
             transaction.commit();
-            notifyMetadataChangeListeners(amountDeleted > 0);
+            notifyMetadataChangeListenersIf(amountDeleted > 0);
         } catch (SQLException e) {
             throw new StorageException(e);
         }

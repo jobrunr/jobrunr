@@ -57,6 +57,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GraalVMUtils {
+    private GraalVMUtils() {}
 
     public static boolean isRunningInGraalVMNativeMode() {
         return System.getProperty("org.graalvm.nativeimage.imagecode") != null;

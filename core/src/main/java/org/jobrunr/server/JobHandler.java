@@ -21,7 +21,7 @@ public abstract class JobHandler implements Runnable {
     private final TaskStatistics taskStatistics;
     private final List<Task> tasks;
 
-    public JobHandler(BackgroundJobServer backgroundJobServer, Task... tasks) {
+    protected JobHandler(BackgroundJobServer backgroundJobServer, Task... tasks) {
         this.LOGGER = LoggerFactory.getLogger(this.getClass());
         this.backgroundJobServer = backgroundJobServer;
         this.taskStatistics = new TaskStatistics(backgroundJobServer.getDashboardNotificationManager());

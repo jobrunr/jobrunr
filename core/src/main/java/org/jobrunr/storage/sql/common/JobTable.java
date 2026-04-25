@@ -217,11 +217,11 @@ public class JobTable extends Sql<Job> {
     }
 
     void insertAllJobs(List<Job> jobs) throws SQLException {
-        insertAll(jobs, "into jobrunr_jobs values (:id, :version, :jobAsJson, :jobSignature, :state, :createdAt, :updatedAt, :scheduledAt, :recurringJobId)");
+        insertAll(jobs, INSERT_STATEMENT);
     }
 
     void updateAllJobs(List<Job> jobs) throws SQLException {
-        updateAll(jobs, "jobrunr_jobs SET version = :version, jobAsJson = :jobAsJson, state = :state, updatedAt =:updatedAt, scheduledAt = :scheduledAt WHERE id = :id and version = :previousVersion");
+        updateAll(jobs, UPDATE_STATEMENT);
     }
 
     private Stream<Job> selectJobs(String statement) {

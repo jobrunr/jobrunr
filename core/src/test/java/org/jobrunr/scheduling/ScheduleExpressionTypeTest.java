@@ -1,7 +1,6 @@
 package org.jobrunr.scheduling;
 
 import org.jobrunr.scheduling.cron.CronExpression;
-import org.jobrunr.scheduling.cron.InvalidCronExpressionException;
 import org.jobrunr.scheduling.interval.Interval;
 import org.junit.jupiter.api.Test;
 
@@ -33,8 +32,8 @@ class ScheduleExpressionTypeTest {
         assertThat(ScheduleExpressionType.createScheduleFromString("* * * * *")).isEqualTo(new CronExpression("* * * * *"));
         assertThat(ScheduleExpressionType.createScheduleFromString("PT10M")).isEqualTo(new Interval("PT10M"));
         assertThatCode(() -> ScheduleExpressionType.createScheduleFromString("Not correct"))
-                .isInstanceOf(InvalidCronExpressionException.class)
-                .hasMessage("crontab expression should have 6 fields for (seconds resolution) or 5 fields for (minutes resolution). Provided: Not correct");
+                .isInstanceOf(ScheduleException.class)
+                .hasMessage("Schedule expression 'Not correct' cannot be mapped to any type.");
     }
 
     @Test

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -47,6 +48,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -342,6 +344,9 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void jobRunrHealthIndicatorAutoConfiguration() {
         this.contextRunner.withPropertyValues("jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+            ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
+            context.publishEvent(event);
+
             assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
             assertThat(context.getBean(JobRunrHealthIndicator.class).health().getStatus()).isEqualTo(Status.UP);
         });

@@ -6,7 +6,7 @@ import java.util.List;
 
 public abstract class PageRequest extends AmountRequest {
 
-    public PageRequest(String order, int limit) {
+    protected PageRequest(String order, int limit) {
         super(order, limit);
     }
 

@@ -203,7 +203,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        InsertOneResult result = this.backgroundJobServerCollection.insertOne(backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus));
+        ReplaceOptions options = new ReplaceOptions().upsert(true);
+        UpdateResult result = this.backgroundJobServerCollection.replaceOne(eq(toMongoId(BackgroundJobServers.FIELD_ID), serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus), options);
         if (!result.wasAcknowledged()) {
             throw new StorageException("Unable to announce BackgroundJobServer.");
         }
@@ -277,7 +278,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         try {
             final DeleteResult deleteResult = metadataCollection.deleteMany(eq(Metadata.FIELD_NAME, name));
             long deletedCount = deleteResult.getDeletedCount();
-            notifyMetadataChangeListeners(deletedCount > 0);
+            notifyMetadataChangeListenersIf(deletedCount > 0);
         } catch (MongoException e) {
             throw new StorageException(e);
         }
@@ -288,7 +289,7 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
         try {
             final DeleteResult deleteResult = metadataCollection.deleteOne(eq(toMongoId(Metadata.FIELD_ID), JobRunrMetadata.toId(name, owner)));
             long deletedCount = deleteResult.getDeletedCount();
-            notifyMetadataChangeListeners(deletedCount > 0);
+            notifyMetadataChangeListenersIf(deletedCount > 0);
         } catch (MongoException e) {
             throw new StorageException(e);
         }

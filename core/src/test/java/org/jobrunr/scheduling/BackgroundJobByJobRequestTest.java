@@ -65,10 +65,10 @@ import static org.jobrunr.storage.Paging.AmountBasedList.ascOnUpdatedAt;
 
 public class BackgroundJobByJobRequestTest {
 
+    private static final String EVERY_SECOND = "*/1 * * * * *";
+
     private StorageProvider storageProvider;
     private BackgroundJobServer backgroundJobServer;
-
-    private static final String everySecond = "*/1 * * * * *";
 
     @BeforeEach
     public void setUpTests() {
@@ -228,7 +228,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testRecurringCronJob() {
         TestJobRequest testJobRequest = new TestJobRequest("from testRecurringJob");
-        BackgroundJobRequest.scheduleRecurrently(everySecond, testJobRequest);
+        BackgroundJobRequest.scheduleRecurrently(EVERY_SECOND, testJobRequest);
         RecurringJob recurringJob = storageProvider.getRecurringJobs().get(0);
         assertThat(recurringJob)
                 .hasJobDetails(TestJobRequest.TestJobRequestHandler.class, "run", testJobRequest)
@@ -243,7 +243,7 @@ public class BackgroundJobByJobRequestTest {
     @Test
     void testRecurringCronJobFromBuilder() {
         BackgroundJobRequest.createRecurrently(aRecurringJob()
-                .withCron(everySecond)
+                .withCron(EVERY_SECOND)
                 .withJobRequest(new TestJobRequest("from TestRecurringJob")));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
@@ -253,7 +253,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJobWithId() {
-        BackgroundJobRequest.scheduleRecurrently("theId", everySecond, new TestJobRequest("from testRecurringJobWithId"));
+        BackgroundJobRequest.scheduleRecurrently("theId", EVERY_SECOND, new TestJobRequest("from testRecurringJobWithId"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -262,7 +262,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void testRecurringCronJobWithIdAndTimezone() {
-        BackgroundJobRequest.scheduleRecurrently("theId", everySecond, systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
+        BackgroundJobRequest.scheduleRecurrently("theId", EVERY_SECOND, systemDefault(), new TestJobRequest("from testRecurringJobWithIdAndTimezone"));
         await().atMost(ofSeconds(25)).until(() -> storageProvider.countJobs(SUCCEEDED) == 1);
 
         final Job job = storageProvider.getJobList(SUCCEEDED, ascOnUpdatedAt(1000)).get(0);
@@ -313,7 +313,7 @@ public class BackgroundJobByJobRequestTest {
 
     @Test
     void recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts() {
-        BackgroundJobRequest.scheduleRecurrently("my-job-id", everySecond, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts", 12));
+        BackgroundJobRequest.scheduleRecurrently("my-job-id", EVERY_SECOND, new TestJobRequestThatTakesLong("from recurringJobIdIsKeptEvenIfBackgroundJobServerRestarts", 12));
         await().atMost(TWO_SECONDS).until(() -> storageProvider.countJobs(PROCESSING) == 1);
         final UUID jobId = storageProvider.getJobList(PROCESSING, ascOnUpdatedAt(1000)).get(0).getId();
         backgroundJobServer.stop();

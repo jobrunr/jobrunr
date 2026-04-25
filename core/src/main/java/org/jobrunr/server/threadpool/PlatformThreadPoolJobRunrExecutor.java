@@ -1,17 +1,12 @@
 package org.jobrunr.server.threadpool;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jobrunr.utils.threadpool.NamedThreadFactory;
 
-import java.time.Duration;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.ScheduledThreadPoolExecutor implements JobRunrExecutor {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlatformThreadPoolJobRunrExecutor.class);
-    private final int workerCount;
+public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<ScheduledThreadPoolExecutor> {
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize) {
         this(corePoolSize, "backgroundjob-worker-pool");
@@ -22,56 +17,18 @@ public class PlatformThreadPoolJobRunrExecutor extends java.util.concurrent.Sche
     }
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize, int maxPoolSize, String threadNamePrefix) {
-        super(corePoolSize, new NamedThreadFactory(threadNamePrefix));
-        this.workerCount = corePoolSize;
-        setMaximumPoolSize(maxPoolSize);
-        setKeepAliveTime(1, TimeUnit.MINUTES);
+        super(corePoolSize, createPlatformThreadExecutorService(corePoolSize, maxPoolSize, threadNamePrefix));
     }
 
-    @Override
-    public int getWorkerCount() {
-        return workerCount;
+    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+        return executorService.scheduleWithFixedDelay(command, initialDelay, delay, unit);
     }
 
-    @Override
-    public void start() {
-        this.prestartAllCoreThreads();
-        LOGGER.info("ThreadManager of type 'ScheduledThreadPool' started");
-    }
-
-    @Override
-    public void stop(Duration awaitTimeout) {
-        shutdown();
-        try {
-            if (!awaitTermination(awaitTimeout.getSeconds(), TimeUnit.SECONDS)) {
-                shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    @Override
-    public boolean isStopping() {
-        return isTerminating() || isTerminated();
-    }
-
-    private static class NamedThreadFactory implements ThreadFactory {
-
-        private final String poolName;
-        private final ThreadFactory threadFactory;
-
-        NamedThreadFactory(String poolName) {
-            this.poolName = poolName;
-            threadFactory = Executors.defaultThreadFactory();
-        }
-
-        @Override
-        public Thread newThread(Runnable runnable) {
-            Thread thread = threadFactory.newThread(runnable);
-            thread.setName(thread.getName().replace("pool", poolName));
-            return thread;
-        }
+    static ScheduledThreadPoolExecutor createPlatformThreadExecutorService(int corePoolSize, int maxPoolSize, String threadNamePrefix) {
+        NamedThreadFactory namedThreadFactory = new NamedThreadFactory(threadNamePrefix, false);
+        ScheduledThreadPoolExecutor executorService = new ScheduledThreadPoolExecutor(corePoolSize, namedThreadFactory);
+        executorService.setMaximumPoolSize(maxPoolSize);
+        executorService.setKeepAliveTime(1, TimeUnit.MINUTES);
+        return executorService;
     }
 }

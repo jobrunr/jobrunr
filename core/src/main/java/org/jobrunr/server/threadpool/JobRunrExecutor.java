@@ -8,8 +8,7 @@ public interface JobRunrExecutor extends Executor {
     int getWorkerCount();
 
     void start();
-
+    
     void stop(Duration awaitTimeout);
 
-    boolean isStopping();
 }

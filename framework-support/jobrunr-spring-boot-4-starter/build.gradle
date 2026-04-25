@@ -6,7 +6,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.springframework.boot' version '4.0.1' apply false
+    id 'org.springframework.boot' version '4.0.3' apply false
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -34,7 +34,7 @@ dependencies {
     compileOnly 'io.micrometer:micrometer-core'
     compileOnly 'com.fasterxml.jackson.core:jackson-annotations'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
-    compileOnly project(':language-support:jobrunr-kotlin-22-support')
+    compileOnly project(':language-support:jobrunr-kotlin-support')
 
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'com.couchbase.client:java-client'
@@ -46,7 +46,7 @@ dependencies {
     testImplementation 'tools.jackson.core:jackson-databind'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
-    testImplementation project(':language-support:jobrunr-kotlin-22-support')
+    testImplementation project(':language-support:jobrunr-kotlin-support')
     testImplementation 'org.springframework.data:spring-data-redis'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'com.couchbase.client:java-client'

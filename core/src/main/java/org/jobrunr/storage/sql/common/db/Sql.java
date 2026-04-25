@@ -42,7 +42,7 @@ public class Sql<T> {
         this.paramSuppliers = new HashMap<>();
     }
 
-    public static <T> Sql<T> forType(Class<T> tClass) {
+    public static <T> Sql<T> forType() {
         return new Sql<>();
     }
 

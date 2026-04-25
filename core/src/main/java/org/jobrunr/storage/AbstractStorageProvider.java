@@ -9,6 +9,7 @@ import org.jobrunr.storage.listeners.MetadataChangeListener;
 import org.jobrunr.storage.listeners.StorageProviderChangeListener;
 import org.jobrunr.utils.resilience.RateLimiter;
 import org.jobrunr.utils.streams.StreamUtils;
+import org.jobrunr.utils.threadpool.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,13 +17,16 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
-import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
@@ -33,16 +37,16 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     private final Set<StorageProviderChangeListener> onChangeListeners;
     private final JobStatsEnricher jobStatsEnricher;
     private final RateLimiter changeListenerNotificationRateLimit;
-    private final ReentrantLock timerReentrantLock;
-    private final ReentrantLock notifyJobStatsChangeListenersReentrantLock;
-    private volatile Timer timer;
+    private final ReentrantLock schedulerLock;
+    private final AtomicBoolean jobStatsNotificationPending;
+    private volatile ScheduledExecutorService scheduler;
 
     protected AbstractStorageProvider(RateLimiter changeListenerNotificationRateLimit) {
         this.onChangeListeners = ConcurrentHashMap.newKeySet();
         this.jobStatsEnricher = new JobStatsEnricher();
         this.changeListenerNotificationRateLimit = changeListenerNotificationRateLimit;
-        this.timerReentrantLock = new ReentrantLock();
-        this.notifyJobStatsChangeListenersReentrantLock = new ReentrantLock();
+        this.schedulerLock = new ReentrantLock();
+        this.jobStatsNotificationPending = new AtomicBoolean(false);
     }
 
     @Override
@@ -53,20 +57,20 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     @Override
     public void addJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.add(listener);
-        startTimerToSendUpdates();
+        startSchedulerToSendUpdates();
     }
 
     @Override
     public void removeJobStorageOnChangeListener(StorageProviderChangeListener listener) {
         onChangeListeners.remove(listener);
         if (onChangeListeners.isEmpty()) {
-            stopTimerToSendUpdates();
+            stopSchedulerToSendUpdates();
         }
     }
 
     @Override
     public void close() {
-        stopTimerToSendUpdates();
+        stopSchedulerToSendUpdates();
         onChangeListeners.clear();
     }
 
@@ -93,129 +97,176 @@ public abstract class AbstractStorageProvider implements StorageProvider, AutoCl
     }
 
     protected void notifyJobStatsOnChangeListenersIf(boolean mustNotify) {
-        if (mustNotify) {
-            notifyJobStatsOnChangeListeners();
-        }
+        if (!mustNotify) return;
+
+        notifyJobStatsOnChangeListeners();
     }
 
     protected void notifyJobStatsOnChangeListeners() {
-        final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
-                .ofType(onChangeListeners, JobStatsChangeListener.class)
-                .collect(toList());
-        if (!jobStatsChangeListeners.isEmpty()) {
-            CompletableFuture<?> future = runAsync(() -> {
-                try {
-                    if (!notifyJobStatsChangeListenersReentrantLock.tryLock()) return;
-                    if (changeListenerNotificationRateLimit.isRateLimited()) return;
-                    JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
-                    jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
-                } finally {
-                    if (notifyJobStatsChangeListenersReentrantLock.isHeldByCurrentThread()) {
-                        notifyJobStatsChangeListenersReentrantLock.unlock();
-                    }
-                }
-            });
-            CompletableFuture<?> unused = future.whenComplete((result, e) -> {
-                if (e != null) {
-                    logError(e);
-                }
-            });
-        }
+        runInBackgroundThread(this::notifyJobStatsOnChangeListenersOnCurrentThread, this::jobStatsNotificationNotQueued);
     }
 
-    protected void notifyMetadataChangeListeners(boolean mustNotify) {
-        if (mustNotify) {
-            notifyMetadataChangeListeners();
-        }
+    protected void notifyMetadataChangeListenersIf(boolean mustNotify) {
+        if (!mustNotify) return;
+
+        notifyMetadataChangeListeners();
     }
 
     protected void notifyMetadataChangeListeners() {
+        runInBackgroundThread(this::notifyMetadataChangeListenersOnCurrentThread);
+    }
+
+    private void startSchedulerToSendUpdates() {
+        schedulerLock.lock();
+        try {
+            if (noSchedulerAvailable()) {
+                scheduler = Executors.newScheduledThreadPool(1, new NamedThreadFactory("jobrunr-storage-notifier", true));
+                ScheduledFuture<?> ignored = scheduler.scheduleWithFixedDelay(new NotifyOnChangeListeners(), 3, 5, TimeUnit.SECONDS);
+            }
+        } finally {
+            schedulerLock.unlock();
+        }
+    }
+
+    private void stopSchedulerToSendUpdates() {
+        schedulerLock.lock();
+        try {
+            if (scheduler != null) {
+                scheduler.shutdownNow();
+            }
+        } finally {
+            jobStatsNotificationPending.set(false);
+            schedulerLock.unlock();
+        }
+    }
+
+    private void runInBackgroundThread(Runnable runnable) {
+        runInBackgroundThread(runnable, () -> true);
+    }
+
+    private void runInBackgroundThread(Runnable runnable, Supplier<Boolean> shouldNotify) {
+        if (noListenersRegistered()) return; // why: no listeners
+        try {
+            if (schedulerAvailable() && shouldNotify.get()) {
+                scheduler.execute(runnable);
+            }
+        } catch (RejectedExecutionException e) {
+            LOGGER.debug("Notification task was rejected", e);
+        }
+    }
+
+    private void logError(Throwable e) {
+        if (noSchedulerAvailable()) return; // is being stopped so not interested in it
+        LOGGER.warn("Error notifying JobStorageChangeListeners", e);
+    }
+
+    private class NotifyOnChangeListeners implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                if (jobStatsNotificationNotQueued()) {
+                    notifyJobStatsOnChangeListenersOnCurrentThread();
+                }
+                notifyJobChangeListenersOnCurrentThread();
+                notifyBackgroundJobServerStatusChangeListenersOnCurrentThread();
+                notifyMetadataChangeListenersOnCurrentThread();
+            } catch (Throwable e) {
+                logError(e);
+            }
+        }
+    }
+
+    private void notifyJobStatsOnChangeListenersOnCurrentThread() {
+        jobStatsNotificationPending.set(false);
+
+        if (changeListenerNotificationRateLimit.isRateLimited()) return;
+
+        final List<JobStatsChangeListener> jobStatsChangeListeners = StreamUtils
+                .ofType(onChangeListeners, JobStatsChangeListener.class)
+                .collect(toList());
+
+        if (jobStatsChangeListeners.isEmpty()) return;
+        try {
+            JobStatsExtended extendedJobStats = jobStatsEnricher.enrich(getJobStats());
+            jobStatsChangeListeners.forEach(listener -> listener.onChange(extendedJobStats));
+        } catch (Exception e) {
+            logError(e);
+        }
+    }
+
+    private void notifyJobChangeListenersOnCurrentThread() {
+        try {
+            final Map<JobId, List<JobChangeListener>> listenersByJob = StreamUtils
+                    .ofType(onChangeListeners, JobChangeListener.class)
+                    .collect(groupingBy(JobChangeListener::getJobId));
+
+            if (listenersByJob.isEmpty()) return;
+            listenersByJob.forEach((jobId, listeners) -> {
+                try {
+                    Job job = getJobById(jobId);
+                    listeners.forEach(listener -> listener.onChange(job));
+                } catch (JobNotFoundException jobNotFoundException) {
+                    // somebody is listening for a Job that does not exist
+                    listeners.forEach(this::closeListener);
+                }
+            });
+        } catch (Exception e) {
+            logError(e);
+        }
+    }
+
+    private void notifyBackgroundJobServerStatusChangeListenersOnCurrentThread() {
+        try {
+            final List<BackgroundJobServerStatusChangeListener> serverChangeListeners = StreamUtils
+                    .ofType(onChangeListeners, BackgroundJobServerStatusChangeListener.class)
+                    .collect(toList());
+
+            if (serverChangeListeners.isEmpty()) return;
+            List<BackgroundJobServerStatus> servers = getBackgroundJobServers();
+            serverChangeListeners.forEach(listener -> listener.onChange(servers));
+        } catch (Exception e) {
+            logError(e);
+        }
+    }
+
+    protected void notifyMetadataChangeListenersOnCurrentThread() {
         try {
             final Map<String, List<MetadataChangeListener>> metadataChangeListenersByName = StreamUtils
                     .ofType(onChangeListeners, MetadataChangeListener.class)
                     .collect(groupingBy(MetadataChangeListener::listenForChangesOfMetadataName));
 
-            if (!metadataChangeListenersByName.isEmpty()) {
-                metadataChangeListenersByName.forEach((metadataName, listeners) -> {
-                    List<JobRunrMetadata> jobRunrMetadata = getMetadata(metadataName);
-                    listeners.forEach(listener -> listener.onChange(jobRunrMetadata));
-                });
-            }
+            if (metadataChangeListenersByName.isEmpty()) return;
+            metadataChangeListenersByName.forEach((metadataName, listeners) -> {
+                List<JobRunrMetadata> jobRunrMetadata = getMetadata(metadataName);
+                listeners.forEach(listener -> listener.onChange(jobRunrMetadata));
+            });
         } catch (Exception e) {
             logError(e);
         }
     }
 
-    private void notifyJobChangeListeners() {
+    private boolean schedulerAvailable() {
+        return !noSchedulerAvailable();
+    }
+
+    private boolean noSchedulerAvailable() {
+        return scheduler == null || scheduler.isShutdown();
+    }
+
+    private boolean noListenersRegistered() {
+        return scheduler == null;
+    }
+
+    private boolean jobStatsNotificationNotQueued() {
+        return jobStatsNotificationPending.compareAndSet(false, true);
+    }
+
+    private void closeListener(AutoCloseable closeable) {
         try {
-            final Map<JobId, List<JobChangeListener>> listenerByJob = StreamUtils
-                    .ofType(onChangeListeners, JobChangeListener.class)
-                    .collect(groupingBy(JobChangeListener::getJobId));
-            if (!listenerByJob.isEmpty()) {
-                listenerByJob.forEach((jobId, listeners) -> {
-                    try {
-                        Job job = getJobById(jobId);
-                        listeners.forEach(listener -> listener.onChange(job));
-                    } catch (JobNotFoundException jobNotFoundException) {
-                        // somebody is listening for a Job that does not exist
-                        listeners.forEach(jobChangeListener -> {
-                            try {
-                                jobChangeListener.close();
-                            } catch (Exception e) {
-                                // Not relevant?
-                            }
-                        });
-                    }
-                });
-            }
+            closeable.close();
         } catch (Exception e) {
-            logError(e);
-        }
-    }
-
-    private void notifyBackgroundJobServerStatusChangeListeners() {
-        try {
-            final List<BackgroundJobServerStatusChangeListener> serverChangeListeners = StreamUtils
-                    .ofType(onChangeListeners, BackgroundJobServerStatusChangeListener.class)
-                    .collect(toList());
-            if (!serverChangeListeners.isEmpty()) {
-                List<BackgroundJobServerStatus> servers = getBackgroundJobServers();
-                serverChangeListeners.forEach(listener -> listener.onChange(servers));
-            }
-        } catch (Exception e) {
-            logError(e);
-        }
-    }
-
-    void startTimerToSendUpdates() {
-        if (timer == null && timerReentrantLock.tryLock()) {
-            timer = new Timer(true);
-            timer.schedule(new NotifyOnChangeListeners(), 3000, 5000);
-            timerReentrantLock.unlock();
-        }
-    }
-
-    void stopTimerToSendUpdates() {
-        if (timer != null && timerReentrantLock.tryLock()) {
-            timer.cancel();
-            timer = null;
-            timerReentrantLock.unlock();
-        }
-    }
-
-    private void logError(Throwable e) {
-        if (timerReentrantLock.isLocked() || timer == null) return; // timer is being stopped so not interested in it
-        LOGGER.warn("Error notifying JobStorageChangeListeners", e);
-    }
-
-    class NotifyOnChangeListeners extends TimerTask {
-
-        @Override
-        public void run() {
-            notifyJobStatsOnChangeListeners();
-            notifyJobChangeListeners();
-            notifyBackgroundJobServerStatusChangeListeners();
-            notifyMetadataChangeListeners();
+            // Not relevant
         }
     }
 }

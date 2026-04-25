@@ -127,10 +127,12 @@ public class JobUtils {
     private static Stream<Annotation> getJobAnnotations(JobDetails jobDetails) {
         if (jobDetails.getClassName().startsWith("java")) return Stream.empty();
         if (!classExists(jobDetails.getClassName())) {
-            if (isRunningInGraalVMNativeMode()) {
-                LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job. As you're running your application in GraalVM native mode, make sure that your job class is available in the native image. Normally, this is done automatically by JobRunr.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
-            } else {
-                LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
+            if (LOGGER.isWarnEnabled()) {
+                if (isRunningInGraalVMNativeMode()) {
+                    LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job. As you're running your application in GraalVM native mode, make sure that your job class is available in the native image. Normally, this is done automatically by JobRunr.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
+                } else {
+                    LOGGER.warn("Trying to find Job Annotations for '{}' but the class could not be found. The Job name and other properties like retries and labels will not be set on the Job.", getJobSignature(jobDetails), new JobClassNotFoundException(jobDetails));
+                }
             }
             return Stream.empty();
         }

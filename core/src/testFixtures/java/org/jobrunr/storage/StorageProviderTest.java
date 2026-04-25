@@ -158,6 +158,14 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    protected void testBackgroundServerAnnouncingTwice() {
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
+        storageProvider.announceBackgroundJobServer(serverStatus1);
+        assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
+        assertThatCode(() -> storageProvider.announceBackgroundJobServer(serverStatus1)).doesNotThrowAnyException();
+    }
+
+    @Test
     void testRemoveTimedOutBackgroundJobServers() {
         final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
@@ -239,12 +247,12 @@ public abstract class StorageProviderTest {
 
         JobRunrMetadata metadata = new JobRunrMetadata(onChangeListener.listenForChangesOfMetadataName(), "some-owner", "some-value");
         storageProvider.saveMetadata(metadata);
-        assertThat(onChangeListener.changes).hasSize(1);
-        assertThat(onChangeListener.changes.get(0)).hasSize(1);
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSize(1));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes.get(0)).hasSize(1));
 
         storageProvider.deleteMetadata(metadata.getName());
-        assertThat(onChangeListener.changes).hasSizeGreaterThanOrEqualTo(2);
-        assertThat(onChangeListener.changes.get(onChangeListener.changes.size() - 1)).isEmpty();
+        await().untilAsserted(() -> assertThat(onChangeListener.changes).hasSizeGreaterThanOrEqualTo(2));
+        await().untilAsserted(() -> assertThat(onChangeListener.changes.get(onChangeListener.changes.size() - 1)).isEmpty());
     }
 
     @Test

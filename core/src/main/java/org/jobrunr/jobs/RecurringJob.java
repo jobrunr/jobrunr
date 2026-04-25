@@ -6,18 +6,15 @@ import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.Schedule;
 import org.jobrunr.scheduling.ScheduleExpressionType;
-import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.utils.StringUtils;
+import org.jobrunr.utils.jobs.RecurringJobSortColumns;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class RecurringJob extends AbstractJob {
 
@@ -26,12 +23,7 @@ public class RecurringJob extends AbstractJob {
         ANNOTATION
     }
 
-    public static Map<String, Function<RecurringJob, Comparable>> ALLOWED_SORT_COLUMNS = new HashMap<>();
-
-    static {
-        ALLOWED_SORT_COLUMNS.put(StorageProviderUtils.RecurringJobs.FIELD_ID, RecurringJob::getId);
-        ALLOWED_SORT_COLUMNS.put(StorageProviderUtils.RecurringJobs.FIELD_CREATED_AT, RecurringJob::getCreatedAt);
-    }
+    public static final RecurringJobSortColumns ALLOWED_SORT_COLUMNS = new RecurringJobSortColumns();
 
     private String id;
     private String scheduleExpression;
@@ -172,9 +164,8 @@ public class RecurringJob extends AbstractJob {
     }
 
     private JobState getNextState(Instant nextRun, String reason) {
-        Schedule schedule = getSchedule();
-        return schedule.isCarbonAware()
-                ? new CarbonAwareAwaitingState(nextRun, schedule.getCarbonAwareScheduleMargin(), reason)
+        return getSchedule().isCarbonAware()
+                ? new CarbonAwareAwaitingState(nextRun, getSchedule().getCarbonAwareScheduleMargin(), reason)
                 : new ScheduledState(nextRun, reason);
     }
 
