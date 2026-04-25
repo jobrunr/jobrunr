@@ -3,6 +3,7 @@ package org.jobrunr.storage;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.states.StateName;
+import org.jobrunr.storage.nosql.couchbase.CouchbaseStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 
 public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert, StorageProvider> {
@@ -22,7 +23,8 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
 
     public StorageProviderAssert hasJobMapper() {
         String jobMapperField = "jobMapper";
-        if (MongoDBStorageProvider.class.equals(actual.getClass())) {
+        if (MongoDBStorageProvider.class.equals(actual.getClass())
+                || CouchbaseStorageProvider.class.equals(actual.getClass())) {
             jobMapperField = "jobDocumentMapper";
         }
 

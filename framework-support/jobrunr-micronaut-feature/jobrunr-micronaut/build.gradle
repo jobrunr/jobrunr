@@ -27,12 +27,14 @@ dependencies {
     implementation 'io.micronaut.validation:micronaut-validation'
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
     compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'com.couchbase.client:java-client'
     compileOnly 'io.micrometer:micrometer-core'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'io.micronaut.test:micronaut-test-junit5'
     testImplementation 'io.micronaut:micronaut-jackson-databind'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'com.couchbase.client:java-client'
     testImplementation 'io.micrometer:micrometer-core'
 }
 

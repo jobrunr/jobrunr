@@ -37,6 +37,7 @@ dependencies {
     compileOnly project(':language-support:jobrunr-kotlin-22-support')
 
     compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'com.couchbase.client:java-client'
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -48,6 +49,7 @@ dependencies {
     testImplementation project(':language-support:jobrunr-kotlin-22-support')
     testImplementation 'org.springframework.data:spring-data-redis'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'com.couchbase.client:java-client'
     testImplementation 'io.micrometer:micrometer-core'
 }
 

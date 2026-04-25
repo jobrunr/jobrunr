@@ -38,6 +38,7 @@ dependencies {
         api 'org.apache.commons:commons-dbcp2:2.14.0'
         api 'org.apache.tomcat:tomcat-jdbc:11.0.15'
         api 'org.mongodb:mongodb-driver-sync:5.6.2'
+        api 'com.couchbase.client:java-client:3.10.1'
 
         api 'org.junit.jupiter:junit-jupiter:5.14.0'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
@@ -58,6 +59,7 @@ dependencies {
         api 'org.testcontainers:testcontainers-postgresql:2.0.3'
         api 'org.testcontainers:testcontainers-db2:2.0.3'
         api 'org.testcontainers:testcontainers-mongodb:2.0.3'
+        api 'org.testcontainers:testcontainers-couchbase:2.0.3'
         api 'com.microsoft.playwright:playwright:1.57.0'
         api 'org.wiremock:wiremock:3.13.1'
     }

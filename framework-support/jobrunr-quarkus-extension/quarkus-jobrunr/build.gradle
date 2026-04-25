@@ -33,6 +33,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'org.eclipse:yasson'
     compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'com.couchbase.client:java-client'
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
     compileOnly project(':language-support:jobrunr-kotlin-22-support')
@@ -41,6 +42,7 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.eclipse:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'com.couchbase.client:java-client'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-component'
     testImplementation 'io.quarkus:quarkus-micrometer'

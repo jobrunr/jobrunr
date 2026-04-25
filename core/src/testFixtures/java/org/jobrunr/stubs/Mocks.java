@@ -1,5 +1,12 @@
 package org.jobrunr.stubs;
 
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.Scope;
+import com.couchbase.client.java.manager.collection.CollectionManager;
+import com.couchbase.client.java.manager.collection.CollectionSpec;
+import com.couchbase.client.java.manager.collection.ScopeSpec;
+import com.couchbase.client.java.manager.query.QueryIndexManager;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListCollectionNamesIterable;
@@ -25,6 +32,9 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Spliterator;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
@@ -61,6 +71,34 @@ public class Mocks {
         when(resultSetMock.getString("TABLE_NAME")).thenReturn("jobrunr_jobs", "jobrunr_recurring_jobs", "jobrunr_backgroundjobservers", "jobrunr_metadata");
 
         return dataSourceMock;
+    }
+
+    public static Cluster couchbaseCluster() {
+        Cluster clusterMock = mock(Cluster.class);
+
+        Bucket bucketMock = mock(Bucket.class);
+        when(clusterMock.bucket(any())).thenReturn(bucketMock);
+
+        Scope scopeMock = mock(Scope.class);
+        when(bucketMock.scope(any())).thenReturn(scopeMock);
+        when(scopeMock.collection(any())).thenReturn(mock(com.couchbase.client.java.Collection.class));
+
+        CollectionManager collectionManagerMock = mock(CollectionManager.class);
+        when(bucketMock.collections()).thenReturn(collectionManagerMock);
+
+        java.util.Set<CollectionSpec> collectionSpecs = new java.util.HashSet<>(Arrays.asList(
+                CollectionSpec.create(StorageProviderUtils.Jobs.NAME, "jobrunr"),
+                CollectionSpec.create(StorageProviderUtils.RecurringJobs.NAME, "jobrunr"),
+                CollectionSpec.create(StorageProviderUtils.BackgroundJobServers.NAME, "jobrunr"),
+                CollectionSpec.create(StorageProviderUtils.Metadata.NAME, "jobrunr")
+        ));
+        ScopeSpec scopeSpec = ScopeSpec.create("jobrunr", collectionSpecs);
+        when(collectionManagerMock.getAllScopes()).thenReturn(List.of(scopeSpec));
+
+        QueryIndexManager queryIndexManagerMock = mock(QueryIndexManager.class);
+        when(clusterMock.queryIndexes()).thenReturn(queryIndexManagerMock);
+
+        return clusterMock;
     }
 
     public static MongoClient mongoClient() {

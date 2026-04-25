@@ -18,6 +18,7 @@ import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrCouchbaseStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
@@ -207,6 +208,25 @@ class JobRunrExtensionProcessorTest {
         assertThat(additionalBeanBuildItem.getBeanClasses())
                 .contains(JobRunrDocumentDBStorageProviderProducer.class.getName())
                 .doesNotContain(JobRunrMongoDBStorageProviderProducer.class.getName());
+    }
+
+    @Test
+    void jobRunrProducerUsesCouchbaseStorageProviderIfDatabaseTypeIsEqualToCouchbase() {
+        when(databaseConfiguration.type()).thenReturn(Optional.of("couchbase"));
+        final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
+
+        assertThat(additionalBeanBuildItem.getBeanClasses())
+                .contains(JobRunrCouchbaseStorageProviderProducer.class.getName());
+    }
+
+    @Test
+    void jobRunrProducerThrowsIllegalStateIfCouchbaseTypeConfiguredButClientNotAvailable() {
+        jobRunrExtensionProcessor.setCouchbaseClientWillBePresent(false);
+        when(databaseConfiguration.type()).thenReturn(Optional.of("couchbase"));
+
+        assertThatCode(() -> jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("couchbase");
     }
 
     @Test
