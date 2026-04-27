@@ -1,9 +1,10 @@
 package org.jobrunr.storage.navigation;
 
 import org.jobrunr.storage.Page;
+import org.jobrunr.utils.reflection.annotations.Constructor;
+import org.jobrunr.utils.reflection.annotations.Field;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.utils.StringUtils.isNotNullOrEmpty;
@@ -20,9 +21,10 @@ public class OffsetBasedPageRequest extends PageRequest {
         this(null, DEFAULT_OFFSET, DEFAULT_LIMIT); // needed for deserialization
     }
 
-    public OffsetBasedPageRequest(String order, long offset, int limit) {
+    @Constructor
+    public OffsetBasedPageRequest(@Field("order") String order, @Field("offset") Long offset, @Field("limit") Integer limit) {
         super(order, limit);
-        this.offset = offset;
+        this.offset = offset != null ? offset : DEFAULT_OFFSET;
     }
 
     public long getOffset() {
@@ -44,16 +46,6 @@ public class OffsetBasedPageRequest extends PageRequest {
                 order,
                 isNotNullOrEmpty(offset) ? Integer.parseInt(offset) : 0L,
                 isNotNullOrEmpty(limit) ? Integer.parseInt(limit) : DEFAULT_LIMIT
-        );
-    }
-
-    public static OffsetBasedPageRequest fromQueryParams(Map<String, String> params) {
-        if (params == null || params.isEmpty()) return null;
-
-        return new OffsetBasedPageRequest(
-                params.get("order"),
-                isNotNullOrEmpty(params.get("offset")) ? Integer.parseInt(params.get("offset")) : 0L,
-                isNotNullOrEmpty(params.get("limit")) ? Integer.parseInt(params.get("limit")) : DEFAULT_LIMIT
         );
     }
 
