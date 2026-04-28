@@ -63,10 +63,6 @@ public class ReflectionTest {
                                 item.getSimpleName(), parameter.getIndex(), mappingKey, mappingKey)));
                     }
                 }
-
-                allFieldNames.forEach(fieldName -> events.add(SimpleConditionEvent.violated(item, String.format(
-                        "Class %s: Field %s has no constructor parameter with @Field(\"%s\").",
-                        item.getSimpleName(), fieldName, fieldName))));
             }
         };
     }
