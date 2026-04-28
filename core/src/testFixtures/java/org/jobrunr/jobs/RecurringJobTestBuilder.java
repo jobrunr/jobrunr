@@ -64,12 +64,12 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
-    public RecurringJobTestBuilder withJobDetails(JobLambda jobLambda) {
+    public RecurringJobTestBuilder withJobLambda(JobLambda jobLambda) {
         this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
         return this;
     }
 
-    public RecurringJobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+    public RecurringJobTestBuilder withJobLambda(IocJobLambda jobLambda) {
         this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
         return this;
     }

@@ -54,14 +54,14 @@ class RecurringJobTest {
     @Test
     void ifNoIdGivenItUsesJobSignature() {
         TestService testService = new TestService();
-        final RecurringJob recurringJob1 = aDefaultRecurringJob().withoutId().withJobDetails(() -> System.out.println("This is a test")).build();
+        final RecurringJob recurringJob1 = aDefaultRecurringJob().withoutId().withJobLambda(() -> System.out.println("This is a test")).build();
         assertThat(recurringJob1.getId()).isEqualTo("java.lang.System.out.println(java.lang.String)");
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, 97693);
-        final RecurringJob recurringJob2 = aDefaultRecurringJob().withoutId().withJobDetails(iocJobLambda).build();
+        final RecurringJob recurringJob2 = aDefaultRecurringJob().withoutId().withJobLambda(iocJobLambda).build();
         assertThat(recurringJob2.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer)");
 
-        final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobDetails((JobLambda) testService::doWork).build();
+        final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobLambda((JobLambda) testService::doWork).build();
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
     }
 
