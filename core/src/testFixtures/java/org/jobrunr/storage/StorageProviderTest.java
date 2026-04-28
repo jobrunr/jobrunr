@@ -461,7 +461,7 @@ public abstract class StorageProviderTest {
         // GIVEN
         Job scheduledJob = aScheduledJob().build();
         Job enqueuedJob1 = aJob().withEnqueuedState(now().minusSeconds(20)).build();
-        Job enqueuedJob2 = aJob().withJobDetails(TestService::tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter).withEnqueuedState(now().minusSeconds(15)).build();
+        Job enqueuedJob2 = aJob().withJobLambda(TestService::tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter).withEnqueuedState(now().minusSeconds(15)).build();
         Job enqueuedJob3 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
         Job enqueuedJob4 = aJob().withEnqueuedState(now().minusSeconds(5)).build();
         Job jobInProgress = aJobInProgress().build();
@@ -526,12 +526,12 @@ public abstract class StorageProviderTest {
     @Test
     void testGetDistinctJobSignatures() {
         TestService testService = new TestService();
-        Job job1 = aScheduledJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
-        Job job2 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
-        Job job3 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
-        Job job4 = anEnqueuedJob().withJobDetails(() -> testService.doWorkThatTakesLong(5)).build();
-        Job job5 = aJobInProgress().withJobDetails(() -> testService.doWork(2, 5)).build();
-        Job job6 = aSucceededJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job1 = aScheduledJob().withJobLambda(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job2 = anEnqueuedJob().withJobLambda(() -> testService.doWork(2)).build();
+        Job job3 = anEnqueuedJob().withJobLambda(() -> testService.doWork(2)).build();
+        Job job4 = anEnqueuedJob().withJobLambda(() -> testService.doWorkThatTakesLong(5)).build();
+        Job job5 = aJobInProgress().withJobLambda(() -> testService.doWork(2, 5)).build();
+        Job job6 = aSucceededJob().withJobLambda(() -> testService.doWork(UUID.randomUUID())).build();
 
         storageProvider.save(asList(job1, job2, job3, job4, job5, job6));
 

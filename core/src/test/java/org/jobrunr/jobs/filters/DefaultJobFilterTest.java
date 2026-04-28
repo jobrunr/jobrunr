@@ -29,7 +29,7 @@ class DefaultJobFilterTest {
     @Test
     void testDisplayNameByAnnotationReplacesVariables() {
         Job job = anEnqueuedJob().withoutName()
-                .withJobDetails(() -> testService.doWorkWithAnnotationAndJobContext(67656, "the almighty user", JobContext.Null))
+                .withJobLambda(() -> testService.doWorkWithAnnotationAndJobContext(67656, "the almighty user", JobContext.Null))
                 .build();
 
         defaultJobFilter.onCreating(job);
@@ -85,7 +85,7 @@ class DefaultJobFilterTest {
     @Test
     void testLabelsIsUsedIfProvidedByAnnotation() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWorkWithJobAnnotationAndLabels(3, "customer name"))
+                .withJobLambda(() -> testService.doWorkWithJobAnnotationAndLabels(3, "customer name"))
                 .build();
 
         defaultJobFilter.onCreating(job);
