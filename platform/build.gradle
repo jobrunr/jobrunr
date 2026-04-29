@@ -35,7 +35,7 @@ dependencies {
         api 'io.agroal:agroal-pool:3.0'
         api 'org.apache.commons:commons-dbcp2:2.14.0'
         api 'org.apache.tomcat:tomcat-jdbc:11.0.18'
-        api 'org.mongodb:mongodb-driver-sync:5.6.4'
+        api 'org.mongodb:mongodb-driver-sync:5.6.5'
 
         api 'org.junit.jupiter:junit-jupiter:5.14.0'
         api 'io.github.artsok:rerunner-jupiter:2.1.6'
