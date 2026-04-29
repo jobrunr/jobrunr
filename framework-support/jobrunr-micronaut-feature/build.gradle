@@ -1,3 +1,7 @@
 plugins {
     id 'base'
 }
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}

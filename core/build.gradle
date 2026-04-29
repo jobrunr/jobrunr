@@ -196,6 +196,10 @@ normalization {
     }
 }
 
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}
+
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')

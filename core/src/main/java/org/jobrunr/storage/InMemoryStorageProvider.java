@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.Long.parseLong;
@@ -361,13 +362,15 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     }
 
     private Job deepClone(Job job) {
-        final String serializedJobAsString = jobMapper.serializeJob(job);
-        return jobMapper.deserializeJob(serializedJobAsString);
+        return deepClone(job, jobMapper::serializeJob, jobMapper::deserializeJob);
     }
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
-        final String serializedJobAsString = jobMapper.serializeRecurringJob(recurringJob);
-        return jobMapper.deserializeRecurringJob(serializedJobAsString);
+        return deepClone(recurringJob, jobMapper::serializeRecurringJob, jobMapper::deserializeRecurringJob);
+    }
+
+    private <T extends AbstractJob> T deepClone(T t, Function<T, String> serializationFunction, Function<String, T> deserializationFunction) {
+        return deserializationFunction.apply(serializationFunction.apply(t));
     }
 
     private synchronized void saveJob(Job job) {
