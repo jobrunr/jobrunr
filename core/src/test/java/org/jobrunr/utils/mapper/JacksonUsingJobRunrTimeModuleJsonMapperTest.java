@@ -48,7 +48,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
     void testCanDeserializeWithJsonCreator() {
         SomeParameter someParameter = new SomeParameter(3);
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> doWorkWithParameter(someParameter))
+                .withJobLambda(() -> doWorkWithParameter(someParameter))
                 .build();
 
         String jobAsString = jsonMapper.serialize(job);

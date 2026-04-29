@@ -236,18 +236,28 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withJobDetails(JobLambda jobLambda) {
-        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
-        return this;
-    }
-
-    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
-        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
-        return this;
-    }
-
     public JobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsTestBuilder) {
         this.jobDetails = jobDetailsTestBuilder.build();
+        return this;
+    }
+
+    @Deprecated
+    public JobTestBuilder withJobDetails(JobLambda jobLambda) {
+       return this.withJobLambda(jobLambda);
+    }
+
+    @Deprecated
+    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    public JobTestBuilder withJobLambda(JobLambda jobLambda) {
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
+        return this;
+    }
+
+    public <S> JobTestBuilder withJobLambda(IocJobLambda<S> jobLambda) {
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }
 
