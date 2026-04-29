@@ -78,7 +78,7 @@ sonar {
 
 allprojects {
     repositories {
-//        mavenLocal()
+        mavenLocal()
         maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
         mavenCentral()
     }
