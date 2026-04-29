@@ -6,6 +6,8 @@ import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
+
 public class PostgresStorageProvider extends DefaultSqlStorageProvider {
 
     public PostgresStorageProvider(DataSource dataSource) {
@@ -21,7 +23,7 @@ public class PostgresStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public PostgresStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        this(dataSource, tablePrefix, databaseOptions, RateLimiter.ONE_REQUEST_PER_SECOND);
+        this(dataSource, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public PostgresStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {

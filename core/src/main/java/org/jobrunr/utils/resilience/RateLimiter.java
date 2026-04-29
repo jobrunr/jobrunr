@@ -12,7 +12,6 @@ public class RateLimiter {
 
 
     public static final Duration SECOND = ofSeconds(1);
-    public static final RateLimiter ONE_REQUEST_PER_SECOND = Builder.rateLimit().at1Request().per(SECOND);
 
     private final ReentrantLock lock;
     private final Duration perDuration;
@@ -81,6 +80,10 @@ public class RateLimiter {
             Duration perDuration = duration.dividedBy(amount);
             Instant lastAllowed = now().minus(duration);
             return new RateLimiter(perDuration, lastAllowed);
+        }
+
+        public RateLimiter at1RequestPerSecond() {
+            return at1Request().per(SECOND);
         }
 
         public RateLimiter withoutLimits() {

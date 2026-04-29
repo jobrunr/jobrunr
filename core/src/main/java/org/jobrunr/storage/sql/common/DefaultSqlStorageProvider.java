@@ -38,7 +38,7 @@ import static org.jobrunr.jobs.states.StateName.PROCESSING;
 import static org.jobrunr.jobs.states.StateName.SCHEDULED;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.CREATE;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.SKIP_CREATE;
-import static org.jobrunr.utils.resilience.RateLimiter.ONE_REQUEST_PER_SECOND;
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public class DefaultSqlStorageProvider extends AbstractStorageProvider implements SqlStorageProvider {
 
@@ -48,11 +48,11 @@ public class DefaultSqlStorageProvider extends AbstractStorageProvider implement
     private JobMapper jobMapper;
 
     public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions) {
-        this(dataSource, dialect, databaseOptions, ONE_REQUEST_PER_SECOND);
+        this(dataSource, dialect, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, String tablePrefix, DatabaseOptions databaseOptions) {
-        this(dataSource, dialect, tablePrefix, databaseOptions, ONE_REQUEST_PER_SECOND);
+        this(dataSource, dialect, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public DefaultSqlStorageProvider(DataSource dataSource, Dialect dialect, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {

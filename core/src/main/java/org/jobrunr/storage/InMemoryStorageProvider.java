@@ -46,6 +46,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
@@ -55,7 +56,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
-        this(RateLimiter.ONE_REQUEST_PER_SECOND);
+        this(rateLimit().at1RequestPerSecond());
     }
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {

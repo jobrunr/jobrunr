@@ -13,6 +13,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
+
 public class MySqlStorageProvider extends DefaultSqlStorageProvider {
 
     public MySqlStorageProvider(DataSource dataSource) {
@@ -28,7 +30,7 @@ public class MySqlStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public MySqlStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        this(dataSource, tablePrefix, databaseOptions, RateLimiter.ONE_REQUEST_PER_SECOND);
+        this(dataSource, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public MySqlStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {

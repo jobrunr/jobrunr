@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public class SqlStorageProviderFactory {
 
@@ -27,7 +28,7 @@ public class SqlStorageProviderFactory {
     }
 
     public static StorageProvider using(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        return using(dataSource, tablePrefix, databaseOptions, RateLimiter.ONE_REQUEST_PER_SECOND);
+        return using(dataSource, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public static StorageProvider using(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
