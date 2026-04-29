@@ -131,7 +131,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     dependencies {
         implementation platform(project(':platform'))
-        compileOnly 'org.apache.groovy:groovy-json:4.0.29'
+        compileOnly 'org.apache.groovy:groovy-json:5.0.5'
 
         errorprone 'com.google.errorprone:error_prone_core:2.49.0'
 
