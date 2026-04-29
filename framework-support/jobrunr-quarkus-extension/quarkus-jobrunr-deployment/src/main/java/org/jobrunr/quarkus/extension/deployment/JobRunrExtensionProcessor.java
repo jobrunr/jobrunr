@@ -39,6 +39,7 @@ import org.jobrunr.quarkus.autoconfigure.health.JobRunrHealthCheck;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsProducer;
 import org.jobrunr.quarkus.autoconfigure.metrics.JobRunrMetricsStarter;
 import org.jobrunr.quarkus.autoconfigure.server.JobRunrBackgroundJobServerProducer;
+import org.jobrunr.quarkus.autoconfigure.storage.JobRunrCouchbaseStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrDocumentDBStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrInMemoryStorageProviderProducer;
 import org.jobrunr.quarkus.autoconfigure.storage.JobRunrMongoDBStorageProviderProducer;
@@ -251,6 +252,10 @@ class JobRunrExtensionProcessor {
         return classExists("kotlinx.serialization.json.Json") && classExists("org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper");
     }
 
+    protected boolean isCouchbaseClientPresent() {
+        return classExists("com.couchbase.client.java.Cluster");
+    }
+
     private Set<Class<?>> storageProvider(Capabilities capabilities, JobRunrBuildTimeConfiguration jobRunrBuildTimeConfiguration) {
         String databaseType = jobRunrBuildTimeConfiguration.database().type().orElse(null);
         if ("sql".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.AGROAL)) {
@@ -259,6 +264,8 @@ class JobRunrExtensionProcessor {
             throw new IllegalStateException("You configured 'mongodb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
         } else if ("documentdb".equalsIgnoreCase(databaseType) && !capabilities.isPresent(Capability.MONGODB_CLIENT)) {
             throw new IllegalStateException("You configured 'documentdb' as a JobRunr Database Type but the MONGODB_CLIENT capability is not available");
+        } else if ("couchbase".equalsIgnoreCase(databaseType) && !isCouchbaseClientPresent()) {
+            throw new IllegalStateException("You configured 'couchbase' as a JobRunr Database Type but the Couchbase Java Client is not available");
         }
 
         if (isCapabilityPresentAndConfigured(capabilities, Capability.AGROAL, "sql", databaseType)) {
@@ -267,6 +274,8 @@ class JobRunrExtensionProcessor {
             return asSet(JobRunrMongoDBStorageProviderProducer.class);
         } else if (isCapabilityPresentAndConfigured(capabilities, Capability.MONGODB_CLIENT, "documentdb", databaseType)) {
             return asSet(JobRunrDocumentDBStorageProviderProducer.class);
+        } else if ("couchbase".equalsIgnoreCase(databaseType)) {
+            return asSet(JobRunrCouchbaseStorageProviderProducer.class);
         } else if ("mem".equalsIgnoreCase(databaseType)) {
             return asSet(JobRunrInMemoryStorageProviderProducer.class);
         }

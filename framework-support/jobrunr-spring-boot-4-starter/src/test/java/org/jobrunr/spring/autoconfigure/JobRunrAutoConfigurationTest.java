@@ -1,5 +1,6 @@
 package org.jobrunr.spring.autoconfigure;
 
+import com.couchbase.client.java.Cluster;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
@@ -17,10 +18,12 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.spring.autoconfigure.health.JobRunrHealthIndicator;
+import org.jobrunr.spring.autoconfigure.storage.JobRunrCouchbaseStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrMongoDBStorageAutoConfiguration;
 import org.jobrunr.spring.autoconfigure.storage.JobRunrSqlStorageAutoConfiguration;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.nosql.couchbase.CouchbaseStorageProvider;
 import org.jobrunr.storage.nosql.mongo.MongoDBStorageProvider;
 import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.stubs.Mocks;
@@ -53,6 +56,7 @@ public class JobRunrAutoConfigurationTest {
             .withConfiguration(AutoConfigurations.of(
                     JobRunrAutoConfiguration.class,
                     JobRunrMongoDBStorageAutoConfiguration.class,
+                    JobRunrCouchbaseStorageAutoConfiguration.class,
                     JobRunrSqlStorageAutoConfiguration.class
             ));
 
@@ -313,6 +317,17 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void couchbaseStorageProviderAutoConfiguration() {
+        this.contextRunner
+                .withPropertyValues("jobrunr.database.type=couchbase")
+                .withUserConfiguration(CouchbaseStorageProviderConfiguration.class).run((context) -> {
+                    assertThat(context).hasSingleBean(CouchbaseStorageProvider.class);
+                    assertThat(context.getBean("storageProvider")).extracting("jobDocumentMapper").isNotNull();
+                    assertThat(context).hasSingleBean(JobScheduler.class);
+                });
+    }
+
+    @Test
     void jobRunrDoesNotFailIfMultipleDatabasesAvailableAndValueConfigured() {
         this.contextRunner
                 .withPropertyValues(
@@ -370,6 +385,15 @@ public class JobRunrAutoConfigurationTest {
         @Bean
         public MongoClient mongoClient() {
             return Mocks.mongoClient();
+        }
+    }
+
+    @Configuration
+    static class CouchbaseStorageProviderConfiguration {
+
+        @Bean
+        public Cluster cluster() {
+            return Mocks.couchbaseCluster();
         }
     }
 

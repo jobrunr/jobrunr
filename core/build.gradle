@@ -142,6 +142,7 @@ dependencies {
 
     compileOnly 'com.oracle.database.jdbc:ojdbc8'
     compileOnly 'org.mongodb:mongodb-driver-sync'
+    compileOnly 'com.couchbase.client:java-client'
 
     testImplementation 'org.ow2.asm:asm-util'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -159,6 +160,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-db2'
     testImplementation 'org.testcontainers:testcontainers-mongodb'
+    testImplementation 'org.testcontainers:testcontainers-couchbase'
     testImplementation 'org.xerial:sqlite-jdbc'
     testImplementation 'com.h2database:h2'
     testImplementation 'org.postgresql:postgresql'
@@ -173,6 +175,7 @@ dependencies {
     testImplementation 'io.agroal:agroal-pool'
     testImplementation 'org.apache.tomcat:tomcat-jdbc'
     testImplementation 'org.mongodb:mongodb-driver-sync'
+    testImplementation 'com.couchbase.client:java-client'
     testImplementation 'org.wiremock:wiremock'
     test17Implementation 'tools.jackson.core:jackson-databind'
 
@@ -185,6 +188,7 @@ dependencies {
     testFixturesApi 'net.javacrumbs.json-unit:json-unit-assertj'
     testFixturesApi 'ch.qos.logback:logback-classic'
     testFixturesApi 'org.mongodb:mongodb-driver-sync'
+    testFixturesApi 'com.couchbase.client:java-client'
     testFixturesApi 'io.micrometer:micrometer-core'
 
     testFixturesCompileOnly 'org.wiremock:wiremock'
