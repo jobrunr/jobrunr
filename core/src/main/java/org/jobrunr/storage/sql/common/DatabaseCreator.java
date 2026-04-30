@@ -147,9 +147,10 @@ public class DatabaseCreator {
             String catalog = conn.getCatalog();
             DatabaseMetaData md = conn.getMetaData();
 
-            String pattern = "%jobrunr%";
-            if (md.storesUpperCaseIdentifiers()) pattern = pattern.toUpperCase();
-            else if (md.storesLowerCaseIdentifiers()) pattern = pattern.toLowerCase();
+            String pattern = "%";
+            if (md.storesMixedCaseIdentifiers()) pattern = "%";
+            else if (md.storesUpperCaseIdentifiers()) pattern = "%JOBRUNR%";
+            else if (md.storesLowerCaseIdentifiers()) pattern = "%jobrunr%";
             try (ResultSet tables = md.getTables(catalog, null, pattern, null)) {
                 while (tables.next()) {
                     if (tablePrefixStatementUpdater.getSchema() != null) {
