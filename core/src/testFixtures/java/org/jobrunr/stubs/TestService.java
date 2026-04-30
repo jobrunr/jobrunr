@@ -19,10 +19,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -103,12 +102,6 @@ public class TestService implements TestServiceInterface {
         processedJobs += (countA + countB);
         LOGGER.debug("Doing some work... " + processedJobs);
     }
-
-    public void doWork(Map<String, Object> input) {
-
-    }
-
-    public void doWork(Set<?> input) {}
 
     @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {
@@ -329,7 +322,7 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("Doing work in static method:" + id);
     }
 
-    public void doWorkWithCollection(Set<Long> singleton) {
+    public void doWorkWithCollection(Collection<Long> singleton) {
         LOGGER.debug("Doing work with collections: " + singleton.size());
     }
 

@@ -1,21 +1,19 @@
 {
   "version": 0,
-  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithCommand(org.jobrunr.stubs.TestService$Command)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithList(java.util.List)",
   "jobName": "an enqueued job",
   "labels": [],
   "jobDetails": {
     "cacheable": true,
     "className": "org.jobrunr.stubs.TestService",
-    "methodName": "doWorkWithCommand",
+    "methodName": "doWorkWithList",
     "jobParameters": [
       {
-        "className": "org.jobrunr.stubs.TestService$Command",
-        "actualClassName": "org.jobrunr.stubs.TestService$SimpleCommand",
-        "object": {
-          "@class": "${json-unit.ignore-element}",
-          "string": "Hello",
-          "integer": 5
-        }
+        "className": "java.util.List",
+        "actualClassName": "java.util.ArrayList",
+        "object": [
+          "abc"
+        ]
       }
     ]
   },
@@ -31,3 +29,4 @@
     "@class": "java.util.concurrent.ConcurrentHashMap"
   }
 }
+

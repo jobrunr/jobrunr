@@ -23,6 +23,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.time.Instant.now;
@@ -31,6 +34,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.data.Index.atIndex;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJson;
 import static org.jobrunr.JobRunrAssertions.contentOfResource;
@@ -44,7 +48,7 @@ import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 public abstract class AbstractJsonMapperTest {
 
     protected JsonMapper jsonMapper;
-    private TestService testService;
+    protected TestService testService;
 
     @BeforeEach
     void setUp() {
@@ -189,6 +193,19 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void testSerializeAndDeserializeEnqueuedJobWithListParameter() {
+        Job job = anEnqueuedJob()
+                .withJobLambda(() -> testService.doWorkWithList(new ArrayList<>(List.of("abc"))))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+        assertThatJson(jobAsString).isEqualTo(contentOfResource("/org/jobrunr/utils/mapper/enqueued-job-list-parameter.json"));
+
+        Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob).isEqualTo(job);
+    }
+
+    @Test
     void testSerializeAndDeserializeEnqueuedJobWithInterfaceAsJobParameter() {
         Job job = anEnqueuedJob()
                 .withJobLambda(() -> testService.doWorkWithCommand(new TestService.SimpleCommand("Hello", 5)))
@@ -314,14 +331,31 @@ public abstract class AbstractJsonMapperTest {
 
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/282")
-    void testCanSerializeCollections() {
+    protected void testCanSerializeSetToCollection() {
         Long value = Integer.MAX_VALUE + 2L;
-        Job job = anEnqueuedJob().withJobLambda(() -> testService.doWorkWithCollection(singleton(value))).build();
+        Job job = anEnqueuedJob().withJobLambda(() -> testService.doWorkWithCollection(Set.of(value))).build();
 
         String jobAsString = jsonMapper.serialize(job);
 
         Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(deserializedJob.getJobDetails())
+                .hasArg(x -> assertThat(x.getObject()).isInstanceOf(Set.class), atIndex(0))
+                .hasArgs(singleton(value));
+
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/282")
+    protected void testCanSerializeListToCollections() {
+        Long value = Integer.MAX_VALUE + 2L;
+        Job job = anEnqueuedJob().withJobLambda(() -> testService.doWorkWithCollection(List.of(value))).build();
+
+        String jobAsString = jsonMapper.serialize(job);
+
+        Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
+
+        assertThat(deserializedJob.getJobDetails())
+                .hasArg(x -> assertThat(x.getObject()).isInstanceOf(List.class), atIndex(0))
                 .hasArgs(singleton(value));
     }
 
