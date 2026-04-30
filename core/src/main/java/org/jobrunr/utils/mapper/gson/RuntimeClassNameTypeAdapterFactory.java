@@ -188,7 +188,7 @@ public final class RuntimeClassNameTypeAdapterFactory<T> implements TypeAdapterF
             public R read(JsonReader in) {
                 JsonElement jsonElement = Streams.parse(in);
                 if (jsonElement.isJsonObject() && ((JsonObject) jsonElement).has(typeFieldName)) {
-                    JsonElement labelJsonElement = jsonElement.getAsJsonObject().remove(typeFieldName);
+                    JsonElement labelJsonElement = jsonElement.getAsJsonObject().get(typeFieldName);
                     if (labelJsonElement == null) {
                         throw new JsonParseException("cannot deserialize " + baseType + " because it does not define a field named " + typeFieldName);
                     }

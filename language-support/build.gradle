@@ -7,3 +7,7 @@ dependencies {
 
     testImplementation 'org.assertj:assertj-core'
 }
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}

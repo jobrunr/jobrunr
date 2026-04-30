@@ -4,12 +4,12 @@ import org.assertj.core.api.Condition;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -23,9 +23,8 @@ public class NativePoolH2TablePrefixStorageProviderTest extends AbstractH2Storag
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_");
+        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_", DatabaseOptions.CREATE, rateLimit().withoutLimits());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
     }
 

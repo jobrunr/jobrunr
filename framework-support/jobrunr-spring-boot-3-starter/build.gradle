@@ -44,6 +44,10 @@ dependencies {
     testImplementation 'io.micrometer:micrometer-core'
 }
 
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}
+
 java {
     withJavadocJar()
     withSourcesJar()

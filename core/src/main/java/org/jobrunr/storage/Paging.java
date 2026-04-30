@@ -50,7 +50,7 @@ public class Paging {
             return ascOnUpdatedAt(0, amount);
         }
 
-        public static OffsetBasedPageRequest ascOnUpdatedAt(int offset, int amount) {
+        public static OffsetBasedPageRequest ascOnUpdatedAt(long offset, int amount) {
             return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":" + ASC, offset, amount);
         }
 
@@ -58,7 +58,7 @@ public class Paging {
             return descOnUpdatedAt(0, amount);
         }
 
-        public static OffsetBasedPageRequest descOnUpdatedAt(int offset, int amount) {
+        public static OffsetBasedPageRequest descOnUpdatedAt(long offset, int amount) {
             return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_UPDATED_AT + ":" + DESC, offset, amount);
         }
 
@@ -66,7 +66,7 @@ public class Paging {
             return ascOnScheduledAt(0, amount);
         }
 
-        public static OffsetBasedPageRequest ascOnScheduledAt(int offset, int amount) {
+        public static OffsetBasedPageRequest ascOnScheduledAt(long offset, int amount) {
             return new OffsetBasedPageRequest(StorageProviderUtils.Jobs.FIELD_SCHEDULED_AT + ":" + ASC, offset, amount);
         }
     }

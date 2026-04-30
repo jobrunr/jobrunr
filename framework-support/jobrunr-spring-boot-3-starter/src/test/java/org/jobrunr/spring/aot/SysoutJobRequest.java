@@ -1,5 +1,7 @@
 package org.jobrunr.spring.aot;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
 import org.springframework.stereotype.Component;
@@ -12,7 +14,8 @@ public class SysoutJobRequest implements JobRequest {
         this(null);
     }
 
-    public SysoutJobRequest(String toPrint) {
+    @JsonCreator
+    public SysoutJobRequest(@JsonProperty("toPrint") String toPrint) {
         this.toPrint = toPrint;
     }
 

@@ -3,7 +3,6 @@ package org.jobrunr.utils.mapper;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ProcessingState;
 import org.jobrunr.jobs.states.ScheduledState;
@@ -15,7 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singletonList;
-import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 
 public class JsonMapperValidator {
 
@@ -55,22 +53,6 @@ public class JsonMapperValidator {
         }
     }
 
-    private static <T extends AbstractJobState> T setCreatedAndScheduledDates(T jobState, Instant createdAt, Instant scheduledAt) {
-        setCreatedAt(jobState, createdAt);
-        setField(jobState, "scheduledAt", scheduledAt);
-        return jobState;
-    }
-
-    private static <T extends AbstractJobState> T setCreatedAt(T jobState, Instant instant) {
-        setField(jobState, "createdAt", instant);
-        return jobState;
-    }
-
-    private static <T extends AbstractJobState> T setField(T jobState, String fieldname, Instant instant) {
-        setFieldUsingAutoboxing(fieldname, jobState, instant);
-        return jobState;
-    }
-
     private static Job getJobForTesting() {
         final Job job = new Job(
                 UUID.randomUUID(),
@@ -80,9 +62,9 @@ public class JsonMapperValidator {
                 )),
 
                 Arrays.asList(
-                        setCreatedAndScheduledDates(new ScheduledState(Instant.now()), Instant.ofEpochSecond(1634248800), Instant.ofEpochSecond(1634245200)),
-                        setCreatedAt(new EnqueuedState(), Instant.ofEpochSecond(1634248800)),
-                        setCreatedAt(new ProcessingState(UUID.fromString("117bbfcf-e6df-45f0-82a7-b88fd8f96c06"), "some host name"), Instant.ofEpochSecond(1634248900))),
+                        new ScheduledState(Instant.ofEpochSecond(1634248800), null, Instant.ofEpochSecond(1634245200)),
+                        new EnqueuedState(Instant.ofEpochSecond(1634248800)),
+                        new ProcessingState(UUID.fromString("117bbfcf-e6df-45f0-82a7-b88fd8f96c06"), "some host name", Instant.ofEpochSecond(1634248900))),
                 new ConcurrentHashMap<>()
         );
         job.setJobName("Some name");
