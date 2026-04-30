@@ -19,12 +19,12 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.32'
 
     testImplementation 'org.jobrunr:jobrunr:[8.4.2]:test-fixtures'
-    testImplementation 'com.google.code.gson:gson:2.13.2'
+    testImplementation 'com.google.code.gson:gson:2.14.0'
 
     testImplementation 'org.assertj:assertj-core:3.27.7'
     testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:4.1.1'
     testImplementation 'org.awaitility:awaitility:4.3.0'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.4'
     testImplementation 'org.testcontainers:testcontainers:2.0.3'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.3'
 }
