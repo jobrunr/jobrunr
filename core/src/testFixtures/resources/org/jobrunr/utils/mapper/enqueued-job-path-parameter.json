@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithPath(sun.nio.fs.UnixPath)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithPath(java.nio.file.Path)",
   "jobName": "an enqueued job",
   "labels": [],
   "jobDetails": {

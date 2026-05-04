@@ -531,14 +531,14 @@ public abstract class StorageProviderTest {
         assertThat(distinctJobSignaturesForEnqueuedJobs)
                 .hasSize(2)
                 .containsOnly(
-                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)",
+                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(int)",
                         "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)");
 
         Set<String> distinctJobSignaturesForJobsInProgress = storageProvider.getDistinctJobSignatures(PROCESSING);
         assertThat(distinctJobSignaturesForJobsInProgress)
                 .hasSize(1)
                 .containsOnly(
-                        "org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer)");
+                        "org.jobrunr.stubs.TestService.doWork(int, int)");
 
         Set<String> distinctJobSignaturesForSucceededJobs = storageProvider.getDistinctJobSignatures(SUCCEEDED);
         assertThat(distinctJobSignaturesForSucceededJobs)
@@ -551,7 +551,7 @@ public abstract class StorageProviderTest {
                 .hasSize(3)
                 .containsOnly(
                         "org.jobrunr.stubs.TestService.doWork(java.util.UUID)",
-                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)",
+                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(int)",
                         "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)");
     }
 

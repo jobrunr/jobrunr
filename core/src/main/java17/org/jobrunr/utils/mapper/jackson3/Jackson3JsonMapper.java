@@ -55,6 +55,7 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .allowIfSubType(CopyOnWriteArrayList.class) // for Job History
                 .allowIfSubType(ConcurrentHashMap.class) // for Job Metadata
                 .allowIfSubType(Path.class)
+                .allowIfSubType(Number.class)
                 .build();
 
         this.jsonMapper = jsonMapperBuilder

@@ -59,7 +59,7 @@ class RecurringJobTest {
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, 97693);
         final RecurringJob recurringJob2 = aDefaultRecurringJob().withoutId().withJobLambda(iocJobLambda).build();
-        assertThat(recurringJob2.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer)");
+        assertThat(recurringJob2.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork(int,int)");
 
         final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobLambda((JobLambda) testService::doWork).build();
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
