@@ -1,5 +1,6 @@
 package org.jobrunr.utils.mapper;
 
+import org.assertj.core.api.Assertions;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.RecurringJob;
 import org.jobrunr.jobs.carbonaware.CarbonIntensityForecastAssert;
@@ -203,6 +204,9 @@ public abstract class AbstractJsonMapperTest {
 
         Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
         assertThat(actualJob).isEqualTo(job);
+        assertThat(actualJob.getJobDetails())
+                .hasArg(x -> Assertions.assertThat(x.getObject()).isInstanceOf(List.class), atIndex(0))
+                .hasArgs(singleton("abc"));
     }
 
     @Test

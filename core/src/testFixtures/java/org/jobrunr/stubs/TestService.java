@@ -19,9 +19,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -322,7 +323,11 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("Doing work in static method:" + id);
     }
 
-    public void doWorkWithCollection(Collection<Long> singleton) {
+    public void doWorkWithCollection(Set<Long> singleton) {
+        doWorkWithCollection(new ArrayList<>(singleton));
+    }
+
+    public void doWorkWithCollection(List<Long> singleton) {
         LOGGER.debug("Doing work with collections: " + singleton.size());
     }
 
