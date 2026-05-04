@@ -1,9 +1,9 @@
 plugins {
-    id 'io.micronaut.application' version '4.6.1'
+    id 'io.micronaut.application' version '4.6.2'
 }
 
 micronaut {
-    version '4.10.6'
+    version '4.10.13'
     runtime("netty")
     testRuntime("junit5")
 }

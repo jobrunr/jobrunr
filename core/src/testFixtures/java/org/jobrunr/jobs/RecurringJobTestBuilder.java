@@ -64,16 +64,6 @@ public class RecurringJobTestBuilder {
         return this;
     }
 
-    public RecurringJobTestBuilder withJobDetails(JobLambda jobLambda) {
-        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
-        return this;
-    }
-
-    public RecurringJobTestBuilder withJobDetails(IocJobLambda jobLambda) {
-        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
-        return this;
-    }
-
     public RecurringJobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsBuilder) {
         withJobDetails(jobDetailsBuilder.build());
         return this;
@@ -81,6 +71,26 @@ public class RecurringJobTestBuilder {
 
     public RecurringJobTestBuilder withJobDetails(JobDetails jobDetails) {
         this.jobDetails = jobDetails;
+        return this;
+    }
+
+    @Deprecated
+    public RecurringJobTestBuilder withJobDetails(JobLambda jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    @Deprecated
+    public RecurringJobTestBuilder withJobDetails(IocJobLambda jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    public RecurringJobTestBuilder withJobLambda(JobLambda jobLambda) {
+        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
+        return this;
+    }
+
+    public RecurringJobTestBuilder withJobLambda(IocJobLambda jobLambda) {
+        this.jobDetails = new JobDetailsAsmGenerator().toJobDetails(jobLambda);
         return this;
     }
 

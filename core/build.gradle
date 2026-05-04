@@ -124,7 +124,6 @@ tasks.register('runFrontEndDevelopment', JavaExec) {
     mainClass = 'org.jobrunr.dashboard.FrontEndDevelopment'
 }
 
-
 dependencies {
     api platform(project(':platform'))
 
@@ -195,6 +194,10 @@ normalization {
         ignore '**/MANIFEST.MF'
         ignore '**/frontend/**'
     }
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
 }
 
 tasks.register('npmInstall', Exec) {

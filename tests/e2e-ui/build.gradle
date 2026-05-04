@@ -31,6 +31,10 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-postgresql'
 }
 
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}
+
 sonar {
     skipProject = true
 }

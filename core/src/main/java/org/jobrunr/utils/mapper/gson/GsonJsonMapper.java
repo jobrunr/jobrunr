@@ -1,35 +1,30 @@
 package org.jobrunr.utils.mapper.gson;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapterFactory;
 import org.jobrunr.JobRunrException;
+import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobParameter;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.states.JobState;
-import org.jobrunr.utils.JarUtils;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
-import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.unmodifiableList;
 
 public class GsonJsonMapper implements JsonMapper {
 
@@ -41,12 +36,10 @@ public class GsonJsonMapper implements JsonMapper {
 
     public GsonJsonMapper(GsonBuilder gsonBuilder) {
         this.gson = initGson(gsonBuilder);
-        fixGsonNotBeingExtensible(gson);
     }
 
     public GsonJsonMapper(Gson gson) {
         this.gson = gson;
-        fixGsonNotBeingExtensible(gson);
     }
 
     protected Gson initGson(GsonBuilder gsonBuilder) {
@@ -54,6 +47,7 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobState.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(Map.class))
                 .registerTypeAdapterFactory(RuntimeClassNameTypeAdapterFactory.of(JobContext.Metadata.class))
+                .registerTypeAdapterFactory(JobTypeAdapter.FACTORY)
                 .registerTypeHierarchyAdapter(Path.class, new PathAdapter().nullSafe())
                 .registerTypeAdapter(File.class, new FileAdapter().nullSafe())
                 .registerTypeAdapter(Instant.class, new InstantAdapter().nullSafe())
@@ -61,7 +55,19 @@ public class GsonJsonMapper implements JsonMapper {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter().nullSafe())
                 .registerTypeAdapter(Duration.class, new DurationAdapter().nullSafe())
+                .registerTypeAdapter(JobDetails.class, new JobDetailsDeserializer())
                 .registerTypeAdapter(JobParameter.class, new JobParameterDeserializer())
+                .addDeserializationExclusionStrategy(new ExclusionStrategy() {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f) {
+                        return JobState.class.isAssignableFrom(f.getDeclaringClass()) && f.getName().equals("state");
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz) {
+                        return false;
+                    }
+                })
                 .create();
     }
 
@@ -86,22 +92,5 @@ public class GsonJsonMapper implements JsonMapper {
     @Override
     public <T> T deserialize(String serializedObjectAsString, Class<T> clazz) {
         return gson.fromJson(serializedObjectAsString, clazz);
-    }
-
-    // I'm really sorry for this
-    // see https://github.com/google/gson/issues/1177
-    // when deserializing, GSON does not create correct types for items in collections
-    private void fixGsonNotBeingExtensible(Gson gson) {
-        try {
-            final Field factories = ReflectionUtils.getField(Gson.class, "factories");
-            ReflectionUtils.makeAccessible(factories);
-            final List o = new ArrayList<TypeAdapterFactory>((Collection<? extends TypeAdapterFactory>) factories.get(gson));
-            if (!o.get(1).getClass().getName().contains("ObjectTypeAdapter"))
-                throw JobRunrException.shouldNotHappenException(String.format("It looks like you are running a Gson version (%s) which is not compatible with JobRunr", JarUtils.getVersion(Gson.class)));
-            o.set(1, ClassNameObjectTypeAdapter.FACTORY);
-            factories.set(gson, unmodifiableList(o));
-        } catch (ReflectiveOperationException e) {
-            throw JobRunrException.shouldNotHappenException(e);
-        }
     }
 }

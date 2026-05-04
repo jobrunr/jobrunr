@@ -4,3 +4,7 @@ subprojects {
 
     group = 'org.jobrunr'
 }
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
+}

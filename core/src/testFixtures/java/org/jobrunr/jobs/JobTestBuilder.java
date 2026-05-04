@@ -15,8 +15,6 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.jobs.states.SucceededState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.stubs.TestService;
-import org.jobrunr.utils.resilience.Lock;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -38,7 +36,6 @@ import static org.jobrunr.jobs.JobDetailsTestBuilder.jobDetails;
 import static org.jobrunr.jobs.JobDetailsTestBuilder.systemOutPrintLnJobDetails;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.DEFAULT_SERVER_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 public class JobTestBuilder {
@@ -59,7 +56,6 @@ public class JobTestBuilder {
     private JobDetails jobDetails;
     private List<JobState> states = new ArrayList<>();
     private Map<String, Object> metadata = new HashMap<>();
-    private Lock locker;
     private boolean withoutStateChanges = true;
 
     private JobTestBuilder() {
@@ -77,7 +73,6 @@ public class JobTestBuilder {
                 .withId(job.getId())
                 .withName(job.getJobName())
                 .withVersion(job.getVersion())
-                .withLock(getInternalState(job, "locker"))
                 .withJobDetails(job.getJobDetails())
                 .withStates(job.getJobStates())
                 .withMetadata(job.getMetadata());
@@ -241,18 +236,28 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withJobDetails(JobLambda jobLambda) {
-        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
-        return this;
-    }
-
-    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
-        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
-        return this;
-    }
-
     public JobTestBuilder withJobDetails(JobDetailsTestBuilder jobDetailsTestBuilder) {
         this.jobDetails = jobDetailsTestBuilder.build();
+        return this;
+    }
+
+    @Deprecated
+    public JobTestBuilder withJobDetails(JobLambda jobLambda) {
+       return this.withJobLambda(jobLambda);
+    }
+
+    @Deprecated
+    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
+        return this.withJobLambda(jobLambda);
+    }
+
+    public JobTestBuilder withJobLambda(JobLambda jobLambda) {
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
+        return this;
+    }
+
+    public <S> JobTestBuilder withJobLambda(IocJobLambda<S> jobLambda) {
+        this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;
     }
 
@@ -340,11 +345,6 @@ public class JobTestBuilder {
         return this;
     }
 
-    public JobTestBuilder withLock(Lock lock) {
-        this.locker = lock;
-        return this;
-    }
-
     public JobTestBuilder withInitialStateChanges() {
         this.withoutStateChanges = false;
         return this;
@@ -352,9 +352,6 @@ public class JobTestBuilder {
 
     public Job build() {
         Job job = new Job(id, ofNullable(this.version).orElse(0), jobDetails, states, new ConcurrentHashMap<>(metadata));
-        if (locker != null) {
-            Whitebox.setInternalState(job, "locker", locker);
-        }
         if (amountOfRetries != null) {
             job.setAmountOfRetries(amountOfRetries);
         }

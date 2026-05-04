@@ -333,7 +333,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForIoCJobWithoutInstance() {
         final Job job = anEnqueuedJob()
-                .<TestService>withJobDetails(ts -> ts.doWork())
+                .<TestService>withJobLambda(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -343,7 +343,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForIoCJobWithInstance() {
         final Job job = anEnqueuedJob()
-                .withJobDetails(() -> testServiceForIoC.doWork())
+                .withJobLambda(() -> testServiceForIoC.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -355,7 +355,7 @@ class BackgroundJobServerTest {
         jobActivator.clear();
 
         final Job job = anEnqueuedJob()
-                .<TestService>withJobDetails(ts -> ts.doWork())
+                .<TestService>withJobLambda(ts -> ts.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -367,7 +367,7 @@ class BackgroundJobServerTest {
         jobActivator.clear();
 
         final Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -379,7 +379,7 @@ class BackgroundJobServerTest {
         jobActivator.clear();
 
         final Job job = anEnqueuedJob()
-                .withJobDetails(StaticTestService::doWorkInStaticMethodWithoutParameter)
+                .withJobLambda(StaticTestService::doWorkInStaticMethodWithoutParameter)
                 .build();
         assertThat(backgroundJobServer.getBackgroundJobRunner(job))
                 .isNotNull()
@@ -389,7 +389,7 @@ class BackgroundJobServerTest {
     @Test
     void getBackgroundJobRunnerForJobThatCannotBeRun() {
         final Job job = anEnqueuedJob()
-                .<TestServiceThatCannotBeRun>withJobDetails(ts -> ts.doWork())
+                .<TestServiceThatCannotBeRun>withJobLambda(ts -> ts.doWork())
                 .build();
         assertThatThrownBy(() -> backgroundJobServer.getBackgroundJobRunner(job))
                 .isInstanceOf(JobRunrException.class);

@@ -4,6 +4,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProviderUtils.DatabaseOptions;
 import org.jobrunr.storage.sql.SqlStorageProvider;
+import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Constructor;
@@ -11,6 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public class SqlStorageProviderFactory {
 
@@ -26,22 +28,26 @@ public class SqlStorageProviderFactory {
     }
 
     public static StorageProvider using(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
-        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource, tablePrefix, databaseOptions);
+        return using(dataSource, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
-    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+    public static StorageProvider using(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+        final SqlStorageProviderFactory sqlStorageProviderFactory = new SqlStorageProviderFactory();
+        return sqlStorageProviderFactory.getStorageProviderUsingDataSource(dataSource, tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
+    }
+
+    StorageProvider getStorageProviderUsingDataSource(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         try (Connection connection = dataSource.getConnection()) {
             String jdbcUrl = connection.getMetaData().getURL();
-            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource, tablePrefix, databaseOptions);
+            return getStorageProviderByJdbcUrl(jdbcUrl, dataSource, tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
         } catch (SQLException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }
     }
 
-    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+    StorageProvider getStorageProviderByJdbcUrl(String jdbcUrl, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         final Class<SqlStorageProvider> storageProviderClassByJdbcUrl = getStorageProviderClassByJdbcUrl(jdbcUrl);
-        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource, tablePrefix, databaseOptions);
+        return getStorageProvider(storageProviderClassByJdbcUrl, dataSource, tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
     }
 
     Class<SqlStorageProvider> getStorageProviderClassByJdbcUrl(String jdbcUrl) {
@@ -65,10 +71,10 @@ public class SqlStorageProviderFactory {
         throw unsupportedDataSourceException(jdbcUrl);
     }
 
-    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
+    StorageProvider getStorageProvider(Class<SqlStorageProvider> jobStorageProviderClass, DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
         try {
-            final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class, String.class, DatabaseOptions.class);
-            return (StorageProvider) declaredConstructor.newInstance(dataSource, tablePrefix, databaseOptions);
+            final Constructor<?> declaredConstructor = jobStorageProviderClass.getDeclaredConstructor(DataSource.class, String.class, DatabaseOptions.class, RateLimiter.class);
+            return (StorageProvider) declaredConstructor.newInstance(dataSource, tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
         } catch (ReflectiveOperationException e) {
             throw JobRunrException.shouldNotHappenException(e);
         }

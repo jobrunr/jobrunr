@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithCommand(org.jobrunr.stubs.TestService$SimpleCommand)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithCommand(org.jobrunr.stubs.TestService$Command)",
   "jobName": "an enqueued job",
   "labels": [],
   "jobDetails": {

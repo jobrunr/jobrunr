@@ -10,6 +10,7 @@ import static java.time.Instant.now;
 
 public class RateLimiter {
 
+
     public static final Duration SECOND = ofSeconds(1);
 
     private final ReentrantLock lock;
@@ -79,6 +80,10 @@ public class RateLimiter {
             Duration perDuration = duration.dividedBy(amount);
             Instant lastAllowed = now().minus(duration);
             return new RateLimiter(perDuration, lastAllowed);
+        }
+
+        public RateLimiter at1RequestPerSecond() {
+            return at1Request().per(SECOND);
         }
 
         public RateLimiter withoutLimits() {

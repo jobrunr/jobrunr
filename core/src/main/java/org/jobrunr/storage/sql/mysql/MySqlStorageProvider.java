@@ -6,11 +6,14 @@ import org.jobrunr.storage.sql.common.DefaultSqlStorageProvider;
 import org.jobrunr.storage.sql.common.db.AnsiDialect;
 import org.jobrunr.storage.sql.common.db.Dialect;
 import org.jobrunr.utils.exceptions.Exceptions;
+import org.jobrunr.utils.resilience.RateLimiter;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
+
+import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
 
 public class MySqlStorageProvider extends DefaultSqlStorageProvider {
 
@@ -27,7 +30,11 @@ public class MySqlStorageProvider extends DefaultSqlStorageProvider {
     }
 
     public MySqlStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions) {
-        super(dataSource, getDialect(dataSource), tablePrefix, databaseOptions);
+        this(dataSource, tablePrefix, databaseOptions, rateLimit().at1RequestPerSecond());
+    }
+
+    public MySqlStorageProvider(DataSource dataSource, String tablePrefix, DatabaseOptions databaseOptions, RateLimiter changeListenerNotificationRateLimit) {
+        super(dataSource, getDialect(dataSource), tablePrefix, databaseOptions, changeListenerNotificationRateLimit);
     }
 
     @Override

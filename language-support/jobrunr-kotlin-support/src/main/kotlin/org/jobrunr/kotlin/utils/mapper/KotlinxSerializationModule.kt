@@ -41,7 +41,6 @@ import org.jobrunr.kotlin.serialization.storage.JobRunrMetadataSerializer
 import org.jobrunr.kotlin.serialization.storage.JobStatsExtendedSerializer
 import org.jobrunr.kotlin.serialization.storage.JobStatsSerializer
 import org.jobrunr.kotlin.serialization.storage.PageSerializer
-import org.jobrunr.kotlin.serialization.utils.AnyInlineSerializer
 import org.jobrunr.kotlin.serialization.utils.ClassDiscriminatedContextualSerializer
 import java.util.*
 import kotlin.reflect.KClass
@@ -86,8 +85,9 @@ internal val jobRunrSerializersModule = SerializersModule {
     contextual(LocalDateTimeSerializer)
 
     contextual(FileSerializer)
+    contextual(ListSerializer(ClassDiscriminatedContextualSerializer))
     @Suppress("UNCHECKED_CAST")
-    contextual(ArrayList::class as KClass<List<Any>>, ListSerializer(AnyInlineSerializer()))
+    contextual(ArrayList::class as KClass<List<Any>>, ListSerializer(ClassDiscriminatedContextualSerializer))
     contextual(SetSerializer(ClassDiscriminatedContextualSerializer))
     contextual(UUIDSerializer)
 }

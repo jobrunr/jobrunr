@@ -19,7 +19,6 @@ import static java.time.Duration.between;
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJob;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.jobrunr.jobs.JobTestBuilder.aSucceededJob;
@@ -81,12 +80,11 @@ class ThreadSafeStorageProviderTest {
     void sameJobCanNotBeSavedConcurrently() throws InterruptedException {
         final Job jobInProgress1 = aJobInProgress().build();
         final Job jobInProgress2 = aJobInProgress().build();
-        final Job finishedJob = aCopyOf(jobInProgress1).withSucceededState().build();
 
         CountDownLatch countDownLatch = new CountDownLatch(2);
 
         final Callable<Void> runnable1 = () -> saveAllAndCountDown(asList(jobInProgress1, jobInProgress2), countDownLatch);
-        final Callable<Void> runnable2 = () -> saveAndCountDown(finishedJob, countDownLatch);
+        final Callable<Void> runnable2 = () -> saveAndCountDown(jobInProgress1.succeeded(), countDownLatch);
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         Instant before = Instant.now();

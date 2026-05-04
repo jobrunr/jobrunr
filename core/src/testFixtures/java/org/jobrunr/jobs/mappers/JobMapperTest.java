@@ -86,7 +86,7 @@ public abstract class JobMapperTest {
 
     @Test
     void testSerializeAndDeserializeJobWithPath() {
-        Job job = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithPath(Paths.get("/tmp", "jobrunr", "log.txt"))).build();
+        Job job = anEnqueuedJob().withJobLambda(() -> testService.doWorkWithPath(Paths.get("/tmp", "jobrunr", "log.txt"))).build();
 
         String jobAsString = jobMapper.serializeJob(job);
 
@@ -166,7 +166,7 @@ public abstract class JobMapperTest {
     void onIllegalJobParameterCorrectExceptionIsThrown() {
         TestService.IllegalWork illegalWork = new TestService.IllegalWork(5);
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> testService.doIllegalWork(illegalWork))
+                .withJobLambda(() -> testService.doIllegalWork(illegalWork))
                 .build();
 
         assertThatCode(() -> jobMapper.serializeJob(job))

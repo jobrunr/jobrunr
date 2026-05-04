@@ -57,7 +57,7 @@ class RetryFilterTest {
     @Test
     void retryFilterSchedulesJobAgainIfStateIsFailedButMaxNumberOfRetriesIsNotReached() {
         final Job job = aJob()
-                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
+                .<TestService>withJobLambda(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boem")))
                 .build();
         applyDefaultJobFilter(job);
@@ -90,7 +90,7 @@ class RetryFilterTest {
     @Test
     void retryFilterDoesNotScheduleJobAgainIfMaxNumberOfRetriesIsReached() {
         final Job job = aJob()
-                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
+                .<TestService>withJobLambda(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .withState(new FailedState("firstRetry", new RuntimeException("boom")))
                 .build();
@@ -133,7 +133,7 @@ class RetryFilterTest {
     @Test
     void retryFilterKeepsDefaultRetryFilterValueOf10IfRetriesOnJobAnnotationIsNotProvided() {
         final Job job = aJob()
-                .<TestService>withJobDetails(ts -> ts.doWork())
+                .<TestService>withJobLambda(ts -> ts.doWork())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         applyDefaultJobFilter(job);
@@ -150,7 +150,7 @@ class RetryFilterTest {
     void retryFilterKeepsDefaultGivenRetryFilterValueIfRetriesOnJobAnnotationIsNotProvided() {
         retryFilter = new RetryFilter(0);
         final Job job = aJob()
-                .<TestService>withJobDetails(ts -> ts.doWork())
+                .<TestService>withJobLambda(ts -> ts.doWork())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         applyDefaultJobFilter(job);
@@ -169,7 +169,7 @@ class RetryFilterTest {
 
         // GIVEN FIRST FAILURE, NOT YET RETRIED
         Job job = aJob()
-                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
+                .<TestService>withJobLambda(ts -> ts.doWorkThatFails())
                 .withState(new FailedState("a message", new RuntimeException("boom")))
                 .build();
         applyDefaultJobFilter(job);

@@ -28,9 +28,9 @@ public class AmountRequest {
         );
     }
 
-    public AmountRequest(String order, int limit) {
+    public AmountRequest(String order, Integer limit) {
         this.order = isNotNullOrEmpty(order) ? order : "updatedAt:ASC";
-        this.limit = limit;
+        this.limit = limit != null ? limit : DEFAULT_LIMIT;
     }
 
     public String getOrder() {

@@ -29,7 +29,7 @@ public class ProcessingState extends AbstractJobState {
         this(serverId, serverName, Instant.now());
     }
 
-    protected ProcessingState(UUID serverId, String serverName, Instant createdAt) {
+    public ProcessingState(UUID serverId, String serverName, Instant createdAt) {
         this(serverId, serverName, createdAt, createdAt);
     }
 

@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -323,6 +324,10 @@ public class TestService implements TestServiceInterface {
     }
 
     public void doWorkWithCollection(Set<Long> singleton) {
+        doWorkWithCollection(new ArrayList<>(singleton));
+    }
+
+    public void doWorkWithCollection(List<Long> singleton) {
         LOGGER.debug("Doing work with collections: " + singleton.size());
     }
 
