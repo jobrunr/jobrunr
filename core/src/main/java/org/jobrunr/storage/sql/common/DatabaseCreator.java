@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -144,7 +145,13 @@ public class DatabaseCreator {
         try (final Connection conn = getConnection()) {
             List<String> allTableNames = new ArrayList<>();
             String catalog = conn.getCatalog();
-            try (ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null)) {
+            DatabaseMetaData md = conn.getMetaData();
+
+            String pattern = "%";
+            if (md.storesMixedCaseIdentifiers()) pattern = "%";
+            else if (md.storesUpperCaseIdentifiers()) pattern = "%JOBRUNR%";
+            else if (md.storesLowerCaseIdentifiers()) pattern = "%jobrunr%";
+            try (ResultSet tables = md.getTables(catalog, null, pattern, null)) {
                 while (tables.next()) {
                     if (tablePrefixStatementUpdater.getSchema() != null) {
                         String tableSchema = tables.getString("TABLE_SCHEM");
