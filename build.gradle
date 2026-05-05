@@ -135,6 +135,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
         errorprone 'com.google.errorprone:error_prone_core:2.49.0'
 
+        testImplementation platform("org.junit:junit-bom:5.14.4")
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'io.github.artsok:rerunner-jupiter'
         testImplementation 'org.awaitility:awaitility'

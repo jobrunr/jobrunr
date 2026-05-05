@@ -26,7 +26,6 @@ steps:
     image: container-registry.jobrunr.io/build-container:latest
     commands:
       - rm -rf /tmp/reports/*
-      - rm -rf /root/.m2/repository/org/junit/platform
       - find /woodpecker/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - |
         bash -lc '
