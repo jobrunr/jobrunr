@@ -80,7 +80,10 @@ allprojects {
     repositories {
         mavenLocal()
         if (System.getenv('CI')) {
-            maven { url = System.getenv('MAVEN_CENTRAL_PROXY_URL') }
+            maven {
+                url = System.getenv('MAVEN_CENTRAL_PROXY_URL')
+                allowInsecureProtocol = true
+            }
         }
         mavenCentral()
     }

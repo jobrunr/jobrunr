@@ -2,7 +2,10 @@ pluginManagement {
     repositories {
         mavenLocal()
         if (System.getenv('CI')) {
-            maven { url = System.getenv('MAVEN_CENTRAL_PROXY_URL') }
+            maven {
+                url = System.getenv('MAVEN_CENTRAL_PROXY_URL')
+                allowInsecureProtocol = true
+            }
         }
         mavenCentral()
         maven { url = 'https://plugins.gradle.org/m2/' }
