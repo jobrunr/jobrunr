@@ -1,7 +1,9 @@
 pluginManagement {
     repositories {
         mavenLocal()
-        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
+        if (System.getenv('CI')) {
+            maven { url = System.getenv('MAVEN_CENTRAL_PROXY_URL') }
+        }
         mavenCentral()
         maven { url = 'https://plugins.gradle.org/m2/' }
         maven { url = 'https://repo.spring.io/release' }
@@ -16,7 +18,7 @@ buildCache {
 
     if (System.getenv('CI')) {
         remote(HttpBuildCache) {
-            url = uri("http://192.168.129.102:5071/cache/")
+            url = System.getenv('BUILD_CACHE_URL')
             push = true
             allowInsecureProtocol = true
             credentials {
