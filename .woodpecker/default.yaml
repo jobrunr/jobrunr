@@ -35,6 +35,10 @@ steps:
         '
     environment:
       GRADLE_RO_DEP_CACHE: /root/.gradle-ci-cache
+      MAVEN_CENTRAL_PROXY_URL:
+        from_secret: MAVEN_CENTRAL_PROXY_URL
+      BUILD_CACHE_URL:
+        from_secret: BUILD_CACHE_URL
       BUILD_CACHE_USER:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:
