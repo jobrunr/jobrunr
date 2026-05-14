@@ -30,6 +30,10 @@ steps:
     environment:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
+      MAVEN_CENTRAL_PROXY_URL:
+        from_secret: MAVEN_CENTRAL_PROXY_URL
+      BUILD_CACHE_URL:
+        from_secret: BUILD_CACHE_URL
       BUILD_CACHE_USER:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:

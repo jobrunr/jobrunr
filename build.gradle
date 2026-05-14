@@ -79,7 +79,12 @@ sonar {
 allprojects {
     repositories {
         mavenLocal()
-        maven { url = 'https://repo.jobrunr.io/maven-central-proxy' }
+        if (System.getenv('CI')) {
+            maven {
+                url = System.getenv('MAVEN_CENTRAL_PROXY_URL')
+                allowInsecureProtocol = true
+            }
+        }
         mavenCentral()
     }
 }
