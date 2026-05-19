@@ -42,14 +42,14 @@ public class JobRunrFactory {
     private JobRunrConfiguration configuration;
 
     @Singleton
-    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
+    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true", defaultValue = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 
     @Singleton
-    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true")
+    @Requires(property = "jobrunr.job-scheduler.enabled", value = "true", defaultValue = "true")
     public JobRequestScheduler jobRequestScheduler(StorageProvider storageProvider) {
         return new JobRequestScheduler(storageProvider, emptyList());
     }
