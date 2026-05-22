@@ -8,6 +8,7 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
@@ -33,6 +34,8 @@ import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +57,7 @@ import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -180,6 +184,20 @@ class BackgroundJobServerTest {
                         .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
         assertThat(jobZooKeeperLogger).hasNoWarnLogMessages();
+    }
+
+    @Test
+    void testSetIsMasterToFalseCancelsMasterTasks() {
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("my-id").withCronExpression("*/1 * * * * *").build());
+
+        backgroundJobServer.start();
+
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getRecurringJobLatestScheduledInstant("my-id")).isNotNull());
+
+        backgroundJobServer.setIsMaster(false);
+        deleteAllJobsPermanently(StateName.values());
+
+        await().during(5, SECONDS).untilAsserted(() -> assertThat(storageProvider.getRecurringJobLatestScheduledInstant("my-id")).isNull());
     }
 
     @Test
@@ -425,6 +443,10 @@ class BackgroundJobServerTest {
 
     private Stream<String> getThreadNames(Map<Thread, StackTraceElement[]> threadMap) {
         return threadMap.keySet().stream().map(Thread::getName);
+    }
+
+    private void deleteAllJobsPermanently(StateName... stateNames) {
+        Arrays.stream(stateNames).forEach(stateName -> storageProvider.deleteJobsPermanently(stateName, Instant.MAX));
     }
 
 }

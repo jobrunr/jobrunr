@@ -16,4 +16,9 @@ public class DurationUtils {
                 bigDecimal.longValue(),
                 bigDecimal.remainder(BigDecimal.ONE).movePointRight(bigDecimal.scale()).abs().longValue());
     }
+
+    public static Duration min(Duration a, Duration b) {
+        if (a.compareTo(b) < 0) return a;
+        return b;
+    }
 }
