@@ -74,13 +74,13 @@ idea {
 }
 
 tasks.named('compileJava', JavaCompile) {
-    options.release = 8
+    options.release = 17
 }
 tasks.named('compileTestJava', JavaCompile) {
-    options.release = 11
+    options.release = 17
 }
 tasks.named('compileTestFixturesJava', JavaCompile) {
-    options.release = 11
+    options.release = 17
 }
 tasks.named('compileJava17Java', JavaCompile) {
     options.release = 17

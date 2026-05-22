@@ -4,6 +4,7 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
+import org.jobrunr.server.costaware.CostAwareConfiguration;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.server.jmx.BackgroundJobServerMBean;
 import org.jobrunr.server.jmx.JobServerStats;
@@ -20,6 +21,7 @@ import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
 import org.jobrunr.server.tasks.startup.StartupTask;
+import org.jobrunr.server.tasks.zookeeper.CostAwareManagementTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
 import org.jobrunr.server.tasks.zookeeper.ProcessCarbonAwareAwaitingJobsTask;
@@ -83,13 +85,16 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile VersionNumber dataVersion;
     private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
+    private final CostAwareConfiguration costAwareConfiguration;
 
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration),
+                null
+        ); // todo load configuration from somewhere
     }
 
-    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration) {
+    protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration, CostAwareConfiguration costAwareConfiguration) {
         if (storageProvider == null) {
             throw new IllegalArgumentException("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
         }
@@ -108,6 +113,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.storageProvider.validatePollInterval(this.configuration.getPollInterval());
         this.lifecycle = new BackgroundJobServerLifecycle();
+        this.costAwareConfiguration = costAwareConfiguration;
     }
 
     @Override
@@ -307,10 +313,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
     private void startJobZooKeepers() {
         long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
-        JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this,
-                new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
+        JobZooKeeper costAwareManagementZooKeeper = new JobZooKeeper(this, new CostAwareManagementTask(this, costAwareConfiguration, jsonMapper));
+        JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
+        zookeeperThreadPool.scheduleWithFixedDelay(costAwareManagementZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
