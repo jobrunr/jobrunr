@@ -5,6 +5,7 @@ import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
 import org.jobrunr.server.configuration.DefaultBackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.DefaultConcurrentJobModificationPolicy;
+import org.jobrunr.server.costaware.CostAwareConfiguration;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -39,6 +40,7 @@ public class BackgroundJobServerConfiguration {
     BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy = new DefaultBackgroundJobServerWorkerPolicy();
     ConcurrentJobModificationPolicy concurrentJobModificationPolicy = new DefaultConcurrentJobModificationPolicy();
     CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration = CarbonAwareJobProcessingConfiguration.usingDisabledCarbonAwareJobProcessingConfiguration();
+    CostAwareConfiguration costAwareConfiguration = CostAwareConfiguration.usingDisabledConfiguration();
 
     private BackgroundJobServerConfiguration() {
 
@@ -236,6 +238,11 @@ public class BackgroundJobServerConfiguration {
      */
     public BackgroundJobServerConfiguration andCarbonAwareJobProcessingConfiguration(CarbonAwareJobProcessingConfiguration carbonAwareJobProcessingConfiguration) {
         this.carbonAwareJobProcessingConfiguration = carbonAwareJobProcessingConfiguration;
+        return this;
+    }
+
+    public BackgroundJobServerConfiguration andCostAwareConfiguration(CostAwareConfiguration costAwareConfiguration) {
+        this.costAwareConfiguration = costAwareConfiguration;
         return this;
     }
 

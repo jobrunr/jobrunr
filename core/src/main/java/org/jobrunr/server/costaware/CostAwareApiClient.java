@@ -2,7 +2,6 @@ package org.jobrunr.server.costaware;
 
 import org.jobrunr.server.costaware.CostAwareScaleUpDto.InstanceEnvironment;
 import org.jobrunr.server.costaware.CostAwareScaleUpDto.InstanceSpecifications;
-import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
@@ -10,34 +9,48 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CostAwareApiClient {
 
     private final HttpClient httpClient;
     private final CostAwareConfigurationReader costAwareConfigurationReader;
     private final JsonMapper jsonMapper;
-    private final JobRunrMetadata clusterId;
 
-    public CostAwareApiClient(CostAwareConfiguration costAwareConfiguration, JsonMapper jsonMapper, JobRunrMetadata clusterId) {
+    private static final Set<String> BLOCKED_ENV_VARIABLES = Set.of(
+            "PATH", "USER", "LOGNAME", "HOME", "SHELL", "TMPDIR", "PWD", "OLDPWD",
+            "DEBUGGER_ID", "DEBUGGER_ENABLED", "PROCESS_OPTIONS", "PROCESS_PARAMETERS",
+            "COMMAND_MODE", "SSH_AUTH_SOCK", "XPC_FLAGS", "XPC_SERVICE_NAME", "INFOPATH", "FPATH"
+    );
+
+    private static final List<String> BLOCKED_ENV_VARIABLE_PREFIXES = List.of(
+            "HOMEBREW_", "IDEA_", "JAVA_", "GOTOOLCHAIN", "TERMINAL_",
+            "ALLUSERSPROFILE", "APPDATA", "COMPUTERNAME", "ProgramFiles", "SystemRoot"
+    );
+
+    public CostAwareApiClient(CostAwareConfigurationReader costAwareConfiguration, JsonMapper jsonMapper) {
         this.httpClient = HttpClient.newHttpClient();
-        this.costAwareConfigurationReader = new CostAwareConfigurationReader(costAwareConfiguration);
+        this.costAwareConfigurationReader = costAwareConfiguration;
         this.jsonMapper = jsonMapper;
-        this.clusterId = clusterId;
     }
 
-    public void scaleUp() throws CostAwareApiClientException {
+    public void scaleUp(String clusterId) throws CostAwareApiClientException {
         try {
             Map<String, String> allEnvironmentVariables = costAwareConfigurationReader.getAdditionalEnvironmentVariables();
             allEnvironmentVariables.putAll(System.getenv());
-            // TODO: Stop @class HashMap being appended to environment variables map
+
+            allEnvironmentVariables = allEnvironmentVariables.entrySet().stream()
+                    .filter(entry -> !BLOCKED_ENV_VARIABLES.contains(entry.getKey()))
+                    .filter(entry -> BLOCKED_ENV_VARIABLE_PREFIXES.stream().noneMatch(entry.getKey()::startsWith))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             CostAwareScaleUpDto scaleUpDto = new CostAwareScaleUpDto(
                     costAwareConfigurationReader.getProviderConfiguration().getProvider(),
                     costAwareConfigurationReader.getRegions(),
-//                    clusterId.getId(),
-                    // Cannot invoke "org.jobrunr.storage.JobRunrMetadata.getId()" because "this.clusterId" is null
-                    "null",
+                    clusterId,
                     costAwareConfigurationReader.getProviderConfiguration().asMap(),
                     new InstanceSpecifications(
                             costAwareConfigurationReader.getVcpuCores(),
@@ -66,5 +79,9 @@ public class CostAwareApiClient {
 
     public void scaleDown() {
 
+    }
+
+    public boolean isDisabled() {
+        return !costAwareConfigurationReader.isEnabled();
     }
 }

@@ -10,10 +10,11 @@ import java.util.Map;
 public class CostAwareConfiguration {
     public static final Integer DEFAULT_VCPU_CORES = 1;
     public static final Double DEFAULT_MEMORY_GIB = 2.0;
-    public static final Double DEFAULT_GPU_MEMORY_GIB = 0.0;
+    public static final Double DEFAULT_GPU_MEMORY_GIB = null;
     public static final int DEFAULT_SPOT_INSTANCE_AMOUNT = 2;
     public static final String COST_AWARE_API_URL = "http://localhost:9000/cost-aware";
 
+    boolean enabled = false;
     Integer vcpuCores = DEFAULT_VCPU_CORES;
     Double memoryGiB = DEFAULT_MEMORY_GIB;
     Double gpuMemoryGiB = DEFAULT_GPU_MEMORY_GIB;
@@ -40,7 +41,16 @@ public class CostAwareConfiguration {
      * @return the default CostAwareConfiguration
      */
     public static CostAwareConfiguration usingStandardCostAwareConfiguration(CostAwareProviderConfiguration providerConfiguration, String dockerImage) {
-        return new CostAwareConfiguration(providerConfiguration, dockerImage);
+        return new CostAwareConfiguration(providerConfiguration, dockerImage).andEnabled(true);
+    }
+
+    /**
+     * Returns a disabled configuration for cost aware
+     *
+     * @return the disabled CostAwareConfiguration
+     */
+    public static CostAwareConfiguration usingDisabledConfiguration() {
+        return new CostAwareConfiguration(null, null).andEnabled(false);
     }
 
     /**
@@ -108,6 +118,11 @@ public class CostAwareConfiguration {
 
     public CostAwareConfiguration andUsingRegions(String[] regions) {
         this.regions = regions;
+        return this;
+    }
+
+    public CostAwareConfiguration andEnabled(boolean enabled) {
+        this.enabled = enabled;
         return this;
     }
 }

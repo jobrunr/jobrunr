@@ -3,6 +3,7 @@ package org.jobrunr.server;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
 import org.jobrunr.server.configuration.ConcurrentJobModificationPolicy;
+import org.jobrunr.server.costaware.CostAwareConfiguration;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -69,5 +70,9 @@ public class BackgroundJobServerConfigurationReader {
 
     public CarbonAwareJobProcessingConfigurationReader getCarbonAwareJobProcessingConfiguration() {
         return new CarbonAwareJobProcessingConfigurationReader(configuration.carbonAwareJobProcessingConfiguration);
+    }
+
+    public CostAwareConfiguration getCostAwareConfiguration() {
+        return configuration.costAwareConfiguration;
     }
 }

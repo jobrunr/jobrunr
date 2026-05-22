@@ -6,6 +6,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.costaware.CostAwareApiClient;
 import org.jobrunr.server.costaware.CostAwareApiClientException;
 import org.jobrunr.server.costaware.CostAwareConfiguration;
+import org.jobrunr.server.costaware.CostAwareConfigurationReader;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.Paging;
@@ -21,31 +22,34 @@ import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 
 public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
-    private final Integer minAmountSpotInstances = 0;
-    private final Integer maxAmountSpotInstances = 2;
+    private final Integer minAmountSpotInstances;
+    private final Integer maxAmountSpotInstances;
     private final Duration scaleUpLatency = Duration.of(1, ChronoUnit.MINUTES);
     private final Duration scaleDownLatency = Duration.of(2, ChronoUnit.MINUTES);
     private final Duration settlingPeriod = Duration.of(5, ChronoUnit.MINUTES);
-    private final JobRunrMetadata clusterId;
     private final CostAwareApiClient costAwareApiClient;
     private Instant lastScaleTime = Instant.MIN;
 
     public CostAwareManagementTask(BackgroundJobServer backgroundJobServer, CostAwareConfiguration costAwareConfiguration, JsonMapper jsonMapper) {
         super(backgroundJobServer);
-        this.clusterId = super.storageProvider.getMetadata("id", "cluster");
-        this.costAwareApiClient = new CostAwareApiClient(costAwareConfiguration, jsonMapper, clusterId);
+        CostAwareConfigurationReader configurationReader = new CostAwareConfigurationReader(costAwareConfiguration);
+        this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper);
+
+        this.minAmountSpotInstances = configurationReader.getMinSpotInstances();
+        this.maxAmountSpotInstances = configurationReader.getMaxSpotInstances();
     }
 
     @Override
     protected void runTask() {
-        if (isSettling()) return;
+        if (isSettling() || costAwareApiClient.isDisabled()) return;
+        JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
         Duration jobLatency = getCurrentJobLatency();
         try {
             List<BackgroundJobServerStatus> backgroundJobServerSpotInstances = getBackgroundJobServerSpotInstances();
             if (needsToScaleUpBecauseLatencyIsTooHigh(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale up
-                costAwareApiClient.scaleUp();
+                costAwareApiClient.scaleUp(clusterId.getValue());
                 lastScaleTime = Instant.now();
             } else if (needsToScaleDownBecauseLatencyIsLow(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale down

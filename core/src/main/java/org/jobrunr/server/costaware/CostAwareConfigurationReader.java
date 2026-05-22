@@ -54,4 +54,8 @@ public class CostAwareConfigurationReader {
     public String[] getRegions() {
         return costAwareConfiguration.regions;
     }
+
+    public boolean isEnabled() {
+        return costAwareConfiguration.enabled;
+    }
 }

@@ -89,9 +89,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration),
-                null
-        ); // todo load configuration from somewhere
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), configuration.costAwareConfiguration);
     }
 
     protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration, CostAwareConfiguration costAwareConfiguration) {
