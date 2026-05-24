@@ -28,7 +28,6 @@ class PlatformThreadPoolJobRunrExecutorTest {
 
     @Test
     void testPlatformThreadPoolJobRunrExecutor() {
-        PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
         assertThat(platformThreadPoolJobRunrExecutor).hasExecutorOfType(ScheduledThreadPoolExecutor.class);
         assertThat(platformThreadPoolJobRunrExecutor.executorService.getClass().getSimpleName()).isEqualTo("ScheduledThreadPoolExecutor");
     }
@@ -36,7 +35,6 @@ class PlatformThreadPoolJobRunrExecutorTest {
     @Test
     void testPlatformThreadPoolJobRunrExecutorCanCancelTasks() {
         // GIVEN
-        PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
         MyRunnable myRunnable1 = new MyRunnable(1);
         MyRunnable myRunnable2 = new MyRunnable(2);
 
