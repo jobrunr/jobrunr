@@ -375,10 +375,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (expectedVersion.equals(dataVersion)) return true;
         JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
         if (metadata != null) {
-            VersionNumber previousVersion = dataVersion;
             dataVersion = v(metadata.getValue());
-            if (dataVersion.isNewerThan(expectedVersion) && previousVersion == null) {
-                LOGGER.error("JobRunr OSS Version number {} is older than database version number {}. Background Job Server will not process jobs", expectedVersion, dataVersion);
+            if (dataVersion.isNewerThan(expectedVersion)) {
+                LOGGER.error("JobRunr Pro Version number {} is older than database version number {}. BackgroundJobServer will not process any jobs.", expectedVersion, dataVersion);
             }
             return expectedVersion.equals(dataVersion);
         }

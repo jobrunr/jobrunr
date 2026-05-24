@@ -64,6 +64,7 @@ import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDA
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobServerTest {
@@ -138,6 +139,22 @@ class BackgroundJobServerTest {
         })
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("The smallest supported pollInterval is 5 seconds - otherwise it will cause to much load on your SQL/noSQL datastore.");
+    }
+
+    @Test
+    void backgroundJobServerLogsErrorIfDatabaseVersionHigherThanJobRunrProVersion() {
+        lenient().doReturn(new JobRunrMetadata("database_version", "cluster", "9999.99"))
+                .when(storageProvider)
+                .getMetadata("database_version", "cluster");
+
+        // WHEN
+        backgroundJobServer.start();
+
+        // THEN
+        sleep(100, MILLISECONDS);
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isTrue();
+        assertThat(logger).hasErrorMessageContaining("JobRunr Pro Version number 6.0.0 is older than database version number 9999.99. BackgroundJobServer will not process any jobs.");
     }
 
     @Test
