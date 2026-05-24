@@ -29,6 +29,8 @@ import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
+import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutorAssert;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
@@ -83,6 +85,14 @@ public class JobRunrAssertions extends Assertions {
 
     public static BackgroundJobServerAssert assertThat(BackgroundJobServer backgroundJobServer) {
         return BackgroundJobServerAssert.assertThat(backgroundJobServer);
+    }
+
+    public static PlatformThreadPoolJobRunrExecutorAssert assertThat(PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor) {
+        return PlatformThreadPoolJobRunrExecutorAssert.assertThat(platformThreadPoolJobRunrExecutor);
+    }
+
+    public static PlatformThreadPoolJobRunrExecutorAssert assertThatZookeeperPoolOf(BackgroundJobServer backgroundJobServer) {
+        return PlatformThreadPoolJobRunrExecutorAssert.assertThatZookeeperPoolOf(backgroundJobServer);
     }
 
     public static StorageProviderAssert assertThat(StorageProvider storageProvider) {

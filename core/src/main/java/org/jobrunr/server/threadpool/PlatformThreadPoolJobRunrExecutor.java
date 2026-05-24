@@ -29,10 +29,9 @@ public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<S
         this.scheduledFutures = new HashMap<>();
     }
 
-    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, Duration initialDelay, Duration delayBetweenRuns) {
+    public void scheduleWithFixedDelay(Runnable command, Duration initialDelay, Duration delayBetweenRuns) {
         ScheduledFuture<?> scheduledFuture = scheduleWithFixedDelay(command, initialDelay.toMillis(), delayBetweenRuns.toMillis(), TimeUnit.MILLISECONDS);
         scheduledFutures.put(command, scheduledFuture);
-        return scheduledFuture;
     }
 
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
@@ -51,16 +50,24 @@ public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<S
         }
 
         executorService.purge();
-        executorService.setCorePoolSize(executorService.getCorePoolSize() - toCancel.size());
-        executorService.setMaximumPoolSize(executorService.getMaximumPoolSize() - toCancel.size());
+        int newPoolSize = getNewPoolSize(toCancel);
+        executorService.setCorePoolSize(newPoolSize);
+        executorService.setMaximumPoolSize(newPoolSize);
     }
 
     static ScheduledThreadPoolExecutor createPlatformThreadExecutorService(int corePoolSize, int maxPoolSize, String threadNamePrefix) {
         NamedThreadFactory namedThreadFactory = new NamedThreadFactory(threadNamePrefix, false);
         ScheduledThreadPoolExecutor executorService = new ScheduledThreadPoolExecutor(corePoolSize, namedThreadFactory);
         executorService.setMaximumPoolSize(maxPoolSize);
-        executorService.setKeepAliveTime(1, TimeUnit.SECONDS);
         executorService.setRemoveOnCancelPolicy(true);
         return executorService;
+    }
+
+    private int getNewPoolSize(List<Runnable> toCancel) {
+        int currentCorePoolSize = executorService.getCorePoolSize();
+        int reduction = toCancel.size();
+        return (currentCorePoolSize > reduction)
+                ? currentCorePoolSize - reduction
+                : currentCorePoolSize;
     }
 }
