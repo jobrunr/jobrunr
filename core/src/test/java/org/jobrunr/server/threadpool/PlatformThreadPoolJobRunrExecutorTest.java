@@ -1,5 +1,7 @@
 package org.jobrunr.server.threadpool;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -9,12 +11,25 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 
 class PlatformThreadPoolJobRunrExecutorTest {
 
+    PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor;
+
+    @BeforeEach
+    void setUp() {
+        platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
+    }
+
+    @AfterEach
+    void tearDown() {
+        platformThreadPoolJobRunrExecutor.stop(Duration.ZERO);
+        assertNoBackgroundJobServerThreadsExist();
+    }
+
     @Test
     void testPlatformThreadPoolJobRunrExecutor() {
-        PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
         assertThat(platformThreadPoolJobRunrExecutor).hasExecutorOfType(ScheduledThreadPoolExecutor.class);
         assertThat(platformThreadPoolJobRunrExecutor.executorService.getClass().getSimpleName()).isEqualTo("ScheduledThreadPoolExecutor");
     }
@@ -22,7 +37,6 @@ class PlatformThreadPoolJobRunrExecutorTest {
     @Test
     void testPlatformThreadPoolJobRunrExecutorCanCancelTasks() {
         // GIVEN
-        PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
         MyRunnable myRunnable1 = new MyRunnable(1);
         MyRunnable myRunnable2 = new MyRunnable(2);
 
@@ -47,7 +61,7 @@ class PlatformThreadPoolJobRunrExecutorTest {
         private final int number;
         private int invocationCount;
 
-        public MyRunnable(int number) {
+        private MyRunnable(int number) {
             this.number = number;
             this.invocationCount = 0;
         }
