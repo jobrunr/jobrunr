@@ -84,7 +84,6 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
 
-
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration));
     }
@@ -381,6 +380,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
         if (metadata != null) {
             dataVersion = v(metadata.getValue());
+            if (dataVersion.isNewerThan(expectedVersion)) {
+                LOGGER.error("JobRunr Pro Version number {} is older than database version number {}. BackgroundJobServer will not process any jobs.", expectedVersion, dataVersion);
+            }
             return expectedVersion.equals(dataVersion);
         }
         return false;
