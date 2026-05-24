@@ -1,5 +1,7 @@
 package org.jobrunr.server.threadpool;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -11,6 +13,18 @@ import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
 class PlatformThreadPoolJobRunrExecutorTest {
+
+    PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor;
+
+    @BeforeEach
+    void setUp() {
+        platformThreadPoolJobRunrExecutor = new PlatformThreadPoolJobRunrExecutor(8);
+    }
+
+    @AfterEach
+    void tearDown() {
+        platformThreadPoolJobRunrExecutor.stop(Duration.ZERO);
+    }
 
     @Test
     void testPlatformThreadPoolJobRunrExecutor() {
@@ -47,7 +61,7 @@ class PlatformThreadPoolJobRunrExecutorTest {
         private final int number;
         private int invocationCount;
 
-        public MyRunnable(int number) {
+        private MyRunnable(int number) {
             this.number = number;
             this.invocationCount = 0;
         }
