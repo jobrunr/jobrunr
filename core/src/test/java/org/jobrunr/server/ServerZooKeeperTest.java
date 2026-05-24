@@ -43,6 +43,7 @@ import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
@@ -69,11 +70,8 @@ class ServerZooKeeperTest {
 
     @AfterEach
     void tearDown() {
-        try {
-            backgroundJobServer.stop();
-        } catch (Exception e) {
-            // not that important
-        }
+        backgroundJobServer.stop();
+        assertNoBackgroundJobServerThreadsExist();
     }
 
     @Test
@@ -178,6 +176,10 @@ class ServerZooKeeperTest {
         await()
                 .atMost(6, TimeUnit.SECONDS)
                 .untilAsserted(() -> assertThat(backgroundJobServer).isMaster(false));
+
+        await()
+                .atMost(6, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer).isMaster(true));
     }
 
     @Test

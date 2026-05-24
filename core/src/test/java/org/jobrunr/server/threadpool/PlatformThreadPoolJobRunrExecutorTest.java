@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 
 class PlatformThreadPoolJobRunrExecutorTest {
 
@@ -24,6 +25,7 @@ class PlatformThreadPoolJobRunrExecutorTest {
     @AfterEach
     void tearDown() {
         platformThreadPoolJobRunrExecutor.stop(Duration.ZERO);
+        assertNoBackgroundJobServerThreadsExist();
     }
 
     @Test
