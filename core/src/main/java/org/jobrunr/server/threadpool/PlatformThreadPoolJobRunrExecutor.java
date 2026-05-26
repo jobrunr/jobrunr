@@ -14,6 +14,7 @@ import static java.util.stream.Collectors.toList;
 
 public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<ScheduledThreadPoolExecutor> {
 
+    private final int corePoolSize;
     private final Map<Runnable, ScheduledFuture<?>> scheduledFutures;
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize) {
@@ -21,21 +22,24 @@ public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<S
     }
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize, String threadNamePrefix) {
-        this(corePoolSize, corePoolSize * 2, threadNamePrefix);
+        this(corePoolSize, corePoolSize, threadNamePrefix);
     }
 
     public PlatformThreadPoolJobRunrExecutor(int corePoolSize, int maxPoolSize, String threadNamePrefix) {
         super(corePoolSize, createPlatformThreadExecutorService(corePoolSize, maxPoolSize, threadNamePrefix));
+        this.corePoolSize = corePoolSize;
         this.scheduledFutures = new HashMap<>();
     }
 
-    public void scheduleWithFixedDelay(Runnable command, Duration initialDelay, Duration delayBetweenRuns) {
-        ScheduledFuture<?> scheduledFuture = scheduleWithFixedDelay(command, initialDelay.toMillis(), delayBetweenRuns.toMillis(), TimeUnit.MILLISECONDS);
-        scheduledFutures.put(command, scheduledFuture);
+    public void increasePoolSize(int increment) {
+        if (increment <= 0) throw new IllegalArgumentException("increment must be greater than zero");
+        executorService.setMaximumPoolSize(executorService.getMaximumPoolSize() + increment);
+        executorService.setCorePoolSize(executorService.getCorePoolSize() + increment);
     }
 
-    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
-        return executorService.scheduleWithFixedDelay(command, initialDelay, delay, unit);
+    public void scheduleWithFixedDelay(Runnable command, Duration initialDelay, Duration delayBetweenRuns) {
+        ScheduledFuture<?> scheduledFuture = executorService.scheduleWithFixedDelay(command, initialDelay.toMillis(), delayBetweenRuns.toMillis(), TimeUnit.MILLISECONDS);
+        scheduledFutures.put(command, scheduledFuture);
     }
 
     public <T extends Runnable> void cancelScheduledFuturesOfType(Class<T> type) {
@@ -66,8 +70,6 @@ public class PlatformThreadPoolJobRunrExecutor extends AbstractJobRunrExecutor<S
     private int getNewPoolSize(List<Runnable> toCancel) {
         int currentCorePoolSize = executorService.getCorePoolSize();
         int reduction = toCancel.size();
-        return (currentCorePoolSize > reduction)
-                ? currentCorePoolSize - reduction
-                : currentCorePoolSize;
+        return Math.max(this.corePoolSize, currentCorePoolSize - reduction);
     }
 }

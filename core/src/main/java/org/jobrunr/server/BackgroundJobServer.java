@@ -65,6 +65,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
 
+    public static final int BACKGROUND_JOB_SERVER_COMMON_TASKS_THREAD_SIZE = 2;
+    public static final int BACKGROUND_JOB_SERVER_MASTER_TASKS_THREAD_SIZE = 3;
+
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
     private final DashboardNotificationManager dashboardNotificationManager;
@@ -297,7 +300,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void startStewardAndServerZooKeeper() {
-        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(5, 5, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(BACKGROUND_JOB_SERVER_COMMON_TASKS_THREAD_SIZE, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
         Duration jobStewardInitialDelay = DurationUtils.min(configuration.getPollInterval().dividedBy(5), Duration.ofSeconds(1));
@@ -310,6 +313,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
+        zookeeperThreadPool.increasePoolSize(BACKGROUND_JOB_SERVER_MASTER_TASKS_THREAD_SIZE);
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
