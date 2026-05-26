@@ -68,7 +68,7 @@ public class CostAwareApiClient {
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.serialize(scaleUpDto)))
                     .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString()); // if anything but 200: CostAwareApiClientException
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
                 throw new CostAwareApiClientException("Error scaling up, status code " + response.statusCode());
             }
@@ -77,8 +77,24 @@ public class CostAwareApiClient {
         }
     }
 
-    public void scaleDown() {
+    public void scaleDown(String clusterId) throws CostAwareApiClientException {
+        try {
+            CostAwareScaleDownDto scaleDownDto = new CostAwareScaleDownDto(
+                    clusterId,
+                    costAwareConfigurationReader.getProviderConfiguration().asMap()
+            );
 
+            HttpRequest request = HttpRequest.newBuilder(URI.create(CostAwareConfiguration.COST_AWARE_API_URL + "/delete"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.serialize(scaleDownDto)))
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new CostAwareApiClientException("Error scaling down, status code " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new CostAwareApiClientException("Error scaling down", e);
+        }
     }
 
     public boolean isDisabled() {

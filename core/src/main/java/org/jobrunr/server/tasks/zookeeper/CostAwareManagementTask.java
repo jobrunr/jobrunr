@@ -41,7 +41,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
     @Override
     protected void runTask() {
-        if (isSettling() || costAwareApiClient.isDisabled()) return;
+        if ((isSettling()) || costAwareApiClient.isDisabled()) return;
         JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
         Duration jobLatency = getCurrentJobLatency();
@@ -53,7 +53,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
                 lastScaleTime = Instant.now();
             } else if (needsToScaleDownBecauseLatencyIsLow(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale down
-                costAwareApiClient.scaleDown();
+                costAwareApiClient.scaleDown(clusterId.getValue());
                 lastScaleTime = Instant.now();
             }
         } catch (CostAwareApiClientException e) {
@@ -62,13 +62,11 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     }
 
     private boolean needsToScaleUpBecauseLatencyIsTooHigh(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
-        // todo: check whether we don't have more than max spot instances
         return backgroundJobServerSpotInstances.size() < maxAmountSpotInstances
                 && jobLatency != null && jobLatency.compareTo(scaleUpLatency) > 0;
     }
 
     private boolean needsToScaleDownBecauseLatencyIsLow(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
-        // todo: check whether there are spot instances
         return (backgroundJobServerSpotInstances.size() > minAmountSpotInstances)
                 && (jobLatency == null || jobLatency.compareTo(scaleDownLatency) < 0);
     }
