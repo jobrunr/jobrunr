@@ -1,5 +1,6 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.jobs.filters.BackgroundJobStatisticsFilter;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.jmx.JobServerStats;
 
@@ -12,6 +13,7 @@ public class BackgroundJobServerStatusTestBuilder {
     public static final String DEFAULT_SERVER_NAME = "test-server-name";
 
     private final JobServerStats jobServerStats = new JobServerStats();
+    private final BackgroundJobStatisticsFilter backgroundJobStatisticsFilter = new BackgroundJobStatisticsFilter();
     private UUID id = UUID.randomUUID();
     private String name = DEFAULT_SERVER_NAME;
     private int workerPoolSize = 10;
@@ -103,6 +105,6 @@ public class BackgroundJobServerStatusTestBuilder {
         return new BackgroundJobServerStatus(id, name, workerPoolSize, (int) pollInterval.getSeconds(),
                 deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, running,
                 jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
-                jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());
+                jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad(), new BackgroundJobServerStatusMetadata(firstHeartbeat, backgroundJobStatisticsFilter));
     }
 }

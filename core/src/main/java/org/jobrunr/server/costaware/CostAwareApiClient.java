@@ -29,7 +29,7 @@ public class CostAwareApiClient {
     private static final List<String> BLOCKED_ENV_VARIABLE_PREFIXES = List.of(
             "HOMEBREW_", "IDEA_", "JAVA_", "GOTOOLCHAIN", "TERMINAL_",
             "ALLUSERSPROFILE", "APPDATA", "COMPUTERNAME", "ProgramFiles", "SystemRoot"
-    );
+    ); // I don't like how hard coded these are, is there a better way to do this?
 
     public CostAwareApiClient(CostAwareConfigurationReader costAwareConfiguration, JsonMapper jsonMapper) {
         this.httpClient = HttpClient.newHttpClient();
@@ -40,12 +40,14 @@ public class CostAwareApiClient {
     public void scaleUp(String clusterId) throws CostAwareApiClientException {
         try {
             Map<String, String> allEnvironmentVariables = costAwareConfigurationReader.getAdditionalEnvironmentVariables();
-            allEnvironmentVariables.putAll(System.getenv());
+            if (costAwareConfigurationReader.isUseCurrentEnvironmentVariables()) {
+                allEnvironmentVariables.putAll(System.getenv());
+            }
 
             allEnvironmentVariables = allEnvironmentVariables.entrySet().stream()
                     .filter(entry -> !BLOCKED_ENV_VARIABLES.contains(entry.getKey()))
                     .filter(entry -> BLOCKED_ENV_VARIABLE_PREFIXES.stream().noneMatch(entry.getKey()::startsWith))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)); // why? filter out system specific environment
 
             CostAwareScaleUpDto scaleUpDto = new CostAwareScaleUpDto(
                     costAwareConfigurationReader.getProviderConfiguration().getProvider(),

@@ -86,6 +86,7 @@ public class StorageProviderUtils {
         public static final String FIELD_PROCESS_FREE_MEMORY = "processFreeMemory";
         public static final String FIELD_PROCESS_ALLOCATED_MEMORY = "processAllocatedMemory";
         public static final String FIELD_PROCESS_CPU_LOAD = "processCpuLoad";
+        public static final String FIELD_METADATA = "metadata";
     }
 
 

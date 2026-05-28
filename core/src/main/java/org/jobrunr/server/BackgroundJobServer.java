@@ -1,6 +1,7 @@
 package org.jobrunr.server;
 
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.filters.BackgroundJobStatisticsFilter;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.server.concurrent.ConcurrentJobModificationResolver;
@@ -31,6 +32,7 @@ import org.jobrunr.server.tasks.zookeeper.ProcessScheduledJobsTask;
 import org.jobrunr.server.threadpool.JobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.storage.BackgroundJobServerStatus;
+import org.jobrunr.storage.BackgroundJobServerStatusMetadata;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
@@ -86,10 +88,15 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private volatile PlatformThreadPoolJobRunrExecutor zookeeperThreadPool;
     private JobRunrExecutor jobExecutor;
     private final CostAwareConfiguration costAwareConfiguration;
+    private final BackgroundJobStatisticsFilter backgroundJobStatisticsFilter;
 
 
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
-        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), configuration.costAwareConfiguration);
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), CostAwareConfiguration.usingDisabledConfiguration());
+    }
+
+    public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration, CostAwareConfiguration costAwareConfiguration) {
+        this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), costAwareConfiguration);
     }
 
     protected BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfigurationReader configuration, CostAwareConfiguration costAwareConfiguration) {
@@ -111,7 +118,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.storageProvider.validatePollInterval(this.configuration.getPollInterval());
         this.lifecycle = new BackgroundJobServerLifecycle();
-        this.costAwareConfiguration = costAwareConfiguration;
+        // check pro on how we initialize the jobDefaultFilters
+        this.backgroundJobStatisticsFilter = new BackgroundJobStatisticsFilter();
+        jobDefaultFilters.addAll(List.of(backgroundJobStatisticsFilter));
+        this.costAwareConfiguration = costAwareConfiguration == null ? CostAwareConfiguration.usingDisabledConfiguration() : costAwareConfiguration;
     }
 
     @Override
@@ -246,7 +256,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     public BackgroundJobServerStatus getServerStatus() {
         return new BackgroundJobServerStatus(configuration.getId(), configuration.getName(), workDistributionStrategy.getWorkerCount(),
                 (int) configuration.getPollInterval().getSeconds(), configuration.getDeleteSucceededJobsAfter(), configuration.getPermanentlyDeleteDeletedJobsAfter(),
-                firstHeartbeat, now(), isRunning(), jobServerStats);
+                firstHeartbeat, now(), isRunning(), jobServerStats, new BackgroundJobServerStatusMetadata(firstHeartbeat, backgroundJobStatisticsFilter));
     }
 
     public JobSteward getJobSteward() {

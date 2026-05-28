@@ -11,6 +11,7 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.server.costaware.CostAwareConfiguration;
 import org.jobrunr.server.jmx.JobRunrJMXExtensions;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -41,6 +42,7 @@ public class JobRunrConfiguration {
     JobRunrDashboardWebServer dashboardWebServer;
     JobRunrJMXExtensions jmxExtension;
     JobRunrMicroMeterIntegration microMeterIntegration;
+    CostAwareConfiguration costAwareConfiguration;
 
     JobRunrConfiguration() {
         this.jsonMapper = JsonMapperFactory.createJsonMapper();
@@ -189,7 +191,7 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
         if (guard) {
-            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration);
+            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration, costAwareConfiguration);
             this.backgroundJobServer.setJobFilters(jobFilters);
             this.backgroundJobServer.start(startBackgroundJobServer);
         }
@@ -257,6 +259,24 @@ public class JobRunrConfiguration {
         if (guard) {
             this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, configuration);
             this.dashboardWebServer.start();
+        }
+        return this;
+    }
+
+    public JobRunrConfiguration useCostAware(CostAwareConfiguration costAwareConfiguration) {
+        if (this.backgroundJobServer != null) {
+            throw new IllegalStateException("Please configure CostAware before the BackgroundJobServer.");
+        }
+        this.costAwareConfiguration = costAwareConfiguration;
+        return this;
+    }
+
+    public JobRunrConfiguration useCostAwareIf(boolean guard, CostAwareConfiguration costAwareConfiguration) {
+        if (guard) {
+            if (this.backgroundJobServer != null) {
+                throw new IllegalStateException("Please configure CostAware before the BackgroundJobServer.");
+            }
+            this.costAwareConfiguration = costAwareConfiguration;
         }
         return this;
     }

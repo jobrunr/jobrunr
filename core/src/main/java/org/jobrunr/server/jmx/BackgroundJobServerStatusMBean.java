@@ -36,4 +36,6 @@ public interface BackgroundJobServerStatusMBean {
     Long getProcessAllocatedMemory();
 
     Double getProcessCpuLoad();
+
+    String getMetadata();
 }

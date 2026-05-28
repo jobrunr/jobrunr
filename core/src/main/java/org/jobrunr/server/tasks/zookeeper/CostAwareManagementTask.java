@@ -14,7 +14,6 @@ import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,9 +23,9 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
     private final Integer minAmountSpotInstances;
     private final Integer maxAmountSpotInstances;
-    private final Duration scaleUpLatency = Duration.of(1, ChronoUnit.MINUTES);
-    private final Duration scaleDownLatency = Duration.of(2, ChronoUnit.MINUTES);
-    private final Duration settlingPeriod = Duration.of(5, ChronoUnit.MINUTES);
+    private final Duration scaleUpLatency;
+    private final Duration scaleDownLatency;
+    private final Duration settlingPeriod;
     private final CostAwareApiClient costAwareApiClient;
     private Instant lastScaleTime = Instant.MIN;
 
@@ -37,6 +36,9 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
         this.minAmountSpotInstances = configurationReader.getMinSpotInstances();
         this.maxAmountSpotInstances = configurationReader.getMaxSpotInstances();
+        this.scaleUpLatency = configurationReader.getScaleUpLatency();
+        this.scaleDownLatency = configurationReader.getScaleDownLatency();
+        this.settlingPeriod = configurationReader.getSettlingPeriod();
     }
 
     @Override

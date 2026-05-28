@@ -3,6 +3,8 @@ package org.jobrunr.server.costaware;
 import org.jobrunr.server.costaware.credentials.CostAwareAwsEC2ProviderConfiguration;
 import org.jobrunr.server.costaware.credentials.CostAwareProviderConfiguration;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +15,9 @@ public class CostAwareConfiguration {
     public static final Double DEFAULT_GPU_MEMORY_GIB = null;
     public static final int DEFAULT_SPOT_INSTANCE_AMOUNT = 2;
     public static final String COST_AWARE_API_URL = "http://localhost:9000/cost-aware";
+    public static final Duration DEFAULT_SCALE_UP_LATENCY = Duration.of(1, ChronoUnit.MINUTES);
+    public static final Duration DEFAULT_SCALE_DOWN_LATENCY = Duration.of(2, ChronoUnit.MINUTES);
+    public static final Duration DEFAULT_SETTLING_PERIOD = Duration.of(5, ChronoUnit.MINUTES);
 
     boolean enabled = false;
     Integer vcpuCores = DEFAULT_VCPU_CORES;
@@ -20,6 +25,9 @@ public class CostAwareConfiguration {
     Double gpuMemoryGiB = DEFAULT_GPU_MEMORY_GIB;
     int minSpotInstances = 0;
     int maxSpotInstances = DEFAULT_SPOT_INSTANCE_AMOUNT;
+    Duration scaleUpLatency = DEFAULT_SCALE_UP_LATENCY;
+    Duration scaleDownLatency = DEFAULT_SCALE_DOWN_LATENCY;
+    Duration settlingPeriod = DEFAULT_SETTLING_PERIOD;
 
     CostAwareProviderConfiguration providerConfiguration;
     String dockerImage;
@@ -123,6 +131,21 @@ public class CostAwareConfiguration {
 
     public CostAwareConfiguration andEnabled(boolean enabled) {
         this.enabled = enabled;
+        return this;
+    }
+
+    public CostAwareConfiguration andScaleUpLatency(Duration latency) {
+        this.scaleUpLatency = latency;
+        return this;
+    }
+
+    public CostAwareConfiguration andScaleDownLatency(Duration latency) {
+        this.scaleDownLatency = latency;
+        return this;
+    }
+
+    public CostAwareConfiguration andSettlingPeriod(Duration settlingPeriod) {
+        this.settlingPeriod = settlingPeriod;
         return this;
     }
 }

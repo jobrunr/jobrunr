@@ -11,6 +11,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_FIRST_HEARTBEAT;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_METADATA;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PROCESS_ALLOCATED_MEMORY;
@@ -76,7 +77,8 @@ public class BackgroundJobServerStatusDocumentMapper {
                 document.getLong(FIELD_PROCESS_MAX_MEMORY),
                 document.getLong(FIELD_PROCESS_FREE_MEMORY),
                 document.getLong(FIELD_PROCESS_ALLOCATED_MEMORY),
-                document.getDouble(FIELD_PROCESS_CPU_LOAD)
+                document.getDouble(FIELD_PROCESS_CPU_LOAD),
+                document.getString(FIELD_METADATA)
         );
     }
 }

@@ -2,6 +2,7 @@ package org.jobrunr.server.costaware;
 
 import org.jobrunr.server.costaware.credentials.CostAwareProviderConfiguration;
 
+import java.time.Duration;
 import java.util.Map;
 
 public class CostAwareConfigurationReader {
@@ -57,5 +58,17 @@ public class CostAwareConfigurationReader {
 
     public boolean isEnabled() {
         return costAwareConfiguration.enabled;
+    }
+
+    public Duration getScaleUpLatency() {
+        return costAwareConfiguration.scaleUpLatency;
+    }
+
+    public Duration getScaleDownLatency() {
+        return costAwareConfiguration.scaleDownLatency;
+    }
+
+    public Duration getSettlingPeriod() {
+        return costAwareConfiguration.settlingPeriod;
     }
 }

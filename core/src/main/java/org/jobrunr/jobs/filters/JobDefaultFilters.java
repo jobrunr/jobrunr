@@ -27,6 +27,15 @@ public class JobDefaultFilters {
         return filters;
     }
 
+    public <T extends JobFilter> T getFilterOfType(Class<T> filterClass) {
+        for (JobFilter filter : filters) {
+            if (filterClass.isInstance(filter)) {
+                return filterClass.cast(filter);
+            }
+        }
+        return null;
+    }
+
     private List<JobFilter> getAllJobFilters(List<JobFilter> jobFilters) {
         final ArrayList<JobFilter> result = new ArrayList<>(Arrays.asList(new DefaultJobFilter(), new RetryFilter()));
         result.addAll(jobFilters);

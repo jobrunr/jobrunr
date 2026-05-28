@@ -25,6 +25,7 @@ import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIEL
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_ID;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_IS_RUNNING;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_LAST_HEARTBEAT;
+import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_METADATA;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_PERMANENTLY_DELETE_JOBS_AFTER;
 import static org.jobrunr.storage.StorageProviderUtils.BackgroundJobServers.FIELD_POLL_INTERVAL_IN_SECONDS;
@@ -60,7 +61,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with(FIELD_PROCESS_MAX_MEMORY, BackgroundJobServerStatus::getProcessMaxMemory)
                 .with(FIELD_PROCESS_FREE_MEMORY, BackgroundJobServerStatus::getProcessFreeMemory)
                 .with(FIELD_PROCESS_ALLOCATED_MEMORY, BackgroundJobServerStatus::getProcessAllocatedMemory)
-                .with(FIELD_PROCESS_CPU_LOAD, BackgroundJobServerStatus::getProcessCpuLoad);
+                .with(FIELD_PROCESS_CPU_LOAD, BackgroundJobServerStatus::getProcessCpuLoad)
+                .with(FIELD_METADATA, BackgroundJobServerStatus::getMetadata);
     }
 
     public BackgroundJobServerTable withId(UUID id) {
@@ -87,7 +89,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                     .with(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory())
                     .with(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory())
                     .with(FIELD_PROCESS_CPU_LOAD, serverStatus.getSystemCpuLoad())
-                    .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad where id = :id");
+                    .with(FIELD_METADATA, serverStatus.getMetadata())
+                    .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad, metadata = :metadata where id = :id");
         } catch (ConcurrentSqlModificationException e) {
             throw new ServerTimedOutException(serverStatus, new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));
         }
@@ -148,7 +151,8 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 resultSet.asLong(FIELD_PROCESS_MAX_MEMORY),
                 resultSet.asLong(FIELD_PROCESS_FREE_MEMORY),
                 resultSet.asLong(FIELD_PROCESS_ALLOCATED_MEMORY),
-                resultSet.asDouble(FIELD_PROCESS_CPU_LOAD)
+                resultSet.asDouble(FIELD_PROCESS_CPU_LOAD),
+                resultSet.asString(FIELD_METADATA)
         );
     }
 
