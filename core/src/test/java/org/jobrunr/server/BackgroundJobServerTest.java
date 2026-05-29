@@ -146,7 +146,7 @@ class BackgroundJobServerTest {
     }
 
     @Test
-    void backgroundJobServerLogsErrorIfDatabaseVersionHigherThanJobRunrProVersion() {
+    void backgroundJobServerLogsErrorIfDatabaseVersionHigherThanJobRunrVersion() {
         lenient().doReturn(new JobRunrMetadata("database_version", "cluster", "9999.99"))
                 .when(storageProvider)
                 .getMetadata("database_version", "cluster");
