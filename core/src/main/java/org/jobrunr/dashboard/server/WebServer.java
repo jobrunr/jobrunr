@@ -2,6 +2,7 @@ package org.jobrunr.dashboard.server;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import org.jobrunr.utils.threadpool.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ public class WebServer {
     public WebServer(int port) {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-            executorService = Executors.newCachedThreadPool();
+            executorService = Executors.newCachedThreadPool(new WebServerThreadFactory(Thread.currentThread().getContextClassLoader()));
             httpServer.setExecutor(executorService);
             httpHandlers = new HashSet<>();
         } catch (IOException e) {
@@ -71,6 +72,25 @@ public class WebServer {
             httpHandler.close();
         } catch (Exception shouldNotHappen) {
             LOGGER.warn("Error closing HttpHandler", shouldNotHappen);
+        }
+    }
+
+    private static class WebServerThreadFactory extends NamedThreadFactory {
+        private final ClassLoader threadContextClassLoader;
+
+        public WebServerThreadFactory(ClassLoader threadContextClassLoader) {
+            super("jobrunr-dashboard", false);
+            this.threadContextClassLoader = threadContextClassLoader;
+        }
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = super.newThread(r);
+            // why: HttpServer creates worker threads from its dispatcher thread, which has the
+            // JDK system ClassLoader as its TCCL. Without this, handlers couldn't load app
+            // classes under a runtime CL like Quarkus' QuarkusClassLoader.
+            thread.setContextClassLoader(threadContextClassLoader);
+            return thread;
         }
     }
 }
