@@ -94,7 +94,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
                 serverStatus.getProcessFreeMemory(),
                 serverStatus.getProcessAllocatedMemory(),
                 serverStatus.getProcessCpuLoad(),
-                serverStatus.getMetadata()
+                serverStatus.getMetadataString()
         );
         backgroundJobServers.put(serverStatus.getId(), backgroundJobServerStatus);
     }

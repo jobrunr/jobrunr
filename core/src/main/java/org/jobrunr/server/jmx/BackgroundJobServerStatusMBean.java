@@ -1,5 +1,7 @@
 package org.jobrunr.server.jmx;
 
+import org.jobrunr.storage.BackgroundJobServerStatusMetadata;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -37,5 +39,7 @@ public interface BackgroundJobServerStatusMBean {
 
     Double getProcessCpuLoad();
 
-    String getMetadata();
+    String getMetadataString();
+
+    BackgroundJobServerStatusMetadata getMetadata();
 }

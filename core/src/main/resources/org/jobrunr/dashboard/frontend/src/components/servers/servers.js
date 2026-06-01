@@ -85,6 +85,7 @@ const Servers = memo(() => {
                                         <TableCell>Last heartbeat</TableCell>
                                         <TableCell>Free memory</TableCell>
                                         <TableCell>Cpu load</TableCell>
+                                        <TableCell>Amount Saved</TableCell>
                                         <TableCell>Running?</TableCell>
                                         {/*<TableCell>Actions</TableCell>*/}
                                     </TableRow>
@@ -118,6 +119,10 @@ const Servers = memo(() => {
                                             </TableCell>
                                             <TableCell>
                                                 {(server.systemCpuLoad * 100).toFixed(2)} %
+                                            </TableCell>
+                                            <TableCell>
+                                                {server.metadata && server.metadata.spotPrice &&
+                                                    <>{server.metadata.serverSavings.toFixed(4)} USD</>}
                                             </TableCell>
                                             <TableCell>
                                                 {server.running
@@ -235,6 +240,66 @@ const Servers = memo(() => {
                                             {(currentServer.processCpuLoad * 100).toFixed(2)} %
                                         </TableCell>
                                     </TableRow>
+                                    {currentServer.metadata && <>
+                                        <TableRow>
+                                            <TableCell>
+                                                ProcessingJobs
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.processingJobs}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>
+                                                SucceededJobs
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.succeededJobs}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>
+                                                FailedJobs
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.failedJobs}
+                                            </TableCell>
+                                        </TableRow>
+                                    </>}
+                                    {currentServer.metadata && currentServer.metadata.spotPrice && currentServer.metadata.instancePrice && <>
+                                        <TableRow>
+                                            <TableCell>
+                                                Provider
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.provider}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>
+                                                SpotPricing
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.spotPrice} USD
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>
+                                                EquivalentInstancePrice
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.instancePrice} USD
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell>
+                                                TotalSavings
+                                            </TableCell>
+                                            <TableCell>
+                                                {currentServer.metadata.serverSavings.toFixed(4)} USD
+                                            </TableCell>
+                                        </TableRow>
+                                    </>}
                                 </TableBody>
                             </Table>
                         </TableContainer>

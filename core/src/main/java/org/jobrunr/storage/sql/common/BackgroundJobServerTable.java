@@ -62,7 +62,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                 .with(FIELD_PROCESS_FREE_MEMORY, BackgroundJobServerStatus::getProcessFreeMemory)
                 .with(FIELD_PROCESS_ALLOCATED_MEMORY, BackgroundJobServerStatus::getProcessAllocatedMemory)
                 .with(FIELD_PROCESS_CPU_LOAD, BackgroundJobServerStatus::getProcessCpuLoad)
-                .with(FIELD_METADATA, BackgroundJobServerStatus::getMetadata);
+                .with(FIELD_METADATA, BackgroundJobServerStatus::getMetadataString);
     }
 
     public BackgroundJobServerTable withId(UUID id) {
@@ -89,7 +89,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                     .with(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory())
                     .with(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory())
                     .with(FIELD_PROCESS_CPU_LOAD, serverStatus.getSystemCpuLoad())
-                    .with(FIELD_METADATA, serverStatus.getMetadata())
+                    .with(FIELD_METADATA, serverStatus.getMetadataString())
                     .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad, metadata = :metadata where id = :id");
         } catch (ConcurrentSqlModificationException e) {
             throw new ServerTimedOutException(serverStatus, new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));

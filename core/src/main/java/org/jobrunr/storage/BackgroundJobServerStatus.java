@@ -143,7 +143,12 @@ public class BackgroundJobServerStatus implements BackgroundJobServerStatusMBean
     }
 
     @Override
-    public String getMetadata() {
+    public String getMetadataString() {
         return metadata.toString();
+    }
+
+    @Override
+    public BackgroundJobServerStatusMetadata getMetadata() {
+        return metadata;
     }
 }
