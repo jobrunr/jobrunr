@@ -1,13 +1,17 @@
 package org.jobrunr.jobs.states;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
 @SuppressWarnings("FieldMayBeFinal") // because of JSON-B
 public class SucceededState extends AbstractJobState {
 
     private Duration latencyDuration;
     private Duration processDuration;
+    private BigDecimal spotPrice;
+    private BigDecimal instancePrice;
 
     protected SucceededState() { // for json deserialization
         this(null, null);
@@ -21,6 +25,12 @@ public class SucceededState extends AbstractJobState {
         super(StateName.SUCCEEDED, createdAt);
         this.latencyDuration = latencyDuration;
         this.processDuration = processDuration;
+
+        Map<String, String> environment = System.getenv();
+        if (environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE") != null && environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE") != null) {
+            instancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE"));
+            spotPrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE"));
+        }
     }
 
     public Duration getLatencyDuration() {
@@ -29,5 +39,13 @@ public class SucceededState extends AbstractJobState {
 
     public Duration getProcessDuration() {
         return processDuration;
+    }
+
+    public BigDecimal getSpotPrice() {
+        return spotPrice;
+    }
+
+    public BigDecimal getInstancePrice() {
+        return instancePrice;
     }
 }

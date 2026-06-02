@@ -3,6 +3,7 @@ package org.jobrunr.storage;
 import org.jobrunr.jobs.filters.BackgroundJobStatisticsFilter;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -132,7 +133,7 @@ public class BackgroundJobServerStatusMetadata {
             metadataBuilder.append("instancePrice:").append(instancePrice).append(";");
             metadataBuilder.append("spotPrice:").append(spotPrice).append(";");
             metadataBuilder.append("provider:").append(provider).append(";");
-            metadataBuilder.append("savings:").append(serverSavings).append(";");
+            metadataBuilder.append("savings:").append(serverSavings.round(new MathContext(16))).append(";");
         }
 
         metadataBuilder.append("processingJobs:").append(processingJobs).append(";");

@@ -32,6 +32,7 @@ import CarbonAwareScheduledNotification from "./notifications/carbon-aware-sched
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
+import CostAwareNotification from "./notifications/cost-aware-notification.js";
 
 const JobView = (props) => {
     const navigate = useNavigate();
@@ -189,6 +190,7 @@ const JobView = (props) => {
                         <Grid container spacing={3}>
                             {job.jobDetails.cacheable === false && <JobDetailsNotCacheableNotification job={job}/>}
                             {stateBreadcrumb.state === 'SUCCEEDED' && <SucceededNotification job={job}/>}
+                            {stateBreadcrumb.state === 'SUCCEEDED' && <CostAwareNotification job={job}/>}
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}

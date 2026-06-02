@@ -61,6 +61,19 @@ const Servers = memo(() => {
         setCurrentServer(null);
     };
 
+    const displaySavings = (server) => {
+        return (
+            <>
+                {server.metadata && server.metadata.spotPrice &&
+                    <>
+                        {server.metadata.serverSavings.toFixed(4)} USD
+                        ({(((server.metadata.instancePrice - server.metadata.spotPrice) / server.metadata.instancePrice) * 100).toFixed(2)}%)
+                    </>
+                }
+            </>
+        );
+    }
+
     useEffect(() => {
         return openEventSource();
     }, []);
@@ -85,7 +98,7 @@ const Servers = memo(() => {
                                         <TableCell>Last heartbeat</TableCell>
                                         <TableCell>Free memory</TableCell>
                                         <TableCell>Cpu load</TableCell>
-                                        <TableCell>Amount Saved</TableCell>
+                                        <TableCell>Amount saved</TableCell>
                                         <TableCell>Running?</TableCell>
                                         {/*<TableCell>Actions</TableCell>*/}
                                     </TableRow>
@@ -121,8 +134,7 @@ const Servers = memo(() => {
                                                 {(server.systemCpuLoad * 100).toFixed(2)} %
                                             </TableCell>
                                             <TableCell>
-                                                {server.metadata && server.metadata.spotPrice &&
-                                                    <>{server.metadata.serverSavings.toFixed(4)} USD</>}
+                                                {displaySavings(server)}
                                             </TableCell>
                                             <TableCell>
                                                 {server.running
@@ -280,15 +292,15 @@ const Servers = memo(() => {
                                                 SpotPricing
                                             </TableCell>
                                             <TableCell>
-                                                {currentServer.metadata.spotPrice} USD
+                                                {currentServer.metadata.spotPrice} USD / Hour
                                             </TableCell>
                                         </TableRow>
                                         <TableRow>
                                             <TableCell>
-                                                EquivalentInstancePrice
+                                                CheapestInstancePrice
                                             </TableCell>
                                             <TableCell>
-                                                {currentServer.metadata.instancePrice} USD
+                                                {currentServer.metadata.instancePrice} USD / Hour
                                             </TableCell>
                                         </TableRow>
                                         <TableRow>
@@ -296,7 +308,7 @@ const Servers = memo(() => {
                                                 TotalSavings
                                             </TableCell>
                                             <TableCell>
-                                                {currentServer.metadata.serverSavings.toFixed(4)} USD
+                                                {displaySavings(currentServer)}
                                             </TableCell>
                                         </TableRow>
                                     </>}
