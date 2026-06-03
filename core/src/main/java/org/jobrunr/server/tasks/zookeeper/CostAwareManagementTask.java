@@ -7,6 +7,7 @@ import org.jobrunr.server.costaware.CostAwareApiClient;
 import org.jobrunr.server.costaware.CostAwareApiClientException;
 import org.jobrunr.server.costaware.CostAwareConfiguration;
 import org.jobrunr.server.costaware.CostAwareConfigurationReader;
+import org.jobrunr.server.costaware.CostAwareTotalSavings;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.Paging;
@@ -28,6 +29,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     private final Duration settlingPeriod;
     private final CostAwareApiClient costAwareApiClient;
     private Instant lastScaleTime = Instant.MIN;
+    private Instant lastSavingsCalculationTime = Instant.MIN;
 
     public CostAwareManagementTask(BackgroundJobServer backgroundJobServer, CostAwareConfiguration costAwareConfiguration, JsonMapper jsonMapper) {
         super(backgroundJobServer);
@@ -43,7 +45,14 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
     @Override
     protected void runTask() {
-        if ((isSettling()) || costAwareApiClient.isDisabled()) return;
+        if (costAwareApiClient.isDisabled()) return;
+
+        scaleIfNecessary();
+        saveGlobalCostSavingsIfNecessary();
+    }
+
+    private void scaleIfNecessary() {
+        if ((isSettling())) return;
         JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
         Duration jobLatency = getCurrentJobLatency();
@@ -63,6 +72,16 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         }
     }
 
+    private void saveGlobalCostSavingsIfNecessary() {
+        if (hasRecentlyCalculatedSavings()) return;
+
+        CostAwareTotalSavings costAwareTotalSavings = getCostAwareTotalSavings();
+        List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
+        costAwareTotalSavings.save(backgroundJobServers);
+        saveCostAwareTotalSavings(costAwareTotalSavings);
+        lastSavingsCalculationTime = Instant.now();
+    }
+
     private boolean needsToScaleUpBecauseLatencyIsTooHigh(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
         return backgroundJobServerSpotInstances.size() < maxAmountSpotInstances
                 && jobLatency != null && jobLatency.compareTo(scaleUpLatency) > 0;
@@ -76,7 +95,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     private List<BackgroundJobServerStatus> getBackgroundJobServerSpotInstances() {
         return storageProvider.getBackgroundJobServers()
                 .stream()
-                .filter(x -> x.getName().contains(" (SPOT)"))
+                .filter(x -> x.getMetadata() != null && x.getMetadata().getSpotPrice() != null)
                 .toList();
     }
 
@@ -99,5 +118,21 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         }
 
         return Duration.between(optionalLastEnqueuedState.get().getEnqueuedAt(), runStartTime());
+    }
+
+    private boolean hasRecentlyCalculatedSavings() {
+        return lastSavingsCalculationTime.plus(backgroundJobServer.getConfiguration().getPollInterval().multipliedBy(4)).isAfter(Instant.now());
+    }
+
+    private CostAwareTotalSavings getCostAwareTotalSavings() {
+        JobRunrMetadata jobRunrMetadata = storageProvider.getMetadata("total-savings", "cluster");
+        if (jobRunrMetadata == null) return new CostAwareTotalSavings();
+        String totalSavingsJson = jobRunrMetadata.getValue();
+        return backgroundJobServer.getJsonMapper().deserialize(totalSavingsJson, CostAwareTotalSavings.class);
+    }
+
+    private void saveCostAwareTotalSavings(CostAwareTotalSavings costAwareTotalSavings) {
+        String costAwareTotalSavingsAsJson = backgroundJobServer.getJsonMapper().serialize(costAwareTotalSavings);
+        storageProvider.saveMetadata(new JobRunrMetadata("total-savings", "cluster", costAwareTotalSavingsAsJson));
     }
 }

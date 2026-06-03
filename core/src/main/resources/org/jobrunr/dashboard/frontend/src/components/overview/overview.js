@@ -12,6 +12,7 @@ import AvgProcessFreeMemoryCard from "./cards/avg-process-free-memory-card";
 import VersionFooter from "../utils/version-footer";
 import {openEventSource} from "../../stores/serversStore";
 import {useServers} from "../../hooks/useServers";
+import CostAwareSavings from "./costAware/cost-aware-savings.js";
 
 const Overview = () => {
     const [servers, _] = useServers();
@@ -44,6 +45,7 @@ const Overview = () => {
                     </Paper>
                 }
             </div>
+            <CostAwareSavings/>
             <RealtimeGraph/>
             <VersionFooter/>
         </div>
