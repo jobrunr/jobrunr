@@ -1,0 +1,93 @@
+{
+  "backgroundJobServerSavings": {
+    "def86cf6-b8b8-4f95-bc37-3e12b6cbfcfd": {
+      "serverId": "def86cf6-b8b8-4f95-bc37-3e12b6cbfcfd",
+      "createdAt": "2026-06-03T11:46:42.782803Z",
+      "removedAt": "2026-06-03T12:22:36.707231Z",
+      "totalSavings": 0.02726500000000000,
+      "lastIncreasedBy": 0.00077900000000000
+    },
+    "fcd8343d-9022-4dc2-97ca-c4f35312fa9c": {
+      "serverId": "fcd8343d-9022-4dc2-97ca-c4f35312fa9c",
+      "createdAt": "2026-06-03T12:33:34.052425Z",
+      "removedAt": "2026-06-03T13:04:39.076722Z",
+      "totalSavings": 0.02363233333333333,
+      "lastIncreasedBy": 0.00076233333333333
+    },
+    "0647b848-8bab-4058-8716-4260bae23b1b": {
+      "serverId": "0647b848-8bab-4058-8716-4260bae23b1b",
+      "createdAt": "2026-06-02T14:59:50.682039Z",
+      "removedAt": "2026-06-02T15:11:16.564668Z",
+      "totalSavings": 0.02179833333333333,
+      "lastIncreasedBy": 0.00198166666666666
+    },
+    "ba96df43-6ca0-4b35-8135-148486e4b87b": {
+      "serverId": "ba96df43-6ca0-4b35-8135-148486e4b87b",
+      "createdAt": "2026-06-03T07:07:01.599099Z",
+      "removedAt": "2026-06-03T07:07:16.647966Z",
+      "totalSavings": 0.00000,
+      "lastIncreasedBy": 0.00000
+    },
+    "57324fc7-543b-4a51-9e8e-7b60404708e9": {
+      "serverId": "57324fc7-543b-4a51-9e8e-7b60404708e9",
+      "createdAt": "2026-06-03T07:13:49.262962Z",
+      "removedAt": "2026-06-03T07:50:02.017304Z",
+      "totalSavings": 0.00864,
+      "lastIncreasedBy": 0.000239999999999999
+    }
+  },
+  "dailySavings": {
+    "2026-05-31": {
+      "chronoUnit": "Days",
+      "period": [
+        "java.time.LocalDate",
+        "2026-05-31"
+      ],
+      "totalSavings": 0.46
+    },
+    "2026-06-03": {
+      "chronoUnit": "Days",
+      "period": [
+        "java.time.LocalDate",
+        "2026-06-03"
+      ],
+      "totalSavings": 0.1033033333333332580
+    },
+    "2026-06-02": {
+      "chronoUnit": "Days",
+      "period": [
+        "java.time.LocalDate",
+        "2026-06-02"
+      ],
+      "totalSavings": 0.021798333333333330
+    }
+  },
+  "monthlySavings": {
+    "2026-05": {
+      "chronoUnit": "Months",
+      "period": [
+        "java.time.YearMonth",
+        "2026-05"
+      ],
+      "totalSavings": 5.2738
+    },
+    "2026-04": {
+      "chronoUnit": "Months",
+      "period": [
+        "java.time.YearMonth",
+        "2026-04"
+      ],
+      "totalSavings": 2.192345
+    }
+  },
+  "yearlySavings": {
+    "2025": {
+      "chronoUnit": "Years",
+      "period": [
+        "java.time.Year",
+        "2025"
+      ],
+      "totalSavings": 120.3473
+    }
+  }
+}

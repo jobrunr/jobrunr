@@ -10,6 +10,7 @@ import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
+import org.jobrunr.server.costaware.CostAwareTotalSavings;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Task;
@@ -432,5 +433,14 @@ public abstract class AbstractJsonMapperTest {
                 .hasError()
                 .hasErrorCode("FORECAST_NOT_AVAILABLE")
                 .hasErrorMessage("No forecast available for DataProvider ENTSO-E and area Germany.");
+    }
+
+    @Test
+    void canDeserializeCostAwareTotalSavings() {
+        var json = contentOfResource("/costaware/total_savings.json");
+
+        var totalSavings = jsonMapper.deserialize(json, CostAwareTotalSavings.class);
+
+        assertThat(totalSavings != null).isTrue();
     }
 }

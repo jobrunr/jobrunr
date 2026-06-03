@@ -40,7 +40,12 @@ const CostAwareDailySavingsCard = ({dailySavings}) => {
 
                 <div style={{display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "space-between"}}>
                     <IconButton
-                        disabled={!dailySavings.get(formatDateForDailySavings(new Date(new Date(selectedDateForDaily).setDate(selectedDateForDaily.getDate() - 1))))}
+                        disabled={
+                            !Array.from(dailySavings.keys()).some(key => {
+                                const keyDate = new Date(key);
+                                return keyDate.setHours(0, 0, 0, 0) < new Date(selectedDateForDaily).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const prevDay = new Date(selectedDateForDaily);
                             prevDay.setDate(prevDay.getDate() - 1);
@@ -52,7 +57,12 @@ const CostAwareDailySavingsCard = ({dailySavings}) => {
                         </Tooltip>
                     </IconButton>
                     <IconButton
-                        disabled={!dailySavings.get(formatDateForDailySavings(new Date(new Date(selectedDateForDaily).setDate(selectedDateForDaily.getDate() + 1))))}
+                        disabled={
+                            !Array.from(dailySavings.keys()).some(key => {
+                                const keyDate = new Date(key);
+                                return keyDate.setHours(0, 0, 0, 0) > new Date(selectedDateForDaily).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const nextDay = new Date(selectedDateForDaily);
                             nextDay.setDate(nextDay.getDate() + 1);

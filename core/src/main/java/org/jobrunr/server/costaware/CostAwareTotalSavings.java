@@ -1,7 +1,5 @@
 package org.jobrunr.server.costaware;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.BackgroundJobServerStatusMetadata;
 
@@ -34,12 +32,11 @@ public class CostAwareTotalSavings {
         yearlySavings = new HashMap<>();
     }
 
-    @JsonCreator
-    private CostAwareTotalSavings(
-            @JsonProperty("backgroundJobServerSavings") Map<UUID, BackgroundJobServerSavings> backgroundJobServerSavings,
-            @JsonProperty("dailySavings") Map<LocalDate, DailySavings> dailySavings,
-            @JsonProperty("monthlySavings") Map<YearMonth, MonthlySavings> monthlySavings,
-            @JsonProperty("yearlySavings") Map<Year, YearlySavings> yearlySavings
+    public CostAwareTotalSavings(
+            Map<UUID, BackgroundJobServerSavings> backgroundJobServerSavings,
+            Map<LocalDate, DailySavings> dailySavings,
+            Map<YearMonth, MonthlySavings> monthlySavings,
+            Map<Year, YearlySavings> yearlySavings
     ) {
         this.backgroundJobServerSavings = backgroundJobServerSavings;
         this.dailySavings = dailySavings;
@@ -110,19 +107,18 @@ public class CostAwareTotalSavings {
         }
     }
 
-    static class BackgroundJobServerSavings {
+    public static class BackgroundJobServerSavings {
         private final UUID serverId;
         private final Instant createdAt;
         private Instant removedAt;
         private BigDecimal totalSavings;
         private BigDecimal lastIncreasedBy;
 
-        @JsonCreator
-        BackgroundJobServerSavings(
-                @JsonProperty("serverId") UUID serverId,
-                @JsonProperty("createdAt") Instant createdAt,
-                @JsonProperty("removedAt") Instant removedAt,
-                @JsonProperty("totalSavings") BigDecimal totalSavings
+        public BackgroundJobServerSavings(
+                UUID serverId,
+                Instant createdAt,
+                Instant removedAt,
+                BigDecimal totalSavings
         ) {
             this.serverId = serverId;
             this.createdAt = createdAt;
@@ -158,7 +154,7 @@ public class CostAwareTotalSavings {
         }
     }
 
-    static abstract class Savings {
+    public static abstract class Savings {
         private final ChronoUnit chronoUnit;
         private final Temporal period;
         protected BigDecimal totalSavings;
@@ -167,11 +163,10 @@ public class CostAwareTotalSavings {
             this(chronoUnit, period, BigDecimal.ZERO);
         }
 
-        @JsonCreator
         public Savings(
-                @JsonProperty("chronoUnit") ChronoUnit chronoUnit,
-                @JsonProperty("period") Temporal period,
-                @JsonProperty("totalSavings") BigDecimal totalSavings
+                ChronoUnit chronoUnit,
+                Temporal period,
+                BigDecimal totalSavings
         ) {
             this.chronoUnit = chronoUnit;
             this.period = period;
@@ -191,17 +186,16 @@ public class CostAwareTotalSavings {
         }
     }
 
-    static class DailySavings extends Savings {
+    public static class DailySavings extends Savings {
 
         public DailySavings(LocalDate start) {
             super(ChronoUnit.DAYS, start);
         }
 
-        @JsonCreator
         public DailySavings(
-                @JsonProperty("chronoUnit") ChronoUnit chronoUnit,
-                @JsonProperty("period") Temporal period,
-                @JsonProperty("totalSavings") BigDecimal totalSavings
+                ChronoUnit chronoUnit,
+                Temporal period,
+                BigDecimal totalSavings
         ) {
             super(chronoUnit, period, totalSavings);
         }
@@ -211,7 +205,7 @@ public class CostAwareTotalSavings {
         }
     }
 
-    static class MonthlySavings extends Savings {
+    public static class MonthlySavings extends Savings {
 
         public MonthlySavings(YearMonth yearMonth, List<DailySavings> dailySavings) {
             super(ChronoUnit.MONTHS, yearMonth);
@@ -221,17 +215,16 @@ public class CostAwareTotalSavings {
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
         }
 
-        @JsonCreator
         public MonthlySavings(
-                @JsonProperty("chronoUnit") ChronoUnit chronoUnit,
-                @JsonProperty("period") Temporal period,
-                @JsonProperty("totalSavings") BigDecimal totalSavings
+                ChronoUnit chronoUnit,
+                Temporal period,
+                BigDecimal totalSavings
         ) {
             super(chronoUnit, period, totalSavings);
         }
     }
 
-    static class YearlySavings extends Savings {
+    public static class YearlySavings extends Savings {
 
         public YearlySavings(Year year, List<MonthlySavings> monthlySavings) {
             super(ChronoUnit.YEARS, year);
@@ -241,11 +234,10 @@ public class CostAwareTotalSavings {
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
         }
 
-        @JsonCreator
         public YearlySavings(
-                @JsonProperty("chronoUnit") ChronoUnit chronoUnit,
-                @JsonProperty("period") Temporal period,
-                @JsonProperty("totalSavings") BigDecimal totalSavings
+                ChronoUnit chronoUnit,
+                Temporal period,
+                BigDecimal totalSavings
         ) {
             super(chronoUnit, period, totalSavings);
         }

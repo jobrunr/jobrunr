@@ -37,7 +37,12 @@ const CostAwareYearlySavingsCard = ({yearlySavings}) => {
 
                 <div style={{display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "space-between"}}>
                     <IconButton
-                        disabled={!yearlySavings.get(formatDateForYearlySavings(new Date(new Date(selectedDateForYearly).setFullYear(selectedDateForYearly.getFullYear() - 1, 0, 1))))}
+                        disabled={
+                            !Array.from(yearlySavings.keys()).some(key => {
+                                const keyDate = new Date(new Date(key).setMonth(0, 1));
+                                return keyDate.setHours(0, 0, 0, 0) < new Date(new Date(selectedDateForYearly).setMonth(0, 1)).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const prevYear = new Date(selectedDateForYearly);
                             prevYear.setFullYear(selectedDateForYearly.getFullYear() - 1, 0, 1);
@@ -49,7 +54,12 @@ const CostAwareYearlySavingsCard = ({yearlySavings}) => {
                         </Tooltip>
                     </IconButton>
                     <IconButton
-                        disabled={!yearlySavings.get(formatDateForYearlySavings(new Date(new Date(selectedDateForYearly).setFullYear(selectedDateForYearly.getFullYear() + 1, 0, 1))))}
+                        disabled={
+                            !Array.from(yearlySavings.keys()).some(key => {
+                                const keyDate = new Date(new Date(key).setMonth(0, 1));
+                                return keyDate.setHours(0, 0, 0, 0) > new Date(new Date(selectedDateForYearly).setMonth(0, 1)).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const nextYear = new Date(selectedDateForYearly);
                             nextYear.setFullYear(selectedDateForYearly.getFullYear() + 1, 0, 1);

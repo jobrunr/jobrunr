@@ -41,7 +41,12 @@ const CostAwareMonthlySavingsCard = ({monthlySavings}) => {
 
                 <div style={{display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "space-between"}}>
                     <IconButton
-                        disabled={!monthlySavings.get(formatDateForMonthlySavings(new Date(new Date(selectedDateForMonthly).setMonth(selectedDateForMonthly.getMonth() - 1, 1))))}
+                        disabled={
+                            !Array.from(monthlySavings.keys()).some(key => {
+                                const keyDate = new Date(new Date(key).setDate(1));
+                                return keyDate.setHours(0, 0, 0, 0) < new Date(new Date(selectedDateForMonthly).setDate(1)).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const prevMonth = new Date(selectedDateForMonthly);
                             prevMonth.setMonth(prevMonth.getMonth() - 1, 1);
@@ -53,7 +58,12 @@ const CostAwareMonthlySavingsCard = ({monthlySavings}) => {
                         </Tooltip>
                     </IconButton>
                     <IconButton
-                        disabled={!monthlySavings.get(formatDateForMonthlySavings(new Date(new Date(selectedDateForMonthly).setMonth(selectedDateForMonthly.getMonth() + 1, 1))))}
+                        disabled={
+                            !Array.from(monthlySavings.keys()).some(key => {
+                                const keyDate = new Date(new Date(key).setDate(1));
+                                return keyDate.setHours(0, 0, 0, 0) > new Date(new Date(selectedDateForMonthly).setDate(1)).setHours(0, 0, 0, 0);
+                            })
+                        }
                         onClick={() => {
                             const nextMonth = new Date(selectedDateForMonthly);
                             nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
