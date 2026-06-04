@@ -76,20 +76,10 @@ class JobRunrConfigurationTest {
     }
 
     @Test
-    void ifJobActivatorIsAddedAfterBackgroundJobServer() {
-        assertThatThrownBy(() -> JobRunr.configure()
-                .useStorageProvider(storageProvider)
-                .useBackgroundJobServer()
-                .useJobActivator(jobActivator)
-        )
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Please configure the JobActivator before the BackgroundJobServer.");
-    }
-
-    @Test
     void backgroundJobServerThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
                 .useBackgroundJobServer()
+                .initialize()
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
@@ -115,6 +105,7 @@ class JobRunrConfigurationTest {
     void dashboardThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
                 .useDashboard()
+                .initialize()
         ).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a JobRunrDashboardWebServer. Please see the documentation on how to setup a job StorageProvider.");
     }
@@ -151,11 +142,12 @@ class JobRunrConfigurationTest {
 
     @Test
     void dashboardPortCanBeConfigured() {
-        JobRunrConfiguration configuration = JobRunr.configure()
+        JobRunrConfigurationResult result = JobRunr.configure()
                 .useStorageProvider(storageProvider)
-                .useDashboard(9000);
-        assertThat(configuration.dashboardWebServer).isNotNull();
-        assertThat((int) getInternalState(configuration.dashboardWebServer, "port")).isEqualTo(9000);
+                .useDashboard(9000)
+                .initialize();
+        assertThat(result.getDashboardWebServer()).isNotNull();
+        assertThat((int) getInternalState(result.getDashboardWebServer(), "port")).isEqualTo(9000);
     }
 
     @Test

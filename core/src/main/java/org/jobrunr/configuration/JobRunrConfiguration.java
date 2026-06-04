@@ -42,6 +42,13 @@ public class JobRunrConfiguration {
     JobRunrJMXExtensions jmxExtension;
     JobRunrMicroMeterIntegration microMeterIntegration;
 
+    private BackgroundJobServerConfiguration backgroundJobServerConfiguration;
+    private boolean startBackgroundJobServerOnInitialization;
+    private JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration;
+    private boolean startDashboardWebServerOnInitialization;
+    private boolean jmxExtensionEnabled;
+    private boolean jmxExtensionJobStatisticsEnabled;
+
     JobRunrConfiguration() {
         this.jsonMapper = JsonMapperFactory.createJsonMapper();
         this.jobMapper = this.jsonMapper == null ? null : new JobMapper(jsonMapper);
@@ -56,12 +63,6 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJsonMapper(JsonMapper jsonMapper) {
-        if (this.storageProvider != null) {
-            throw new IllegalStateException("Please configure the JsonMapper before the StorageProvider.");
-        }
-        if (this.dashboardWebServer != null) {
-            throw new IllegalStateException("Please configure the JsonMapper before the DashboardWebServer.");
-        }
         this.jsonMapper = validateJsonMapper(jsonMapper);
         this.jobMapper = new JobMapper(jsonMapper);
         return this;
@@ -74,9 +75,6 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJobActivator(JobActivator jobActivator) {
-        if (this.backgroundJobServer != null) {
-            throw new IllegalStateException("Please configure the JobActivator before the BackgroundJobServer.");
-        }
         this.jobActivator = jobActivator;
         return this;
     }
@@ -89,7 +87,6 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration useStorageProvider(StorageProvider storageProvider) {
         this.storageProvider = storageProvider;
-        storageProvider.setJobMapper(jobMapper);
         return this;
     }
 
@@ -100,9 +97,6 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration withJobFilter(JobFilter... jobFilters) {
-        if (this.backgroundJobServer != null) {
-            throw new IllegalStateException("Please configure the JobFilters before the BackgroundJobServer.");
-        }
         this.jobFilters.addAll(Arrays.asList(jobFilters));
         return this;
     }
@@ -182,16 +176,15 @@ public class JobRunrConfiguration {
     /**
      * Provides a default {@link BackgroundJobServer} if the guard is true and that is configured using the given {@link BackgroundJobServerConfiguration}
      *
-     * @param guard                    whether to create a BackgroundJobServer or not.
-     * @param configuration            the configuration for the backgroundJobServer to use
-     * @param startBackgroundJobServer whether to start the background job server immediately
+     * @param guard                                    whether to create a BackgroundJobServer or not.
+     * @param configuration                            the configuration for the backgroundJobServer to use
+     * @param startBackgroundJobServerOnInitialization whether to start the background job server immediately on initialization
      * @return the same configuration instance which provides a fluent api
      */
-    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServer) {
+    public JobRunrConfiguration useBackgroundJobServerIf(boolean guard, BackgroundJobServerConfiguration configuration, boolean startBackgroundJobServerOnInitialization) {
         if (guard) {
-            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, configuration);
-            this.backgroundJobServer.setJobFilters(jobFilters);
-            this.backgroundJobServer.start(startBackgroundJobServer);
+            this.backgroundJobServerConfiguration = configuration;
+            this.startBackgroundJobServerOnInitialization = startBackgroundJobServerOnInitialization;
         }
         return this;
     }
@@ -254,9 +247,21 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useDashboardIf(boolean guard, JobRunrDashboardWebServerConfiguration configuration) {
+        return useDashboardIf(guard, configuration, true);
+    }
+
+    /**
+     * Provides a dashboard using the given {@link JobRunrDashboardWebServerConfiguration} if the guard is true
+     *
+     * @param guard                                   whether to create a Dashboard or not.
+     * @param configuration                           the {@link JobRunrDashboardWebServerConfiguration} to use
+     * @param startDashboardWebServerOnInitialization whether to start the dashboard web server immediately on initialization
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useDashboardIf(boolean guard, JobRunrDashboardWebServerConfiguration configuration, boolean startDashboardWebServerOnInitialization) {
         if (guard) {
-            this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, configuration);
-            this.dashboardWebServer.start();
+            this.dashboardWebServerConfiguration = configuration;
+            this.startDashboardWebServerOnInitialization = startDashboardWebServerOnInitialization;
         }
         return this;
     }
@@ -288,13 +293,8 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useJmxExtensionsIf(boolean guard, boolean reportJobStatistics) {
-        if (guard) {
-            if (backgroundJobServer == null)
-                throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
-            if (storageProvider == null)
-                throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
-            this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider, reportJobStatistics);
-        }
+        this.jmxExtensionEnabled = guard;
+        this.jmxExtensionJobStatisticsEnabled = reportJobStatistics;
         return this;
     }
 
@@ -343,20 +343,56 @@ public class JobRunrConfiguration {
         if (jsonMapper == null) {
             throw new JsonMapperException("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
         }
+
+        if (jobMapper != null && storageProvider != null) storageProvider.setJobMapper(jobMapper);
+
+        initializeBackgroundJobServer();
+        initializeDashboardWebServer();
+        initializeJmxExtensions();
+
         ofNullable(microMeterIntegration).ifPresent(meterRegistry -> meterRegistry.initialize(storageProvider, backgroundJobServer));
         final JobScheduler jobScheduler = new JobScheduler(storageProvider, jobDetailsGenerator, jobFilters);
         final JobRequestScheduler jobRequestScheduler = new JobRequestScheduler(storageProvider, jobFilters);
-        return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler);
+        return new JobRunrConfigurationResult(jobScheduler, jobRequestScheduler, dashboardWebServer, backgroundJobServer);
+    }
+
+    private void initializeBackgroundJobServer() {
+        if (backgroundJobServerConfiguration != null) {
+            this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, backgroundJobServerConfiguration);
+            this.backgroundJobServer.setJobFilters(jobFilters);
+            if (startBackgroundJobServerOnInitialization) this.backgroundJobServer.start();
+        }
+    }
+
+    private void initializeDashboardWebServer() {
+        if (dashboardWebServerConfiguration != null) {
+            this.dashboardWebServer = new JobRunrDashboardWebServer(storageProvider, jsonMapper, dashboardWebServerConfiguration);
+            if (startDashboardWebServerOnInitialization) this.dashboardWebServer.start();
+        }
+    }
+
+    private void initializeJmxExtensions() {
+        if (jmxExtensionEnabled) {
+            if (backgroundJobServer == null)
+                throw new IllegalStateException("Please configure the BackgroundJobServer before the JMXExtension.");
+            if (storageProvider == null)
+                throw new IllegalStateException("Please configure the StorageProvider before the JMXExtension.");
+            this.jmxExtension = new JobRunrJMXExtensions(backgroundJobServer, storageProvider, jmxExtensionJobStatisticsEnabled);
+        }
     }
 
     public static class JobRunrConfigurationResult {
 
         private final JobScheduler jobScheduler;
         private final JobRequestScheduler jobRequestScheduler;
+        private final JobRunrDashboardWebServer dashboardWebServer;
+        private final BackgroundJobServer backgroundJobServer;
 
-        public JobRunrConfigurationResult(JobScheduler jobScheduler, JobRequestScheduler jobRequestScheduler) {
+        public JobRunrConfigurationResult(JobScheduler jobScheduler, JobRequestScheduler jobRequestScheduler, JobRunrDashboardWebServer dashboardWebServer, BackgroundJobServer backgroundJobServer) {
             this.jobScheduler = jobScheduler;
             this.jobRequestScheduler = jobRequestScheduler;
+            this.dashboardWebServer = dashboardWebServer;
+            this.backgroundJobServer = backgroundJobServer;
         }
 
         public JobScheduler getJobScheduler() {
@@ -365,6 +401,14 @@ public class JobRunrConfiguration {
 
         public JobRequestScheduler getJobRequestScheduler() {
             return jobRequestScheduler;
+        }
+
+        public JobRunrDashboardWebServer getDashboardWebServer() {
+            return dashboardWebServer;
+        }
+
+        public BackgroundJobServer getBackgroundJobServer() {
+            return backgroundJobServer;
         }
     }
 }
