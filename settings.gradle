@@ -1,6 +1,5 @@
 pluginManagement {
     repositories {
-        mavenLocal()
         if (System.getenv('CI')) {
             maven {
                 url = System.getenv('MAVEN_CENTRAL_PROXY_URL')
@@ -11,6 +10,7 @@ pluginManagement {
         maven { url = 'https://plugins.gradle.org/m2/' }
         maven { url = 'https://repo.spring.io/release' }
         maven { url = 'https://repo.spring.io/milestone' }
+        mavenLocal()
     }
 }
 
