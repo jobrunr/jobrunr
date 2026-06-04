@@ -78,7 +78,7 @@ public class WebServer {
     private static class WebServerThreadFactory extends NamedThreadFactory {
         private final ClassLoader threadContextClassLoader;
 
-        public WebServerThreadFactory(ClassLoader threadContextClassLoader) {
+        private WebServerThreadFactory(ClassLoader threadContextClassLoader) {
             super("jobrunr-dashboard", false);
             this.threadContextClassLoader = threadContextClassLoader;
         }
