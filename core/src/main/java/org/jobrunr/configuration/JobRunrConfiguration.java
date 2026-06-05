@@ -236,7 +236,18 @@ public class JobRunrConfiguration {
      * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useDashboard(JobRunrDashboardWebServerConfiguration configuration) {
-        return useDashboardIf(true, configuration);
+        return useDashboard(configuration, true);
+    }
+
+    /**
+     * Provides a dashboard using the given {@link JobRunrDashboardWebServerConfiguration}
+     *
+     * @param configuration                           the {@link JobRunrDashboardWebServerConfiguration} to use
+     * @param startDashboardWebServerOnInitialization whether to start the dashboard web server immediately on initialization
+     * @return the same configuration instance which provides a fluent api
+     */
+    public JobRunrConfiguration useDashboard(JobRunrDashboardWebServerConfiguration configuration, boolean startDashboardWebServerOnInitialization) {
+        return useDashboardIf(true, configuration, startDashboardWebServerOnInitialization);
     }
 
     /**
