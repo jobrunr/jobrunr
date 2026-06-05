@@ -14,6 +14,9 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.states.AbstractJobState;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.DailySavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.MonthlySavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.YearlySavings;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
@@ -21,6 +24,7 @@ import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrModule;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
 import org.jobrunr.utils.mapper.jackson.modules.JobStateMixin;
+import org.jobrunr.utils.mapper.jackson.modules.SavingsMixin;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,6 +57,9 @@ public class JacksonJsonMapper implements JsonMapper {
                 .addMixIn(Job.class, JobMixin.class)
                 .addMixIn(JobDetails.class, JobDetailsMixin.class)
                 .addMixIn(AbstractJobState.class, JobStateMixin.class)
+                .addMixIn(DailySavings.class, SavingsMixin.class)
+                .addMixIn(MonthlySavings.class, SavingsMixin.class)
+                .addMixIn(YearlySavings.class, SavingsMixin.class)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.DEFAULT)

@@ -8,18 +8,15 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.jobrunr.server.costaware.CostAwareTotalSavings;
 import org.jobrunr.server.costaware.CostAwareTotalSavings.BackgroundJobServerSavings;
-import org.jobrunr.server.costaware.CostAwareTotalSavings.DailySavings;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import static org.jobrunr.server.costaware.CostAwareTotalSavings.MonthlySavings;
-import static org.jobrunr.server.costaware.CostAwareTotalSavings.YearlySavings;
+import static org.jobrunr.server.costaware.CostAwareTotalSavings.Savings;
 
 public class CostAwareTotalSavingsDeserializer extends StdDeserializer<CostAwareTotalSavings> {
 
@@ -33,23 +30,23 @@ public class CostAwareTotalSavingsDeserializer extends StdDeserializer<CostAware
 
         TypeFactory typeFactory = deserializationContext.getTypeFactory();
 
-        Map<UUID, BackgroundJobServerSavings> backgroundJobServerSavings = readMapField(
+        HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings = readMapField(
                 node.get("backgroundJobServerSavings"), typeFactory.constructMapType(HashMap.class, UUID.class, BackgroundJobServerSavings.class), deserializationContext
         );
-        Map<LocalDate, DailySavings> dailySavings = readMapField(
-                node.get("dailySavings"), typeFactory.constructMapType(HashMap.class, LocalDate.class, DailySavings.class), deserializationContext
+        HashMap<LocalDate, Savings> dailySavings = readMapField(
+                node.get("dailySavings"), typeFactory.constructMapType(HashMap.class, LocalDate.class, Savings.class), deserializationContext
         );
-        Map<YearMonth, MonthlySavings> monthlySavings = readMapField(
-                node.get("monthlySavings"), typeFactory.constructMapType(HashMap.class, YearMonth.class, MonthlySavings.class), deserializationContext
+        HashMap<YearMonth, Savings> monthlySavings = readMapField(
+                node.get("monthlySavings"), typeFactory.constructMapType(HashMap.class, YearMonth.class, Savings.class), deserializationContext
         );
-        Map<Year, YearlySavings> yearlySavings = readMapField(
-                node.get("yearlySavings"), typeFactory.constructMapType(HashMap.class, Year.class, YearlySavings.class), deserializationContext
+        HashMap<Year, Savings> yearlySavings = readMapField(
+                node.get("yearlySavings"), typeFactory.constructMapType(HashMap.class, Year.class, Savings.class), deserializationContext
         );
 
         return new CostAwareTotalSavings(backgroundJobServerSavings, dailySavings, monthlySavings, yearlySavings);
     }
 
-    private <K, V> Map<K, V> readMapField(JsonNode node, JavaType javaType, DeserializationContext deserializationContext) throws IOException {
+    private <K, V> HashMap<K, V> readMapField(JsonNode node, JavaType javaType, DeserializationContext deserializationContext) throws IOException {
         if (node == null || node.isNull()) {
             return new HashMap<>();
         }

@@ -38,6 +38,7 @@
   },
   "dailySavings": {
     "2026-05-31": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$DailySavings",
       "chronoUnit": "Days",
       "period": [
         "java.time.LocalDate",
@@ -46,6 +47,7 @@
       "totalSavings": 0.46
     },
     "2026-06-03": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$DailySavings",
       "chronoUnit": "Days",
       "period": [
         "java.time.LocalDate",
@@ -54,6 +56,7 @@
       "totalSavings": 0.1033033333333332580
     },
     "2026-06-02": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$DailySavings",
       "chronoUnit": "Days",
       "period": [
         "java.time.LocalDate",
@@ -64,6 +67,7 @@
   },
   "monthlySavings": {
     "2026-05": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$MonthlySavings",
       "chronoUnit": "Months",
       "period": [
         "java.time.YearMonth",
@@ -72,6 +76,7 @@
       "totalSavings": 5.2738
     },
     "2026-04": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$MonthlySavings",
       "chronoUnit": "Months",
       "period": [
         "java.time.YearMonth",
@@ -82,6 +87,7 @@
   },
   "yearlySavings": {
     "2025": {
+      "@class": "org.jobrunr.server.costaware.CostAwareTotalSavings$YearlySavings",
       "chronoUnit": "Years",
       "period": [
         "java.time.Year",

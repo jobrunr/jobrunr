@@ -15,15 +15,14 @@ import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class CostAwareTotalSavings {
 
-    private final Map<UUID, BackgroundJobServerSavings> backgroundJobServerSavings;
-    private final Map<LocalDate, DailySavings> dailySavings; // last 31 days
-    private final Map<YearMonth, MonthlySavings> monthlySavings;
-    private final Map<Year, YearlySavings> yearlySavings;
+    private final HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings;
+    private final HashMap<LocalDate, Savings> dailySavings; // last 31 days
+    private final HashMap<YearMonth, Savings> monthlySavings;
+    private final HashMap<Year, Savings> yearlySavings;
 
     public CostAwareTotalSavings() {
         backgroundJobServerSavings = new HashMap<>();
@@ -33,10 +32,10 @@ public class CostAwareTotalSavings {
     }
 
     public CostAwareTotalSavings(
-            Map<UUID, BackgroundJobServerSavings> backgroundJobServerSavings,
-            Map<LocalDate, DailySavings> dailySavings,
-            Map<YearMonth, MonthlySavings> monthlySavings,
-            Map<Year, YearlySavings> yearlySavings
+            HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings,
+            HashMap<LocalDate, Savings> dailySavings,
+            HashMap<YearMonth, Savings> monthlySavings,
+            HashMap<Year, Savings> yearlySavings
     ) {
         this.backgroundJobServerSavings = backgroundJobServerSavings;
         this.dailySavings = dailySavings;
@@ -77,10 +76,11 @@ public class CostAwareTotalSavings {
     }
 
     private void calculateDailySavings(LocalDate currentDate) {
-        DailySavings dailySaving = dailySavings.get(currentDate);
-        if (dailySaving == null) {
-            dailySaving = new DailySavings(currentDate);
+        Savings savings = dailySavings.get(currentDate);
+        if (savings == null) {
+            savings = new DailySavings(currentDate);
         }
+        DailySavings dailySaving = savings.toDailySavings();
         backgroundJobServerSavings.values().stream()
                 .filter(saving -> LocalDate.from(saving.removedAt.atZone(ZoneId.systemDefault())).equals(currentDate))
                 .forEach(dailySaving::addBackgroundJobServerSavings);
@@ -89,7 +89,7 @@ public class CostAwareTotalSavings {
 
     private void calculateMonthlySavings(YearMonth currentMonth) {
         if (dailySavings.size() >= 28) {
-            monthlySavings.computeIfAbsent(currentMonth.minus(1, ChronoUnit.MONTHS), k -> new MonthlySavings(k, new ArrayList<>(dailySavings.values())));
+            monthlySavings.computeIfAbsent(currentMonth.minus(1, ChronoUnit.MONTHS), k -> new MonthlySavings(k, new ArrayList<>(dailySavings.values().stream().map(Savings::toDailySavings).toList())));
         }
         if (dailySavings.size() > 31) {
             LocalDate earliestDate = dailySavings.keySet().stream().min(LocalDate::compareTo).orElseThrow();
@@ -99,7 +99,7 @@ public class CostAwareTotalSavings {
 
     private void calculateYearlySavings(Year currentYear) {
         if (monthlySavings.size() >= 12) {
-            yearlySavings.computeIfAbsent(currentYear.minus(1, ChronoUnit.YEARS), k -> new YearlySavings(k, new ArrayList<>(monthlySavings.values())));
+            yearlySavings.computeIfAbsent(currentYear.minus(1, ChronoUnit.YEARS), k -> new YearlySavings(k, new ArrayList<>(monthlySavings.values().stream().map(Savings::toMonthlySavings).toList())));
         }
         if (monthlySavings.size() > 12) {
             YearMonth earliestYear = monthlySavings.keySet().stream().min(YearMonth::compareTo).orElseThrow();
@@ -184,6 +184,33 @@ public class CostAwareTotalSavings {
         public BigDecimal getTotalSavings() {
             return totalSavings;
         }
+
+        public boolean isDaily() {
+            return chronoUnit.equals(ChronoUnit.DAYS);
+        }
+
+        public boolean isMonthly() {
+            return chronoUnit.equals(ChronoUnit.MONTHS);
+        }
+
+        public boolean isYearly() {
+            return chronoUnit.equals(ChronoUnit.YEARS);
+        }
+
+        public DailySavings toDailySavings() {
+            if (isDaily()) return (DailySavings) this;
+            else return null;
+        }
+
+        public MonthlySavings toMonthlySavings() {
+            if (isMonthly()) return (MonthlySavings) this;
+            else return null;
+        }
+
+        public YearlySavings toYearlySavings() {
+            if (isYearly()) return (YearlySavings) this;
+            else return null;
+        }
     }
 
     public static class DailySavings extends Savings {
@@ -192,20 +219,19 @@ public class CostAwareTotalSavings {
             super(ChronoUnit.DAYS, start);
         }
 
-        public DailySavings(
-                ChronoUnit chronoUnit,
-                Temporal period,
-                BigDecimal totalSavings
-        ) {
+        public DailySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
             super(chronoUnit, period, totalSavings);
         }
 
-        void addBackgroundJobServerSavings(BackgroundJobServerSavings backgroundJobServerSavings) {
+        public void addBackgroundJobServerSavings(BackgroundJobServerSavings backgroundJobServerSavings) {
             totalSavings = totalSavings.add(backgroundJobServerSavings.lastIncreasedBy);
         }
     }
 
     public static class MonthlySavings extends Savings {
+        public MonthlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
+            super(chronoUnit, period, totalSavings);
+        }
 
         public MonthlySavings(YearMonth yearMonth, List<DailySavings> dailySavings) {
             super(ChronoUnit.MONTHS, yearMonth);
@@ -214,17 +240,12 @@ public class CostAwareTotalSavings {
                     .map(saving -> saving.totalSavings)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
         }
-
-        public MonthlySavings(
-                ChronoUnit chronoUnit,
-                Temporal period,
-                BigDecimal totalSavings
-        ) {
-            super(chronoUnit, period, totalSavings);
-        }
     }
 
     public static class YearlySavings extends Savings {
+        public YearlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
+            super(chronoUnit, period, totalSavings);
+        }
 
         public YearlySavings(Year year, List<MonthlySavings> monthlySavings) {
             super(ChronoUnit.YEARS, year);
@@ -232,14 +253,6 @@ public class CostAwareTotalSavings {
                     .filter(saving -> getPeriod().equals(year))
                     .map(saving -> saving.totalSavings)
                     .reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
-        }
-
-        public YearlySavings(
-                ChronoUnit chronoUnit,
-                Temporal period,
-                BigDecimal totalSavings
-        ) {
-            super(chronoUnit, period, totalSavings);
         }
     }
 }
