@@ -3,13 +3,17 @@ import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import {useEffect, useState} from "react";
 
-const CostAwareRollingSavingsCard = ({dailySavings}) => {
+const CostAwareSavingsThisMonthCard = ({dailySavings}) => {
+    const todayDate = new Date();
     const [totalSavings, setTotalSavings] = useState(0);
 
     useEffect(() => {
         let total = 0;
-        dailySavings.forEach((value) => {
-            total += value.totalSavings;
+        dailySavings.forEach((value, key) => {
+            const date = new Date(key);
+            if (date.getFullYear() === todayDate.getFullYear() && date.getMonth() === todayDate.getMonth()) {
+                total += value.totalSavings;
+            }
         })
         setTotalSavings(total);
     }, [dailySavings])
@@ -18,10 +22,7 @@ const CostAwareRollingSavingsCard = ({dailySavings}) => {
         <Card sx={{minWidth: "215px", minHeight: '105px'}}>
             <CardContent>
                 <Typography color="textSecondary" gutterBottom>
-                    Total savings
-                </Typography>
-                <Typography variant="h6" component="h3">
-                    Since {new Date(Array.from(dailySavings.keys()).sort()[0]).toLocaleDateString(undefined, {day: "numeric", month: "long", year: "numeric"})}
+                    Savings this month
                 </Typography>
                 <Typography variant="h5" component="h2">
                     ${Math.round(totalSavings * 10000) / 10000}
@@ -31,4 +32,4 @@ const CostAwareRollingSavingsCard = ({dailySavings}) => {
     );
 }
 
-export default CostAwareRollingSavingsCard;
+export default CostAwareSavingsThisMonthCard;

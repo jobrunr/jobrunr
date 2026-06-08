@@ -3,38 +3,34 @@ import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import {useEffect, useState} from "react";
 
-const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySavings}) => {
+const CostAwareSavingsThisYearCard = ({dailySavings, monthlySavings}) => {
+    const todayDate = new Date();
     const [totalSavings, setTotalSavings] = useState(0);
 
     useEffect(() => {
         let total = 0;
-        const allYears = [];
-        const allMonths = [];
-        yearlySavings.forEach((value, key) => {
-            allYears.push(key);
-            total += value.totalSavings;
-        })
-        monthlySavings.forEach((value, key) => {
-            allMonths.push(key);
-            if (!allYears.includes(new Date(key).getFullYear())) {
+        // Current month
+        dailySavings.forEach((value, key) => {
+            const date = new Date(key);
+            if (date.getFullYear() === todayDate.getFullYear() && date.getMonth() === todayDate.getMonth()) {
                 total += value.totalSavings;
             }
         })
-        dailySavings.forEach((value, key) => {
+        // Rest of the months this year
+        monthlySavings.forEach((value, key) => {
             const date = new Date(key);
-            let month = ("" + (date.getMonth() + 1)).padStart(2, '0');
-            if (!allMonths.includes(date.getFullYear() + "-" + month)) {
+            if (date.getFullYear() === todayDate.getFullYear()) {
                 total += value.totalSavings;
             }
         })
         setTotalSavings(total);
-    }, [dailySavings])
+    }, [monthlySavings])
 
     return (
         <Card sx={{minWidth: "215px", minHeight: '105px'}}>
             <CardContent>
                 <Typography color="textSecondary" gutterBottom>
-                    Savings all time
+                    Savings this year
                 </Typography>
                 <Typography variant="h5" component="h2">
                     ${Math.round(totalSavings * 10000) / 10000}
@@ -44,4 +40,4 @@ const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySaving
     );
 }
 
-export default CostAwareAllTimeSavingsCard;
+export default CostAwareSavingsThisYearCard;

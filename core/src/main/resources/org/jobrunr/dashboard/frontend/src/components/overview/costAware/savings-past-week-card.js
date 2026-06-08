@@ -3,27 +3,18 @@ import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import {useEffect, useState} from "react";
 
-const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySavings}) => {
+const CostAwareSavingsPastWeekCard = ({dailySavings}) => {
+    const todayDate = new Date();
     const [totalSavings, setTotalSavings] = useState(0);
 
     useEffect(() => {
         let total = 0;
-        const allYears = [];
-        const allMonths = [];
-        yearlySavings.forEach((value, key) => {
-            allYears.push(key);
-            total += value.totalSavings;
-        })
-        monthlySavings.forEach((value, key) => {
-            allMonths.push(key);
-            if (!allYears.includes(new Date(key).getFullYear())) {
-                total += value.totalSavings;
-            }
-        })
         dailySavings.forEach((value, key) => {
             const date = new Date(key);
-            let month = ("" + (date.getMonth() + 1)).padStart(2, '0');
-            if (!allMonths.includes(date.getFullYear() + "-" + month)) {
+            const dateLastWeek = new Date(todayDate);
+            dateLastWeek.setDate(todayDate.getDate() - 7);
+            dateLastWeek.setHours(0, 0, 0);
+            if (date >= dateLastWeek) {
                 total += value.totalSavings;
             }
         })
@@ -34,7 +25,7 @@ const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySaving
         <Card sx={{minWidth: "215px", minHeight: '105px'}}>
             <CardContent>
                 <Typography color="textSecondary" gutterBottom>
-                    Savings all time
+                    Savings for past 7 days
                 </Typography>
                 <Typography variant="h5" component="h2">
                     ${Math.round(totalSavings * 10000) / 10000}
@@ -44,4 +35,4 @@ const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySaving
     );
 }
 
-export default CostAwareAllTimeSavingsCard;
+export default CostAwareSavingsPastWeekCard;
