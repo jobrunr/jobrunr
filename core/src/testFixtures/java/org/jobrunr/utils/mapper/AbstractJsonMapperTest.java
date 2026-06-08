@@ -11,6 +11,11 @@ import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.costaware.CostAwareTotalSavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.BackgroundJobServerSavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.DailySavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.MonthlySavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.Savings;
+import org.jobrunr.server.costaware.CostAwareTotalSavings.YearlySavings;
 import org.jobrunr.server.costaware.CostAwareTotalSavingsAssert;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
@@ -20,13 +25,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.Year;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -437,12 +447,43 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    void canSerializeCostAwareTotalSavings() {
+        HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings = new HashMap<>();
+
+        DailySavings dailySaving = new DailySavings(LocalDate.now());
+        dailySaving.addBackgroundJobServerSavings(new BackgroundJobServerSavings(UUID.randomUUID(), Instant.now(), Instant.now(), BigDecimal.ONE));
+
+        HashMap<LocalDate, Savings> dailySavings = new HashMap<>();
+        dailySavings.put(LocalDate.now(), dailySaving);
+
+        HashMap<YearMonth, Savings> monthlySavings = new HashMap<>();
+        monthlySavings.put(YearMonth.now(), new MonthlySavings(YearMonth.now(), List.of(dailySaving)));
+
+        HashMap<Year, Savings> yearlySavings = new HashMap<>();
+        yearlySavings.put(Year.now(), new YearlySavings(Year.now(), List.of(new MonthlySavings(YearMonth.now(), List.of(dailySaving)))));
+
+        CostAwareTotalSavings costAwareTotalSavings = new CostAwareTotalSavings(
+                backgroundJobServerSavings,
+                dailySavings,
+                monthlySavings,
+                yearlySavings
+        );
+
+        var serializedSavings = jsonMapper.serialize(costAwareTotalSavings);
+
+        assertThat(serializedSavings)
+                .isNotNull()
+                .contains("dailySavings")
+                .contains("monthlySavings")
+                .contains("yearlySavings");
+    }
+
+    @Test
     void canDeserializeCostAwareTotalSavings() {
         var json = contentOfResource("/costaware/total_savings.json");
 
         var totalSavings = jsonMapper.deserialize(json, CostAwareTotalSavings.class);
 
-        assertThat(totalSavings != null).isTrue();
         CostAwareTotalSavingsAssert.assertThat(totalSavings)
                 .isNotNull()
                 .hasAmountOfDailySavings(3)
