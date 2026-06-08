@@ -4,6 +4,8 @@ import Typography from "@mui/material/Typography";
 import CostAwareDailySavingsCard from "./daily-savings-card.js";
 import CostAwareMonthlySavingsCard from "./monthly-savings-card.js";
 import CostAwareYearlySavingsCard from "./yearly-savings-card.js";
+import CostAwareRollingSavingsCard from "./rolling-savings-card.js";
+import CostAwareAllTimeSavingsCard from "./all-time-savings-card.js";
 
 const CostAwareSavings = () => {
     const [totalSavings, setTotalSavings] = useState(null);
@@ -65,7 +67,10 @@ const CostAwareSavings = () => {
                 </Box>
                 <div style={{display: "flex", flexWrap: "wrap", gap: "16px"}}>
                     {dailySavings && dailySavings.size > 0 &&
-                        <CostAwareDailySavingsCard dailySavings={dailySavings}/>
+                        <>
+                            <CostAwareDailySavingsCard dailySavings={dailySavings}/>
+                            <CostAwareRollingSavingsCard dailySavings={dailySavings}/>
+                        </>
                     }
                     {monthlySavings && monthlySavings.size > 0 &&
                         <CostAwareMonthlySavingsCard monthlySavings={monthlySavings}/>
@@ -73,6 +78,7 @@ const CostAwareSavings = () => {
                     {yearlySavings && yearlySavings.size > 0 &&
                         <CostAwareYearlySavingsCard yearlySavings={yearlySavings}/>
                     }
+                    <CostAwareAllTimeSavingsCard dailySavings={dailySavings} monthlySavings={monthlySavings} yearlySavings={yearlySavings}/>
                 </div>
             </div>}
         </>
