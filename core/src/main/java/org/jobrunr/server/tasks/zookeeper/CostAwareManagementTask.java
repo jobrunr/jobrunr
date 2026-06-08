@@ -77,7 +77,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
         CostAwareTotalSavings costAwareTotalSavings = getCostAwareTotalSavings();
         List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
-        costAwareTotalSavings.save(backgroundJobServers);
+        costAwareTotalSavings.save(backgroundJobServers, backgroundJobServer.getConfiguration().getPollInterval());
         saveCostAwareTotalSavings(costAwareTotalSavings);
         lastSavingsCalculationTime = Instant.now();
     }

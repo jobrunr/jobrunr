@@ -4,6 +4,7 @@ import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.BackgroundJobServerStatusMetadata;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -44,7 +45,7 @@ public class CostAwareTotalSavings {
     }
 
 
-    public void save(List<BackgroundJobServerStatus> backgroundJobServers) {
+    public void save(List<BackgroundJobServerStatus> backgroundJobServers, Duration pollInterval) {
         Instant now = Instant.now();
         ZonedDateTime zonedDateTime = now.atZone(ZoneId.systemDefault());
         LocalDate currentDate = LocalDate.from(zonedDateTime);
@@ -55,7 +56,7 @@ public class CostAwareTotalSavings {
             updateBackgroundJobServerSavings(backgroundJobServer);
         }
 
-        calculateDailySavings(currentDate);
+        calculateDailySavings(currentDate, pollInterval);
         calculateMonthlySavings(currentMonth);
         calculateYearlySavings(currentYear);
     }
@@ -75,14 +76,16 @@ public class CostAwareTotalSavings {
         backgroundJobServerSavings.put(backgroundJobServer.getId(), savings);
     }
 
-    private void calculateDailySavings(LocalDate currentDate) {
+    private void calculateDailySavings(LocalDate currentDate, Duration pollInterval) {
         Savings savings = dailySavings.get(currentDate);
         if (savings == null) {
             savings = new DailySavings(currentDate);
         }
+        Instant lastHeartbeatMustBeAfter = Instant.now().minus(pollInterval.multipliedBy(4));
         DailySavings dailySaving = savings.toDailySavings();
         backgroundJobServerSavings.values().stream()
-                .filter(saving -> LocalDate.from(saving.removedAt.atZone(ZoneId.systemDefault())).equals(currentDate))
+                .filter(saving -> LocalDate.from(saving.removedAt.atZone(ZoneId.systemDefault())).equals(currentDate)) // Why? Make sure that data is from todaz
+                .filter(saving -> saving.removedAt.isAfter(lastHeartbeatMustBeAfter)) // Why? If it's been updated more than 4 poll intervals ago, filter it out
                 .forEach(dailySaving::addBackgroundJobServerSavings);
         dailySavings.put(currentDate, dailySaving);
     }
