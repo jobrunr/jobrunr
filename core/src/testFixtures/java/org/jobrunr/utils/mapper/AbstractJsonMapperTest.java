@@ -11,6 +11,7 @@ import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.costaware.CostAwareTotalSavings;
+import org.jobrunr.server.costaware.CostAwareTotalSavingsAssert;
 import org.jobrunr.server.runner.RunnerJobContext;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestService.Task;
@@ -442,5 +443,10 @@ public abstract class AbstractJsonMapperTest {
         var totalSavings = jsonMapper.deserialize(json, CostAwareTotalSavings.class);
 
         assertThat(totalSavings != null).isTrue();
+        CostAwareTotalSavingsAssert.assertThat(totalSavings)
+                .isNotNull()
+                .hasAmountOfDailySavings(3)
+                .hasAmountOfMonthlySavings(2)
+                .hasAmountOfYearlySavings(1);
     }
 }

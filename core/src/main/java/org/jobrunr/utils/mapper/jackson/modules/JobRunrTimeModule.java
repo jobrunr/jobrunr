@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Year;
+import java.time.YearMonth;
 
 public class JobRunrTimeModule extends SimpleModule {
 
@@ -21,5 +23,13 @@ public class JobRunrTimeModule extends SimpleModule {
         addDeserializer(LocalDate.class, new LocalDateDeserializer());
         addSerializer(LocalTime.class, new LocalTimeSerializer());
         addDeserializer(LocalTime.class, new LocalTimeDeserializer());
+        addSerializer(YearMonth.class, new YearMonthSerializer());
+        addDeserializer(YearMonth.class, new YearMonthDeserializer());
+        addSerializer(Year.class, new YearSerializer());
+        addDeserializer(Year.class, new YearDeserializer());
+
+        addKeyDeserializer(LocalDate.class, new LocalDateKeyDeserializer());
+        addKeyDeserializer(YearMonth.class, new YearMonthKeyDeserializer());
+        addKeyDeserializer(Year.class, new YearKeyDeserializer());
     }
 }

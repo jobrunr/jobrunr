@@ -107,6 +107,18 @@ public class CostAwareTotalSavings {
         }
     }
 
+    public HashMap<LocalDate, Savings> getDailySavings() {
+        return dailySavings;
+    }
+
+    public HashMap<YearMonth, Savings> getMonthlySavings() {
+        return monthlySavings;
+    }
+
+    public HashMap<Year, Savings> getYearlySavings() {
+        return yearlySavings;
+    }
+
     public static class BackgroundJobServerSavings {
         private final UUID serverId;
         private final Instant createdAt;
