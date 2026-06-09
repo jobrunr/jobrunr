@@ -67,7 +67,14 @@ public class CostAwareTotalSavings {
         BackgroundJobServerSavings savings = backgroundJobServerSavings.get(backgroundJobServer.getId());
         BackgroundJobServerStatusMetadata metadata = backgroundJobServer.getMetadata();
         if (savings == null) {
-            savings = new BackgroundJobServerSavings(backgroundJobServer.getId(), backgroundJobServer.getFirstHeartbeat(), backgroundJobServer.getLastHeartbeat(), metadata == null ? BigDecimal.ZERO : metadata.getServerSavings());
+            savings = new BackgroundJobServerSavings(
+                    backgroundJobServer.getId(),
+                    backgroundJobServer.getFirstHeartbeat(),
+                    backgroundJobServer.getLastHeartbeat(),
+                    metadata == null ? BigDecimal.ZERO : metadata.getServerSavings(),
+                    metadata == null ? BigDecimal.ZERO : metadata.getSpotPrice(),
+                    metadata == null ? BigDecimal.ZERO : metadata.getInstancePrice()
+            );
         } else {
             if (metadata != null) {
                 savings.updateSavings(backgroundJobServer);
@@ -84,7 +91,7 @@ public class CostAwareTotalSavings {
         Instant lastHeartbeatMustBeAfter = Instant.now().minus(pollInterval.multipliedBy(4));
         DailySavings dailySaving = savings.toDailySavings();
         backgroundJobServerSavings.values().stream()
-                .filter(saving -> LocalDate.from(saving.removedAt.atZone(ZoneId.systemDefault())).equals(currentDate)) // Why? Make sure that data is from todaz
+                .filter(saving -> LocalDate.from(saving.removedAt.atZone(ZoneId.systemDefault())).equals(currentDate)) // Why? Make sure that data is from today
                 .filter(saving -> saving.removedAt.isAfter(lastHeartbeatMustBeAfter)) // Why? If it's been updated more than 4 poll intervals ago, filter it out
                 .forEach(dailySaving::addBackgroundJobServerSavings);
         dailySavings.put(currentDate, dailySaving);
@@ -125,27 +132,41 @@ public class CostAwareTotalSavings {
     public static class BackgroundJobServerSavings {
         private final UUID serverId;
         private final Instant createdAt;
+        private final BigDecimal spotPrice;
+        private final BigDecimal instancePrice;
         private Instant removedAt;
         private BigDecimal totalSavings;
         private BigDecimal lastIncreasedBy;
+        private BigDecimal spotSpendIncrease;
+        private BigDecimal instanceSpendIncrease;
 
         public BackgroundJobServerSavings(
                 UUID serverId,
                 Instant createdAt,
                 Instant removedAt,
-                BigDecimal totalSavings
+                BigDecimal totalSavings,
+                BigDecimal spotPrice,
+                BigDecimal instancePrice
         ) {
             this.serverId = serverId;
             this.createdAt = createdAt;
             this.removedAt = removedAt;
             this.totalSavings = totalSavings;
             this.lastIncreasedBy = totalSavings;
+            this.spotPrice = spotPrice;
+            this.instancePrice = instancePrice;
+            this.spotSpendIncrease = BigDecimal.ZERO;
+            this.instanceSpendIncrease = BigDecimal.ZERO;
         }
 
         public void updateSavings(BackgroundJobServerStatus backgroundJobServerStatus) {
-            this.removedAt = Instant.now();
+            Instant now = Instant.now();
+            Duration timeSinceLastUpdate = Duration.between(removedAt, now);
+            this.removedAt = now;
             this.lastIncreasedBy = backgroundJobServerStatus.getMetadata().getServerSavings().subtract(this.totalSavings);
             this.totalSavings = backgroundJobServerStatus.getMetadata().getServerSavings();
+            this.spotSpendIncrease = spotPrice.multiply(BigDecimal.valueOf(timeSinceLastUpdate.toMinutes() / 60.0));
+            this.instanceSpendIncrease = instancePrice.multiply(BigDecimal.valueOf(timeSinceLastUpdate.toMinutes() / 60.0));
         }
 
         public UUID getServerId() {
@@ -167,25 +188,39 @@ public class CostAwareTotalSavings {
         public BigDecimal getLastIncreasedBy() {
             return lastIncreasedBy;
         }
+
+        public BigDecimal getSpotSpendIncrease() {
+            return spotSpendIncrease;
+        }
+
+        public BigDecimal getInstanceSpendIncrease() {
+            return instanceSpendIncrease;
+        }
     }
 
     public static abstract class Savings {
         private final ChronoUnit chronoUnit;
         private final Temporal period;
         protected BigDecimal totalSavings;
+        protected BigDecimal spotInstanceSpend;
+        protected BigDecimal equivalentInstanceSpend;
 
         Savings(ChronoUnit chronoUnit, Temporal period) {
-            this(chronoUnit, period, BigDecimal.ZERO);
+            this(chronoUnit, period, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
         public Savings(
                 ChronoUnit chronoUnit,
                 Temporal period,
-                BigDecimal totalSavings
+                BigDecimal totalSavings,
+                BigDecimal spotInstanceSpend,
+                BigDecimal equivalentInstanceSpend
         ) {
             this.chronoUnit = chronoUnit;
             this.period = period;
             this.totalSavings = totalSavings;
+            this.spotInstanceSpend = spotInstanceSpend;
+            this.equivalentInstanceSpend = equivalentInstanceSpend;
         }
 
         public ChronoUnit getChronoUnit() {
@@ -198,6 +233,14 @@ public class CostAwareTotalSavings {
 
         public BigDecimal getTotalSavings() {
             return totalSavings;
+        }
+
+        public BigDecimal getSpotInstanceSpend() {
+            return spotInstanceSpend;
+        }
+
+        public BigDecimal getEquivalentInstanceSpend() {
+            return equivalentInstanceSpend;
         }
 
         public boolean isDaily() {
@@ -234,18 +277,20 @@ public class CostAwareTotalSavings {
             super(ChronoUnit.DAYS, start);
         }
 
-        public DailySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
-            super(chronoUnit, period, totalSavings);
+        public DailySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings, BigDecimal spotInstanceSpend, BigDecimal equivalentInstanceSpend) {
+            super(chronoUnit, period, totalSavings, spotInstanceSpend, equivalentInstanceSpend);
         }
 
         public void addBackgroundJobServerSavings(BackgroundJobServerSavings backgroundJobServerSavings) {
             totalSavings = totalSavings.add(backgroundJobServerSavings.lastIncreasedBy);
+            spotInstanceSpend = spotInstanceSpend.add(backgroundJobServerSavings.spotSpendIncrease);
+            equivalentInstanceSpend = equivalentInstanceSpend.add(backgroundJobServerSavings.instanceSpendIncrease);
         }
     }
 
     public static class MonthlySavings extends Savings {
-        public MonthlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
-            super(chronoUnit, period, totalSavings);
+        public MonthlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings, BigDecimal spotInstanceSpend, BigDecimal equivalentInstanceSpend) {
+            super(chronoUnit, period, totalSavings, spotInstanceSpend, equivalentInstanceSpend);
         }
 
         public MonthlySavings(YearMonth yearMonth, List<DailySavings> dailySavings) {
@@ -258,8 +303,8 @@ public class CostAwareTotalSavings {
     }
 
     public static class YearlySavings extends Savings {
-        public YearlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings) {
-            super(chronoUnit, period, totalSavings);
+        public YearlySavings(ChronoUnit chronoUnit, Temporal period, BigDecimal totalSavings, BigDecimal spotInstanceSpend, BigDecimal equivalentInstanceSpend) {
+            super(chronoUnit, period, totalSavings, spotInstanceSpend, equivalentInstanceSpend);
         }
 
         public YearlySavings(Year year, List<MonthlySavings> monthlySavings) {

@@ -14,6 +14,8 @@ public abstract class SavingsMixin {
     public SavingsMixin(
             @JsonProperty("chronoUnit") ChronoUnit chronoUnit,
             @JsonProperty("period") Temporal period,
-            @JsonProperty("totalSavings") BigDecimal totalSavings
+            @JsonProperty("totalSavings") BigDecimal totalSavings,
+            @JsonProperty("spotInstanceSpend") BigDecimal spotInstanceSpend,
+            @JsonProperty("equivalentInstanceSpend") BigDecimal equivalentInstanceSpend
     ) {}
 }

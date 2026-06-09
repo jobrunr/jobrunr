@@ -451,7 +451,7 @@ public abstract class AbstractJsonMapperTest {
         HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings = new HashMap<>();
 
         DailySavings dailySaving = new DailySavings(LocalDate.now());
-        dailySaving.addBackgroundJobServerSavings(new BackgroundJobServerSavings(UUID.randomUUID(), Instant.now(), Instant.now(), BigDecimal.ONE));
+        dailySaving.addBackgroundJobServerSavings(new BackgroundJobServerSavings(UUID.randomUUID(), Instant.now(), Instant.now(), BigDecimal.ONE, BigDecimal.valueOf(0.5), BigDecimal.valueOf(2.5)));
 
         HashMap<LocalDate, Savings> dailySavings = new HashMap<>();
         dailySavings.put(LocalDate.now(), dailySaving);

@@ -96,6 +96,8 @@ const CostAwareDailySavingsTab = ({dailySavings}) => {
                     <TableRow>
                         <TableCell>Date</TableCell>
                         <TableCell>Total Savings</TableCell>
+                        <TableCell>Spot Spend</TableCell>
+                        <TableCell>Equivalent Instance Spend</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -103,6 +105,8 @@ const CostAwareDailySavingsTab = ({dailySavings}) => {
                         <TableRow>
                             <TableCell>{formatDateToHumanReadable(date)}</TableCell>
                             <TableCell>${Math.round((dailySavings.get(formatDateForDailySavings(date))?.totalSavings ?? 0) * 10000) / 10000}</TableCell>
+                            <TableCell>${Math.round((dailySavings.get(formatDateForDailySavings(date))?.spotInstanceSpend ?? 0) * 10000) / 10000}</TableCell>
+                            <TableCell>${Math.round((dailySavings.get(formatDateForDailySavings(date))?.equivalentInstanceSpend ?? 0) * 10000) / 10000}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
