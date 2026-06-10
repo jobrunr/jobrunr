@@ -2,7 +2,6 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
@@ -37,9 +36,6 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrConfigurationTest {
-
-    @Mock
-    JobActivator jobActivator;
 
     @Mock
     StorageProvider storageProvider;
