@@ -31,28 +31,28 @@ class BasicWorkDistributionStrategyTest {
     void canOnboardIfWorkQueueSizeIsEmpty() {
         when(jobSteward.getOccupiedWorkerCount()).thenReturn(0);
 
-        assertThat(workDistributionStrategy.canOnboardNewWork()).isTrue();
+        assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(100);
     }
 
     @Test
     void canNotOnboardIfWorkQueueIsFull() {
         when(jobSteward.getOccupiedWorkerCount()).thenReturn(100);
 
-        assertThat(workDistributionStrategy.canOnboardNewWork()).isFalse();
+        assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(0);
     }
 
     @Test
     void canOnboardIfMoreThan30PercentFreeInWorkQueue() {
         when(jobSteward.getOccupiedWorkerCount()).thenReturn(69);
 
-        assertThat(workDistributionStrategy.canOnboardNewWork()).isTrue();
+        assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(31);
     }
 
     @Test
     void canNotOnboardIfLessThan30PercentFreeInWorkQueue() {
         when(jobSteward.getOccupiedWorkerCount()).thenReturn(71);
 
-        assertThat(workDistributionStrategy.canOnboardNewWork()).isFalse();
+        assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(29);
     }
 
 }
