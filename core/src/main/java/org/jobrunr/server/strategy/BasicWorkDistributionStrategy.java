@@ -25,13 +25,6 @@ public class BasicWorkDistributionStrategy implements WorkDistributionStrategy {
     }
 
     @Override
-    public boolean canOnboardNewWork() {
-        final double occupiedWorkerCount = getOccupiedWorkerCount();
-        final boolean canOnboardWork = (occupiedWorkerCount / workerCount) < 0.7;
-        return canOnboardWork;
-    }
-
-    @Override
     public AmountRequest getWorkPageRequest() {
         final int occupiedWorkerCount = getOccupiedWorkerCount();
 
