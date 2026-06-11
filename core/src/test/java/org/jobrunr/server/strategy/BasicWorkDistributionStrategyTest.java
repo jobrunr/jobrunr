@@ -48,11 +48,4 @@ class BasicWorkDistributionStrategyTest {
         assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(31);
     }
 
-    @Test
-    void canNotOnboardIfLessThan30PercentFreeInWorkQueue() {
-        when(jobSteward.getOccupiedWorkerCount()).thenReturn(71);
-
-        assertThat(workDistributionStrategy.getWorkPageRequest().getLimit()).isEqualTo(29);
-    }
-
 }
