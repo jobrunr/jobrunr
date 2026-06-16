@@ -59,6 +59,7 @@ public class CostAwareTotalSavings {
         calculateDailySavings(currentDate, pollInterval);
         calculateMonthlySavings(currentMonth);
         calculateYearlySavings(currentYear);
+        clearOldServers();
     }
 
     private void updateBackgroundJobServerSavings(BackgroundJobServerStatus backgroundJobServer) {
@@ -115,6 +116,13 @@ public class CostAwareTotalSavings {
             YearMonth earliestYear = monthlySavings.keySet().stream().min(YearMonth::compareTo).orElseThrow();
             monthlySavings.remove(earliestYear);
         }
+    }
+
+    private void clearOldServers() {
+        backgroundJobServerSavings.entrySet().removeIf(
+                saving ->
+                        saving.getValue().removedAt.isBefore(Instant.now().minusSeconds(60 * 60 * 2))
+        );
     }
 
     public HashMap<LocalDate, Savings> getDailySavings() {

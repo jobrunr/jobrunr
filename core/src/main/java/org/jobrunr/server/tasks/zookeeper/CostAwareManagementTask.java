@@ -52,7 +52,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     }
 
     private void scaleIfNecessary() {
-        if ((isSettling())) return;
+        if (isSettling()) return;
         JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
         Duration jobLatency = getCurrentJobLatency();
@@ -83,8 +83,9 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     }
 
     private boolean needsToScaleUpBecauseLatencyIsTooHigh(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
-        return backgroundJobServerSpotInstances.size() < maxAmountSpotInstances
-                && jobLatency != null && jobLatency.compareTo(scaleUpLatency) > 0;
+        return (backgroundJobServerSpotInstances.size() < maxAmountSpotInstances
+                && jobLatency != null && jobLatency.compareTo(scaleUpLatency) > 0)
+                || backgroundJobServerSpotInstances.size() < minAmountSpotInstances;
     }
 
     private boolean needsToScaleDownBecauseLatencyIsLow(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
