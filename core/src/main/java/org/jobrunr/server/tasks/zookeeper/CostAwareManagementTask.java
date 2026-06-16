@@ -8,9 +8,11 @@ import org.jobrunr.server.costaware.CostAwareApiClientException;
 import org.jobrunr.server.costaware.CostAwareConfiguration;
 import org.jobrunr.server.costaware.CostAwareConfigurationReader;
 import org.jobrunr.server.costaware.CostAwareTotalSavings;
+import org.jobrunr.server.tasks.zookeeper.CostAwareManagementTask.SpotScalingMetadata.ScalingDirection;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.Paging;
+import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.time.Duration;
@@ -34,7 +36,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     public CostAwareManagementTask(BackgroundJobServer backgroundJobServer, CostAwareConfiguration costAwareConfiguration, JsonMapper jsonMapper) {
         super(backgroundJobServer);
         CostAwareConfigurationReader configurationReader = new CostAwareConfigurationReader(costAwareConfiguration);
-        this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper);
+        this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper, backgroundJobServer.getStorageProvider());
 
         this.minAmountSpotInstances = configurationReader.getMinSpotInstances();
         this.maxAmountSpotInstances = configurationReader.getMaxSpotInstances();
@@ -52,6 +54,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     }
 
     private void scaleIfNecessary() {
+        checkForScaleComplete();
         if (isSettling()) return;
         JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
@@ -60,15 +63,38 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
             List<BackgroundJobServerStatus> backgroundJobServerSpotInstances = getBackgroundJobServerSpotInstances();
             if (needsToScaleUpBecauseLatencyIsTooHigh(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale up
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.UP, backgroundJobServerSpotInstances.size(), SpotScalingMetadata.ScalingStatus.PROCESSING);
+                spotScalingMetadata.saveToSpotScalingMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+                LOGGER.info("JobRunr is scaling up, creating a new spot instance");
                 costAwareApiClient.scaleUp(clusterId.getValue());
                 lastScaleTime = Instant.now();
             } else if (needsToScaleDownBecauseLatencyIsLow(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale down
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.DOWN, backgroundJobServerSpotInstances.size(), SpotScalingMetadata.ScalingStatus.PROCESSING);
+                spotScalingMetadata.saveToSpotScalingMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+                LOGGER.info("JobRunr is scaling down, removing the oldest spot instance");
                 costAwareApiClient.scaleDown(clusterId.getValue());
                 lastScaleTime = Instant.now();
             }
         } catch (CostAwareApiClientException e) {
             LOGGER.error("Error scaling SPOT instances", e);
+        }
+    }
+
+    private void checkForScaleComplete() {
+        SpotScalingMetadata metadata = SpotScalingMetadata.readMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+        if (metadata != null) {
+            if (metadata.getDirection().equals(ScalingDirection.UP)) {
+                if (getBackgroundJobServerSpotInstances().size() >= metadata.getCurrentServers() + 1) {
+                    LOGGER.info("Scaling up a spot instance is complete");
+                    super.storageProvider.deleteMetadata("spot-scaling", "cluster");
+                }
+            } else if (metadata.getDirection().equals(ScalingDirection.DOWN)) {
+                if (getBackgroundJobServerSpotInstances().size() <= metadata.getCurrentServers() - 1) {
+                    LOGGER.info("Scaling down a spot instance is complete");
+                    super.storageProvider.deleteMetadata("spot-scaling", "cluster");
+                }
+            }
         }
     }
 
@@ -135,5 +161,62 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     private void saveCostAwareTotalSavings(CostAwareTotalSavings costAwareTotalSavings) {
         String costAwareTotalSavingsAsJson = backgroundJobServer.getJsonMapper().serialize(costAwareTotalSavings);
         storageProvider.saveMetadata(new JobRunrMetadata("total-savings", "cluster", costAwareTotalSavingsAsJson));
+    }
+
+    public static class SpotScalingMetadata {
+        private ScalingDirection direction;
+        private int currentServers;
+        private ScalingStatus scalingStatus;
+
+        public SpotScalingMetadata() {
+        }
+
+        public SpotScalingMetadata(ScalingDirection direction, int currentServers, ScalingStatus scalingStatus) {
+            this.direction = direction;
+            this.currentServers = currentServers;
+            this.scalingStatus = scalingStatus;
+        }
+
+        public void saveToSpotScalingMetadata(StorageProvider storageProvider, JsonMapper jsonMapper) {
+            storageProvider.saveMetadata(new JobRunrMetadata("spot-scaling", "cluster", jsonMapper.serialize(this)));
+        }
+
+        public static SpotScalingMetadata readMetadata(StorageProvider storageProvider, JsonMapper jsonMapper) {
+            JobRunrMetadata metadata = storageProvider.getMetadata("spot-scaling", "cluster");
+            if (metadata == null) return null;
+            return jsonMapper.deserialize(metadata.getValue(), SpotScalingMetadata.class);
+        }
+
+        public ScalingDirection getDirection() {
+            return direction;
+        }
+
+        public int getCurrentServers() {
+            return currentServers;
+        }
+
+        public void setDirection(ScalingDirection direction) {
+            this.direction = direction;
+        }
+
+        public void setCurrentServers(int currentServers) {
+            this.currentServers = currentServers;
+        }
+
+        public ScalingStatus getScalingStatus() {
+            return scalingStatus;
+        }
+
+        public void setScalingStatus(ScalingStatus scalingStatus) {
+            this.scalingStatus = scalingStatus;
+        }
+
+        public enum ScalingStatus {
+            PROCESSING, PROVISIONED, SCALED_DOWN, FAILED
+        }
+
+        public enum ScalingDirection {
+            UP, DOWN
+        }
     }
 }
