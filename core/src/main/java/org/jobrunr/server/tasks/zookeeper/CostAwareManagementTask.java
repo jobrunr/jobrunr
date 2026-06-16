@@ -9,10 +9,10 @@ import org.jobrunr.server.costaware.CostAwareConfiguration;
 import org.jobrunr.server.costaware.CostAwareConfigurationReader;
 import org.jobrunr.server.costaware.CostAwareTotalSavings;
 import org.jobrunr.server.tasks.zookeeper.CostAwareManagementTask.SpotScalingMetadata.ScalingDirection;
+import org.jobrunr.server.tasks.zookeeper.CostAwareManagementTask.SpotScalingMetadata.ScalingStatus;
 import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.Paging;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.time.Duration;
@@ -36,7 +36,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     public CostAwareManagementTask(BackgroundJobServer backgroundJobServer, CostAwareConfiguration costAwareConfiguration, JsonMapper jsonMapper) {
         super(backgroundJobServer);
         CostAwareConfigurationReader configurationReader = new CostAwareConfigurationReader(costAwareConfiguration);
-        this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper, backgroundJobServer.getStorageProvider());
+        this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper);
 
         this.minAmountSpotInstances = configurationReader.getMinSpotInstances();
         this.maxAmountSpotInstances = configurationReader.getMaxSpotInstances();
@@ -63,26 +63,33 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
             List<BackgroundJobServerStatus> backgroundJobServerSpotInstances = getBackgroundJobServerSpotInstances();
             if (needsToScaleUpBecauseLatencyIsTooHigh(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale up
-                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.UP, backgroundJobServerSpotInstances.size(), SpotScalingMetadata.ScalingStatus.PROCESSING);
-                spotScalingMetadata.saveToSpotScalingMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.UP, backgroundJobServerSpotInstances.size(), ScalingStatus.PROCESSING);
+                saveSpotScalingMetadata(spotScalingMetadata);
                 LOGGER.info("JobRunr is scaling up, creating a new spot instance");
                 costAwareApiClient.scaleUp(clusterId.getValue());
                 lastScaleTime = Instant.now();
+                spotScalingMetadata.setScalingStatus(ScalingStatus.PROVISIONED);
+                saveSpotScalingMetadata(spotScalingMetadata);
             } else if (needsToScaleDownBecauseLatencyIsLow(backgroundJobServerSpotInstances, jobLatency)) {
                 // scale down
-                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.DOWN, backgroundJobServerSpotInstances.size(), SpotScalingMetadata.ScalingStatus.PROCESSING);
-                spotScalingMetadata.saveToSpotScalingMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.DOWN, backgroundJobServerSpotInstances.size(), ScalingStatus.PROCESSING);
+                saveSpotScalingMetadata(spotScalingMetadata);
                 LOGGER.info("JobRunr is scaling down, removing the oldest spot instance");
                 costAwareApiClient.scaleDown(clusterId.getValue());
                 lastScaleTime = Instant.now();
+                spotScalingMetadata.setScalingStatus(ScalingStatus.SCALED_DOWN);
+                saveSpotScalingMetadata(spotScalingMetadata);
             }
         } catch (CostAwareApiClientException e) {
+            SpotScalingMetadata scalingMetadata = getSpotScalingMetadata();
+            scalingMetadata.setScalingStatus(ScalingStatus.FAILED);
+            saveSpotScalingMetadata(scalingMetadata);
             LOGGER.error("Error scaling SPOT instances", e);
         }
     }
 
     private void checkForScaleComplete() {
-        SpotScalingMetadata metadata = SpotScalingMetadata.readMetadata(storageProvider, backgroundJobServer.getJsonMapper());
+        SpotScalingMetadata metadata = getSpotScalingMetadata();
         if (metadata != null) {
             if (metadata.getDirection().equals(ScalingDirection.UP)) {
                 if (getBackgroundJobServerSpotInstances().size() >= metadata.getCurrentServers() + 1) {
@@ -163,6 +170,19 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         storageProvider.saveMetadata(new JobRunrMetadata("total-savings", "cluster", costAwareTotalSavingsAsJson));
     }
 
+    public SpotScalingMetadata getSpotScalingMetadata() {
+        JobRunrMetadata metadata = storageProvider.getMetadata("spot-scaling", "cluster");
+        if (metadata == null) return null;
+        return backgroundJobServer.getJsonMapper().deserialize(metadata.getValue(), SpotScalingMetadata.class);
+    }
+
+    public void saveSpotScalingMetadata(SpotScalingMetadata spotScalingMetadata) {
+        String spotScalingMetadataAsString = backgroundJobServer.getJsonMapper().serialize(spotScalingMetadata);
+        JobRunrMetadata jobRunrMetadata = new JobRunrMetadata("spot-scaling", "cluster", spotScalingMetadataAsString);
+        storageProvider.saveMetadata(jobRunrMetadata);
+    }
+
+
     public static class SpotScalingMetadata {
         private ScalingDirection direction;
         private int currentServers;
@@ -175,16 +195,6 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
             this.direction = direction;
             this.currentServers = currentServers;
             this.scalingStatus = scalingStatus;
-        }
-
-        public void saveToSpotScalingMetadata(StorageProvider storageProvider, JsonMapper jsonMapper) {
-            storageProvider.saveMetadata(new JobRunrMetadata("spot-scaling", "cluster", jsonMapper.serialize(this)));
-        }
-
-        public static SpotScalingMetadata readMetadata(StorageProvider storageProvider, JsonMapper jsonMapper) {
-            JobRunrMetadata metadata = storageProvider.getMetadata("spot-scaling", "cluster");
-            if (metadata == null) return null;
-            return jsonMapper.deserialize(metadata.getValue(), SpotScalingMetadata.class);
         }
 
         public ScalingDirection getDirection() {
