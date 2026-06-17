@@ -47,7 +47,8 @@ export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion
         >
             {isStable
                 ? <p>JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
-                    performance improvements and new features.</p>
+                    performance improvements and new features.
+                    Full release note available <a target="_blank" href="https://github.com/jobrunr/jobrunr/releases">on GitHub</a>.</p>
                 : <p>JobRunr version {latestVersion} is live!
                     Try it out and share your thoughts by starting a <a target="_blank" href="https://github.com/jobrunr/jobrunr/discussions">
                         discussion on GitHub</a>. Thanks for your contribution!</p>

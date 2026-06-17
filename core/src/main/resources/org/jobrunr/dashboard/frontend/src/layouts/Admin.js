@@ -93,7 +93,7 @@ const AdminUI = function () {
     }, []);
 
     return (
-        <ThemeProvider theme={theme} defaultMode="light">
+        <ThemeProvider theme={theme} defaultMode="system">
             <CssBaseline enableColorScheme/>
             {isLoading ?
                 <LoadingIndicator/>
