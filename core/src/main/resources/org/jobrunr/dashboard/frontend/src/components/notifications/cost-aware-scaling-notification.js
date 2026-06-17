@@ -32,7 +32,7 @@ export const CostAwareScalingNotification = ({problem, ...rest}) => {
                 </>
             case "SCALED_DOWN":
                 return <>
-                    An instance has been scaled down, waiting for it to be inactive.
+                    An instance has been scaled down, we are now waiting for it to be inactive.
                 </>
             case "FAILED":
                 return <>

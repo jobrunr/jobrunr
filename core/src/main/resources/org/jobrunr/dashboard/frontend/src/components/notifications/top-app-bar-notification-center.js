@@ -143,12 +143,11 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             fetch("https://api.jobrunr.io/api/version/jobrunr/latest", config).then(res => res.json()).catch(() => undefined /* ignored */),
             fetch("https://api.jobrunr.io/api/notifications/jobrunr", config).then(res => res.json()).catch(() => undefined /* ignored */),
             fetch("/api/metadata/spot-scaling/cluster?format=jsonValue", config).then(res => res.json()).catch(() => undefined)
-            // TODO Deal with error message in console when cluster spot scaling not found
         ]).then(([clusterProblems, latestVersion, apiNotification, spotScaling]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
-            setSpotScaling(spotScaling);
+            setSpotScaling(spotScaling); // TODO remove notification from display when it gets removed
         }).catch(error => console.error(error));
     }, [])
 
