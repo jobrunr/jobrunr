@@ -66,10 +66,21 @@ public class MySqlStorageProvider extends DefaultSqlStorageProvider {
         try (Connection connection = dataSource.getConnection()) {
             final String databaseProductName = connection.getMetaData().getDatabaseProductName();
             final String databaseProductVersion = connection.getMetaData().getDatabaseProductVersion();
-            return new MySqlDialect(databaseProductName, databaseProductVersion);
+            return resolveDialect(databaseProductName, databaseProductVersion);
         } catch (SQLException e) {
             // unable to determine DB version
         }
         return new AnsiDialect();
+    }
+
+    private static AnsiDialect resolveDialect(String databaseProductName, String databaseProductVersion) {
+        if (isTiDB(databaseProductVersion)) {
+            return new AnsiDialect();
+        }
+        return new MySqlDialect(databaseProductName, databaseProductVersion);
+    }
+
+    private static boolean isTiDB(String databaseProductVersion) {
+        return databaseProductVersion != null && databaseProductVersion.toLowerCase().contains("tidb");
     }
 }
