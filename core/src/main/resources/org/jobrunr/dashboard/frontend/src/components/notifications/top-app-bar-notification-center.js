@@ -17,6 +17,7 @@ import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
+import {CostAwareScalingNotification, getCostAwareScaling} from "./cost-aware-scaling-notification.js";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
 
@@ -101,6 +102,8 @@ const getProblemId = (problem) => {
             return `${problem.type};${problem.createdAt}`;
         case 'new-jobrunr-version':
             return `${problem.type};${problem.latestVersion}`;
+        case 'cost-aware-spot-scaling':
+            return `${problem.type};${problem.direction}`;
         default:
             return `unknown;${Math.random().toString(36).substring(2, 10)}`;
     }
@@ -113,6 +116,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
     const [clusterProblems, setClusterProblems] = useState([]);
     const [latestVersion, setLatestVersion] = useState();
     const [apiNotification, setApiNotification] = useState();
+    const [spotScaling, setSpotScaling] = useState();
     const {version: currentVersion} = useContext(JobRunrInfoContext);
     const [isOpen, setIsOpen] = useState(false);
     const popperAnchorEl = useRef(null);
@@ -138,10 +142,13 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             fetch("/api/problems", config).then(res => res.json()),
             fetch("https://api.jobrunr.io/api/version/jobrunr/latest", config).then(res => res.json()).catch(() => undefined /* ignored */),
             fetch("https://api.jobrunr.io/api/notifications/jobrunr", config).then(res => res.json()).catch(() => undefined /* ignored */),
-        ]).then(([clusterProblems, latestVersion, apiNotification]) => {
+            fetch("/api/metadata/spot-scaling/cluster?format=jsonValue", config).then(res => res.json()).catch(() => undefined)
+            // TODO Deal with error message in console when cluster spot scaling not found
+        ]).then(([clusterProblems, latestVersion, apiNotification, spotScaling]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
+            setSpotScaling(spotScaling);
         }).catch(error => console.error(error));
     }, [])
 
@@ -175,6 +182,10 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
             if (apiNotification && isNotDismissed(LATEST_DISMISSED_API_NOTIFICATION, apiNotification["id"])) {
                 problems.push(getApiNotificationProblem(apiNotification));
+            }
+
+            if (spotScaling) {
+                problems.push(getCostAwareScaling(spotScaling));
             }
 
             return problems.map(problem => ({...problem, id: getProblemId(problem)})).sort(problemCompareFn);
@@ -232,6 +243,11 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                     onDismiss={reloadProblems}
                     onReadStatusToggled={handleReadStatusToggled}
                 />
+            case 'cost-aware-spot-scaling':
+                return <CostAwareScalingNotification
+                    problem={problem}
+                    onReadStatusToggled={handleReadStatusToggled}
+                    onDismiss={reloadProblems}/>
             case 'new-jobrunr-version':
                 return <NewJobRunrVersionAvailableNotification
                     problem={problem}
