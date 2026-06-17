@@ -138,7 +138,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         implementation platform(project(':platform'))
         compileOnly 'org.apache.groovy:groovy-json:4.0.29'
 
-        errorprone 'com.google.errorprone:error_prone_core:2.49.0'
+        errorprone 'com.google.errorprone:error_prone_core:2.50.0'
 
         testImplementation platform("org.junit:junit-bom:5.14.4")
         testImplementation 'org.junit.jupiter:junit-jupiter'
