@@ -34,7 +34,7 @@ dependencies {
         api 'com.zaxxer:HikariCP:7.1.0'
         api 'io.agroal:agroal-pool:3.2'
         api 'org.apache.commons:commons-dbcp2:2.14.0'
-        api 'org.apache.tomcat:tomcat-jdbc:11.0.21'
+        api 'org.apache.tomcat:tomcat-jdbc:11.0.22'
         api 'org.mongodb:mongodb-driver-sync:5.8.0'
 
         api 'org.junit.jupiter:junit-jupiter:5.14.4'
