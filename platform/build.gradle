@@ -7,8 +7,8 @@ plugins {
 dependencies {
     constraints {
         api 'org.slf4j:slf4j-api:2.0.18'
-        api 'org.ow2.asm:asm:9.9.1'
-        api 'org.ow2.asm:asm-util:9.9.1'
+        api 'org.ow2.asm:asm:9.10.1'
+        api 'org.ow2.asm:asm-util:9.10.1'
 
         api 'com.fasterxml.jackson.core:jackson-databind:2.22.0'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.0'
