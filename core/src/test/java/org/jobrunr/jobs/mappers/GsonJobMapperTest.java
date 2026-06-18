@@ -16,6 +16,6 @@ public class GsonJobMapperTest extends JobMapperTest {
     @Disabled("GSON does not throw an exception when serializing circular references ")
     @Test
     void onIllegalJobParameterCorrectExceptionIsThrown() {
-        super.onIllegalJobParameterCorrectExceptionIsThrown();
+        // disabled
     }
 }
