@@ -3,11 +3,13 @@ package org.jobrunr.server;
 import ch.qos.logback.LoggerAssert;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.github.artsok.RepeatedIfExceptionsTest;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.states.ProcessingState;
+import org.jobrunr.jobs.states.StateName;
 import org.jobrunr.jobs.stubs.SimpleJobActivator;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.server.runner.BackgroundJobWithIocRunner;
@@ -23,6 +25,7 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceForIoC;
 import org.jobrunr.stubs.TestServiceThatCannotBeRun;
 import org.jobrunr.utils.SleepUtils;
+import org.jobrunr.utils.ThreadUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,9 +36,8 @@ import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.time.Instant;
+import java.util.Arrays;
 
 import static java.time.Duration.ofMillis;
 import static java.time.Instant.now;
@@ -49,11 +51,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.FIVE_SECONDS;
-import static org.awaitility.Durations.ONE_MINUTE;
 import static org.awaitility.Durations.TEN_SECONDS;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 import static org.jobrunr.jobs.states.StateName.PROCESSING;
@@ -62,8 +64,10 @@ import static org.jobrunr.jobs.states.StateName.SUCCEEDED;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.StorageProviderUtils.DatabaseOptions.NO_VALIDATE;
 import static org.jobrunr.utils.SleepUtils.sleep;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class BackgroundJobServerTest {
@@ -98,6 +102,7 @@ class BackgroundJobServerTest {
     void tearDown() {
         backgroundJobServer.stop();
         storageProvider.close();
+        assertNoBackgroundJobServerThreadsExist();
     }
 
     @Test
@@ -141,6 +146,22 @@ class BackgroundJobServerTest {
     }
 
     @Test
+    void backgroundJobServerLogsErrorIfDatabaseVersionHigherThanJobRunrVersion() {
+        lenient().doReturn(new JobRunrMetadata("database_version", "cluster", "9999.99"))
+                .when(storageProvider)
+                .getMetadata("database_version", "cluster");
+
+        // WHEN
+        backgroundJobServer.start();
+
+        // THEN
+        sleep(100, MILLISECONDS);
+        assertThat(backgroundJobServer.isAnnounced()).isTrue();
+        assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isTrue();
+        assertThat(logger).hasErrorMessageContaining("JobRunr Pro Version number 6.0.0 is older than database version number 9999.99. BackgroundJobServer will not process any jobs.");
+    }
+
+    @Test
     void testStartAndStop() {
         // GIVEN server stopped and we enqueue a job
         JobId jobId = BackgroundJob.enqueue(() -> testService.doWork());
@@ -175,15 +196,30 @@ class BackgroundJobServerTest {
         assertThat(logger).hasInfoMessageContaining("stopping (may take about PT10S)", 1);
 
         // THEN no running backgroundjob threads should exist
-        await().atMost(TEN_SECONDS)
-                .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
-                        .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertNoBackgroundJobServerThreadsExist();
         assertThat(logger).hasInfoMessageContaining("BackgroundJobServer and BackgroundJobPerformers stopped", 1);
         assertThat(jobZooKeeperLogger).hasNoWarnLogMessages();
     }
 
     @Test
+    void testSetIsMasterToFalseCancelsMasterTasks() {
+        storageProvider.saveRecurringJob(aDefaultRecurringJob().withId("my-id").withCronExpression("*/1 * * * * *").build());
+
+        backgroundJobServer.start();
+
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider.getRecurringJobLatestScheduledInstant("my-id")).isNotNull());
+
+        backgroundJobServer.setIsMaster(false);
+        deleteAllJobsPermanently(StateName.values());
+
+        await().during(5, SECONDS).untilAsserted(() -> assertThat(storageProvider.getRecurringJobLatestScheduledInstant("my-id")).isNull());
+    }
+
+    @RepeatedIfExceptionsTest(repeats = 3)
     void testOnServerExitCleansUpAllThreads() {
+        // assert no JobRunr threads exist
+        assertNoBackgroundJobServerThreadsExist("BEFORE TEST");
+
         final int amountOfJobs = 10;
 
         backgroundJobServer.start();
@@ -191,12 +227,10 @@ class BackgroundJobServerTest {
             BackgroundJob.enqueue(() -> testService.doWork());
         }
         await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(storageProvider).hasJobs(SUCCEEDED, amountOfJobs));
-        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(this::containsBackgroundJobThreads));
+        await().atMost(TEN_SECONDS).untilAsserted(() -> assertThat(Thread.getAllStackTraces()).matches(ThreadUtils::containsBackgroundJobThreads));
 
         backgroundJobServer.stop();
-        await().atMost(ONE_MINUTE)
-                .untilAsserted(() -> assertThat(Thread.getAllStackTraces())
-                        .matches(this::containsNoBackgroundJobThreads, "Found BackgroundJob Threads: \n\t" + getThreadNames(Thread.getAllStackTraces()).collect(Collectors.joining("\n\t"))));
+        assertNoBackgroundJobServerThreadsExist("AFTER TEST");
     }
 
     @Test
@@ -415,16 +449,8 @@ class BackgroundJobServerTest {
                 .untilAsserted(() -> assertThat(logger).hasErrorMessageContaining("failed to start"));
     }
 
-    private boolean containsNoBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {
-        return getThreadNames(threadMap).noneMatch(threadName -> threadName.startsWith("backgroundjob"));
-    }
-
-    private boolean containsBackgroundJobThreads(Map<Thread, StackTraceElement[]> threadMap) {
-        return getThreadNames(threadMap).anyMatch(threadName -> threadName.startsWith("backgroundjob"));
-    }
-
-    private Stream<String> getThreadNames(Map<Thread, StackTraceElement[]> threadMap) {
-        return threadMap.keySet().stream().map(Thread::getName);
+    private void deleteAllJobsPermanently(StateName... stateNames) {
+        Arrays.stream(stateNames).forEach(stateName -> storageProvider.deleteJobsPermanently(stateName, Instant.MAX));
     }
 
 }

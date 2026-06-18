@@ -119,7 +119,6 @@ class JobStewardTest {
         when(backgroundJobServer.getStorageProvider()).thenReturn(storageProvider);
         when(backgroundJobServer.getWorkDistributionStrategy()).thenReturn(workDistributionStrategy);
         when(backgroundJobServer.getJobFilters()).thenReturn(new JobDefaultFilters());
-        lenient().when(workDistributionStrategy.canOnboardNewWork()).thenReturn(true);
         lenient().when(workDistributionStrategy.getWorkPageRequest()).thenReturn(ascOnUpdatedAt(10));
         lenient().when(backgroundJobServer.isAnnounced()).thenReturn(true);
         lenient().when(backgroundJobServer.isMaster()).thenReturn(true);

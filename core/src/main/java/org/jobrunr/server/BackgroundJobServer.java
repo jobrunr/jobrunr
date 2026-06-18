@@ -36,8 +36,10 @@ import org.jobrunr.storage.BackgroundJobServerStatusMetadata;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.ThreadSafeStorageProvider;
+import org.jobrunr.utils.DurationUtils;
 import org.jobrunr.utils.VersionNumber;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.threadpool.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +53,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.Integer.compare;
-import static java.lang.Math.min;
 import static java.time.Instant.now;
 import static java.util.Arrays.asList;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.StreamSupport.stream;
 import static org.jobrunr.JobRunrException.problematicConfigurationException;
 import static org.jobrunr.server.lifecycle.BackgroundJobServerLifecycleEvent.PAUSE;
@@ -68,6 +68,9 @@ import static org.jobrunr.utils.VersionNumber.v;
 public class BackgroundJobServer implements BackgroundJobServerMBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundJobServer.class);
+
+    public static final int BACKGROUND_JOB_SERVER_COMMON_TASKS_THREAD_SIZE = 2;
+    public static final int BACKGROUND_JOB_SERVER_MASTER_TASKS_THREAD_SIZE = 3;
 
     private final BackgroundJobServerConfigurationReader configuration;
     private final StorageProvider storageProvider;
@@ -90,11 +93,11 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     private final CostAwareConfiguration costAwareConfiguration;
     private final BackgroundJobStatisticsFilter backgroundJobStatisticsFilter;
 
-
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration) {
         this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), CostAwareConfiguration.usingDisabledConfiguration());
     }
 
+    // TODO CostAwareConfiguration belongs to BackgroundJobServerConfiguration
     public BackgroundJobServer(StorageProvider storageProvider, JsonMapper jsonMapper, JobActivator jobActivator, BackgroundJobServerConfiguration configuration, CostAwareConfiguration costAwareConfiguration) {
         this(storageProvider, jsonMapper, jobActivator, new BackgroundJobServerConfigurationReader(configuration), costAwareConfiguration);
     }
@@ -230,8 +233,10 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         if (isMaster != null) {
             LOGGER.info("JobRunr {} using {} and {} BackgroundJobPerformers started successfully", this, storageProvider.getStorageProviderInfo().getName(), workDistributionStrategy.getWorkerCount());
             if (isMaster) {
-                startJobZooKeepers();
                 runStartupTasks();
+                startMasterTasks();
+            } else {
+                stopMasterTasks();
             }
         } else {
             LOGGER.error("JobRunr {} failed to start", this);
@@ -309,26 +314,29 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         LOGGER.debug("Submitted BackgroundJobPerformer for job {} to executor service", job.getId());
     }
 
-    @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
     private void startStewardAndServerZooKeeper() {
-        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(5, 5, "backgroundjob-zookeeper-pool");
+        zookeeperThreadPool = new PlatformThreadPoolJobRunrExecutor(BACKGROUND_JOB_SERVER_COMMON_TASKS_THREAD_SIZE, "backgroundjob-zookeeper-pool");
         // why fixedDelay: in case of long stop-the-world garbage collections, the zookeeper tasks will queue up
         // and all will be launched one after another
-        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, 0, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, min(configuration.getPollInterval().toMillis() / 5, 1000), configuration.getPollInterval().toMillis(), MILLISECONDS);
+        Duration jobStewardInitialDelay = DurationUtils.min(configuration.getPollInterval().dividedBy(5), Duration.ofSeconds(1));
+        zookeeperThreadPool.scheduleWithFixedDelay(serverZooKeeper, Duration.ZERO, configuration.getPollInterval());
+        zookeeperThreadPool.scheduleWithFixedDelay(jobSteward, jobStewardInitialDelay, configuration.getPollInterval());
     }
 
-    @SuppressWarnings("FutureReturnValueIgnored") // See https://github.com/google/error-prone/issues/883
-    private void startJobZooKeepers() {
-        long delay = min(configuration.getPollInterval().toMillis() / 5, 1000);
+    private void startMasterTasks() {
+        Duration masterTasksInitialDelay = DurationUtils.min(configuration.getPollInterval().dividedBy(5), Duration.ofSeconds(1));
         JobZooKeeper costAwareManagementZooKeeper = new JobZooKeeper(this, new CostAwareManagementTask(this, costAwareConfiguration, jsonMapper));
         JobZooKeeper recurringAndCarbonAwareAndScheduledJobsZooKeeper = new JobZooKeeper(this, new ProcessRecurringJobsTask(this), new ProcessCarbonAwareAwaitingJobsTask(this), new ProcessScheduledJobsTask(this));
         JobZooKeeper orphanedJobsZooKeeper = new JobZooKeeper(this, new ProcessOrphanedJobsTask(this));
         JobZooKeeper janitorZooKeeper = new JobZooKeeper(this, new DeleteSucceededJobsTask(this), new DeleteDeletedJobsPermanentlyTask(this));
-        zookeeperThreadPool.scheduleWithFixedDelay(costAwareManagementZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
-        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, delay, configuration.getPollInterval().toMillis(), MILLISECONDS);
+        zookeeperThreadPool.increasePoolSize(BACKGROUND_JOB_SERVER_MASTER_TASKS_THREAD_SIZE);
+        zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
+        zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
+        zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
+    }
+
+    private void stopMasterTasks() {
+        zookeeperThreadPool.cancelScheduledFuturesOfType(JobZooKeeper.class);
     }
 
     private void stopZooKeepers() {
@@ -350,7 +358,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     private void runStartupTasks() {
-        ExecutorService startupTasksExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService startupTasksExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("jobrunr-startup-task", false));
         try {
             startupTasksExecutor.execute(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
@@ -392,6 +400,9 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
         if (metadata != null) {
             dataVersion = v(metadata.getValue());
+            if (dataVersion.isNewerThan(expectedVersion)) {
+                LOGGER.error("JobRunr Pro Version number {} is older than database version number {}. BackgroundJobServer will not process any jobs.", expectedVersion, dataVersion);
+            }
             return expectedVersion.equals(dataVersion);
         }
         return false;

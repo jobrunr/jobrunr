@@ -11,6 +11,7 @@ import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.GCUtils;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
@@ -38,9 +39,11 @@ import static org.awaitility.Durations.FIVE_SECONDS;
 import static org.awaitility.Durations.ONE_SECOND;
 import static org.awaitility.Durations.TWO_SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.storage.BackgroundJobServerStatusTestBuilder.aFastBackgroundJobServerStatus;
 import static org.jobrunr.utils.SleepUtils.sleep;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
@@ -67,11 +70,8 @@ class ServerZooKeeperTest {
 
     @AfterEach
     void tearDown() {
-        try {
-            backgroundJobServer.stop();
-        } catch (Exception e) {
-            // not that important
-        }
+        backgroundJobServer.stop();
+        assertNoBackgroundJobServerThreadsExist();
     }
 
     @Test
@@ -162,6 +162,24 @@ class ServerZooKeeperTest {
         await().atMost(FIVE_SECONDS)
                 .untilAsserted(() -> assertThat(backgroundJobServer.isMaster()).isTrue());
         verify(storageProvider, times(1)).removeTimedOutBackgroundJobServers(any());
+    }
+
+    @Test
+    void aServerThatSignalsItsAliveAlthoughItTimedOutRestartsAndRenegotiatesWhoIsMaster() {
+        storageProvider.save(anEnqueuedJob().<TestService>withJobLambda(ts -> ts.doWorkThatTakesLong(2)).build());
+        backgroundJobServer.start();
+        sleep(100);
+
+        assertThat(backgroundJobServer).isMaster(true);
+
+        storageProvider.removeTimedOutBackgroundJobServers(Instant.now());
+        await()
+                .atMost(6, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer).isMaster(false));
+
+        await()
+                .atMost(6, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(backgroundJobServer).isMaster(true));
     }
 
     @Test
