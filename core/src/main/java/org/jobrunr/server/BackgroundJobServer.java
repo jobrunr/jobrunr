@@ -333,6 +333,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         zookeeperThreadPool.scheduleWithFixedDelay(recurringAndCarbonAwareAndScheduledJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
         zookeeperThreadPool.scheduleWithFixedDelay(orphanedJobsZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
         zookeeperThreadPool.scheduleWithFixedDelay(janitorZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
+        zookeeperThreadPool.scheduleWithFixedDelay(costAwareManagementZooKeeper, masterTasksInitialDelay, configuration.getPollInterval());
     }
 
     private void stopMasterTasks() {

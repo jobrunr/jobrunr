@@ -142,18 +142,27 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             fetch("/api/problems", config).then(res => res.json()),
             fetch("https://api.jobrunr.io/api/version/jobrunr/latest", config).then(res => res.json()).catch(() => undefined /* ignored */),
             fetch("https://api.jobrunr.io/api/notifications/jobrunr", config).then(res => res.json()).catch(() => undefined /* ignored */),
-            fetch("/api/metadata/spot-scaling/cluster?format=jsonValue", config).then(res => res.json()).catch(() => undefined)
-        ]).then(([clusterProblems, latestVersion, apiNotification, spotScaling]) => {
+        ]).then(([clusterProblems, latestVersion, apiNotification]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
             setApiNotification(apiNotification);
-            setSpotScaling(spotScaling); // TODO remove notification from display when it gets removed
+        }).catch(error => console.error(error));
+    }, [])
+
+    const fetchSpotScalingNotifications = useCallback((abortController) => {
+        const config = {signal: abortController.signal};
+        Promise.all([
+            fetch("/api/spot-scaling/status?format=jsonValue", config).then(res => res.ok ? res.json() : undefined).catch(() => undefined)
+            // Why new endpoint and not /api/metadata/...? Remove unnecessary 404 logs from console since they would be expected
+        ]).then(([spotScaling]) => {
+            setSpotScaling(spotScaling);
         }).catch(error => console.error(error));
     }, [])
 
     useEffect(() => {
         const abortController = new AbortController();
         fetchAllNotifications(abortController);
+        fetchSpotScalingNotifications(abortController);
         return () => abortController.abort("Component unmounted");
     }, [fetchAllNotifications]);
 
@@ -166,9 +175,15 @@ export const TopAppBarNotificationCenter = React.memo(() => {
             fetchAllNotifications(abortController);
         }, 60 * 15 * 1000);
 
+        const spotScalingIntervalId = setInterval(() => {
+            if (isOpen) return;
+            fetchSpotScalingNotifications(abortController);
+        }, 5 * 1000);
+
         return () => {
             abortController.abort("Component unmounted");
             clearInterval(intervalId);
+            clearInterval(spotScalingIntervalId);
         }
     }, [isOpen, fetchAllNotifications]);
 
@@ -189,7 +204,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
             return problems.map(problem => ({...problem, id: getProblemId(problem)})).sort(problemCompareFn);
         },
-        [clusterProblems, latestVersion, currentVersion, apiNotification]
+        [clusterProblems, latestVersion, currentVersion, apiNotification, spotScaling]
     );
 
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));

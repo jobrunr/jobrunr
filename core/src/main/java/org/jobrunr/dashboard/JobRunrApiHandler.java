@@ -37,6 +37,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         this.allowAnonymousDataUsage = allowAnonymousDataUsage;
 
         get("/metadata/:name/:owner", getMetadataByNameAndOwner());
+        get("/spot-scaling/status", getSpotScalingStatus());
         get("/problems", getProblems());
         delete("/problems/:type", deleteProblemByType());
 
@@ -68,6 +69,22 @@ public class JobRunrApiHandler extends RestHttpHandler {
             JobRunrMetadata metadata = storageProvider.getMetadata(name, owner);
             if (metadata == null) {
                 response.statusCode(404);
+            } else {
+                String format = request.queryParam("format", String.class, null);
+                if ("jsonValue".equals(format)) {
+                    response.fromJsonString(metadata.getValue());
+                } else {
+                    response.asJson(metadata);
+                }
+            }
+        };
+    }
+
+    private HttpRequestHandler getSpotScalingStatus() {
+        return (request, response) -> {
+            JobRunrMetadata metadata = storageProvider.getMetadata("spot-scaling", "cluster");
+            if (metadata == null) {
+                response.statusCode(204);
             } else {
                 String format = request.queryParam("format", String.class, null);
                 if ("jsonValue".equals(format)) {
