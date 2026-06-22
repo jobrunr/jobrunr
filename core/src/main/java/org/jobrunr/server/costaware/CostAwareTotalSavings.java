@@ -163,8 +163,8 @@ public class CostAwareTotalSavings {
             this.lastIncreasedBy = totalSavings;
             this.spotPrice = spotPrice;
             this.instancePrice = instancePrice;
-            this.spotSpendIncrease = BigDecimal.ZERO;
-            this.instanceSpendIncrease = BigDecimal.ZERO;
+            this.spotSpendIncrease = spotPrice.multiply(BigDecimal.valueOf(Duration.between(createdAt, Instant.now()).toMinutes() / 60));
+            this.instanceSpendIncrease = instancePrice.multiply(BigDecimal.valueOf(Duration.between(createdAt, Instant.now()).toMinutes() / 60));
         }
 
         public void updateSavings(BackgroundJobServerStatus backgroundJobServerStatus) {

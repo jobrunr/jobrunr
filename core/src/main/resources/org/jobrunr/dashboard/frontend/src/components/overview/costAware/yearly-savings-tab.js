@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import {lazy, Suspense, useEffect, useMemo, useState} from "react";
+import {lazy, Suspense, useMemo} from "react";
 import LoadingIndicator from "../../LoadingIndicator.js";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -12,19 +12,22 @@ const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
 const CostAwareYearlySavingsTab = ({yearlySavings}) => {
-    const minDate = Array.from(yearlySavings.keys()).sort()[0];
-    const maxDate = Array.from(yearlySavings.keys()).sort()[yearlySavings.size - 1];
-    const [yearsArray, setYearsArray] = useState([]);
+    const sortedDates = useMemo(() => {
+        return Array.from(yearlySavings.keys()).sort();
+    }, [yearlySavings]);
 
-    useEffect(() => {
-        if (minDate && maxDate) {
-            const years = [];
-            for (const dt = new Date(maxDate); dt >= new Date(minDate); dt.setFullYear(dt.getFullYear() - 1)) {
-                years.push(new Date(dt));
-            }
-            setYearsArray(years);
+    const yearsArray = useMemo(() => {
+        if (sortedDates.length === 0) return [];
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+        const years = [];
+
+        const endDate = new Date(minDate);
+        for (let dt = new Date(maxDate); dt >= endDate; dt.setFullYear(dt.getFullYear() - 1)) {
+            years.push(new Date(dt));
         }
-    }, [minDate, maxDate])
+        return years;
+    }, [sortedDates]);
 
     const formatDateForYearlySavings = (date) => {
         const dateParts = date.toISOString().split("T")[0].split("-");

@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import {lazy, Suspense, useEffect, useMemo, useState} from "react";
+import {lazy, Suspense, useMemo} from "react";
 import LoadingIndicator from "../../LoadingIndicator.js";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -12,19 +12,22 @@ const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
 const CostAwareMonthlySavingsTab = ({monthlySavings}) => {
-    const minDate = Array.from(monthlySavings.keys()).sort()[0];
-    const maxDate = Array.from(monthlySavings.keys()).sort()[monthlySavings.size - 1];
-    const [monthsArray, setMonthsArray] = useState([]);
+    const sortedDates = useMemo(() => {
+        return Array.from(monthlySavings.keys()).sort();
+    }, [monthlySavings]);
 
-    useEffect(() => {
-        if (minDate && maxDate) {
-            const days = [];
-            for (const dt = new Date(maxDate); dt >= new Date(minDate); dt.setMonth(dt.getMonth() - 1)) {
-                days.push(new Date(dt));
-            }
-            setMonthsArray(days);
+    const monthsArray = useMemo(() => {
+        if (sortedDates.length === 0) return [];
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+        const months = [];
+
+        const endDate = new Date(minDate);
+        for (let dt = new Date(maxDate); dt >= endDate; dt.setMonth(dt.getMonth() - 1)) {
+            months.push(new Date(dt));
         }
-    }, [minDate, maxDate])
+        return months;
+    }, [sortedDates]);
 
     const formatDateForMonthlySavings = (date) => {
         const dateParts = date.toISOString().split("T")[0].split("-");

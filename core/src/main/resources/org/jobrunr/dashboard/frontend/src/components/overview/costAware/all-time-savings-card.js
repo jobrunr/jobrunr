@@ -1,12 +1,10 @@
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
-import {useEffect, useState} from "react";
+import {useMemo} from "react";
 
 const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySavings}) => {
-    const [totalSavings, setTotalSavings] = useState(0);
-
-    useEffect(() => {
+    const totalSavings = useMemo(() => {
         let total = 0;
         const allYears = [];
         const allMonths = [];
@@ -27,7 +25,7 @@ const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySaving
                 total += value.totalSavings;
             }
         })
-        setTotalSavings(total);
+        return total;
     }, [dailySavings])
 
     return (

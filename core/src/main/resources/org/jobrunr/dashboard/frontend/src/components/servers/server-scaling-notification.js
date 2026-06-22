@@ -2,10 +2,9 @@ import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import {useEffect, useState} from "react";
+import {useMemo} from "react";
 
 export const ServerScalingNotification = ({spotScaling}) => {
-    const [severity, setSeverity] = useState("info");
 
     const directionScalingText = () => {
         switch (spotScaling.direction) {
@@ -41,22 +40,18 @@ export const ServerScalingNotification = ({spotScaling}) => {
         }
     }
 
-    useEffect(() => {
+    const severity = useMemo(() => {
         switch (spotScaling.scalingStatus) {
             case "PROCESSING":
-                setSeverity("info");
-                break;
+                return "info";
             case "PROVISIONED":
-                setSeverity("success");
-                break;
+                return "success";
             case "SCALED_DOWN":
-                setSeverity("success");
-                break;
+                return "success";
             case "FAILED":
-                setSeverity("error");
-                break;
+                return "error";
         }
-    }, [spotScaling]);
+    }, [spotScaling])
 
     return (
         <Paper sx={{marginBottom: '1rem'}}>

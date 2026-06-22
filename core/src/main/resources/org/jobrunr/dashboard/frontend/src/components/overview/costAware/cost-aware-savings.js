@@ -16,7 +16,6 @@ import CostAwareMonthlySavingsTab from "./monthly-savings-tab.js";
 import CostAwareYearlySavingsTab from "./yearly-savings-tab.js";
 
 const CostAwareSavings = () => {
-    const [totalSavings, setTotalSavings] = useState(null);
     const [dailySavings, setDailySavings] = useState(new Map());
     const [monthlySavings, setMonthlySavings] = useState(new Map());
     const [yearlySavings, setYearlySavings] = useState(new Map());
@@ -31,39 +30,28 @@ const CostAwareSavings = () => {
                 if (r.status === 404) {
                     setNotFound(true);
                 } else {
-                    const payload = await r.json();
-                    setTotalSavings(payload);
+                    const totalSavings = await r.json();
+
+                    const dailySavingsMap = new Map();
+                    Object.keys(totalSavings.dailySavings).forEach(function (key) {
+                        dailySavingsMap.set(key, totalSavings.dailySavings[key]);
+                    })
+                    setDailySavings(dailySavingsMap);
+
+                    const monthlySavingsMap = new Map();
+                    Object.keys(totalSavings.monthlySavings).forEach(function (key) {
+                        monthlySavingsMap.set(key, totalSavings.monthlySavings[key]);
+                    })
+                    setMonthlySavings(monthlySavingsMap);
+
+                    const yearlySavingsMap = new Map();
+                    Object.keys(totalSavings.yearlySavings).forEach(function (key) {
+                        yearlySavingsMap.set(key, totalSavings.yearlySavings[key]);
+                    })
+                    setYearlySavings(yearlySavingsMap);
                 }
             });
     }, []);
-
-    useEffect(() => {
-        if (totalSavings) {
-            const dailySavingsMap = new Map();
-            Object.keys(totalSavings.dailySavings).forEach(function (key) {
-                if (key !== "@class") {
-                    dailySavingsMap.set(key, totalSavings.dailySavings[key]);
-                }
-            })
-            setDailySavings(dailySavingsMap);
-
-            const monthlySavingsMap = new Map();
-            Object.keys(totalSavings.monthlySavings).forEach(function (key) {
-                if (key !== "@class") {
-                    monthlySavingsMap.set(key, totalSavings.monthlySavings[key]);
-                }
-            })
-            setMonthlySavings(monthlySavingsMap);
-
-            const yearlySavingsMap = new Map();
-            Object.keys(totalSavings.yearlySavings).forEach(function (key) {
-                if (key !== "@class") {
-                    yearlySavingsMap.set(key, totalSavings.yearlySavings[key]);
-                }
-            })
-            setYearlySavings(yearlySavingsMap);
-        }
-    }, [totalSavings])
 
     const isAtLeastOneSavingPresent = () => {
         return dailySavings.size > 0 || monthlySavings.size > 0 || yearlySavings.size > 0;

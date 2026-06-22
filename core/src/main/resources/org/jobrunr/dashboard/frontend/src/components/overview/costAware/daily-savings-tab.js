@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import {lazy, Suspense, useEffect, useMemo, useState} from "react";
+import {lazy, Suspense, useMemo} from "react";
 import LoadingIndicator from "../../LoadingIndicator.js";
 import Typography from "@mui/material/Typography";
 import Table from "@mui/material/Table";
@@ -12,19 +12,22 @@ const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
 const CostAwareDailySavingsTab = ({dailySavings}) => {
-    const minDate = Array.from(dailySavings.keys()).sort()[0];
-    const maxDate = Array.from(dailySavings.keys()).sort()[dailySavings.size - 1];
-    const [daysArray, setDaysArray] = useState([]);
+    const sortedDates = useMemo(() => {
+        return Array.from(dailySavings.keys()).sort();
+    }, [dailySavings]);
 
-    useEffect(() => {
-        if (minDate && maxDate) {
-            const days = [];
-            for (const dt = new Date(maxDate); dt >= new Date(minDate); dt.setDate(dt.getDate() - 1)) {
-                days.push(new Date(dt));
-            }
-            setDaysArray(days);
+    const daysArray = useMemo(() => {
+        if (sortedDates.length === 0) return [];
+        const minDate = sortedDates[0];
+        const maxDate = sortedDates[sortedDates.length - 1];
+        const days = [];
+
+        const endDate = new Date(minDate);
+        for (let dt = new Date(maxDate); dt >= endDate; dt.setDate(dt.getDate() - 1)) {
+            days.push(new Date(dt));
         }
-    }, [minDate, maxDate])
+        return days;
+    }, [sortedDates]);
 
     const formatDateForDailySavings = (date) => {
         return date.toISOString().split("T")[0];
