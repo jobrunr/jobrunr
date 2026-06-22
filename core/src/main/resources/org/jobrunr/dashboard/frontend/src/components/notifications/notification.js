@@ -11,6 +11,7 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 
 const getChipLabel = (severity) => {
+    if (severity === "success") return "Success";
     if (severity === "info") return "Info";
     if (severity === "warning") return "Warning";
     if (severity === "error") return "Critical";

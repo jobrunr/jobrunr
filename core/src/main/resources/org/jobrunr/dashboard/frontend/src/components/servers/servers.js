@@ -1,4 +1,4 @@
-import {memo, useEffect, useState} from 'react';
+import {memo, useCallback, useEffect, useState} from 'react';
 import {keyframes, styled} from "@mui/material/styles";
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
@@ -21,6 +21,7 @@ import VersionFooter from "../utils/version-footer";
 import {ItemsNotFound} from "../utils/items-not-found";
 import {useServers} from "../../hooks/useServers";
 import {openEventSource} from "../../stores/serversStore";
+import {ServerScalingNotification} from "./server-scaling-notification.js";
 
 const spin = keyframes`
     from {
@@ -50,6 +51,7 @@ const Servers = memo(() => {
     const [servers, _] = useServers();
     const [open, setOpen] = useState(false);
     const [currentServer, setCurrentServer] = useState(null);
+    const [spotScaling, setSpotScaling] = useState();
 
     const handleOpen = (server) => {
         setCurrentServer(server);
@@ -60,6 +62,28 @@ const Servers = memo(() => {
         setOpen(false);
         setCurrentServer(null);
     };
+
+    const fetchSpotScalingNotifications = useCallback((abortController) => {
+        const config = {signal: abortController.signal};
+        fetch("/api/spot-scaling/status?format=jsonValue", config)
+            .then(res => res.ok ? res.json() : undefined).catch(() => undefined)
+            .then(spotScaling => setSpotScaling(spotScaling))
+            .catch(error => console.error(error));
+    }, [])
+
+    useEffect(() => {
+        const abortController = new AbortController();
+        fetchSpotScalingNotifications(abortController);
+
+        const spotScalingIntervalId = setInterval(() => {
+            fetchSpotScalingNotifications(abortController);
+        }, 5 * 1000);
+
+        return () => {
+            abortController.abort("Component unmounted");
+            clearInterval(spotScalingIntervalId);
+        }
+    }, [fetchSpotScalingNotifications]);
 
     const displaySavings = (server) => {
         return (
@@ -84,6 +108,8 @@ const Servers = memo(() => {
                 <Typography variant="h4">Background Job Servers</Typography>
             </Box>
             <Paper>
+                {spotScaling && <ServerScalingNotification spotScaling={spotScaling}/>}
+
                 {servers.length < 1
                     ? <ItemsNotFound>No servers found</ItemsNotFound>
                     : <>

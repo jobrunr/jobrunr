@@ -176,7 +176,6 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         }, 60 * 15 * 1000);
 
         const spotScalingIntervalId = setInterval(() => {
-            if (isOpen) return;
             fetchSpotScalingNotifications(abortController);
         }, 5 * 1000);
 
