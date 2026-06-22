@@ -39,7 +39,9 @@ public class BackgroundJobStatisticsFilter implements JobServerFilter {
     @Override
     public void onProcessingSucceeded(Job job) {
         synchronized (this) {
-            processingJobs.decrementAndGet();
+            if (processingJobs.get() > 0) {
+                processingJobs.decrementAndGet();
+            }
             succeededJobs.incrementAndGet();
         }
     }
@@ -47,7 +49,9 @@ public class BackgroundJobStatisticsFilter implements JobServerFilter {
     @Override
     public void onProcessingFailed(Job job, Exception e) {
         synchronized (this) {
-            processingJobs.decrementAndGet();
+            if (processingJobs.get() > 0) {
+                processingJobs.decrementAndGet();
+            }
             failedJobs.incrementAndGet();
         }
     }

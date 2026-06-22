@@ -81,15 +81,17 @@ const CostAwareDailySavingsTab = ({dailySavings}) => {
 
     return (
         <Box>
-            <Typography>Daily Savings Overview</Typography>
-            <Suspense fallback={<LoadingIndicator/>}>
-                <Chart
-                    options={chartOptions}
-                    series={[{name: "Daily Savings", data: chartData}]}
-                    type="scatter"
-                    height={300}
-                />
-            </Suspense>
+            {dailySavings.size > 1 && <>
+                <Typography>Daily Savings Overview</Typography>
+                <Suspense fallback={<LoadingIndicator/>}>
+                    <Chart
+                        options={chartOptions}
+                        series={[{name: "Daily Savings", data: chartData}]}
+                        type="scatter"
+                        height={300}
+                    />
+                </Suspense>
+            </>}
             <Typography>Daily Savings Breakdown</Typography>
             <Table style={{width: "100%"}} aria-label="simple table">
                 <TableHead>

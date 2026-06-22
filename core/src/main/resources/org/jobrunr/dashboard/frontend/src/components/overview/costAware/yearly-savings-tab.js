@@ -11,45 +11,45 @@ import TableBody from "@mui/material/TableBody";
 const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
-const CostAwareMonthlySavingsTab = ({monthlySavings}) => {
-    const minDate = Array.from(monthlySavings.keys()).sort()[0];
-    const maxDate = Array.from(monthlySavings.keys()).sort()[monthlySavings.size - 1];
-    const [monthsArray, setMonthsArray] = useState([]);
+const CostAwareYearlySavingsTab = ({yearlySavings}) => {
+    const minDate = Array.from(yearlySavings.keys()).sort()[0];
+    const maxDate = Array.from(yearlySavings.keys()).sort()[yearlySavings.size - 1];
+    const [yearsArray, setYearsArray] = useState([]);
 
     useEffect(() => {
         if (minDate && maxDate) {
-            const days = [];
-            for (const dt = new Date(maxDate); dt >= new Date(minDate); dt.setMonth(dt.getMonth() - 1)) {
-                days.push(new Date(dt));
+            const years = [];
+            for (const dt = new Date(maxDate); dt >= new Date(minDate); dt.setFullYear(dt.getFullYear() - 1)) {
+                years.push(new Date(dt));
             }
-            setMonthsArray(days);
+            setYearsArray(years);
         }
     }, [minDate, maxDate])
 
-    const formatDateForMonthlySavings = (date) => {
+    const formatDateForYearlySavings = (date) => {
         const dateParts = date.toISOString().split("T")[0].split("-");
-        return dateParts[0] + "-" + dateParts[1];
+        return dateParts[0];
     }
 
     const formatDateToHumanReadable = (date) => {
-        return date.toLocaleDateString(undefined, {month: "long", year: "numeric"});
+        return date.toLocaleDateString(undefined, {year: "numeric"});
     }
 
     const chartData = useMemo(() => {
-        if (!monthlySavings) return [];
+        if (!yearlySavings) return [];
 
-        return [...monthlySavings.entries()]
+        return [...yearlySavings.entries()]
             .sort((a, b) => new Date(a[0]) - new Date(b[0]))
             .map(([date, value]) => [
                 new Date(date).getTime(),
                 parseFloat(value.totalSavings.toFixed(4))
             ]);
-    }, [monthlySavings]);
+    }, [yearlySavings]);
 
     const chartOptions = useMemo(() => {
         return {
             chart: {
-                id: "monthly-savings-chart",
+                id: "yearly-savings-chart",
                 type: "scatter",
                 zoom: {
                     enabled: false
@@ -67,13 +67,12 @@ const CostAwareMonthlySavingsTab = ({monthlySavings}) => {
             xaxis: {
                 type: "numeric",
                 title: {text: "Date"},
-                tickAmount: monthlySavings.size - 1,
+                tickAmount: yearlySavings.size - 1,
                 labels: {
                     formatter: function (val) {
                         if (!val) return "";
                         const date = new Date(val);
                         return date.toLocaleDateString(undefined, {
-                            month: "short",
                             year: "numeric",
                             timeZone: "UTC"
                         });
@@ -94,30 +93,30 @@ const CostAwareMonthlySavingsTab = ({monthlySavings}) => {
 
     return (
         <Box>
-            {monthlySavings.size > 1 && <>
-                <Typography>Monthly Savings Overview</Typography>
+            {yearlySavings.size > 1 && <>
+                <Typography>Yearly Savings Overview</Typography>
                 <Suspense fallback={<LoadingIndicator/>}>
                     <Chart
                         options={chartOptions}
-                        series={[{name: "Monthly Savings", data: chartData}]}
+                        series={[{name: "Yearly Savings", data: chartData}]}
                         type="scatter"
                         height={300}
                     />
                 </Suspense>
             </>}
-            <Typography>Monthly Savings Breakdown</Typography>
+            <Typography>Yearly Savings Breakdown</Typography>
             <Table style={{width: "100%"}} aria-label="simple table">
                 <TableHead>
                     <TableRow>
-                        <TableCell>Month</TableCell>
+                        <TableCell>Year</TableCell>
                         <TableCell>Total Savings</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {monthsArray.map((date) => (
+                    {yearsArray.map((date) => (
                         <TableRow>
                             <TableCell>{formatDateToHumanReadable(date)}</TableCell>
-                            <TableCell>${Math.round((monthlySavings.get(formatDateForMonthlySavings(date))?.totalSavings ?? 0) * 10000) / 10000}</TableCell>
+                            <TableCell>${Math.round((yearlySavings.get(formatDateForYearlySavings(date))?.totalSavings ?? 0) * 10000) / 10000}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -126,4 +125,4 @@ const CostAwareMonthlySavingsTab = ({monthlySavings}) => {
     )
 }
 
-export default CostAwareMonthlySavingsTab;
+export default CostAwareYearlySavingsTab;

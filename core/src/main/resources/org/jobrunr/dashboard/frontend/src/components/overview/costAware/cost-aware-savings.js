@@ -13,6 +13,7 @@ import MuiDialogTitle from "@mui/material/DialogTitle";
 import MuiDialogContent from "@mui/material/DialogContent";
 import CostAwareDailySavingsTab from "./daily-savings-tab.js";
 import CostAwareMonthlySavingsTab from "./monthly-savings-tab.js";
+import CostAwareYearlySavingsTab from "./yearly-savings-tab.js";
 
 const CostAwareSavings = () => {
     const [totalSavings, setTotalSavings] = useState(null);
@@ -116,14 +117,16 @@ const CostAwareSavings = () => {
                         >
                             <Tab label={"Daily Savings"} id={"daily-savings-tab"} aria-controls={"daily-savings-tabpanel"}></Tab>
                             <Tab label={"Monthly Savings"} id={"monthly-savings-tab"} aria-controls={"monthly-savings-tabpanel"}></Tab>
-                            <Tab label={"Yearly Savings"} id={"yearly-savings-tab"}></Tab>
-                            <Tab label={"Saving Trends"}> id={"savings-trend-tab"}</Tab>
+                            <Tab label={"Yearly Savings"} id={"yearly-savings-tab"} aria-controls={"yearly-savings-tabpanel"}></Tab>
                         </Tabs>
                         <Box id={"daily-savings-tabpanel"} aria-labelledby={"daily-savings-tab"} hidden={selectedTab !== 0} sx={{flexGrow: 1}}>
                             <CostAwareDailySavingsTab dailySavings={dailySavings}/>
                         </Box>
                         <Box id={"monthly-savings-tabpanel"} aria-labelledby={"monthly-savings-tab"} hidden={selectedTab !== 1} sx={{flexGrow: 1}}>
                             <CostAwareMonthlySavingsTab monthlySavings={monthlySavings}/>
+                        </Box>
+                        <Box id={"yearly-savings-tabpanel"} aria-labelledby={"yearly-savings-tab"} hidden={selectedTab !== 2} sx={{flexGrow: 1}}>
+                            <CostAwareYearlySavingsTab yearlySavings={yearlySavings}/>
                         </Box>
                     </Box>
                 </MuiDialogContent>
