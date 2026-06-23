@@ -40,9 +40,35 @@ class CronExpressionTest {
 
             assertThat(actualInstant)
                     .describedAs("Expecting %s to be equal to %s for cron expression %s and start date %s", actualInstant, expectedInstant, cronExpression, inputInstant)
-                    .isEqualTo(expectedInstant);
+                    .isEqualTo(expectedInstant)
+                    .isAfter(inputInstant);
         } catch (Exception e) {
             System.out.printf("Error for %s, %s and %s%n", baseDate, cronExpression, expectedResult);
+            throw e;
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("dstStartLocalDateTimeCronExpressionZoneOffsetAndResultLocalDateTime")
+    void testCronDuringDst(String cronExpression, String baseDate, String zoneId, String preferredOffset, String expectedResult) {
+        try {
+            ZoneId zone = ZoneId.of(zoneId);
+            LocalDateTime baseLocalDateTime = LocalDateTime.parse(baseDate, dateTimeFormatter);
+
+            Instant inputInstant = preferredOffset == null
+                    ? baseLocalDateTime.atZone(zone).toInstant()
+                    : ZonedDateTime.ofLocal(baseLocalDateTime, zone, ZoneOffset.of(preferredOffset)).toInstant();
+
+            CronExpression cron = new CronExpression(cronExpression);
+            Instant actualInstant = cron.next(createdAtNotRelevantInstant, inputInstant, zone);
+            Instant expectedInstant = LocalDateTime.parse(expectedResult, dateTimeFormatter).atZone(zone).toInstant();
+
+            assertThat(actualInstant)
+                    .describedAs("Expecting %s to be equal to %s for cron expression %s, start local date time %s and zone %s", actualInstant, expectedInstant, cronExpression, inputInstant, zone)
+                    .isEqualTo(expectedInstant)
+                    .isAfter(inputInstant);
+        } catch (Exception e) {
+            System.out.printf("Error for baseDate=%s, cronExpression=%s, zoneId=%s, expectedResult=%s%n", baseDate, cronExpression, zoneId, expectedResult);
             throw e;
         }
     }
@@ -130,18 +156,6 @@ class CronExpressionTest {
         Instant expectedNextInstant = now().plusMinutes(1).withSecond(0).withNano(0).atZone(systemDefault()).toInstant();
 
         assertThat(actualNextInstant).isEqualTo(expectedNextInstant);
-    }
-
-    @Test
-    @Because("github issue 1145")
-    void cronExpressionsReturnTimeAfterCurrentInstantDuringDST() {
-        Instant from = Instant.parse("2024-10-27T01:00:15.660199Z");
-        Instant actualNextInstant = new CronExpression("0 5 2 * * *").next(Instant.parse("2024-10-27T00:58:19.509707Z"), from, ZoneId.of("Europe/Brussels"));
-
-        assertThat(actualNextInstant)
-                .isNotNull()
-                .isEqualTo("2024-10-28T01:05:00.000Z")
-                .isAfter(from);
     }
 
     @Test
@@ -774,6 +788,31 @@ class CronExpressionTest {
                 arguments("0 0 0 L *  *", "2019-10-01 00:00:00", "2019-10-31 00:00:00"),
                 arguments("0 0 0 l *  *", "2019-11-01 00:00:00", "2019-11-30 00:00:00"),
                 arguments("0 0 0 L *  *", "2019-12-01 00:00:00", "2019-12-31 00:00:00")
+        );
+    }
+
+    static Stream<Arguments> dstStartLocalDateTimeCronExpressionZoneOffsetAndResultLocalDateTime() {
+        return Stream.of(
+                arguments("* * * * *", "2025-10-26 02:00:52", "Europe/Brussels", "+01:00", "2025-10-26 03:00:00"),
+
+                arguments("0 5 2 * * *", "2024-10-27 02:00:15", "Europe/Brussels", "+02:00", "2024-10-27 02:05:00"), // first run
+                arguments("0 5 2 * * *", "2024-10-27 02:00:15", "Europe/Brussels", "+01:00", "2024-10-28 02:05:00"), // second run
+
+                arguments("0 5 2 * * *", "2025-03-29 01:30:00", "Europe/Brussels", null, "2025-03-29 02:05:00"),
+                arguments("0 5 2 * * *", "2025-03-30 01:30:00", "Europe/Brussels", null, "2025-03-31 02:05:00"),
+
+                arguments("0 30 1 * * *", "2025-11-02 01:00:15", "America/New_York", "-05:00", "2025-11-03 01:30:00"),
+                arguments("0 30 1 * * *", "2025-11-02 01:00:15", "America/New_York", "-04:00", "2025-11-02 01:30:00"),
+
+                arguments("0 30 2 * * *", "2025-03-09 01:55:00", "America/New_York", null, "2025-03-10 02:30:00"),
+
+                arguments("0 30 2 * * *", "2025-04-06 02:00:15", "Australia/Sydney", "+10:00", "2025-04-07 02:30:00"),
+                arguments("0 30 2 * * *", "2025-04-06 02:00:15", "Australia/Sydney", "+11:00", "2025-04-06 02:30:00"),
+
+                arguments("0 30 2 * * *", "2025-10-05 01:55:00", "Australia/Sydney", null, "2025-10-06 02:30:00"),
+
+                arguments("0 30 2 * * *", "2025-10-27 02:00:00", "Asia/Tokyo", null, "2025-10-27 02:30:00"),
+                arguments("0 30 2 * * *", "2025-10-26 02:00:00", "UTC", null, "2025-10-26 02:30:00")
         );
     }
 
