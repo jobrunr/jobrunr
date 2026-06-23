@@ -98,6 +98,26 @@ class RecurringJobTest {
         }
     }
 
+    @Test
+    void testToScheduledJobsForDST() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression(Cron.minutely())
+                .withZoneId(ZoneId.of("Europe/Brussels"))
+                .build();
+
+
+        List<Job> scheduledJobsBeforeDST = recurringJob.toScheduledJobs(parse("2025-10-26T00:50:52Z"), parse("2025-10-26T00:52:00Z"));
+        assertThatJobs(scheduledJobsBeforeDST)
+                .singleElement()
+                .hasState(SCHEDULED)
+                .hasScheduledAt(parse("2025-10-26T00:51:00Z"));
+
+        List<Job> scheduledJobsDuringDST = recurringJob.toScheduledJobs(parse("2025-10-26T01:00:52Z"), parse("2025-10-26T01:02:00Z"));
+        assertThatJobs(scheduledJobsDuringDST)
+                .singleElement()
+                .hasState(SCHEDULED)
+                .hasScheduledAt(parse("2025-10-26T02:00:00Z"));
+    }
 
     @Test
     void testCreateARecurringCronJobWithCarbonAwareMarginSetsScheduleCorrectly() {
