@@ -107,9 +107,10 @@ const Servers = memo(() => {
             <Box my={3}>
                 <Typography variant="h4">Background Job Servers</Typography>
             </Box>
-            <Paper>
+            <Box sx={{marginY: "1rem"}}>
                 {spotScaling && <ServerScalingNotification spotScaling={spotScaling}/>}
-
+            </Box>
+            <Paper>
                 {servers.length < 1
                     ? <ItemsNotFound>No servers found</ItemsNotFound>
                     : <>

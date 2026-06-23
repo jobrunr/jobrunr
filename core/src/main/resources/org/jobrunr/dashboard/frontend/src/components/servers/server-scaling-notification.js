@@ -54,7 +54,7 @@ export const ServerScalingNotification = ({spotScaling}) => {
     }, [spotScaling])
 
     return (
-        <Paper sx={{marginBottom: '1rem'}}>
+        <Paper>
             <Grid size={12}>
                 <Paper>
                     <Alert
