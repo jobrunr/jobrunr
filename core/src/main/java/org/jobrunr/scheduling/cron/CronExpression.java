@@ -248,7 +248,7 @@ public class CronExpression extends Schedule {
             if (possibleNextRun.isAfter(currentInstant)) {
                 return possibleNextRun;
             } else if (isDSTOverlapTransition(candidateLocalDateTime, zoneId)) {
-                return nextRunDuringDSTOverlap(createdAtInstant, candidateLocalDateTime, zoneId);
+                return next(createdAtInstant, endOfDSTOverlap(candidateLocalDateTime, zoneId), zoneId);
             } else {
                 return next(createdAtInstant, currentInstant.plusSeconds(1), zoneId);
             }
@@ -364,25 +364,13 @@ public class CronExpression extends Schedule {
         return updatedDays;
     }
 
-    private boolean isDSTGapTransition(LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
-        ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
-        return transition != null && transition.isGap();
-    }
-
-    private Instant nextRunDuringDSTGap(Instant createdAtInstant, LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
-        ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
-        Instant justBeforeEndOfOverlap = transition.getDateTimeAfter().atZone(zoneId).toInstant();
-        return next(createdAtInstant, justBeforeEndOfOverlap, zoneId);
-    }
-
     private boolean isDSTOverlapTransition(LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
         ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
         return transition != null && transition.isOverlap();
     }
 
-    private Instant nextRunDuringDSTOverlap(Instant createdAtInstant, LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
+    private Instant endOfDSTOverlap(LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
         ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
-        Instant justBeforeEndOfOverlap = transition.getDateTimeBefore().atZone(zoneId).toInstant().minusNanos(1);
-        return next(createdAtInstant, justBeforeEndOfOverlap, zoneId);
+        return transition.getDateTimeBefore().atZone(zoneId).toInstant().minusNanos(1);
     }
 }
