@@ -9,6 +9,7 @@ import java.time.Month;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.zone.ZoneOffsetTransition;
 import java.util.BitSet;
 
 import static org.jobrunr.utils.LocalDateUtils.nowUsingSystemDefault;
@@ -240,12 +241,17 @@ public class CronExpression extends Schedule {
                 hour = this.hours.nextSetBit(0);
             }
             day = candidateDay;
-            Instant possibleNextRun = LocalDateTime
-                    .of(year, month, day, hour, minute, second)
-                    .atZone(zoneId)
-                    .toInstant();
-            if (possibleNextRun.isAfter(currentInstant)) return possibleNextRun;
-            return next(createdAtInstant, possibleNextRun, zoneId);
+
+            LocalDateTime candidateLocalDateTime = LocalDateTime.of(year, month, day, hour, minute, second);
+            Instant possibleNextRun = candidateLocalDateTime.atZone(zoneId).toInstant();
+
+            if (possibleNextRun.isAfter(currentInstant)) {
+                return possibleNextRun;
+            } else if (isDSTOverlapTransition(candidateLocalDateTime, zoneId)) {
+                return next(createdAtInstant, endOfDSTOverlap(candidateLocalDateTime, zoneId), zoneId);
+            } else {
+                return next(createdAtInstant, currentInstant.plusSeconds(1), zoneId);
+            }
         }
     }
 
@@ -356,5 +362,15 @@ public class CronExpression extends Schedule {
             }
         }
         return updatedDays;
+    }
+
+    private boolean isDSTOverlapTransition(LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
+        ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
+        return transition != null && transition.isOverlap();
+    }
+
+    private Instant endOfDSTOverlap(LocalDateTime candidateLocalDateTime, ZoneId zoneId) {
+        ZoneOffsetTransition transition = zoneId.getRules().getTransition(candidateLocalDateTime);
+        return transition.getDateTimeBefore().atZone(zoneId).toInstant().minusNanos(1);
     }
 }
