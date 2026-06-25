@@ -250,7 +250,7 @@ public class CronExpression extends Schedule {
             } else if (isDSTOverlapTransition(candidateLocalDateTime, zoneId)) {
                 return next(createdAtInstant, endOfDSTOverlap(candidateLocalDateTime, zoneId), zoneId);
             } else {
-                return next(createdAtInstant, currentInstant.plusSeconds(1), zoneId);
+                return next(createdAtInstant, possibleNextRun, zoneId);
             }
         }
     }
