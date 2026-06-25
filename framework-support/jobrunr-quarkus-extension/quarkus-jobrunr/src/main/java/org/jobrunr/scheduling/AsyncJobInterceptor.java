@@ -1,5 +1,6 @@
 package org.jobrunr.scheduling;
 
+import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
 import jakarta.interceptor.Interceptor;
@@ -20,6 +21,7 @@ import static org.jobrunr.utils.JobUtils.getJobSignature;
 
 @AsyncJob
 @Interceptor
+@Priority(0)
 public class AsyncJobInterceptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncJobInterceptor.class);
     private final JobScheduler jobScheduler;
