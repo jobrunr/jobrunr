@@ -2,6 +2,10 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.JarUtils;
+import org.jobrunr.utils.VersionNumber;
+
+import static org.jobrunr.utils.VersionNumber.v;
 
 /**
  * This class provides the entry point for the JobRunr configuration. This is needed when you want to use the static methods
@@ -35,6 +39,8 @@ import org.jobrunr.storage.StorageProvider;
  * </pre>
  */
 public class JobRunr {
+
+    public static final VersionNumber VERSION = v(JarUtils.getVersion(JobRunr.class));
 
     private static JobRunrConfiguration jobRunrConfiguration;
 
