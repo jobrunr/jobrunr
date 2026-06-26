@@ -1,6 +1,7 @@
 package org.jobrunr.server.jmx;
 
 import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,7 +13,15 @@ public class JobServerStats {
 
     private final OperatingSystemMXBean operatingSystemMXBean;
     private final MBeanServer platformMBeanServer;
-    private final ConcurrentMap<String, Object> cachedValues = new ConcurrentHashMap<>();
+    private static class TimedCachedValue { // would be nice as a record ...
+        private static final long EXPIRY_TIME_IN_NANOS = 10_000_000;
+        private final long whenCreated = System.nanoTime();
+        private final Object value;
+        public TimedCachedValue(Object value) {this.value = value;}
+        public boolean isNotExpired() { return whenCreated + EXPIRY_TIME_IN_NANOS > System.nanoTime(); }
+    }
+    private final ConcurrentMap<String, TimedCachedValue> cachedValues = new ConcurrentHashMap<>();
+    private final ObjectName objectName;
 
     public JobServerStats() {
         this(getOperatingSystemMXBean(), getPlatformMBeanServer());
@@ -21,6 +30,7 @@ public class JobServerStats {
     protected JobServerStats(OperatingSystemMXBean operatingSystemMXBean, MBeanServer platformMBeanServer) {
         this.operatingSystemMXBean = operatingSystemMXBean;
         this.platformMBeanServer = platformMBeanServer;
+        this.objectName = operatingSystemMXBean != null ? operatingSystemMXBean.getObjectName() : null;
     }
 
     public Long getProcessMaxMemory() {
@@ -52,19 +62,31 @@ public class JobServerStats {
     }
 
     private Double getMXBeanValueAsDouble(String name) {
+        final TimedCachedValue timedValue =  cachedValues.get(name);
+        if (timedValue != null) {
+            if (timedValue.isNotExpired()) return (Double) timedValue.value;
+            cachedValues.remove(name);
+        }
         double value = ((Number) getMXBeanValue(name)).doubleValue();
         if (!Double.isNaN(value)) {
-            cachedValues.put(name, value);
+            cachedValues.put(name, new TimedCachedValue(value));
+            return value;
         }
-        return cast(cachedValues.getOrDefault(name, -1.0));
+        return -1.0;
     }
 
     private Long getMXBeanValueAsLong(String name) {
+        final TimedCachedValue timedValue =  cachedValues.get(name);
+        if (timedValue != null) {
+            if (timedValue.isNotExpired()) return (Long) timedValue.value;
+            cachedValues.remove(name);
+        }
         long value = ((Number) getMXBeanValue(name)).longValue();
         if (value > 0) {
-            cachedValues.put(name, value);
+            cachedValues.put(name, new TimedCachedValue(value));
+            return value;
         }
-        return cast(cachedValues.getOrDefault(name, -1L));
+        return -1L;
     }
 
     // visible for testing
