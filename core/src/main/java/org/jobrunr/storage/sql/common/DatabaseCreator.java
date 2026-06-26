@@ -107,7 +107,7 @@ public class DatabaseCreator {
         this(dataSource::getConnection, tablePrefix, sqlStorageProviderClass);
     }
 
-    public DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+    private DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this.connectionProvider = connectionProvider;
         this.tablePrefixStatementUpdater = getStatementUpdater(tablePrefix, connectionProvider);
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
