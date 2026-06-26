@@ -23,10 +23,10 @@ public class BackgroundJobServerSavingsDeserializer extends StdDeserializer<Back
         UUID serverId = UUID.fromString(node.get("serverId").asText());
         Instant createdAt = deserializationContext.readTreeAsValue(node.get("createdAt"), Instant.class);
         Instant removedAt = deserializationContext.readTreeAsValue(node.get("removedAt"), Instant.class);
-        BigDecimal spotPrice = deserializationContext.readTreeAsValue(node.get("spotPrice"), BigDecimal.class);
-        BigDecimal instancePrice = deserializationContext.readTreeAsValue(node.get("instancePrice"), BigDecimal.class);
+        BigDecimal spotSpend = deserializationContext.readTreeAsValue(node.get("spotSpend"), BigDecimal.class);
+        BigDecimal instanceSpend = deserializationContext.readTreeAsValue(node.get("equivalentInstanceSpend"), BigDecimal.class);
         BigDecimal totalSavings = deserializationContext.readTreeAsValue(node.get("totalSavings"), BigDecimal.class);
 
-        return new BackgroundJobServerSavings(serverId, createdAt, removedAt, totalSavings, spotPrice, instancePrice);
+        return new BackgroundJobServerSavings(serverId, createdAt, removedAt, totalSavings, spotSpend, instanceSpend);
     }
 }

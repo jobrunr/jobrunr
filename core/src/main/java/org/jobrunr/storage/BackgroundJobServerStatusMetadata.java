@@ -12,6 +12,8 @@ public class BackgroundJobServerStatusMetadata {
     private BigDecimal instancePrice;
     private BigDecimal spotPrice;
     private BigDecimal serverSavings;
+    private BigDecimal spotSpend;
+    private BigDecimal equivalentInstanceSpend;
     private String provider;
     private long processingJobs;
     private long succeededJobs;
@@ -31,6 +33,8 @@ public class BackgroundJobServerStatusMetadata {
             spotPrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE"));
             provider = environment.get("JOBRUNR_COST_AWARE_PROVIDER");
             serverSavings = calculateSavingsSince(firstHeartbeat);
+            spotSpend = calculateSpendSince(firstHeartbeat, spotPrice);
+            equivalentInstanceSpend = calculateSpendSince(firstHeartbeat, instancePrice);
         }
 
         this.processingJobs = processingJobs;
@@ -94,12 +98,33 @@ public class BackgroundJobServerStatusMetadata {
         this.serverSavings = serverSavings;
     }
 
+    public BigDecimal getSpotSpend() {
+        return spotSpend;
+    }
+
+    public void setSpotSpend(BigDecimal spotSpend) {
+        this.spotSpend = spotSpend;
+    }
+
+    public BigDecimal getEquivalentInstanceSpend() {
+        return equivalentInstanceSpend;
+    }
+
+    public void setEquivalentInstanceSpend(BigDecimal equivalentInstanceSpend) {
+        this.equivalentInstanceSpend = equivalentInstanceSpend;
+    }
+
     private BigDecimal calculateSavingsSince(Instant firstHeartbeat) {
         double hoursSinceFirstHeartbeat = Duration.between(firstHeartbeat, Instant.now()).toMinutes() / 60.0;
         BigDecimal amountSpentOnSpot = spotPrice.multiply(BigDecimal.valueOf(hoursSinceFirstHeartbeat));
         BigDecimal amountSpentOnInstance = instancePrice.multiply(BigDecimal.valueOf(hoursSinceFirstHeartbeat));
 
         return amountSpentOnInstance.subtract(amountSpentOnSpot);
+    }
+
+    private BigDecimal calculateSpendSince(Instant firstHeartbeat, BigDecimal price) {
+        double hoursSinceFirstHeartbeat = Duration.between(firstHeartbeat, Instant.now()).toMinutes() / 60.0;
+        return price.multiply(BigDecimal.valueOf(hoursSinceFirstHeartbeat));
     }
 
     public static BackgroundJobServerStatusMetadata from(String metadataString) {
@@ -115,6 +140,8 @@ public class BackgroundJobServerStatusMetadata {
                 case "spotPrice" -> jobServerStatusMetadata.setSpotPrice(new BigDecimal(value));
                 case "provider" -> jobServerStatusMetadata.setProvider(value);
                 case "savings" -> jobServerStatusMetadata.setServerSavings(new BigDecimal(value));
+                case "spotSpend" -> jobServerStatusMetadata.setSpotSpend(new BigDecimal(value));
+                case "instanceSpend" -> jobServerStatusMetadata.setEquivalentInstanceSpend(new BigDecimal(value));
                 case "processingJobs" -> jobServerStatusMetadata.setProcessingJobs(Long.parseLong(value));
                 case "succeededJobs" -> jobServerStatusMetadata.setSucceededJobs(Long.parseLong(value));
                 case "failedJobs" -> jobServerStatusMetadata.setFailedJobs(Long.parseLong(value));
@@ -134,6 +161,8 @@ public class BackgroundJobServerStatusMetadata {
             metadataBuilder.append("spotPrice:").append(spotPrice).append(";");
             metadataBuilder.append("provider:").append(provider).append(";");
             metadataBuilder.append("savings:").append(serverSavings.round(new MathContext(16))).append(";");
+            metadataBuilder.append("spotSpend:").append(spotSpend.round(new MathContext(16))).append(";");
+            metadataBuilder.append("instanceSpend:").append(equivalentInstanceSpend.round(new MathContext(16))).append(";");
         }
 
         metadataBuilder.append("processingJobs:").append(processingJobs).append(";");

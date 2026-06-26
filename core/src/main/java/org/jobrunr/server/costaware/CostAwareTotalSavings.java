@@ -73,8 +73,8 @@ public class CostAwareTotalSavings {
                     backgroundJobServer.getFirstHeartbeat(),
                     backgroundJobServer.getLastHeartbeat(),
                     metadata == null ? BigDecimal.ZERO : metadata.getServerSavings(),
-                    metadata == null ? BigDecimal.ZERO : metadata.getSpotPrice(),
-                    metadata == null ? BigDecimal.ZERO : metadata.getInstancePrice()
+                    metadata == null ? BigDecimal.ZERO : metadata.getSpotSpend(),
+                    metadata == null ? BigDecimal.ZERO : metadata.getEquivalentInstanceSpend()
             );
         } else {
             if (metadata != null) {
@@ -140,10 +140,10 @@ public class CostAwareTotalSavings {
     public static class BackgroundJobServerSavings {
         private final UUID serverId;
         private final Instant createdAt;
-        private final BigDecimal spotPrice;
-        private final BigDecimal instancePrice;
         private Instant removedAt;
         private BigDecimal totalSavings;
+        private BigDecimal spotSpend;
+        private BigDecimal equivalentInstanceSpend;
         private BigDecimal lastIncreasedBy;
         private BigDecimal spotSpendIncrease;
         private BigDecimal instanceSpendIncrease;
@@ -153,28 +153,28 @@ public class CostAwareTotalSavings {
                 Instant createdAt,
                 Instant removedAt,
                 BigDecimal totalSavings,
-                BigDecimal spotPrice,
-                BigDecimal instancePrice
+                BigDecimal spotSpend,
+                BigDecimal instanceSpend
         ) {
             this.serverId = serverId;
             this.createdAt = createdAt;
             this.removedAt = removedAt;
             this.totalSavings = totalSavings;
             this.lastIncreasedBy = totalSavings;
-            this.spotPrice = spotPrice;
-            this.instancePrice = instancePrice;
-            this.spotSpendIncrease = spotPrice.multiply(BigDecimal.valueOf(Duration.between(createdAt, Instant.now()).toMinutes() / 60));
-            this.instanceSpendIncrease = instancePrice.multiply(BigDecimal.valueOf(Duration.between(createdAt, Instant.now()).toMinutes() / 60));
+            this.spotSpend = spotSpend;
+            this.equivalentInstanceSpend = instanceSpend;
+            this.spotSpendIncrease = spotSpend;
+            this.instanceSpendIncrease = instanceSpend;
         }
 
         public void updateSavings(BackgroundJobServerStatus backgroundJobServerStatus) {
-            Instant now = Instant.now();
-            Duration timeSinceLastUpdate = Duration.between(removedAt, now);
-            this.removedAt = now;
+            this.removedAt = Instant.now();
             this.lastIncreasedBy = backgroundJobServerStatus.getMetadata().getServerSavings().subtract(this.totalSavings);
             this.totalSavings = backgroundJobServerStatus.getMetadata().getServerSavings();
-            this.spotSpendIncrease = spotPrice.multiply(BigDecimal.valueOf(timeSinceLastUpdate.toMinutes() / 60.0));
-            this.instanceSpendIncrease = instancePrice.multiply(BigDecimal.valueOf(timeSinceLastUpdate.toMinutes() / 60.0));
+            this.spotSpendIncrease = backgroundJobServerStatus.getMetadata().getSpotSpend().subtract(this.spotSpend);
+            this.spotSpend = backgroundJobServerStatus.getMetadata().getSpotSpend();
+            this.instanceSpendIncrease = backgroundJobServerStatus.getMetadata().getEquivalentInstanceSpend().subtract(this.equivalentInstanceSpend);
+            this.equivalentInstanceSpend = backgroundJobServerStatus.getMetadata().getEquivalentInstanceSpend();
         }
 
         public UUID getServerId() {
@@ -197,8 +197,16 @@ public class CostAwareTotalSavings {
             return lastIncreasedBy;
         }
 
+        public BigDecimal getSpotSpend() {
+            return spotSpend;
+        }
+
         public BigDecimal getSpotSpendIncrease() {
             return spotSpendIncrease;
+        }
+
+        public BigDecimal getEquivalentInstanceSpend() {
+            return equivalentInstanceSpend;
         }
 
         public BigDecimal getInstanceSpendIncrease() {
