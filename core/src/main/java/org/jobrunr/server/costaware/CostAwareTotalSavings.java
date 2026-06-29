@@ -21,6 +21,8 @@ import java.util.UUID;
 public class CostAwareTotalSavings {
 
     private final HashMap<UUID, BackgroundJobServerSavings> backgroundJobServerSavings;
+    // TODO let's use String as key
+    // TODO if we're to use Savings as value type, let's explore the dropping of the subtypes then
     private final HashMap<LocalDate, Savings> dailySavings; // last 31 days
     private final HashMap<YearMonth, Savings> monthlySavings;
     private final HashMap<Year, Savings> yearlySavings;
@@ -44,7 +46,6 @@ public class CostAwareTotalSavings {
         this.yearlySavings = yearlySavings;
     }
 
-
     public void save(List<BackgroundJobServerStatus> backgroundJobServers, Duration pollInterval) {
         Instant now = Instant.now();
         ZonedDateTime zonedDateTime = now.atZone(ZoneId.systemDefault());
@@ -57,12 +58,13 @@ public class CostAwareTotalSavings {
         }
 
         calculateDailySavings(currentDate, pollInterval);
-        calculateMonthlySavings(currentMonth);
+        calculatePreviousMonthSavings(currentMonth);
         calculateYearlySavings(currentYear);
         clearOldServers();
     }
 
     private void updateBackgroundJobServerSavings(BackgroundJobServerStatus backgroundJobServer) {
+        // TODO is this necessary?
         if (backgroundJobServer.getMetadata() == null || backgroundJobServer.getMetadata().getSpotPrice() == null) return;
 
         BackgroundJobServerSavings savings = backgroundJobServerSavings.get(backgroundJobServer.getId());
@@ -72,14 +74,12 @@ public class CostAwareTotalSavings {
                     backgroundJobServer.getId(),
                     backgroundJobServer.getFirstHeartbeat(),
                     backgroundJobServer.getLastHeartbeat(),
-                    metadata == null ? BigDecimal.ZERO : metadata.getServerSavings(),
-                    metadata == null ? BigDecimal.ZERO : metadata.getSpotPrice(),
-                    metadata == null ? BigDecimal.ZERO : metadata.getInstancePrice()
+                    metadata.getServerSavings(),
+                    metadata.getSpotPrice(),
+                    metadata.getInstancePrice()
             );
-        } else {
-            if (metadata != null) {
-                savings.updateSavings(backgroundJobServer);
-            }
+        } else if (metadata != null) {
+            savings.updateSavings(backgroundJobServer);
         }
         backgroundJobServerSavings.put(backgroundJobServer.getId(), savings);
     }
@@ -98,10 +98,14 @@ public class CostAwareTotalSavings {
         dailySavings.put(currentDate, dailySaving);
     }
 
-    private void calculateMonthlySavings(YearMonth currentMonth) {
+    private void calculatePreviousMonthSavings(YearMonth currentMonth) {
+        // TODO use previousMonth.lengthOfMonth()?
         if (dailySavings.size() >= 28) {
-            monthlySavings.computeIfAbsent(currentMonth.minus(1, ChronoUnit.MONTHS), k -> new MonthlySavings(k, new ArrayList<>(dailySavings.values().stream().map(Savings::toDailySavings).toList())));
+            monthlySavings.computeIfAbsent(currentMonth.minus(1, ChronoUnit.MONTHS),
+                    k -> new MonthlySavings(k, new ArrayList<>(dailySavings.values().stream().map(Savings::toDailySavings).toList())));
         }
+
+        // TODO this is probably better outside of this method
         if (dailySavings.size() > 31) {
             LocalDate earliestDate = dailySavings.keySet().stream().min(LocalDate::compareTo).orElseThrow();
             dailySavings.remove(earliestDate);
@@ -112,6 +116,8 @@ public class CostAwareTotalSavings {
         if (monthlySavings.size() >= 12) {
             yearlySavings.computeIfAbsent(currentYear.minus(1, ChronoUnit.YEARS), k -> new YearlySavings(k, new ArrayList<>(monthlySavings.values().stream().map(Savings::toMonthlySavings).toList())));
         }
+
+        // TODO this is probably better outside of this method
         if (monthlySavings.size() > 12) {
             YearMonth earliestYear = monthlySavings.keySet().stream().min(YearMonth::compareTo).orElseThrow();
             monthlySavings.remove(earliestYear);
@@ -142,7 +148,7 @@ public class CostAwareTotalSavings {
         private final Instant createdAt;
         private final BigDecimal spotPrice;
         private final BigDecimal instancePrice;
-        private Instant removedAt;
+        private Instant removedAt; // TODO is this need at all? I find the name and the purpose confusing
         private BigDecimal totalSavings;
         private BigDecimal lastIncreasedBy;
         private BigDecimal spotSpendIncrease;

@@ -11,8 +11,8 @@ public class BackgroundJobStatisticsFilter implements JobServerFilter {
     private final AtomicLong processingJobs;
     private final AtomicLong succeededJobs;
     private final AtomicLong failedJobs;
-    private final BigDecimal normalInstancePrice;
-    private final BigDecimal spotInstancePrice;
+    private final BigDecimal instancePrice;
+    private final BigDecimal spotPrice;
 
     public BackgroundJobStatisticsFilter() {
         processingJobs = new AtomicLong();
@@ -21,23 +21,25 @@ public class BackgroundJobStatisticsFilter implements JobServerFilter {
         Map<String, String> environment = System.getenv();
 
         if (environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE") != null && environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE") != null) {
-            normalInstancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE"));
-            spotInstancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE"));
+            instancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE"));
+            spotPrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE"));
         } else {
-            normalInstancePrice = BigDecimal.ZERO;
-            spotInstancePrice = BigDecimal.ZERO;
+            instancePrice = BigDecimal.ZERO;
+            spotPrice = BigDecimal.ZERO;
         }
     }
 
     @Override
     public void onProcessing(Job job) {
-        job.getMetadata().put("instancePrice", normalInstancePrice);
-        job.getMetadata().put("spotPrice", spotInstancePrice);
+        job.getMetadata().put("instancePrice", instancePrice);
+        job.getMetadata().put("spotPrice", spotPrice);
+        // TODO For this increment and decrement, I'd use onThreadReleased and onThreadOccupied, shall we copy it from Pro?
         processingJobs.incrementAndGet();
     }
 
     @Override
     public void onProcessingSucceeded(Job job) {
+        // TODO We're alreaddy using atomic values, no need for synchronized on top?
         synchronized (this) {
             if (processingJobs.get() > 0) {
                 processingJobs.decrementAndGet();
@@ -48,6 +50,7 @@ public class BackgroundJobStatisticsFilter implements JobServerFilter {
 
     @Override
     public void onProcessingFailed(Job job, Exception e) {
+        // TODO We're alreaddy using atomic values, no need for synchronized on top?
         synchronized (this) {
             if (processingJobs.get() > 0) {
                 processingJobs.decrementAndGet();

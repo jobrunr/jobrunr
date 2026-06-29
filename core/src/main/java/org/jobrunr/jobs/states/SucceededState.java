@@ -26,6 +26,7 @@ public class SucceededState extends AbstractJobState {
         this.latencyDuration = latencyDuration;
         this.processDuration = processDuration;
 
+        // TODO can we pass these as parameters instead, from the BackgroundJobPerformer on job.succeeded call?
         Map<String, String> environment = System.getenv();
         if (environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE") != null && environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE") != null) {
             instancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE"));

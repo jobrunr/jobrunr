@@ -27,6 +27,7 @@ public class JobDefaultFilters {
         return filters;
     }
 
+    // TODO not used, can we remove it?
     public <T extends JobFilter> T getFilterOfType(Class<T> filterClass) {
         for (JobFilter filter : filters) {
             if (filterClass.isInstance(filter)) {

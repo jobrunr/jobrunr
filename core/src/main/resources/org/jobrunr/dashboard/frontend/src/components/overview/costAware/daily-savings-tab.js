@@ -11,6 +11,7 @@ import TableBody from "@mui/material/TableBody";
 const ApexChartsModule = import("apexcharts");
 const Chart = lazy(() => import("react-apexcharts"));
 
+// TODO let's start without any charts
 const CostAwareDailySavingsTab = ({dailySavings}) => {
     const sortedDates = useMemo(() => {
         return Array.from(dailySavings.keys()).sort();

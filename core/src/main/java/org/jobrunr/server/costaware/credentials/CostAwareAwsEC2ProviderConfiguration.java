@@ -4,8 +4,8 @@ import org.jobrunr.utils.CollectionUtils;
 
 import java.util.Map;
 
+// TODO should the package be provider?
 public class CostAwareAwsEC2ProviderConfiguration implements CostAwareProviderConfiguration {
-    // Maintain same attributes as in cost-aware-api
     final String accessKeyId;
     final String secretAccessKey;
     final String accountRegion;

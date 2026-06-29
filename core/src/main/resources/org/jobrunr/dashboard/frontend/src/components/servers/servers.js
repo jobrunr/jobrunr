@@ -80,23 +80,10 @@ const Servers = memo(() => {
         }, 5 * 1000);
 
         return () => {
-            abortController.abort("Component unmounted");
+            abortController.abort();
             clearInterval(spotScalingIntervalId);
         }
     }, [fetchSpotScalingNotifications]);
-
-    const displaySavings = (server) => {
-        return (
-            <>
-                {server.metadata && server.metadata.spotPrice &&
-                    <>
-                        {server.metadata.serverSavings.toFixed(4)} USD
-                        ({(((server.metadata.instancePrice - server.metadata.spotPrice) / server.metadata.instancePrice) * 100).toFixed(2)}%)
-                    </>
-                }
-            </>
-        );
-    }
 
     useEffect(() => {
         return openEventSource();
@@ -335,7 +322,12 @@ const Servers = memo(() => {
                                                 TotalSavings
                                             </TableCell>
                                             <TableCell>
-                                                {displaySavings(currentServer)}
+                                                {currentServer.metadata?.spotPrice &&
+                                                    <>
+                                                        {currentServer.metadata.serverSavings.toFixed(4)} USD
+                                                        ({(((currentServer.metadata.instancePrice - currentServer.metadata.spotPrice) / currentServer.metadata.instancePrice) * 100).toFixed(2)}%)
+                                                    </>
+                                                }
                                             </TableCell>
                                         </TableRow>
                                     </>}

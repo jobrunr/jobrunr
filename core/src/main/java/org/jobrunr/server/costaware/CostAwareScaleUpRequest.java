@@ -2,7 +2,7 @@ package org.jobrunr.server.costaware;
 
 import java.util.Map;
 
-public record CostAwareScaleUpDto(
+public record CostAwareScaleUpRequest(
         String provider,
         String[] regions,
         String clusterId,
@@ -11,6 +11,7 @@ public record CostAwareScaleUpDto(
         InstanceEnvironment instanceEnvironment
 ) {
 
+    // TODO InstanceSpecification (drop plural?)
     public record InstanceSpecifications(
             Integer minVcpuCores,
             Double minMemoryGiB,

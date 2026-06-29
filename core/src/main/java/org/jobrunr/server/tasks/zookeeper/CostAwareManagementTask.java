@@ -18,10 +18,11 @@ import org.jobrunr.utils.mapper.JsonMapper;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 
+// TODO CostAwareAutoScalingTask?
+// TODO there are almost no tests covering the newly added classes
 public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
     private final Integer minAmountSpotInstances;
@@ -38,6 +39,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         CostAwareConfigurationReader configurationReader = new CostAwareConfigurationReader(costAwareConfiguration);
         this.costAwareApiClient = new CostAwareApiClient(configurationReader, jsonMapper);
 
+        // TODO how about having the configuration as an attribute?
         this.minAmountSpotInstances = configurationReader.getMinSpotInstances();
         this.maxAmountSpotInstances = configurationReader.getMaxSpotInstances();
         this.scaleUpLatency = configurationReader.getScaleUpLatency();
@@ -56,23 +58,26 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     private void scaleIfNecessary() {
         checkForScaleComplete();
         if (isSettling()) return;
+        // TODO should the cluster id be fetched on construction?
         JobRunrMetadata clusterId = super.storageProvider.getMetadata("id", "cluster");
 
-        Duration jobLatency = getCurrentJobLatency();
+        Duration jobLatency = getQueueLatency();
         try {
-            List<BackgroundJobServerStatus> backgroundJobServerSpotInstances = getBackgroundJobServerSpotInstances();
-            if (needsToScaleUpBecauseLatencyIsTooHigh(backgroundJobServerSpotInstances, jobLatency)) {
+            // TODO getBackgroundJobServerSpotInstances is called twice within a run
+            long amountOfSpotBackgroundJobServers = getAmountOfSpotBackgroundJobServers();
+            if (needsToScaleUpBecauseLatencyIsTooHigh(amountOfSpotBackgroundJobServers, jobLatency)) {
+                // TODO to be extracted into scaleUp and scaleDown methods
                 // scale up
-                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.UP, backgroundJobServerSpotInstances.size(), ScalingStatus.PROCESSING);
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.UP, amountOfSpotBackgroundJobServers, ScalingStatus.PROCESSING);
                 saveSpotScalingMetadata(spotScalingMetadata);
                 LOGGER.info("JobRunr is scaling up, creating a new spot instance");
                 costAwareApiClient.scaleUp(clusterId.getValue());
                 lastScaleTime = Instant.now();
                 spotScalingMetadata.setScalingStatus(ScalingStatus.PROVISIONED);
                 saveSpotScalingMetadata(spotScalingMetadata);
-            } else if (needsToScaleDownBecauseLatencyIsLow(backgroundJobServerSpotInstances, jobLatency)) {
+            } else if (needsToScaleDownBecauseLatencyIsLow(amountOfSpotBackgroundJobServers, jobLatency)) {
                 // scale down
-                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.DOWN, backgroundJobServerSpotInstances.size(), ScalingStatus.PROCESSING);
+                SpotScalingMetadata spotScalingMetadata = new SpotScalingMetadata(ScalingDirection.DOWN, amountOfSpotBackgroundJobServers, ScalingStatus.PROCESSING);
                 saveSpotScalingMetadata(spotScalingMetadata);
                 LOGGER.info("JobRunr is scaling down, removing the oldest spot instance");
                 costAwareApiClient.scaleDown(clusterId.getValue());
@@ -89,23 +94,24 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
     }
 
     private void checkForScaleComplete() {
-        SpotScalingMetadata metadata = getSpotScalingMetadata();
-        if (metadata != null) {
-            if (metadata.getDirection().equals(ScalingDirection.UP)) {
-                if (getBackgroundJobServerSpotInstances().size() >= metadata.getCurrentServers() + 1) {
-                    LOGGER.info("Scaling up a spot instance is complete");
-                    super.storageProvider.deleteMetadata("spot-scaling", "cluster");
-                }
-            } else if (metadata.getDirection().equals(ScalingDirection.DOWN)) {
-                if (getBackgroundJobServerSpotInstances().size() <= metadata.getCurrentServers() - 1) {
-                    LOGGER.info("Scaling down a spot instance is complete");
-                    super.storageProvider.deleteMetadata("spot-scaling", "cluster");
-                }
+        SpotScalingMetadata scalingMetadata = getSpotScalingMetadata();
+        if (scalingMetadata == null) return;
+        // TODO aren't we logging too much?
+        if (scalingMetadata.getDirection() == ScalingDirection.UP) {
+            if (getAmountOfSpotBackgroundJobServers() >= scalingMetadata.getAmountOfSpotBackgroundJobServers() + 1) {
+                LOGGER.info("Scaling up a spot instance is complete");
+                super.storageProvider.deleteMetadata("spot-scaling", "cluster");
+            }
+        } else if (scalingMetadata.getDirection() == ScalingDirection.DOWN) {
+            if (getAmountOfSpotBackgroundJobServers() <= scalingMetadata.getAmountOfSpotBackgroundJobServers() - 1) {
+                LOGGER.info("Scaling down a spot instance is complete");
+                super.storageProvider.deleteMetadata("spot-scaling", "cluster");
             }
         }
     }
 
     private void saveGlobalCostSavingsIfNecessary() {
+        // TODO why not save every poll interval?
         if (hasRecentlyCalculatedSavings()) return;
 
         CostAwareTotalSavings costAwareTotalSavings = getCostAwareTotalSavings();
@@ -115,22 +121,21 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         lastSavingsCalculationTime = Instant.now();
     }
 
-    private boolean needsToScaleUpBecauseLatencyIsTooHigh(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
-        return (backgroundJobServerSpotInstances.size() < maxAmountSpotInstances
-                && jobLatency != null && jobLatency.compareTo(scaleUpLatency) > 0)
-                || backgroundJobServerSpotInstances.size() < minAmountSpotInstances;
+    private boolean needsToScaleUpBecauseLatencyIsTooHigh(long amountOfSpotBackgroundJobServers, Duration jobLatency) {
+        return amountOfSpotBackgroundJobServers < minAmountSpotInstances
+                || (amountOfSpotBackgroundJobServers < maxAmountSpotInstances && jobLatency.compareTo(scaleUpLatency) > 0);
     }
 
-    private boolean needsToScaleDownBecauseLatencyIsLow(List<BackgroundJobServerStatus> backgroundJobServerSpotInstances, Duration jobLatency) {
-        return (backgroundJobServerSpotInstances.size() > minAmountSpotInstances)
-                && (jobLatency == null || jobLatency.compareTo(scaleDownLatency) < 0);
+    private boolean needsToScaleDownBecauseLatencyIsLow(long amountOfSpotBackgroundJobServers, Duration jobLatency) {
+        return amountOfSpotBackgroundJobServers > minAmountSpotInstances
+                && jobLatency.compareTo(scaleDownLatency) < 0;
     }
 
-    private List<BackgroundJobServerStatus> getBackgroundJobServerSpotInstances() {
+    private long getAmountOfSpotBackgroundJobServers() {
         return storageProvider.getBackgroundJobServers()
                 .stream()
                 .filter(x -> x.getMetadata() != null && x.getMetadata().getSpotPrice() != null)
-                .toList();
+                .count();
     }
 
     private boolean isSettling() {
@@ -138,20 +143,16 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         return lastScaleTimePlusSettlingPeriod.isAfter(Instant.now());
     }
 
-    private Duration getCurrentJobLatency() {
+    private Duration getQueueLatency() {
         List<Job> jobList = storageProvider.getJobList(ENQUEUED, Paging.AmountBasedList.ascOnCreatedAt(1));
-        if (jobList.isEmpty()) return null;
+        if (jobList.isEmpty()) return Duration.ZERO;
 
         return getJobLatency(jobList.get(0));
     }
 
     private Duration getJobLatency(Job job) {
-        Optional<EnqueuedState> optionalLastEnqueuedState = job.getLastJobStateOfType(EnqueuedState.class);
-        if (optionalLastEnqueuedState.isEmpty()) {
-            throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
-        }
-
-        return Duration.between(optionalLastEnqueuedState.get().getEnqueuedAt(), runStartTime());
+        EnqueuedState jobState = job.getJobState();
+        return Duration.between(jobState.getEnqueuedAt(), runStartTime()); // TODO why run start time, why not Instant.now()?
     }
 
     private boolean hasRecentlyCalculatedSavings() {
@@ -167,6 +168,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
 
     private void saveCostAwareTotalSavings(CostAwareTotalSavings costAwareTotalSavings) {
         String costAwareTotalSavingsAsJson = backgroundJobServer.getJsonMapper().serialize(costAwareTotalSavings);
+        // TODO shall we add these strings as constant to StorageProviderUtils?
         storageProvider.saveMetadata(new JobRunrMetadata("total-savings", "cluster", costAwareTotalSavingsAsJson));
     }
 
@@ -182,18 +184,18 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         storageProvider.saveMetadata(jobRunrMetadata);
     }
 
-
     public static class SpotScalingMetadata {
+        // TODO make the fields final?
         private ScalingDirection direction;
-        private int currentServers;
+        private long amountOfSpotBackgroundJobServers; // TODO amountOfRegisteredServers?
         private ScalingStatus scalingStatus;
 
-        public SpotScalingMetadata() {
+        private SpotScalingMetadata() {
         }
 
-        public SpotScalingMetadata(ScalingDirection direction, int currentServers, ScalingStatus scalingStatus) {
+        public SpotScalingMetadata(ScalingDirection direction, long amountOfSpotBackgroundJobServers, ScalingStatus scalingStatus) {
             this.direction = direction;
-            this.currentServers = currentServers;
+            this.amountOfSpotBackgroundJobServers = amountOfSpotBackgroundJobServers;
             this.scalingStatus = scalingStatus;
         }
 
@@ -201,16 +203,8 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
             return direction;
         }
 
-        public int getCurrentServers() {
-            return currentServers;
-        }
-
-        public void setDirection(ScalingDirection direction) {
-            this.direction = direction;
-        }
-
-        public void setCurrentServers(int currentServers) {
-            this.currentServers = currentServers;
+        public long getAmountOfSpotBackgroundJobServers() {
+            return amountOfSpotBackgroundJobServers;
         }
 
         public ScalingStatus getScalingStatus() {
@@ -222,7 +216,7 @@ public class CostAwareManagementTask extends AbstractJobZooKeeperTask {
         }
 
         public enum ScalingStatus {
-            PROCESSING, PROVISIONED, SCALED_DOWN, FAILED
+            PROCESSING, PROVISIONED, SCALED_DOWN, FAILED // TODO use provisioned, should it be SCALED_UP? or should SCALED_DOWN become DECOMMISSIONED?
         }
 
         public enum ScalingDirection {

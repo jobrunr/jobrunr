@@ -121,7 +121,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
         this.backgroundJobPerformerFactory = loadBackgroundJobPerformerFactory();
         this.storageProvider.validatePollInterval(this.configuration.getPollInterval());
         this.lifecycle = new BackgroundJobServerLifecycle();
-        // check pro on how we initialize the jobDefaultFilters
+        // TODO check pro on how we initialize the jobDefaultFilters
         this.backgroundJobStatisticsFilter = new BackgroundJobStatisticsFilter();
         jobDefaultFilters.addAll(List.of(backgroundJobStatisticsFilter));
         this.costAwareConfiguration = costAwareConfiguration == null ? CostAwareConfiguration.usingDisabledConfiguration() : costAwareConfiguration;

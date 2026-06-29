@@ -1,7 +1,7 @@
 package org.jobrunr.server.costaware;
 
-import org.jobrunr.server.costaware.CostAwareScaleUpDto.InstanceEnvironment;
-import org.jobrunr.server.costaware.CostAwareScaleUpDto.InstanceSpecifications;
+import org.jobrunr.server.costaware.CostAwareScaleUpRequest.InstanceEnvironment;
+import org.jobrunr.server.costaware.CostAwareScaleUpRequest.InstanceSpecifications;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +23,14 @@ public class CostAwareApiClient {
     private final CostAwareConfigurationReader costAwareConfigurationReader;
     private final JsonMapper jsonMapper;
 
+    // TODO why is this not an allowlist instead of blocklist? Which variables are we using?
     private static final Set<String> BLOCKED_ENV_VARIABLES = Set.of(
             "PATH", "USER", "LOGNAME", "HOME", "SHELL", "TMPDIR", "PWD", "OLDPWD",
             "DEBUGGER_ID", "DEBUGGER_ENABLED", "PROCESS_OPTIONS", "PROCESS_PARAMETERS",
             "COMMAND_MODE", "SSH_AUTH_SOCK", "XPC_FLAGS", "XPC_SERVICE_NAME", "INFOPATH", "FPATH"
     );
 
+    // TODO why is this not an allowlist instead of blocklist? Which variables are we using?
     private static final List<String> BLOCKED_ENV_VARIABLE_PREFIXES = List.of(
             "HOMEBREW_", "IDEA_", "JAVA_", "GOTOOLCHAIN", "TERMINAL_",
             "ALLUSERSPROFILE", "APPDATA", "COMPUTERNAME", "ProgramFiles", "SystemRoot"
@@ -43,6 +45,7 @@ public class CostAwareApiClient {
 
     public void scaleUp(String clusterId) throws CostAwareApiClientException {
         try {
+            // TODO method is too long, let's extract the below setup into a `getCostAwareScaleUpRequest`
             Map<String, String> allEnvironmentVariables = costAwareConfigurationReader.getAdditionalEnvironmentVariables();
             if (costAwareConfigurationReader.isUseCurrentEnvironmentVariables()) {
                 allEnvironmentVariables.putAll(System.getenv());
@@ -53,7 +56,7 @@ public class CostAwareApiClient {
                     .filter(entry -> BLOCKED_ENV_VARIABLE_PREFIXES.stream().noneMatch(entry.getKey()::startsWith))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)); // why? filter out system specific environment
 
-            CostAwareScaleUpDto scaleUpDto = new CostAwareScaleUpDto(
+            CostAwareScaleUpRequest scaleUpDto = new CostAwareScaleUpRequest(
                     costAwareConfigurationReader.getProviderConfiguration().getProvider(),
                     costAwareConfigurationReader.getRegions(),
                     clusterId,
@@ -70,15 +73,18 @@ public class CostAwareApiClient {
                     )
             );
 
+            // TODO timeouts (similar to carbon aware)
             HttpRequest request = HttpRequest.newBuilder(URI.create(CostAwareConfiguration.COST_AWARE_API_URL + "/create"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonMapper.serialize(scaleUpDto)))
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
+                // TODO because the exception is caught and logged, we double the logging
                 LOGGER.warn("JobRunr was unable to provision a spot instance");
                 throw new CostAwareApiClientException("Error scaling up, status code " + response.statusCode());
             } else {
+                // TODO wouldn't this log too much?
                 LOGGER.info("JobRunr has provisioned a spot instance, waiting for it to be active");
             }
         } catch (IOException | InterruptedException e) {
@@ -88,7 +94,7 @@ public class CostAwareApiClient {
 
     public void scaleDown(String clusterId) throws CostAwareApiClientException {
         try {
-            CostAwareScaleDownDto scaleDownDto = new CostAwareScaleDownDto(
+            CostAwareScaleDownRequest scaleDownDto = new CostAwareScaleDownRequest(
                     clusterId,
                     costAwareConfigurationReader.getProviderConfiguration().asMap()
             );
@@ -109,6 +115,7 @@ public class CostAwareApiClient {
         }
     }
 
+    // TODO I don't think this belongs here, the task is disabled not the client
     public boolean isDisabled() {
         return !costAwareConfigurationReader.isEnabled();
     }

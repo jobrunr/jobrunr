@@ -10,12 +10,13 @@ import java.util.Map;
 
 // TODO: is it also relevant for Karpenter / Google Cloud functions / AWS lambdas
 public class CostAwareConfiguration {
-    public static final Integer DEFAULT_VCPU_CORES = 1;
-    public static final Double DEFAULT_MEMORY_GIB = 2.0;
-    public static final Double DEFAULT_GPU_MEMORY_GIB = null;
+    // TODO are the constants needed?
+    public static final int DEFAULT_VCPU_CORES = 1; // TODO should this be double?
+    public static final double DEFAULT_MEMORY_GIB = 2.0;
+    public static final Double DEFAULT_GPU_MEMORY_GIB = null; // TODO should this be 0?
     public static final int DEFAULT_SPOT_INSTANCE_AMOUNT = 2;
-    public static final String COST_AWARE_API_URL = "http://localhost:9000/cost-aware";
-    public static final Duration DEFAULT_SCALE_UP_LATENCY = Duration.of(1, ChronoUnit.MINUTES);
+    public static final String COST_AWARE_API_URL = "http://localhost:9000/cost-aware"; // TODO set to the official url
+    public static final Duration DEFAULT_SCALE_UP_LATENCY = Duration.of(1, ChronoUnit.MINUTES); // TODO why is this lower than the scale down?
     public static final Duration DEFAULT_SCALE_DOWN_LATENCY = Duration.of(2, ChronoUnit.MINUTES);
     public static final Duration DEFAULT_SETTLING_PERIOD = Duration.of(5, ChronoUnit.MINUTES);
 
@@ -31,10 +32,10 @@ public class CostAwareConfiguration {
 
     CostAwareProviderConfiguration providerConfiguration;
     String dockerImage;
-    String imageArchitecture = "x86_64";
-    String[] regions = {"eu-north-1"};
+    String imageArchitecture = "x86_64"; // TODO is this a good default? Why is the configuration needed?
+    String[] regions = {"eu-north-1"}; // TODO is this a good default? Should it be part of CostAwareProviderConfiguration instead?
     boolean useCurrentEnvironmentVariables = true;
-    Map<String, String> additionalEnvironmentVariables = new HashMap<>();
+    Map<String, String> additionalEnvironmentVariables = new HashMap<>(); // TODO (initial)environmentVariables instead additionalEnvironmentVariables?
 
     public CostAwareConfiguration(CostAwareProviderConfiguration providerConfiguration, String dockerImage) {
         this.providerConfiguration = providerConfiguration;
@@ -61,6 +62,8 @@ public class CostAwareConfiguration {
         return new CostAwareConfiguration(null, null).andEnabled(false);
     }
 
+    // TODO shall we have a HardwareSpecification/InstanceSpecification that groups these 3?
+
     /**
      * Allows to configure the minimum hardware requirements for your spot instances
      *
@@ -84,6 +87,7 @@ public class CostAwareConfiguration {
      * @return the same configuration instance
      */
     public CostAwareConfiguration andSpotInstanceAmount(int minSpotInstances, int maxSpotInstances) {
+        // TODO improve the validation
         if (minSpotInstances <= 0 || maxSpotInstances < minSpotInstances) throw new IllegalArgumentException("You can't have 0 or less spot instances");
         this.maxSpotInstances = maxSpotInstances;
         this.minSpotInstances = minSpotInstances;

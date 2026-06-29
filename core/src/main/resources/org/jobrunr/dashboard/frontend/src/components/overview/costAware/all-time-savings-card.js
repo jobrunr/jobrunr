@@ -3,6 +3,8 @@ import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import {useMemo} from "react";
 
+// TODO can't we not re-use stat-card.js?
+// TODO I think we need to refactor the overview folder
 const CostAwareAllTimeSavingsCard = ({dailySavings, monthlySavings, yearlySavings}) => {
     const totalSavings = useMemo(() => {
         let total = 0;

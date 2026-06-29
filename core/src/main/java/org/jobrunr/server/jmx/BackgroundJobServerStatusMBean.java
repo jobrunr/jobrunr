@@ -39,6 +39,7 @@ public interface BackgroundJobServerStatusMBean {
 
     Double getProcessCpuLoad();
 
+    // TODO I don't think this belongs here, as far as I know, the interface is used for JMX which doesn't need these info
     String getMetadataString();
 
     BackgroundJobServerStatusMetadata getMetadata();

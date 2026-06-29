@@ -80,6 +80,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
         };
     }
 
+    // TODO: why no use the above getMetadataByNameAndOwner?
     private HttpRequestHandler getSpotScalingStatus() {
         return (request, response) -> {
             JobRunrMetadata metadata = storageProvider.getMetadata("spot-scaling", "cluster");

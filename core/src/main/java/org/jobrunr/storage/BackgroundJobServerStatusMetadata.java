@@ -26,6 +26,7 @@ public class BackgroundJobServerStatusMetadata {
 
     public BackgroundJobServerStatusMetadata(Instant firstHeartbeat, long processingJobs, long succeededJobs, long failedJobs) {
         Map<String, String> environment = System.getenv();
+        // TODO these strings should probably be constants
         if (environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE") != null && environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE") != null) {
             instancePrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_INSTANCE_PRICE"));
             spotPrice = new BigDecimal(environment.get("JOBRUNR_COST_AWARE_SPOT_PRICE"));

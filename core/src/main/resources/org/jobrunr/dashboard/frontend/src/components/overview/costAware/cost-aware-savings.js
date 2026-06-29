@@ -98,12 +98,12 @@ const CostAwareSavings = () => {
                     Cost Aware Savings
                 </MuiDialogTitle>
                 <MuiDialogContent dividers>
-                    <Box display={"flex"} flexDirection={"column"} gap={2}>
+                    <Box display="flex" flexDirection="column" gap={2}>
                         <Tabs
                             value={selectedTab}
                             onChange={handleChange}
                         >
-                            <Tab label={"Daily Savings"} id={"daily-savings-tab"} aria-controls={"daily-savings-tabpanel"}></Tab>
+                            <Tab label="Daily Savings" id={"daily-savings-tab"} aria-controls={"daily-savings-tabpanel"}></Tab>
                             <Tab label={"Monthly Savings"} id={"monthly-savings-tab"} aria-controls={"monthly-savings-tabpanel"}></Tab>
                             <Tab label={"Yearly Savings"} id={"yearly-savings-tab"} aria-controls={"yearly-savings-tabpanel"}></Tab>
                         </Tabs>

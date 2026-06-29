@@ -28,6 +28,7 @@ const Overview = () => {
                     <Typography id="title" variant="h4">Dashboard</Typography>
                 </Box>
             </div>
+            {/* TODO let's align this with Pro */}
             <div style={{display: "flex", flexWrap: "wrap", gap: "16px"}}>
                 {servers.length > 0
                     ? <>
