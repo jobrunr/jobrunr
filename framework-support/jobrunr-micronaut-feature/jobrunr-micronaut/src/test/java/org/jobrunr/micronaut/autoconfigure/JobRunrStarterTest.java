@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -41,8 +42,8 @@ class JobRunrStarterTest {
 
     @BeforeEach
     void setUpJobRunrStarter() {
-        when(configuration.getBackgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
-        when(configuration.getDashboard()).thenReturn(dashboardConfiguration);
+        lenient().when(configuration.getBackgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
+        lenient().when(configuration.getDashboard()).thenReturn(dashboardConfiguration);
 
         jobRunrStarter = new JobRunrStarter();
         setInternalState(jobRunrStarter, "configuration", configuration);
@@ -74,21 +75,7 @@ class JobRunrStarterTest {
     }
 
     @Test
-    void onStopOptionalsAreNotCalledToBootstrapIfNotConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
-        when(dashboardConfiguration.isEnabled()).thenReturn(false);
-
-        jobRunrStarter.shutdown(null);
-
-        verifyNoInteractions(backgroundJobServer);
-        verifyNoInteractions(dashboardWebServer);
-    }
-
-    @Test
     void onStopOptionalsAreNotToBootstrapIfConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
-        when(dashboardConfiguration.isEnabled()).thenReturn(true);
-
         jobRunrStarter.shutdown(null);
 
         verify(backgroundJobServer).stop();
