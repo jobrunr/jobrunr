@@ -23,8 +23,7 @@ public class RecurringMethodProcessor implements ExecutableMethodProcessor<Recur
         this.jobScheduler = new JobRunrRecurringJobScheduler(jobScheduler);
     }
 
-    @Override
-    public void process(BeanDefinition<?> beanDefinition, ExecutableMethod<?, ?> method) {
+    public <B> void process(BeanDefinition<B> beanDefinition, ExecutableMethod<B, ?> method) {
         LOGGER.debug("Registering Recurring Job {}.{}", method.getTargetMethod().getDeclaringClass().getName(), method.getTargetMethod().getName());
         jobScheduler.schedule(method);
     }
