@@ -5,7 +5,7 @@ when:
       - pull_request
     branch:
       - master
-      - v8
+      - v9
   - event: manual
 
 
