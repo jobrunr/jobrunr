@@ -8,7 +8,6 @@ import org.jobrunr.utils.annotations.Because;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Objects;
 
@@ -49,21 +48,27 @@ class JacksonUsingJSR310JavaTimeModuleJsonMapperTest extends AbstractJsonMapperT
                 .hasArgs(someParameter);
     }
 
-    // we cannot use records as the test fixtures are compiled with Java 11 and they are used by other people
-    // for JobRunr 7, bump the testfixtures to Java 17 and test with an actual record
-    // Note for future self: I'm really sorry about this :-s
     @Test
     @Because("https://github.com/jobrunr/jobrunr/issues/779")
-    @Deprecated
-    void testCreatorHasDefaultVisibilityInJacksonObjectMapper() {
-        Object objectMapper = Whitebox.getInternalState(jsonMapper, "objectMapper");
-        Object configOverrides = Whitebox.getInternalState(objectMapper, "_configOverrides");
-        Object visibilityChecker = Whitebox.getInternalState(configOverrides, "_visibilityChecker");
-        assertThat(visibilityChecker.toString()).contains("creator=ANY");
+    void testCanSerializeAndDeserializeRecord() {
+        var someRecord = new SomeRecord(3);
+        Job job = anEnqueuedJob()
+                .withJobLambda(() -> doWorkWithParameter(someRecord))
+                .build();
+
+        String jobAsString = jsonMapper.serialize(job);
+
+        Job deserializedJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(deserializedJob.getJobDetails())
+                .hasArgs(someRecord);
     }
 
     public void doWorkWithParameter(SomeParameter parameter) {
         System.out.println(parameter);
+    }
+
+    public void doWorkWithParameter(SomeRecord record) {
+        System.out.println(record);
     }
 
     public static class SomeParameter {
@@ -93,4 +98,6 @@ class JacksonUsingJSR310JavaTimeModuleJsonMapperTest extends AbstractJsonMapperT
             return Objects.hash(value);
         }
     }
+
+    public record SomeRecord(int value) {}
 }
