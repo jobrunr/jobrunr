@@ -314,19 +314,6 @@ public class JobRunrConfiguration {
      *
      * @param microMeterIntegration the JobRunrMicroMeterIntegration
      * @return the same configuration instance which provides a fluent api
-     * @deprecated please use {@link JobRunrConfiguration#useMetrics(JobRunrMicroMeterIntegration)} instead.
-     */
-    @Deprecated
-    public JobRunrConfiguration useMicroMeter(JobRunrMicroMeterIntegration microMeterIntegration) {
-        this.microMeterIntegration = microMeterIntegration;
-        return this;
-    }
-
-    /**
-     * Allows integrating MicroMeter metrics into JobRunr.
-     *
-     * @param microMeterIntegration the JobRunrMicroMeterIntegration
-     * @return the same configuration instance which provides a fluent api
      */
     public JobRunrConfiguration useMetrics(JobRunrMicroMeterIntegration microMeterIntegration) {
         this.microMeterIntegration = microMeterIntegration;
