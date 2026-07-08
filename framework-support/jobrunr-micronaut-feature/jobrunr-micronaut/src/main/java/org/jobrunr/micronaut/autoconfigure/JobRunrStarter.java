@@ -38,8 +38,13 @@ public class JobRunrStarter {
 
     @EventListener
     void shutdown(ShutdownEvent event) {
-        backgroundJobServer.ifPresent(BackgroundJobServer::stop);
-        dashboardWebServer.ifPresent(JobRunrDashboardWebServer::stop);
+        // the flags here return false despite being true on `startup`
+        if (configuration.getBackgroundJobServer().isEnabled()) {
+            backgroundJobServer.get().stop();
+        }
+        if (configuration.getDashboard().isEnabled()) {
+            dashboardWebServer.get().stop();
+        }
         storageProvider.close();
     }
 }

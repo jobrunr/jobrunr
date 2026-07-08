@@ -75,7 +75,20 @@ class JobRunrStarterTest {
     }
 
     @Test
+    void onStopOptionalsAreNotCalledToBootstrapIfNotConfigured() {
+        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
+        when(dashboardConfiguration.isEnabled()).thenReturn(false);
+
+        jobRunrStarter.shutdown(null);
+
+        verifyNoInteractions(backgroundJobServer);
+        verifyNoInteractions(dashboardWebServer);
+    }
+
+    @Test
     void onStopOptionalsAreNotToBootstrapIfConfigured() {
+        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
+        when(dashboardConfiguration.isEnabled()).thenReturn(true);
         jobRunrStarter.shutdown(null);
 
         verify(backgroundJobServer).stop();

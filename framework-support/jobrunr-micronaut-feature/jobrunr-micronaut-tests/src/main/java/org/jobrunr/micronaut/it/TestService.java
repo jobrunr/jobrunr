@@ -9,7 +9,7 @@ import org.jobrunr.jobs.context.JobContext;
 @Singleton
 public class TestService {
 
-    @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
+    @Recurring(id = "my-recurring-job", cron = "${recurring-job.cron}")
     @Job(name = "Doing some work")
     public void aRecurringJob() {
         System.out.println("Doing some work every 15 minutes.");
