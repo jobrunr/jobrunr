@@ -1,5 +1,6 @@
 package org.jobrunr.micronaut.it;
 
+import io.micronaut.context.annotation.Property;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -14,6 +15,7 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.utils.StringUtils.substringAfter;
 
 @MicronautTest(rebuildContext = true)
+@Property(name = "test.service.enabled", value = "true")
 public class JobRunrFunctionalityTest {
 
     TeenyHttpClient restApi;
