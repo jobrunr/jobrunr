@@ -118,11 +118,7 @@ public class DatabaseCreator {
         Set<String> appliedMigrations = isMigrationsTableMissing()
                 ? Collections.emptySet()
                 : loadAppliedMigrations();
-        List<SqlMigration> migrationsToRun = getMigrations()
-                .filter(migration -> migration.getFileName().endsWith(".sql"))
-                .sorted(comparing(SqlMigration::getFileName))
-                .filter(migration -> !appliedMigrations.contains(migration.getFileName()))
-                .collect(toList());
+        List<SqlMigration> migrationsToRun = getMigrationsToRun(appliedMigrations).collect(toList());
         runMigrations(migrationsToRun);
     }
 
@@ -174,7 +170,7 @@ public class DatabaseCreator {
         return databaseMigrationsProvider.getMigrations();
     }
 
-    private void runMigrations(List<SqlMigration> migrationsToRun) {
+    protected void runMigrations(List<SqlMigration> migrationsToRun) {
         if (migrationsToRun.isEmpty()) {
             LOGGER.debug("No migrations to run.");
             migrationsTableLocker.waitUntilMigrationsAreDone();
@@ -187,7 +183,9 @@ public class DatabaseCreator {
 
         if (migrationsTableLocker.lockMigrationsTable()) {
             try {
-                migrationsToRun.forEach(this::runMigration);
+                // why: recomputed to prevent time-of-check to time-of-use race
+                Set<String> appliedMigrations = loadAppliedMigrations();
+                getMigrationsToRun(appliedMigrations).forEach(this::runMigration);
             } finally {
                 migrationsTableLocker.removeMigrationsTableLock();
             }
@@ -269,6 +267,13 @@ public class DatabaseCreator {
             LOGGER.debug("Error loading applied migrations", sqlException);
             throw new StorageException(sqlException);
         }
+    }
+
+    private Stream<SqlMigration> getMigrationsToRun(Set<String> appliedMigrations) {
+        return getMigrations()
+                .filter(migration -> migration.getFileName().endsWith(".sql"))
+                .sorted(comparing(SqlMigration::getFileName))
+                .filter(migration -> !appliedMigrations.contains(migration.getFileName()));
     }
 
     private boolean isCreateMigrationsTableMigration(SqlMigration migration) {
