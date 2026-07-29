@@ -20,12 +20,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLTransientConnectionException;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -63,6 +65,29 @@ class JobHandlerTest {
     }
 
     @Test
+    void singleStorageProviderExceptionsAreLoggedToDebugLogger() {
+        Task mockedTask = mockTaskThatThrows(new StorageException("Could not get connection", new SQLTransientConnectionException("DB is slow")));
+        JobHandler jobHandler = createJobHandlerWithTask(mockedTask);
+
+        jobHandler.run();
+
+        verify(storageProvider, never()).saveMetadata(jobRunrMetadataArgumentCaptor.capture());
+        assertThat(logger).hasDebugMessageContaining("JobRunr encountered an exception related to your StorageProvider.");
+    }
+
+    @Test
+    void twoStorageProviderExceptionsAreLoggedToInfoLogger() {
+        Task mockedTask = mockTaskThatThrows(new StorageException("Could not get connection", new SQLTransientConnectionException("DB is slow")));
+        JobHandler jobHandler = createJobHandlerWithTask(mockedTask);
+
+        jobHandler.run();
+        jobHandler.run();
+
+        verify(storageProvider, never()).saveMetadata(jobRunrMetadataArgumentCaptor.capture());
+        assertThat(logger).hasInfoMessageContaining("JobRunr encountered continued exceptions related to your StorageProvider.");
+    }
+
+    @Test
     void severeJobRunrExceptionsAreLoggedToStorageProvider() {
         Task mockedTask = mockTaskThatThrows(new SevereJobRunrException("Could not resolve ConcurrentJobModificationException", new UnresolvableConcurrentJobModificationException(emptyList(), null)));
         JobHandler jobHandler = createJobHandlerWithTask(mockedTask);
@@ -91,7 +116,7 @@ class JobHandlerTest {
     }
 
     @Test
-    void jobHandlersStopsBackgroundJobServerAndLogsStorageProviderExceptionIfTooManyStorageExceptions() {
+    void jobHandlersStopsBackgroundJobServerIfTooManyStorageExceptions() {
         Task mockedTask = mockTaskThatThrows(new StorageException("a storage exception"));
         JobHandler jobHandler = createJobHandlerWithTask(mockedTask);
 
@@ -111,7 +136,8 @@ class JobHandlerTest {
     }
 
     private JobHandler createJobHandlerWithTask(Task task) {
-        JobHandler jobHandler = new JobHandler(backgroundJobServer, task) {};
+        JobHandler jobHandler = new JobHandler(backgroundJobServer, task) {
+        };
         logger = LoggerAssert.initFor(jobHandler);
         return jobHandler;
     }

@@ -44,6 +44,14 @@ public abstract class JobHandler implements Runnable {
                     LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
                 }
                 backgroundJobServer.stop();
+            } else if (e instanceof StorageException) {
+                if (taskStatistics.hasManyExceptions()) {
+                    LOGGER.warn("JobRunr encountered many exceptions related to your StorageProvider. If exceptions continue, processing will pause until the StorageProvider recovers.", e);
+                } else if (taskStatistics.hasExceptions()) {
+                    LOGGER.info("JobRunr encountered continued exceptions related to your StorageProvider. If exceptions continue, processing will pause until the StorageProvider recovers", e);
+                } else {
+                    LOGGER.debug("JobRunr encountered an exception related to your StorageProvider.", e);
+                }
             } else {
                 LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
             }
