@@ -20,8 +20,10 @@ dependencies {
 
     api project(':core')
     implementation project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
-    // why: https://quarkus.io/guides/building-my-first-extension
-    implementation 'io.quarkus:quarkus-smallrye-health-deployment'
+    implementation 'io.quarkus:quarkus-core-deployment'
+    implementation 'io.quarkus:quarkus-arc-deployment'
+    implementation 'io.quarkus:quarkus-smallrye-health-spi'
+
     testImplementation 'io.quarkus:quarkus-smallrye-health'
 }
 
