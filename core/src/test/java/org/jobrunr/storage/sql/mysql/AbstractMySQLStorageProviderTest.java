@@ -11,12 +11,15 @@ import org.junit.jupiter.extension.ForAllSubclassesExtension;
 import org.testcontainers.containers.MySQLContainer;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
 
 import static java.time.Instant.now;
-import static org.jobrunr.storage.sql.SqlTestUtils.assertJobStatsViewUsesSqlSecurityInvoker;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.jobrunr.storage.sql.SqlTestUtils.toHikariDataSource;
 
 @ExtendWith(ForAllSubclassesExtension.class)
@@ -35,8 +38,13 @@ public abstract class AbstractMySQLStorageProviderTest extends SqlStorageProvide
     }
 
     @Test
-    void jobStatsViewUsesSqlSecurityInvokerSoItKeepsWorkingAfterARestoreInAnotherEnvironment() throws SQLException {
-        assertJobStatsViewUsesSqlSecurityInvoker(getDataSource());
+    void jobStatsViewIsCreatedUsingSqlSecurityInvoker() throws SQLException {
+        try (Connection connection = getDataSource().getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("select security_type from information_schema.views where table_schema = database() and table_name like '%jobrunr_jobs_stats'")) {
+            assertThat(resultSet.next()).isTrue();
+            assertThat(resultSet.getString("security_type")).isEqualTo("INVOKER");
+        }
     }
 
     @AfterAll

@@ -11,14 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class SqlTestUtils {
 
@@ -81,22 +75,5 @@ public class SqlTestUtils {
         } catch (Exception e) {
             throw e;
         }
-    }
-
-    public static void assertJobStatsViewUsesSqlSecurityInvoker(DataSource dataSource) throws SQLException {
-        List<String> securityTypes = new ArrayList<>();
-        try (final Connection connection = dataSource.getConnection();
-             final Statement statement = connection.createStatement();
-             final ResultSet resultSet = statement.executeQuery("select security_type from information_schema.views where table_schema = database() and table_name like '%jobrunr_jobs_stats'")) {
-            while (resultSet.next()) {
-                securityTypes.add(resultSet.getString("security_type"));
-            }
-        }
-        assertThat(securityTypes)
-                .describedAs("Expected the jobrunr_jobs_stats view to exist")
-                .isNotEmpty();
-        assertThat(securityTypes)
-                .describedAs("Expected the jobrunr_jobs_stats view to be created using SQL SECURITY INVOKER")
-                .containsOnly("INVOKER");
     }
 }

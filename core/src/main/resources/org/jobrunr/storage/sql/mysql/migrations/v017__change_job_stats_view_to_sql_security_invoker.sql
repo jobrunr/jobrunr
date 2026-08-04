@@ -1,5 +1,4 @@
-DROP VIEW jobrunr_jobs_stats;
-CREATE SQL SECURITY INVOKER VIEW jobrunr_jobs_stats
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW jobrunr_jobs_stats
 AS
 with job_stat_results AS (SELECT state, count(*) AS count
     FROM jobrunr_jobs
