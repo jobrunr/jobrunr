@@ -118,6 +118,30 @@ class JobRunrFactoryTest {
 
     @Test
     @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.jobs.delete-succeeded-jobs-after", value = "PT2H")
+    @Property(name = "jobrunr.jobs.permanently-delete-deleted-jobs-after", value = "PT4H")
+    @Property(name = "jobrunr.background-job-server.delete-succeeded-jobs-after", value = "PT1H")
+    @Property(name = "jobrunr.background-job-server.permanently-delete-deleted-jobs-after", value = "PT3H")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteFilterConfiguredWithJobPropertiesOverServerProperties() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+        assertThat(backgroundJobServerConfiguration)
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(4));
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
+    @Property(name = "jobrunr.background-job-server.delete-succeeded-jobs-after", value = "PT1H")
+    @Property(name = "jobrunr.background-job-server.permanently-delete-deleted-jobs-after", value = "PT3H")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfiguration() {
+        BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+        assertThat(backgroundJobServerConfiguration)
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(1))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(3));
+    }
+
+    @Test
+    @Property(name = "jobrunr.background-job-server.enabled", value = "true")
     @Property(name = "jobrunr.background-job-server.name", value = "test")
     void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
         BackgroundJobServer backgroundJobServer = context.getBean(BackgroundJobServer.class);

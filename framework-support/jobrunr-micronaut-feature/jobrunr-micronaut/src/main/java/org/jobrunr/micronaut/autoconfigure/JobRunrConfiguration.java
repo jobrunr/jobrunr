@@ -46,6 +46,16 @@ public interface JobRunrConfiguration {
         Optional<Integer> getRetryBackOffTimeSeed();
 
         /**
+         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
+         */
+        Optional<Duration> getDeleteSucceededJobsAfter();
+
+        /**
+         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
+         */
+        Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
+
+        /**
          * Allows to configure the MicroMeter Metrics integration for jobs.
          */
         @NotNull
@@ -158,12 +168,18 @@ public interface JobRunrConfiguration {
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
+         *
+         * @deprecated use jobrunr.jobs.delete-succeeded-jobs-after
          */
+        @Deprecated
         Optional<Duration> getDeleteSucceededJobsAfter();
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
+         *
+         * @deprecated use jobrunr.jobs.permanently-delete-deleted-jobs-after
          */
+        @Deprecated
         Optional<Duration> getPermanentlyDeleteDeletedJobsAfter();
 
         /**

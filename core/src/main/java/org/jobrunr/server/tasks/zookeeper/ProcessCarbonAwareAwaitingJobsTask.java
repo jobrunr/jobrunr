@@ -183,8 +183,7 @@ public class ProcessCarbonAwareAwaitingJobsTask extends AbstractJobZooKeeperTask
     }
 
     private void deleteOldUnnecessaryForecasts(List<JobRunrMetadata> allForecasts) {
-        Duration jobCompletelyDeletedAfter = backgroundJobServer.getConfiguration().getDeleteSucceededJobsAfter().plus(backgroundJobServer.getConfiguration().getPermanentlyDeleteDeletedJobsAfter());
-        String deleteForecastAfter = now().minus(jobCompletelyDeletedAfter).atZone(ZoneOffset.UTC).toLocalDate().toString();
+        String deleteForecastAfter = now().minus(Duration.ofDays(7)).atZone(ZoneOffset.UTC).toLocalDate().toString();
         allForecasts.stream()
                 .filter(metadata -> metadata.getOwner().compareTo(deleteForecastAfter) < 0)
                 .forEach(metadata -> storageProvider.deleteMetadata(metadata.getName(), metadata.getOwner()));
