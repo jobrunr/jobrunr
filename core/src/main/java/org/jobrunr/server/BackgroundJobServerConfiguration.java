@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.configuration.JobConfiguration;
 import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.configuration.BackgroundJobServerWorkerPolicy;
@@ -50,7 +51,7 @@ public class BackgroundJobServerConfiguration {
     /**
      * This returns the default configuration with the BackgroundJobServer with a poll interval of 15 seconds and a worker count based on the CPU
      *
-     * @return the default JobRunrDashboard configuration
+     * @return the default BackgroundJobServer configuration
      */
     public static BackgroundJobServerConfiguration usingStandardBackgroundJobServerConfiguration() {
         return new BackgroundJobServerConfiguration();
@@ -189,7 +190,7 @@ public class BackgroundJobServerConfiguration {
      *
      * @param duration the duration to wait before deleting successful jobs
      * @return the same configuration instance which provides a fluent api
-     * @deprecated use {@link org.jobrunr.configuration.JobRunrConfiguration#useJobRetention(JobRetentionConfiguration)} to set this duration or provide it via app properties.
+     * @deprecated use {@link org.jobrunr.configuration.JobRunrConfiguration#useJobConfiguration} to set this duration or provide it via app properties.
      */
     @Deprecated
     public BackgroundJobServerConfiguration andDeleteSucceededJobsAfter(Duration duration) {
@@ -202,7 +203,7 @@ public class BackgroundJobServerConfiguration {
      *
      * @param duration the duration to wait before permanently deleting successful jobs
      * @return the same configuration instance which provides a fluent api
-     * @deprecated use {@link org.jobrunr.configuration.JobRunrConfiguration#useJobRetention(JobRetentionConfiguration)} to set this duration or provide it via app properties.
+     * @deprecated use {@link org.jobrunr.configuration.JobRunrConfiguration#useJobConfiguration(JobConfiguration)} to set this duration or provide it via app properties.
      */
     @Deprecated
     public BackgroundJobServerConfiguration andPermanentlyDeleteDeletedJobsAfter(Duration duration) {

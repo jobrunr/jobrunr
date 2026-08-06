@@ -42,7 +42,7 @@ public class JobRunrConfiguration {
     JobRunrJMXExtensions jmxExtension;
     JobRunrMicroMeterIntegration microMeterIntegration;
 
-    private JobRetentionConfiguration jobRetentionConfiguration;
+    private JobConfiguration jobConfiguration;
     private BackgroundJobServerConfiguration backgroundJobServerConfiguration;
     private boolean startBackgroundJobServerOnInitialization;
     private JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration;
@@ -55,6 +55,7 @@ public class JobRunrConfiguration {
         this.jobMapper = this.jsonMapper == null ? null : new JobMapper(jsonMapper);
         this.jobDetailsGenerator = new CachingJobDetailsGenerator();
         this.jobFilters = new ArrayList<>();
+        this.jobConfiguration = new JobConfiguration();
     }
 
     /**
@@ -103,14 +104,17 @@ public class JobRunrConfiguration {
     }
 
     /**
-     * Configures how long jobs are kept in storage after they reach a terminal state.
+     * Configures global job settings.
+     * <p>
+     * These settings apply to all jobs managed by JobRunr, such as how long completed,
+     * failed, or deleted jobs are retained after reaching a terminal state.
      *
-     * @param jobRetentionConfiguration the job retention configuration to use
-     * @return the same configuration instance which provides a fluent api
-     * @see JobRetentionConfiguration
+     * @param jobConfiguration the global job configuration
+     * @return this configuration instance for method chaining
+     * @see JobConfiguration#usingStandardJobConfiguration()
      */
-    public JobRunrConfiguration useJobRetention(JobRetentionConfiguration jobRetentionConfiguration) {
-        this.jobRetentionConfiguration = jobRetentionConfiguration;
+    public JobRunrConfiguration useJobConfiguration(JobConfiguration jobConfiguration) {
+        this.jobConfiguration = jobConfiguration;
         return this;
     }
 
@@ -382,7 +386,8 @@ public class JobRunrConfiguration {
 
     private void initializeBackgroundJobServer() {
         if (backgroundJobServerConfiguration != null) {
-            if (jobRetentionConfiguration != null) {
+            if (jobConfiguration.jobRetentionConfiguration != null) {
+                JobRetentionConfiguration jobRetentionConfiguration = jobConfiguration.jobRetentionConfiguration;
                 backgroundJobServerConfiguration
                         .andDeleteSucceededJobsAfter(jobRetentionConfiguration.getDeleteSucceededJobsAfter())
                         .andPermanentlyDeleteDeletedJobsAfter(jobRetentionConfiguration.getPermanentlyDeleteDeletedJobsAfter());
