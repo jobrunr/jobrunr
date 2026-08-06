@@ -86,6 +86,16 @@ public interface JobRunrRuntimeConfiguration {
         Optional<Integer> retryBackOffTimeSeed();
 
         /**
+         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
+         */
+        Optional<Duration> deleteSucceededJobsAfter();
+
+        /**
+         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
+         */
+        Optional<Duration> permanentlyDeleteDeletedJobsAfter();
+
+        /**
          * Configures MicroMeter metrics related to jobs
          */
         MetricsConfiguration metrics();
@@ -164,12 +174,18 @@ public interface JobRunrRuntimeConfiguration {
 
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state.
+         *
+         * @deprecated use quarkus.jobrunr.jobs.delete-succeeded-jobs-after
          */
+        @Deprecated
         Optional<Duration> deleteSucceededJobsAfter();
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state.
+         *
+         * @deprecated use quarkus.jobrunr.jobs.permanently-delete-deleted-jobs-after
          */
+        @Deprecated
         Optional<Duration> permanentlyDeleteDeletedJobsAfter();
 
         /**

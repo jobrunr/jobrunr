@@ -27,6 +27,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.configuration.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.mockito.ArgumentMatchers.any;
@@ -209,5 +210,17 @@ class JobRunrConfigurationTest {
                     .isInstanceOf(JsonMapperException.class)
                     .hasMessage("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
         }
+    }
+
+    @Test
+    void initializeUsingJobRetentionOverridesDefaultJobRetentionConfiguration() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useJobConfiguration(usingStandardJobConfiguration().andJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24))))
+                .useBackgroundJobServerIf(true, usingStandardBackgroundJobServerConfiguration(), false)
+                .initialize();
+        assertThat(configurationResult.getBackgroundJobServer().getConfiguration())
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(24));
     }
 }

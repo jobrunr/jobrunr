@@ -195,6 +195,40 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfigurationWithJobPropertiesOverServerProperties() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.jobs.delete-succeeded-jobs-after=PT2H",
+                        "jobrunr.jobs.permanently-delete-deleted-jobs-after=PT4H",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(4));
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfiguration() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(1))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(3));
+                });
+    }
+
+    @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
         this.contextRunner
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")

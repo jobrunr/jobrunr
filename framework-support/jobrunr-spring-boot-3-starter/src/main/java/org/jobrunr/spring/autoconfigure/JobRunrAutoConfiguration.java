@@ -1,5 +1,6 @@
 package org.jobrunr.spring.autoconfigure;
 
+import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
@@ -38,8 +39,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
@@ -56,6 +59,18 @@ import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardB
 @EnableConfigurationProperties(JobRunrProperties.class)
 @ComponentScan(basePackages = {"org.jobrunr.scheduling"})
 public class JobRunrAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public JobRetentionConfiguration jobRetentionConfiguration(Environment environment, JobRunrProperties jobRunrProperties) {
+        Duration deleteSucceededJobsAfter = environment.containsProperty("jobrunr.jobs.delete-succeeded-jobs-after")
+                ? jobRunrProperties.getJobs().getDeleteSucceededJobsAfter()
+                : jobRunrProperties.getBackgroundJobServer().getDeleteSucceededJobsAfter();
+        Duration permanentlyDeleteDeletedJobsAfter = environment.containsProperty("jobrunr.jobs.permanently-delete-deleted-jobs-after")
+                ? jobRunrProperties.getJobs().getPermanentlyDeleteDeletedJobsAfter()
+                : jobRunrProperties.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter();
+        return new JobRetentionConfiguration(deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter);
+    }
 
     @Bean
     public JobRunrStarter jobRunrStarter(Optional<BackgroundJobServer> backgroundJobServer, Optional<JobRunrDashboardWebServer> webServer) {
@@ -99,7 +114,7 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "jobrunr.background-job-server", name = "enabled", havingValue = "true")
-    public BackgroundJobServerConfiguration backgroundJobServerConfiguration(JobRunrProperties properties, BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
+    public BackgroundJobServerConfiguration backgroundJobServerConfiguration(JobRunrProperties properties, BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy, JobRetentionConfiguration jobRetentionConfiguration) {
         PropertyMapper map = PropertyMapper.get();
         BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
         JobRunrProperties.BackgroundJobServer backgroundJobServerProperties = properties.getBackgroundJobServer();
@@ -109,8 +124,8 @@ public class JobRunrAutoConfiguration {
         map.from(backgroundJobServerProperties::getName).whenNonNull().to(backgroundJobServerConfiguration::andName);
         map.from(backgroundJobServerProperties::getPollIntervalInSeconds).to(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         map.from(backgroundJobServerProperties::getServerTimeoutPollIntervalMultiplicand).to(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
-        map.from(backgroundJobServerProperties::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
-        map.from(backgroundJobServerProperties::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        map.from(jobRetentionConfiguration::getDeleteSucceededJobsAfter).to(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
+        map.from(jobRetentionConfiguration::getPermanentlyDeleteDeletedJobsAfter).to(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
         map.from(backgroundJobServerProperties::getScheduledJobsRequestSize).to(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         map.from(backgroundJobServerProperties::getCarbonAwaitingJobsRequestSize).to(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
         map.from(backgroundJobServerProperties::getOrphanedJobsRequestSize).to(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);
