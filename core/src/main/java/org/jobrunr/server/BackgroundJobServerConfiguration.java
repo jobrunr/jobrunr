@@ -19,6 +19,10 @@ import static org.jobrunr.utils.StringUtils.isNullOrEmpty;
  * This class allows to configure the BackgroundJobServer
  */
 public class BackgroundJobServerConfiguration {
+    @Deprecated
+    public static final Duration DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION = JobRetentionConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+    @Deprecated
+    public static final Duration DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION = JobRetentionConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
 
     public static final Duration DEFAULT_POLL_INTERVAL = Duration.ofSeconds(15);
     public static final int DEFAULT_SERVER_TIMEOUT_POLL_INTERVAL_MULTIPLICAND = 4;
