@@ -217,11 +217,10 @@ class JobRunrConfigurationTest {
         JobRunrConfigurationResult configurationResult = JobRunr.configure()
                 .useStorageProvider(storageProvider)
                 .useJobConfiguration(usingStandardJobConfiguration().andJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24))))
-                .useBackgroundJobServer()
+                .useBackgroundJobServerIf(true, usingStandardBackgroundJobServerConfiguration(), false)
                 .initialize();
         assertThat(configurationResult.getBackgroundJobServer().getConfiguration())
                 .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
                 .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(24));
-
     }
 }
