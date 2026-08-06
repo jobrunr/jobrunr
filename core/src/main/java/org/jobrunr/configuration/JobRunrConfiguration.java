@@ -105,7 +105,7 @@ public class JobRunrConfiguration {
     /**
      * Configures how long jobs are kept in storage after they reach a terminal state.
      *
-     * @param jobRetentionConfiguration the job retention configuration to use, must not be {@code null}
+     * @param jobRetentionConfiguration the job retention configuration to use
      * @return the same configuration instance which provides a fluent api
      * @see JobRetentionConfiguration
      */

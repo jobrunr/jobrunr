@@ -325,6 +325,7 @@ public class JobRunrProperties {
          *
          * @deprecated use jobrunr.jobs.permanently-delete-deleted-jobs-after
          */
+        @Deprecated
         @DurationUnit(HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);
 
