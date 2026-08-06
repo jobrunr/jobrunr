@@ -11,6 +11,8 @@ import java.time.Duration;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.jobrunr.configuration.JobRetentionConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+import static org.jobrunr.configuration.JobRetentionConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.DEFAULT_PAGE_REQUEST_SIZE;
 
 @ConfigurationProperties(prefix = "jobrunr")
@@ -155,7 +157,21 @@ public class JobRunrProperties {
         /**
          * Configures the seed for the exponential back-off when jobs are retried in case of an Exception.
          */
-        private int backOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
+        private int retryBackOffTimeSeed = RetryFilter.DEFAULT_BACKOFF_POLICY_TIME_SEED;
+
+        /**
+         * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
+         * is not specified, hours will be used.
+         */
+        @DurationUnit(HOURS)
+        private Duration deleteSucceededJobsAfter = DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+
+        /**
+         * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
+         * is not specified, hours will be used.
+         */
+        @DurationUnit(HOURS)
+        private Duration permanentlyDeleteDeletedJobsAfter = DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
 
         /**
          * Configures MicroMeter metrics related to jobs
@@ -171,11 +187,27 @@ public class JobRunrProperties {
         }
 
         public int getRetryBackOffTimeSeed() {
-            return backOffTimeSeed;
+            return retryBackOffTimeSeed;
         }
 
-        public void setRetryBackOffTimeSeed(int backOffTimeSeed) {
-            this.backOffTimeSeed = backOffTimeSeed;
+        public void setRetryBackOffTimeSeed(int retryBackOffTimeSeed) {
+            this.retryBackOffTimeSeed = retryBackOffTimeSeed;
+        }
+
+        public Duration getDeleteSucceededJobsAfter() {
+            return deleteSucceededJobsAfter;
+        }
+
+        public void setDeleteSucceededJobsAfter(Duration deleteSucceededJobsAfter) {
+            this.deleteSucceededJobsAfter = deleteSucceededJobsAfter;
+        }
+
+        public Duration getPermanentlyDeleteDeletedJobsAfter() {
+            return permanentlyDeleteDeletedJobsAfter;
+        }
+
+        public void setPermanentlyDeleteDeletedJobsAfter(Duration permanentlyDeleteDeletedJobsAfter) {
+            this.permanentlyDeleteDeletedJobsAfter = permanentlyDeleteDeletedJobsAfter;
         }
 
         public Metrics getMetrics() {
@@ -280,13 +312,18 @@ public class JobRunrProperties {
         /**
          * Sets the duration to wait before changing jobs that are in the SUCCEEDED state to the DELETED state. If a duration suffix
          * is not specified, hours will be used.
+         *
+         * @deprecated use jobrunr.jobs.delete-succeeded-jobs-after
          */
+        @Deprecated
         @DurationUnit(HOURS)
         private Duration deleteSucceededJobsAfter = Duration.ofHours(36);
 
         /**
          * Sets the duration to wait before permanently deleting jobs that are in the DELETED state. If a duration suffix
          * is not specified, hours will be used.
+         *
+         * @deprecated use jobrunr.jobs.permanently-delete-deleted-jobs-after
          */
         @DurationUnit(HOURS)
         private Duration permanentlyDeleteDeletedJobsAfter = Duration.ofHours(72);

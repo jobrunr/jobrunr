@@ -210,4 +210,17 @@ class JobRunrConfigurationTest {
                     .hasMessage("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
         }
     }
+
+    @Test
+    void initializeUsingJobRetentionOverridesDefaultJobRetentionConfiguration() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24)))
+                .useBackgroundJobServer()
+                .initialize();
+        assertThat(configurationResult.getBackgroundJobServer().getConfiguration())
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(24));
+
+    }
 }

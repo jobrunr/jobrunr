@@ -42,6 +42,7 @@ public class JobRunrConfiguration {
     JobRunrJMXExtensions jmxExtension;
     JobRunrMicroMeterIntegration microMeterIntegration;
 
+    private JobRetentionConfiguration jobRetentionConfiguration;
     private BackgroundJobServerConfiguration backgroundJobServerConfiguration;
     private boolean startBackgroundJobServerOnInitialization;
     private JobRunrDashboardWebServerConfiguration dashboardWebServerConfiguration;
@@ -98,6 +99,18 @@ public class JobRunrConfiguration {
      */
     public JobRunrConfiguration withJobFilter(JobFilter... jobFilters) {
         this.jobFilters.addAll(Arrays.asList(jobFilters));
+        return this;
+    }
+
+    /**
+     * Configures how long jobs are kept in storage after they reach a terminal state.
+     *
+     * @param jobRetentionConfiguration the job retention configuration to use, must not be {@code null}
+     * @return the same configuration instance which provides a fluent api
+     * @see JobRetentionConfiguration
+     */
+    public JobRunrConfiguration useJobRetention(JobRetentionConfiguration jobRetentionConfiguration) {
+        this.jobRetentionConfiguration = jobRetentionConfiguration;
         return this;
     }
 
@@ -369,6 +382,11 @@ public class JobRunrConfiguration {
 
     private void initializeBackgroundJobServer() {
         if (backgroundJobServerConfiguration != null) {
+            if (jobRetentionConfiguration != null) {
+                backgroundJobServerConfiguration
+                        .andDeleteSucceededJobsAfter(jobRetentionConfiguration.getDeleteSucceededJobsAfter())
+                        .andPermanentlyDeleteDeletedJobsAfter(jobRetentionConfiguration.getPermanentlyDeleteDeletedJobsAfter());
+            }
             this.backgroundJobServer = new BackgroundJobServer(storageProvider, jsonMapper, jobActivator, backgroundJobServerConfiguration);
             this.backgroundJobServer.setJobFilters(jobFilters);
             if (startBackgroundJobServerOnInitialization) this.backgroundJobServer.start();

@@ -5,6 +5,7 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Requires;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
@@ -42,6 +43,18 @@ public class JobRunrFactory {
     private JobRunrConfiguration configuration;
 
     @Singleton
+    @Requires(missingBeans = {JobRetentionConfiguration.class})
+    public JobRetentionConfiguration getJobRetentionConfiguration() {
+        Duration deleteSucceededJobsAfter = configuration.getJobs().getDeleteSucceededJobsAfter().isPresent()
+                ? configuration.getJobs().getDeleteSucceededJobsAfter().get()
+                : configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().orElse(JobRetentionConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION);
+        Duration permanentlyDeleteDeletedJobsAfter = configuration.getJobs().getPermanentlyDeleteDeletedJobsAfter().isPresent()
+                ? configuration.getJobs().getPermanentlyDeleteDeletedJobsAfter().get()
+                : configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().orElse(JobRetentionConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION);
+        return new JobRetentionConfiguration(deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter);
+    }
+
+    @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true", defaultValue = "true")
     public JobScheduler jobScheduler(StorageProvider storageProvider) {
         final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
@@ -64,7 +77,7 @@ public class JobRunrFactory {
 
     @Singleton
     @Requires(property = "jobrunr.background-job-server.enabled", value = "true")
-    public BackgroundJobServerConfiguration backgroundJobServerConfiguration(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy) {
+    public BackgroundJobServerConfiguration backgroundJobServerConfiguration(BackgroundJobServerWorkerPolicy backgroundJobServerWorkerPolicy, JobRetentionConfiguration jobRetentionConfiguration) {
         final BackgroundJobServerConfiguration backgroundJobServerConfiguration = usingStandardBackgroundJobServerConfiguration();
 
         backgroundJobServerConfiguration.andBackgroundJobServerWorkerPolicy(backgroundJobServerWorkerPolicy);
@@ -72,8 +85,8 @@ public class JobRunrFactory {
         configuration.getBackgroundJobServer().getName().ifPresent(backgroundJobServerConfiguration::andName);
         configuration.getBackgroundJobServer().getPollIntervalInSeconds().ifPresent(backgroundJobServerConfiguration::andPollIntervalInSeconds);
         configuration.getBackgroundJobServer().getServerTimeoutPollIntervalMultiplicand().ifPresent(backgroundJobServerConfiguration::andServerTimeoutPollIntervalMultiplicand);
-        configuration.getBackgroundJobServer().getDeleteSucceededJobsAfter().ifPresent(backgroundJobServerConfiguration::andDeleteSucceededJobsAfter);
-        configuration.getBackgroundJobServer().getPermanentlyDeleteDeletedJobsAfter().ifPresent(backgroundJobServerConfiguration::andPermanentlyDeleteDeletedJobsAfter);
+        backgroundJobServerConfiguration.andDeleteSucceededJobsAfter(jobRetentionConfiguration.getDeleteSucceededJobsAfter());
+        backgroundJobServerConfiguration.andPermanentlyDeleteDeletedJobsAfter(jobRetentionConfiguration.getPermanentlyDeleteDeletedJobsAfter());
         configuration.getBackgroundJobServer().getScheduledJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andScheduledJobsRequestSize);
         configuration.getBackgroundJobServer().getCarbonAwaitingJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andCarbonAwaitingJobsRequestSize);
         configuration.getBackgroundJobServer().getOrphanedJobsRequestSize().ifPresent(backgroundJobServerConfiguration::andOrphanedJobsRequestSize);

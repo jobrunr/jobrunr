@@ -70,7 +70,7 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(Gson.class, com.fasterxml.jackson.databind.ObjectMapper.class, kotlinx.serialization.json.Json.class))
-                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "Jackson3JsonMapper".equals(x.getClass().getSimpleName())));
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "Jackson3JsonMapper" .equals(x.getClass().getSimpleName())));
     }
 
     @Test
@@ -78,7 +78,7 @@ public class JobRunrAutoConfigurationTest {
         this.contextRunner
                 .withUserConfiguration(InMemoryStorageProvider.class)
                 .withClassLoader(new FilteredClassLoader(Gson.class, tools.jackson.databind.ObjectMapper.class, kotlinx.serialization.json.Json.class))
-                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "JacksonJsonMapper".equals(x.getClass().getSimpleName())));
+                .run((context) -> assertThat(context).getBean("jobRunrJsonMapper").matches(x -> "JacksonJsonMapper" .equals(x.getClass().getSimpleName())));
     }
 
     @Test
@@ -198,6 +198,40 @@ public class JobRunrAutoConfigurationTest {
                 .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
                     assertThat(context).hasSingleBean(BackgroundJobServer.class);
                     assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfigurationWithJobPropertiesOverServerProperties() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.jobs.delete-succeeded-jobs-after=PT2H",
+                        "jobrunr.jobs.permanently-delete-deleted-jobs-after=PT4H",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(4));
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfiguration() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(1))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(3));
                 });
     }
 

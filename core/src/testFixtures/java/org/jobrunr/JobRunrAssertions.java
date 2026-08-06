@@ -26,6 +26,7 @@ import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
+import org.jobrunr.server.BackgroundJobServerConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
@@ -77,6 +78,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static JobRunrMetadataAssert assertThat(JobRunrMetadata metadata) {
         return JobRunrMetadataAssert.assertThat(metadata);
+    }
+
+    public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
+        return BackgroundJobServerConfigurationAssert.assertThat(backgroundJobServerConfiguration);
     }
 
     public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfiguration backgroundJobServerConfiguration) {
