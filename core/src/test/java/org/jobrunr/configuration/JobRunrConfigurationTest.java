@@ -27,6 +27,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.configuration.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.mockito.ArgumentMatchers.any;
@@ -215,7 +216,7 @@ class JobRunrConfigurationTest {
     void initializeUsingJobRetentionOverridesDefaultJobRetentionConfiguration() {
         JobRunrConfigurationResult configurationResult = JobRunr.configure()
                 .useStorageProvider(storageProvider)
-                .useJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24)))
+                .useJobConfiguration(usingStandardJobConfiguration().andJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24))))
                 .useBackgroundJobServer()
                 .initialize();
         assertThat(configurationResult.getBackgroundJobServer().getConfiguration())
