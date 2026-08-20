@@ -23,13 +23,14 @@ dependencies {
     api platform(project(':platform'))
     api project(':core')
 
-    implementation 'io.micronaut:micronaut-management'
     implementation 'io.micronaut.validation:micronaut-validation'
+    compileOnly 'io.micronaut:micronaut-management'
     compileOnly 'io.micronaut.data:micronaut-data-connection-jdbc'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'io.micrometer:micrometer-core'
 
     testImplementation testFixtures(project(":core"))
+    testImplementation 'io.micronaut:micronaut-management'
     testImplementation 'io.micronaut.test:micronaut-test-junit5'
     testImplementation 'io.micronaut:micronaut-jackson-databind'
     testImplementation 'org.mongodb:mongodb-driver-sync'
