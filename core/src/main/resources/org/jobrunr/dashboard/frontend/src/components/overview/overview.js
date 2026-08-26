@@ -1,9 +1,9 @@
 import {useEffect} from 'react';
-import RealtimeGraph from "./cards/realtime-graph";
+import RealtimeGraph from "./server-analytics/realtime-graph";
 import VersionFooter from "../utils/version-footer";
 import {openEventSource} from "../../stores/serversStore";
-import {Stack} from "@mui/material";
-import {ServerAnalytics} from "./cards/server-analytics.js";
+import {Box, Stack, Typography} from "@mui/material";
+import {ServerAnalytics} from "./server-analytics/server-analytics.js";
 
 const Overview = () => {
     useEffect(() => {
@@ -12,9 +12,10 @@ const Overview = () => {
 
     return (
         <div className="app">
-            <Stack sx={{
-                gap: 4
-            }}>
+            <Box sx={{my: 3}}>
+                <Typography id="title" variant="h4">Dashboard</Typography>
+            </Box>
+            <Stack sx={{gap: 2}}>
                 <ServerAnalytics/>
                 <RealtimeGraph/>
             </Stack>

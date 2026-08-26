@@ -1,6 +1,6 @@
 import {SuffixFreeTimeAgo} from "../../utils/time-ago";
 import {TimerOutlined} from "@mui/icons-material";
-import {AnalyticsCard} from "./analytics-card.js";
+import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 
 const UptimeCard = ({servers}) => {
     return (

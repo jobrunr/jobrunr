@@ -41,12 +41,12 @@
     ]
   },
   "devDependencies": {
-    "@rsbuild/core": "^2.1.9",
+    "@rsbuild/core": "^2.2.0",
     "@rsbuild/plugin-react": "^2.1.0",
     "@rsbuild/plugin-svgr": "^2.0.5",
-    "@swc/core": "^1.15.47",
+    "@swc/core": "^1.16.1",
     "@swc/jest": "^0.2.39",
-    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "16.3.2",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
