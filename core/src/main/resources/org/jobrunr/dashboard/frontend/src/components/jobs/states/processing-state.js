@@ -38,7 +38,7 @@ const Console = styled("div")(() => ({
 
 const ColoredLinearProgress = styled(LinearProgress)(() => ({
     height: '7px',
-    [`& .${linearProgressClasses.barColorPrimary}`]: {
+    [`&.${linearProgressClasses.colorPrimary} > .${linearProgressClasses.bar}`]: {
         backgroundColor: '#78b869'
     }
 }));

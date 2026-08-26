@@ -150,16 +150,16 @@ const JobView = (props) => {
                                   to={`/dashboard/jobs?state=${stateBreadcrumb.link}`}>{stateBreadcrumb.name}</Link>
                             <Typography color="textPrimary">{job.id}</Typography>
                         </Breadcrumbs>
-                        <Box my={3}>
+                        <Box sx={{my: 3}}>
                             <Card sx={{display: "flex"}}>
                                 <CardContent sx={{width: "100%", padding: 0, "&:last-child": {padding: 0}}}>
-                                    <Grid container spacing={1} px={2} pt={2}>
+                                    <Grid container spacing={1} sx={{px: 2, pt: 2}}>
                                         <Grid size={6}>
                                             <Typography id="job-id-title" color="textSecondary">
                                                 Job Id: {job.id}
                                             </Typography>
                                         </Grid>
-                                        <Grid container justifyContent="flex-end" size={6}>
+                                        <Grid container sx={{justifyContent: "flex-end"}} size={6}>
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
@@ -179,7 +179,7 @@ const JobView = (props) => {
                                             </Typography>
                                         </Grid>
                                     </Grid>
-                                    <Box mt={3}>
+                                    <Box sx={{mt: 3}}>
                                         <JobCode job={job}/>
                                     </Box>
                                 </CardContent>
