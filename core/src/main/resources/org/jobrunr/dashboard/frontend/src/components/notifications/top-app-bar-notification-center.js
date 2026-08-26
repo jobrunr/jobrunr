@@ -245,54 +245,58 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         }
     }
 
-    return <>
-        <IconButton
-            edge="start"
-            color="inherit"
-            sx={{marginRight: 1.5}}
-            onClick={openNotifications}
-            ref={popperAnchorEl}
-            id="notifications-center-button"
-        >
-            <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
-                <Notifications/>
-            </Badge>
-        </IconButton>
-        <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
-            <Paper elevation={6}>
-                <Box sx={{maxWidth: 500, maxHeight: "70vh", overflow: "auto"}} id="notifications-center-container">
-                    <Box sx={{p: 2}}>
-                        <Stack direction="row" spacing={1} justifyContent="space-between">
-                            <Button
-                                startIcon={<MarkEmailRead/>}
-                                variant="outlined"
-                                disabled={!amountOfUnreadNotifications}
-                                onClick={handleMarkAllAsRead}
-                            >
-                                Mark all read
-                            </Button>
-                            <Button variant="outlined" onClick={closeNotifications} autoFocus>Close</Button>
-                        </Stack>
+    return (
+        <>
+            <IconButton
+                edge="start"
+                color="inherit"
+                sx={{marginRight: 1.5}}
+                onClick={openNotifications}
+                ref={popperAnchorEl}
+                id="notifications-center-button"
+            >
+                <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
+                    <Notifications/>
+                </Badge>
+            </IconButton>
+            <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
+                <Paper elevation={6}>
+                    <Box sx={{maxWidth: 500, maxHeight: "70vh", overflow: "auto"}} id="notifications-center-container">
+                        <Box sx={{p: 2}}>
+                            <Stack direction="row" spacing={1} sx={{
+                                justifyContent: "space-between"
+                            }}>
+                                <Button
+                                    startIcon={<MarkEmailRead/>}
+                                    variant="outlined"
+                                    disabled={!amountOfUnreadNotifications}
+                                    onClick={handleMarkAllAsRead}
+                                >
+                                    Mark all read
+                                </Button>
+                                <Button variant="outlined" onClick={closeNotifications} autoFocus>Close</Button>
+                            </Stack>
+                        </Box>
+                        {problemsWithReadStatus.length
+                            ? (
+                                <List disablePadding>
+                                    {problemsWithReadStatus.map((problem) => (
+                                        <Fragment key={problem.id}>
+                                            <Divider/>
+                                            {mapToNotificationElement(problem)}
+                                        </Fragment>
+                                    ))}
+                                </List>
+                            )
+                            : (
+                                <Box sx={{p: 2}}>
+                                    All clear! You can relax, we have no news for you.
+                                </Box>
+                            )
+                        }
                     </Box>
-                    {problemsWithReadStatus.length
-                        ? (
-                            <List disablePadding>
-                                {problemsWithReadStatus.map((problem) => (
-                                    <Fragment key={problem.id}>
-                                        <Divider/>
-                                        {mapToNotificationElement(problem)}
-                                    </Fragment>
-                                ))}
-                            </List>
-                        )
-                        : (
-                            <Box sx={{p: 2}}>
-                                All clear! You can relax, we have no news for you.
-                            </Box>
-                        )
-                    }
-                </Box>
-            </Paper>
-        </ClickAwayPopper>
-    </>
+                </Paper>
+            </ClickAwayPopper>
+        </>
+    );
 });

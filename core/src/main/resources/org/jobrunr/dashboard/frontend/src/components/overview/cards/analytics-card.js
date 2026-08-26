@@ -23,7 +23,9 @@ export const AnalyticsCard = ({title, children, icon: Icon, color = "primary", t
                     >
                         <Icon color={color} fontSize="tiny"/>
                     </Box>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{
+                        color: "text.secondary"
+                    }}>
                         {title}
                     </Typography>
                 </Box>

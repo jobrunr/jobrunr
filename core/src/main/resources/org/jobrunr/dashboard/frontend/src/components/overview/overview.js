@@ -12,7 +12,9 @@ const Overview = () => {
 
     return (
         <div className="app">
-            <Stack gap={4}>
+            <Stack sx={{
+                gap: 4
+            }}>
                 <ServerAnalytics/>
                 <RealtimeGraph/>
             </Stack>

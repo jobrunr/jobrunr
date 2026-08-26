@@ -60,7 +60,13 @@ export const Preferences = () => {
 
             <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
                 <Paper elevation={6}>
-                    <Box maxWidth={300} maxHeight="70vh" overflow="auto" sx={{p: 2}}>
+                    <Box
+                        sx={{
+                            maxWidth: 300,
+                            maxHeight: "70vh",
+                            overflow: "auto",
+                            p: 2
+                        }}>
                         <Stack spacing={2} sx={{pb: 2}}>
                             <PreferenceHeading icon={<SettingsBrightness/>} title="Theme"/>
 
@@ -95,25 +101,33 @@ export const Preferences = () => {
                             >
                                 <DateStyleToggleButton value={dateStyles.defaultStyle}>
                                     Time ago
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., 1 minute ago
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.localeStyle}>
                                     Locale date
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {currentDate.toLocaleString()}
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.readableStyle}>
                                     Browser default
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {convertToBrowserDefaultDateStyle(currentDate)}
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.iso8601Style}>
                                     ISO 8601
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {currentDate.toISOString()}
                                     </Typography>
                                 </DateStyleToggleButton>
@@ -123,5 +137,5 @@ export const Preferences = () => {
                 </Paper>
             </ClickAwayPopper>
         </>
-    )
+    );
 }
