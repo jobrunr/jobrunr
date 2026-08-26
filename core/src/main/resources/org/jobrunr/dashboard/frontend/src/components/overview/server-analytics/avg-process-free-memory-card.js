@@ -1,6 +1,6 @@
 import {humanFileSize} from "../../../utils/helper-functions";
 import {Memory} from "@mui/icons-material";
-import {AnalyticsCard} from "./analytics-card.js";
+import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 
 const AvgProcessFreeMemoryCard = ({servers}) => {
     let averageProcessFreeMemory = servers[0].processFreeMemory;

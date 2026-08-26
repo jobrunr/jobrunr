@@ -8,14 +8,12 @@ import AvgProcessMemoryUsageCard from "./avg-process-memory-usage-card.js";
 import AvgProcessFreeMemoryCard from "./avg-process-free-memory-card.js";
 import {ItemsNotFound} from "../../utils/items-not-found.js";
 import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
 
 export const ServerAnalytics = () => {
     const [servers, _] = useServers();
 
     return (
         <div>
-            <Typography id="server-subtitle" variant="h4" sx={{my: 2}}>Server Analytics</Typography>
             {servers.length > 0
                 ? <>
                     <Grid container spacing={3}>

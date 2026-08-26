@@ -1,4 +1,4 @@
-import {AnalyticsCard} from "./analytics-card.js";
+import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 import {Storage} from "@mui/icons-material";
 
 const NbrOfBackgroundJobServersCard = ({servers}) => {

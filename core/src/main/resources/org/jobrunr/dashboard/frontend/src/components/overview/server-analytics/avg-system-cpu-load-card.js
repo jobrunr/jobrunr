@@ -1,5 +1,5 @@
 import {DeveloperBoard} from "@mui/icons-material";
-import {AnalyticsCard} from "./analytics-card.js";
+import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 
 const AvgSystemCpuLoadCard = ({servers}) => {
     let averageSystemCpuLoad = servers[0].systemCpuLoad;

@@ -1,6 +1,6 @@
 import {useJobStats} from "../../../hooks/useJobStats";
 import {SuffixFreeTimeAgo} from "../../utils/time-ago";
-import {AnalyticsCard} from "./analytics-card.js";
+import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 import {AccessTime} from "@mui/icons-material";
 
 const EstimatedProcessingTimeCard = () => {
