@@ -1,11 +1,12 @@
-import StatCard from "./stat-card.js";
 import {SuffixFreeTimeAgo} from "../../utils/time-ago";
+import {TimerOutlined} from "@mui/icons-material";
+import {AnalyticsCard} from "./analytics-card.js";
 
 const UptimeCard = ({servers}) => {
     return (
-        <StatCard title="Uptime">
+        <AnalyticsCard title="Uptime" icon={TimerOutlined}>
             <SuffixFreeTimeAgo date={new Date(servers[0].firstHeartbeat)}/>
-        </StatCard>
+        </AnalyticsCard>
     );
 };
 

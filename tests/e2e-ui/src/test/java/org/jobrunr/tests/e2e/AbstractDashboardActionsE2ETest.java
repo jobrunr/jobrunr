@@ -163,7 +163,7 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
         dashboardTabBtn().click();
         page.waitForLoadState();
 
-        assertThat(title("Dashboard")).isVisible();
+        assertThat(title("Server Analytics")).isVisible();
 
         var notificationsCenterButton = page.locator("#notifications-center-button");
         assertThat(notificationsCenterButton).hasText(Pattern.compile("[12]")); // the unread notifications count (could be 2 because of JobRunr.io notification)

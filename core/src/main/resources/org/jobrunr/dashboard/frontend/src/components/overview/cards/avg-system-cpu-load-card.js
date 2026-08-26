@@ -1,4 +1,5 @@
-import StatCard from "./stat-card.js";
+import {DeveloperBoard} from "@mui/icons-material";
+import {AnalyticsCard} from "./analytics-card.js";
 
 const AvgSystemCpuLoadCard = ({servers}) => {
     let averageSystemCpuLoad = servers[0].systemCpuLoad;
@@ -8,9 +9,9 @@ const AvgSystemCpuLoadCard = ({servers}) => {
     }
 
     return (
-        <StatCard title="Avg System Cpu Load">
+        <AnalyticsCard title="Avg System Cpu Load" icon={DeveloperBoard}>
             {`${(averageSystemCpuLoad * 100).toFixed(2)} %`}
-        </StatCard>
+        </AnalyticsCard>
     );
 };
 

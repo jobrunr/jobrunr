@@ -1,5 +1,6 @@
-import StatCard from "./stat-card.js";
 import {humanFileSize} from "../../../utils/helper-functions";
+import {Memory} from "@mui/icons-material";
+import {AnalyticsCard} from "./analytics-card.js";
 
 const AvgProcessFreeMemoryCard = ({servers}) => {
     let averageProcessFreeMemory = servers[0].processFreeMemory;
@@ -9,9 +10,9 @@ const AvgProcessFreeMemoryCard = ({servers}) => {
     }
 
     return (
-        <StatCard title="Avg Process Free Memory">
+        <AnalyticsCard title="Avg Process Free Memory" icon={Memory}>
             {humanFileSize(averageProcessFreeMemory, true)}
-        </StatCard>
+        </AnalyticsCard>
     );
 };
 

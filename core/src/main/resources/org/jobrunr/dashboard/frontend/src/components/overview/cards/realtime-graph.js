@@ -1,81 +1,21 @@
-import {lazy, Suspense, useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import Box from "@mui/material/Box";
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import LoadingIndicator from "../../LoadingIndicator";
 import {useJobStats} from "../../../hooks/useJobStats";
-import {useColorScheme} from "@mui/material";
+import {BarChart} from "@mui/x-charts/BarChart";
 
-function getArrayWithLimitedLength(length) {
-    const array = [];
-
-    array.push = function () {
-        if (this.length >= length) {
-            this.shift();
-        }
-        return Array.prototype.push.apply(this, arguments);
-    }
-
-    for (let i = 0; i < length; i++) {
-        array.push(0);
-    }
-
-    return array;
-
-}
-
-const ApexChartsModule = import("apexcharts");
-const Chart = lazy(() => import("react-apexcharts"));
+const xAxisCategories = Array.from({length: 200}, (_, i) => "(t-" + ((200 * 5) - (i * 5)) + "s)");
+const appendCapped = (prev, value, cap = 200) => [...prev, value].slice(-cap);
 
 const RealtimeGraph = () => {
     const oldStatsRef = useRef({enqueued: 0, failed: 0, succeeded: 0});
-    const succeededDataRef = useRef(getArrayWithLimitedLength(200));
-    const failedDataRef = useRef(getArrayWithLimitedLength(200));
+
+    const [succeededChartData, setSucceededChartData] = useState(() => new Array(200).fill(0));
+    const [failedChartData, setFailedChartData] = useState(() => new Array(200).fill(0));
 
     const [stats, _] = useJobStats();
-
-    const {mode, systemMode} = useColorScheme();
-    const actualMode = systemMode || mode;
-
-    const graphState = useMemo(() => ({
-        options: {
-            theme: {
-                mode: actualMode,
-            },
-            chart: {
-                id: "processing-chart",
-                type: 'bar',
-                stacked: true,
-                width: '100%',
-                animations: {
-                    enabled: false
-                },
-                toolbar: {
-                    show: false
-                },
-                background: "transparent",
-            },
-            dataLabels: {
-                enabled: false
-            },
-            plotOptions: {
-                bar: {
-                    columnWidth: '90%'
-                }
-            },
-            xaxis: {
-                labels: {
-                    show: false
-                }
-            },
-            colors: ['#E91E63', '#66DA26']
-        },
-        series: [
-            {name: "Failed jobs", data: []},
-            {name: "Succeeded jobs", data: []}
-        ]
-    }), [actualMode]);
 
     useEffect(() => {
         const oldStats = oldStatsRef.current;
@@ -86,38 +26,39 @@ const RealtimeGraph = () => {
             return;
         }
 
-        const succeededData = succeededDataRef.current;
-        const failedData = failedDataRef.current;
         const amountSucceeded = (stats.succeeded + stats.allTimeSucceeded) - (oldStats.succeeded + oldStats.allTimeSucceeded);
         const amountFailed = stats.failed - oldStats.failed;
 
         if (!isNaN(amountSucceeded) && !isNaN(amountFailed) && amountSucceeded >= 0 && amountFailed >= 0) {
-            succeededData.push(amountSucceeded)
-            failedData.push(amountFailed)
-            ApexChartsModule.then(({default: ApexCharts}) => {
-                ApexCharts.exec('processing-chart', 'updateSeries', [
-                    {name: "Failed jobs", data: failedData},
-                    {name: "Succeeded jobs", data: succeededData}
-                ])
-            })
+            setSucceededChartData(prev => appendCapped(prev, amountSucceeded));
+            setFailedChartData(prev => appendCapped(prev, amountFailed));
         }
+
         oldStatsRef.current = stats;
     }, [stats]);
 
     return (
         <div className="row">
-            <Box my={3}>
+            <Box sx={{mt: 3, mb: 2}}>
                 <Typography id="realtime-graph" variant="h5">Realtime graph</Typography>
             </Box>
             <Paper>
-                <Suspense fallback={<LoadingIndicator/>}>
-                    <Chart
-                        options={graphState.options}
-                        series={graphState.series}
-                        type="bar"
-                        height={500}
-                    />
-                </Suspense>
+                <BarChart
+                    height={500}
+                    skipAnimation
+                    series={[
+                        {data: failedChartData, label: 'Failed jobs', stack: 'jobs', color: '#E91E63'},
+                        {data: succeededChartData, label: 'Succeeded jobs', stack: 'jobs', color: '#66DA26'}
+                    ]}
+                    xAxis={[{
+                        scaleType: 'band',
+                        data: xAxisCategories,
+                        categoryGapRatio: 0.1,
+                        barGapRatio: 0,
+                        tickLabelStyle: {display: 'none'},
+                        disableTicks: true
+                    }]}
+                />
             </Paper>
         </div>
     );

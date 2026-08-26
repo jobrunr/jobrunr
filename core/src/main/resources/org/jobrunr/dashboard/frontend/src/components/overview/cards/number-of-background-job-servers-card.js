@@ -1,10 +1,11 @@
-import StatCard from "./stat-card.js";
+import {AnalyticsCard} from "./analytics-card.js";
+import {Storage} from "@mui/icons-material";
 
 const NbrOfBackgroundJobServersCard = ({servers}) => {
     return (
-        <StatCard title="Nbr of servers">
+        <AnalyticsCard title="Nbr of servers" icon={Storage} textId="nbr-of-servers-text">
             {servers.length}
-        </StatCard>
+        </AnalyticsCard>
     );
 };
 
