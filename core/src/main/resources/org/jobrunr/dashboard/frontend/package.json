@@ -22,8 +22,8 @@
     "start": "rsbuild dev",
     "build": "rsbuild build",
     "test": "jest --ci",
-    "eject": "react-scripts eject",
-    "owasp": "owasp-dependency-check --project \"JobRunr\" -f HTML JSON"
+    "dev:rsdoctor": "RSDOCTOR=true rsbuild",
+    "build:rsdoctor": "RSDOCTOR=true rsbuild build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -44,6 +44,7 @@
     "@rsbuild/core": "^2.2.0",
     "@rsbuild/plugin-react": "^2.1.0",
     "@rsbuild/plugin-svgr": "^2.0.5",
+    "@rsdoctor/rspack-plugin": "^1.6.2",
     "@swc/core": "^1.16.1",
     "@swc/jest": "^0.2.39",
     "@testing-library/jest-dom": "^7.0.1",
