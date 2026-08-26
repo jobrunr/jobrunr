@@ -1,4 +1,4 @@
-import {Box, Divider, Grid, IconButton, Paper, ToggleButton, ToggleButtonGroup, Typography, useColorScheme} from "@mui/material";
+import {Box, Divider, Grid, IconButton, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography, useColorScheme} from "@mui/material";
 import {CalendarMonth, DarkMode, LightMode, Person, SettingsBrightness} from "@mui/icons-material";
 import {ClickAwayPopper} from "../ui/ClickAwayPopper.js";
 import React, {useRef, useState} from "react";
@@ -60,8 +60,14 @@ export const Preferences = () => {
 
             <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
                 <Paper elevation={6}>
-                    <Box maxWidth={300} maxHeight="70vh" overflow="auto" p={2}>
-                        <Grid container pb={2} spacing={2} direction="column">
+                    <Box
+                        sx={{
+                            maxWidth: 300,
+                            maxHeight: "70vh",
+                            overflow: "auto",
+                            p: 2
+                        }}>
+                        <Stack spacing={2} sx={{pb: 2}}>
                             <PreferenceHeading icon={<SettingsBrightness/>} title="Theme"/>
 
                             <ToggleButtonGroup
@@ -81,9 +87,9 @@ export const Preferences = () => {
                                     <DarkMode fontSize="small" sx={{marginRight: 1, pointerEvents: "none"}}/> Dark
                                 </IconToggleButton>
                             </ToggleButtonGroup>
-                        </Grid>
+                        </Stack>
                         <Divider/>
-                        <Grid container pt={2} spacing={2} direction="column">
+                        <Stack spacing={2} sx={{pt: 2}}>
                             <PreferenceHeading icon={<CalendarMonth/>} title="Date style"/>
                             <ToggleButtonGroup
                                 exclusive
@@ -95,33 +101,41 @@ export const Preferences = () => {
                             >
                                 <DateStyleToggleButton value={dateStyles.defaultStyle}>
                                     Time ago
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., 1 minute ago
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.localeStyle}>
                                     Locale date
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {currentDate.toLocaleString()}
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.readableStyle}>
                                     Browser default
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {convertToBrowserDefaultDateStyle(currentDate)}
                                     </Typography>
                                 </DateStyleToggleButton>
                                 <DateStyleToggleButton value={dateStyles.iso8601Style}>
                                     ISO 8601
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{
+                                        color: "text.secondary"
+                                    }}>
                                         e.g., {currentDate.toISOString()}
                                     </Typography>
                                 </DateStyleToggleButton>
                             </ToggleButtonGroup>
-                        </Grid>
+                        </Stack>
                     </Box>
                 </Paper>
             </ClickAwayPopper>
         </>
-    )
+    );
 }
