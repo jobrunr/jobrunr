@@ -51,7 +51,7 @@ const JobsView = () => {
 
     return (
         <main style={{width: '100%', overflowX: "hidden"}}>
-            <Box my={3}>
+            <Box sx={{my: 3}}>
                 <Typography id="title" variant="h4">{jobStateToHumanReadableName(jobState)}</Typography>
             </Box>
             {isLoading

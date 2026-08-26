@@ -260,8 +260,8 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         </IconButton>
         <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
             <Paper elevation={6}>
-                <Box maxWidth={500} maxHeight="70vh" overflow="auto" id="notifications-center-container">
-                    <Box p={2}>
+                <Box sx={{maxWidth: 500, maxHeight: "70vh", overflow: "auto"}} id="notifications-center-container">
+                    <Box sx={{p: 2}}>
                         <Stack direction="row" spacing={1} justifyContent="space-between">
                             <Button
                                 startIcon={<MarkEmailRead/>}
@@ -286,7 +286,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                             </List>
                         )
                         : (
-                            <Box p={2}>
+                            <Box sx={{p: 2}}>
                                 All clear! You can relax, we have no news for you.
                             </Box>
                         )

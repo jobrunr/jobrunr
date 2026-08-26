@@ -44,9 +44,9 @@ const NotificationTitle = ({title, date = undefined, extraMenuItems, read = fals
     }
 
     return (
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} mb={1}>
+        <Stack direction="row" spacing={1} sx={{mb: 1, justifyContent: "space-between", alignItems: "flex-start"}}>
             <div>
-                <Typography variant="subtitle2" fontWeight={700} pt={0.5} sx={{textTransform: "none"}}>{title}</Typography>
+                <Typography variant="subtitle2" fontWeight={700} sx={{textTransform: "none", pt: 0.5}}>{title}</Typography>
                 {date && <Typography variant="caption"><TimeAgo date={date} title={date.toString()}/></Typography>}
             </div>
             <IconButton ref={anchorEl} onClick={openMenu} sx={{padding: 0.5}}>
@@ -80,7 +80,7 @@ export const Notification = ({title = "Notification", date, severity = "warning"
     return (
         <NotificationListItem read={read} id={containerId}>
             <ListItemText
-                mt={0}
+                sx={{mt: 0}}
                 primary={
                     <NotificationTitle
                         title={title}
@@ -97,9 +97,8 @@ export const Notification = ({title = "Notification", date, severity = "warning"
                         </Box>
                         <Stack
                             direction="row"
-                            alignItems="center"
                             spacing={1}
-                            flexWrap="wrap"
+                            sx={{alignItems: "center", flexWrap: "wrap"}}
                         >
                             <Chip
                                 label={getChipLabel(severity)}
