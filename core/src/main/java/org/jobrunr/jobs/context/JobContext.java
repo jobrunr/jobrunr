@@ -71,6 +71,8 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 public class JobContext {
 
     private static final String JOBRUNR_STEP_PREFIX = "jr_step_";
+    private static final String JOBRUNR_STEP_START_PREFIX = "jr_step_start_";
+    private static final String JOBRUNR_STEP_END_PREFIX = "jr_step_end_";
     private static final String JOBRUNR_STEP_RESULT_PREFIX = "jr_step_result_";
     private static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = "jr_step_result_class_";
 
@@ -247,7 +249,9 @@ public class JobContext {
     public <T> T runStepOnce(String step, ThrowingSupplier<T> task) throws StepExecutionException {
         if (!hasCompletedStep(step)) {
             try {
+                saveMetadata(JOBRUNR_STEP_START_PREFIX + step, Instant.now());
                 T result = task.get();
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + step, Instant.now());
                 saveStepResult(step, result);
                 markStepCompleted(step);
                 return result;

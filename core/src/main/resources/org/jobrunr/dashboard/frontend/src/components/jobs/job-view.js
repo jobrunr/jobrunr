@@ -32,6 +32,7 @@ import CarbonAwareScheduledNotification from "./notifications/carbon-aware-sched
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {JobProgressDisplay} from "./job-progress-display.js";
 
 const JobView = (props) => {
     const navigate = useNavigate();
@@ -41,6 +42,7 @@ const JobView = (props) => {
     const [job, setJob] = useState(null);
     const [stateBreadcrumb, setStateBreadcrumb] = useState({});
     const [jobStates, setJobStates] = useState([]);
+    const [executionSteps, setExecutionSteps] = useState([]);
     const [order, setOrder] = useState(true);
     const {jobId} = useParams();
 
@@ -56,6 +58,11 @@ const JobView = (props) => {
 
     useEffect(() => {
         if (job) {
+            const runStepOnceMetadata = processRunStepOnceMetadata(job.metadata);
+            const executionSteps = [...job.jobHistory, ...runStepOnceMetadata];
+            executionSteps.sort((a, b) => a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
+            setExecutionSteps(executionSteps);
+            console.log(executionSteps)
             if (order) {
                 setJobStates([...job.jobHistory]);
             } else {
@@ -63,6 +70,42 @@ const JobView = (props) => {
             }
         }
     }, [job, order]);
+
+    const processRunStepOnceMetadata = (metadata) => {
+        const processedStepOnceData = [];
+        const filteredMetadata = Object.entries(metadata).filter((entry) => entry[0].startsWith('jr_step_'))
+
+        let stepStarts = [];
+        let stepEnds = [];
+        let stepResult = [];
+        let stepComplete = [];
+
+        for (let metadata of filteredMetadata) {
+            if (metadata[0].startsWith("jr_step_start_")) {
+                stepStarts.push(metadata);
+            } else if (metadata[0].startsWith("jr_step_end_")) {
+                stepEnds.push(metadata);
+            } else if (metadata[0].startsWith("jr_step_result_") && !metadata[0].startsWith("jr_step_result_class_")) {
+                stepResult.push(metadata);
+            } else if (metadata[0].startsWith("jr_step_") && !metadata[0].startsWith("jr_step_result_class_")) {
+                stepComplete.push(metadata);
+            }
+        }
+
+        for (let step of stepComplete) {
+            const stepName = step[0].split('jr_step_')[1];
+            processedStepOnceData.push({
+                state: "RUN_STEP_ONCE",
+                createdAt: stepStarts.find((entry) => entry[0].endsWith(stepName))[1][1],
+                updatedAt: stepEnds.find((entry) => entry[0].endsWith(stepName))[1][1],
+                stepName: stepName,
+                completed: step[1],
+                result: stepResult.find((entry) => entry[0].endsWith(stepName))[1]
+            })
+        }
+
+        return processedStepOnceData;
+    }
 
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
@@ -192,6 +235,8 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
+
+                            {executionSteps.length > 0 && <JobProgressDisplay executionSteps={executionSteps}/>}
 
                             <Grid size={12}>
                                 <Typography variant="h5" component="h2">
