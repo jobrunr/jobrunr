@@ -8,6 +8,7 @@ import JobsTable from "./jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
+import {JobsFilterPanel} from "./jobs-filter-panel.js";
 
 
 const JobsView = () => {
@@ -78,6 +79,8 @@ const JobsView = () => {
                             rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr
                             Pro</a> you would have already found it.</JobRunrProNotice>
                     }
+                    <JobsFilterPanel/>
+                    <div>&nbsp;</div>
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>
                     </Paper>
