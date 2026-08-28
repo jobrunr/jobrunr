@@ -11,15 +11,19 @@ import {
     Grid,
     IconButton,
     InputAdornment,
+    Snackbar,
     TextField
 } from "@mui/material";
 import {styled} from "@mui/material/styles";
 import {Event, ExpandMoreOutlined} from "@mui/icons-material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {Magnify} from "mdi-material-ui";
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import Dialog from "@mui/material/Dialog";
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
+import {useLocation} from "react-router";
 
 const Heading = styled(Typography)(({theme}) => ({
     fontSize: theme.typography.pxToRem(15),
@@ -53,9 +57,65 @@ const FilterField = ({decorationIcon: Icon = Magnify, setShowDialog, ...rest}) =
     );
 };
 
-const TryProDialog = ({open, setOpen}) => {
+const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
+    const location = useLocation();
+
+    const urlSearchParams = new URLSearchParams(location.search);
+    const jobState = urlSearchParams.get('state') ?? 'ENQUEUED';
+
+    const formRef = useRef(null);
+    const [errorText, setErrorText] = useState(undefined);
+    const [numberOfJobs, setNumberOfJobs] = useState(undefined);
     const handleClose = () => {
+        setErrorText(undefined);
         setOpen(false);
+    }
+
+    useEffect(() => {
+        if (open) {
+            let url = `/api/jobs?state=${jobState.toUpperCase()}&limit=1000`;
+            fetch(url,)
+                .then(res => res.json())
+                .then(response => {
+                    setNumberOfJobs(response.total);
+                })
+                .catch(error => console.log(error));
+        }
+    }, [open]);
+
+    const submitForm = () => {
+        const formData = new FormData(formRef.current);
+        const email = formData.get("email");
+        const company = formData.get("company");
+
+        if (!email || !company) {
+            setErrorText("Please include both your email and company");
+            return;
+        } else {
+            setErrorText(undefined);
+        }
+
+        fetch("https://n8n.srv851199.hstgr.cloud/webhook/f7a5e38e-4b1d-4f5b-b534-e014ff6b80fe", {
+            method: "POST",
+            body: JSON.stringify({
+                "email": email,
+                "company": company,
+                "username": "",
+                "form": "trial",
+                "utm_source": "oss-dashboard",
+                "utm_medium": "pop-up"
+            }),
+            headers: {
+                "Content-type": "application/json"
+            }
+        }).then((response) => {
+            if (response.status === 200) {
+                setFormSubmitted(true);
+                handleClose();
+            } else {
+                setErrorText("Something went wrong submitting the form, please try again");
+            }
+        });
     }
 
     return (
@@ -66,34 +126,59 @@ const TryProDialog = ({open, setOpen}) => {
             aria-describedby="try-pro-dialog-description"
         >
             <DialogTitle id="try-pro-dialog-title">
-                Try JobRunr Pro
+                Search all {numberOfJobs ? ((numberOfJobs > 999 ? "999+" : numberOfJobs) + " " + jobState.toLowerCase()) : "your"} jobs in this dashboard
             </DialogTitle>
             <DialogContent dividers>
-                {/* TODO Improve copy with Nicholas */}
                 <DialogContentText id="try-pro-dialog-description">
-                    Are you trying to find a certain job faster? Use filters which are available in <a
+                    Job search and filters are part of <a
                     href="https://www.jobrunr.io/en/documentation/pro/jobrunr-pro-dashboard/" target="_blank"
                     rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr
                     Pro</a>!<br/><br/>
 
-                    Filters and so much more available in JobRunr Pro, try it below!
+                    Leave your email and we will send you a Pro trial key, so you can use these filters, priority queues, workflows, and so much more.
                 </DialogContentText>
+                <form ref={formRef} onSubmit={submitForm} style={{marginTop: "1rem"}}>
+                    <Box sx={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 1fr",
+                        gap: 1,
+                        alignItems: "center",
+                        textAlign: "right"
+                    }}>
+                        <Typography>Email</Typography>
+                        <TextField name="email" id="form-email" size="small" fullWidth/>
+
+                        <Typography>Company</Typography>
+                        <TextField name="company" id="form-company" size="small" fullWidth/>
+                    </Box>
+
+                    {errorText && <Typography color="error" sx={{mt: 1}}>{errorText}</Typography>}
+                </form>
             </DialogContent>
-            <DialogActions style={{padding: '1rem'}}>
-                <Button onClick={handleClose} variant="contained" color="inherit" target={"_blank"} href={"https://www.jobrunr.io/en/start-jobrunr-pro/?step=1"}
-                        sx={{backgroundColor: "#00F0B5"}}>
-                    Try Pro
+            <DialogActions sx={{px: '1rem', pt: '1rem', pb: 0}} style={{justifyContent: "start"}}>
+                <Button onClick={submitForm} variant="contained" color="inherit" sx={{backgroundColor: "#00F0B5"}}>
+                    Unlock job search
                 </Button>
                 <Button onClick={handleClose} color="inherit" variant="contained">
                     Dismiss
                 </Button>
             </DialogActions>
+            <DialogContent>
+                <Typography sx={{fontStyle: "italic"}} variant="caption">
+                    We use your address to send the key and to help you get it running. Nothing else.</Typography>
+                <br/>
+                <Typography variant="caption">Rather talk to a person first? Mail <a
+                    href="mailto:hello@jobrunr.io?subject=JobRunr Pro Trial Request">
+                    hello@jobrunr.io</a>
+                </Typography>
+            </DialogContent>
         </Dialog>
     );
 }
 
 export const JobsFilterPanel = ({}) => {
     const [showDialog, setShowDialog] = useState(false);
+    const [formSubmitted, setFormSubmitted] = useState(false);
 
     return (
         <>
@@ -172,7 +257,16 @@ export const JobsFilterPanel = ({}) => {
                     </Grid>
                 </AccordionDetails>
             </Accordion>
-            <TryProDialog open={showDialog} setOpen={setShowDialog}/>
+            <TryProDialog open={showDialog} setOpen={setShowDialog} setFormSubmitted={setFormSubmitted}/>
+            <Snackbar open={formSubmitted}
+                      autoHideDuration={5000}
+                      onClose={() => setFormSubmitted(false)}
+                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+            >
+                <Alert severity="success">
+                    Our team is preparing your license and you can expect it in your inbox very soon.
+                </Alert>
+            </Snackbar>
         </>
     );
 };
