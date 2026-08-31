@@ -4,9 +4,8 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Tooltip from '@mui/material/Tooltip';
-import {styled} from '@mui/material/styles';
-import {convertToBrowserDefaultDateStyle} from '../../utils/helper-functions';
-import {useTheme} from "@mui/material";
+import {keyframes, styled} from '@mui/material/styles';
+import {lighten, useTheme} from "@mui/material";
 import {RadioButtonChecked} from "@mui/icons-material";
 
 const asMs = (date) => new Date(date).getTime();
@@ -14,50 +13,69 @@ const asMs = (date) => new Date(date).getTime();
 const getNextJobHistoryStep = (steps, index) =>
     steps.find((step, i) => i > index && step.state !== 'RUN_STEP_ONCE') ?? null;
 
+const END_STATES = ['SUCCEEDED', 'FAILED', 'DELETED'];
+
 const validEndAt = (step) =>
     step.updatedAt && asMs(step.updatedAt) > asMs(step.createdAt) ? asMs(step.updatedAt) : null;
 
-const getStepEndAt = (step, nextJobHistoryStep) => {
-    if (step.state === 'RUN_STEP_ONCE') return validEndAt(step);
-    if (step.state === 'SUCCEEDED' || step.state === 'FAILED') return asMs(step.createdAt);
-    if (nextJobHistoryStep) return asMs(nextJobHistoryStep.createdAt);
-    return validEndAt(step);
+const getStepEndAt = (step, nextJobHistoryStep, jobInProgress, now) => {
+    if (step.state === 'RUN_STEP_ONCE') {
+        const end = validEndAt(step);
+        if (end !== null) return {end, active: false};
+        if (jobInProgress) return {end: now, active: true};
+        return {end: null, active: false};
+    }
+    if (step.state === 'SUCCEEDED' || step.state === 'FAILED') {
+        return {end: asMs(step.createdAt), active: false};
+    }
+    if (nextJobHistoryStep) return {end: asMs(nextJobHistoryStep.createdAt), active: false};
+    if (jobInProgress) return {end: now, active: true};
+    return {end: validEndAt(step), active: false};
 };
 
 const getTimeline = (steps) => {
+    const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
+    const now = Date.now();
     let start = Infinity, end = -Infinity;
-    const stepEnds = steps.map((step, i) => {
+    const stepEnds = [];
+    const stepActive = [];
+    steps.forEach((step, i) => {
         const stepStart = asMs(step.createdAt);
         if (stepStart < start) start = stepStart;
-        const stepEnd = getStepEndAt(step, getNextJobHistoryStep(steps, i));
+        const {end: stepEnd, active} = getStepEndAt(step, getNextJobHistoryStep(steps, i), jobInProgress, now);
         if (stepEnd !== null && stepEnd > end) end = stepEnd;
-        return stepEnd;
+        stepEnds.push(stepEnd);
+        stepActive.push(active);
     });
     if (end < start) end = start;
-    return {start, end, stepEnds};
+    return {start, end, stepEnds, stepActive};
 };
 
 const ignoreEnqueuedAndScheduled = (executionSteps) =>
-    executionSteps.filter(step => step.state !== 'ENQUEUED' && step.state !== 'SCHEDULED');
+    executionSteps.filter(step => step.state !== 'ENQUEUED' && step.state !== 'SCHEDULED' && step.state !== 'AWAITING');
 
-const getStepPlacement = (step, stepEndMs, start, end) => {
+const MIN_ACTIVE_WIDTH_PERCENTAGE = 1;
+
+const getStepPlacement = (step, stepEndMs, start, end, active) => {
     const stepStart = asMs(step.createdAt);
     const span = end - start;
-    const pct = (ms) => span > 0 ? (ms / span) * 100 : 0;
-    const offset = pct(stepStart - start);
+    const percentage = (ms) => span > 0 ? (ms / span) * 100 : 0;
+    const offset = percentage(stepStart - start);
+    if (active) {
+        let width = Math.max(percentage(stepEndMs - stepStart), 0);
+        if (width < MIN_ACTIVE_WIDTH_PERCENTAGE) width = MIN_ACTIVE_WIDTH_PERCENTAGE;
+        return {offset, width, isPoint: false};
+    }
     if (stepEndMs === null || stepEndMs <= stepStart) return {offset, width: null, isPoint: true};
-    return {offset, width: Math.max(pct(stepEndMs - stepStart), 0), isPoint: false};
+    return {offset, width: Math.max(percentage(stepEndMs - stepStart), 0), isPoint: false};
 };
 
 const STEP_LABELS = {
-    SCHEDULED: 'Scheduled',
-    ENQUEUED: 'Enqueued',
     PROCESSING: 'Processing',
     SUCCEEDED: 'Succeeded',
     FAILED: 'Failed',
     DELETED: 'Deleted',
-    AWAITING: 'Awaiting',
-    RUN_STEP_ONCE: 'Run step once',
+    RUN_STEP_ONCE: 'Step that ran once',
 };
 
 const stepLabel = (step) => {
@@ -65,16 +83,18 @@ const stepLabel = (step) => {
     return STEP_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
 
-const formatHumanReadableDate = (ms) => convertToBrowserDefaultDateStyle(new Date(ms));
+const formatHumanReadableDate = (ms) => {
+    const date = new Date(ms);
+    return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + " at " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds();
+}
 
-const isInProgressStep = (step) => step.state === 'PROCESSING' || (step.state === 'RUN_STEP_ONCE' && !step.updatedAt);
-
-const buildTooltipTitle = (step, stepEndMs) => {
+const buildTooltipTitle = (step, stepEndMs, active) => {
     const startMs = asMs(step.createdAt);
+    if (active) {
+        return `${formatHumanReadableDate(startMs)} → ${formatHumanReadableDate(stepEndMs)} (in progress)`;
+    }
     if (stepEndMs === null) {
-        return isInProgressStep(step)
-            ? `${formatHumanReadableDate(startMs)} (in progress)`
-            : formatHumanReadableDate(startMs);
+        return formatHumanReadableDate(startMs);
     }
     return `${formatHumanReadableDate(startMs)} → ${formatHumanReadableDate(stepEndMs)} (${formatDuration(startMs, stepEndMs)})`;
 };
@@ -94,18 +114,54 @@ const formatDuration = (startMs, endMs) => {
     return `${minutes}m ${Math.round(seconds - minutes * 60)}s`;
 };
 
-const GanttBar = styled(LinearProgress)(({theme}) => ({
-    height: '50%',
-    alignSelf: 'center',
-    borderRadius: 4,
-    [`&.${linearProgressClasses.colorPrimary}`]: {
-        backgroundColor: 'transparent',
-    },
-    [`& .${linearProgressClasses.bar}`]: {
+const moveStripes = keyframes`
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 28px 0;
+    }
+`;
+
+export const GanttBar = styled(LinearProgress, {
+    shouldForwardProp: (prop) => prop !== 'active',
+})(({theme, active}) => {
+    const infoLight = theme.palette.info.light;
+    const infoLighter = lighten(infoLight, 0.4);
+
+    return {
+        height: '50%',
+        width: '100%',
+        alignSelf: 'center',
         borderRadius: 4,
-        backgroundColor: theme.palette.info.light,
-    },
-}));
+        [`&.${linearProgressClasses.colorPrimary}`]: {
+            backgroundColor: active ? '#f0f4f8' : 'transparent',
+        },
+        [`& .${linearProgressClasses.bar}`]: {
+            borderRadius: 4,
+            backgroundColor: infoLight,
+
+            ...(active && {
+                width: '100%',
+                transform: 'none !important',
+                animation: `${moveStripes} 1s linear infinite !important`,
+                backgroundImage: `repeating-linear-gradient(
+          45deg,
+          ${infoLight},
+          ${infoLight} 10px,
+          ${infoLighter} 10px,
+          ${infoLighter} 20px
+        )`,
+                backgroundSize: '28px 28px',
+            }),
+        },
+        ...(active && {
+            [`& .${linearProgressClasses.bar2Indeterminate}`]: {
+                display: 'none',
+            },
+        }),
+    };
+});
 
 const AxisLabel = ({sx, ...props}) => (
     <Typography variant="caption" sx={{position: 'absolute', top: 0, whiteSpace: 'nowrap', ...sx}} {...props}/>
@@ -119,7 +175,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
     const steps = ignoreEnqueuedAndScheduled(executionSteps ?? []);
     if (steps.length === 0) return null;
 
-    const {start, end, stepEnds} = getTimeline(steps);
+    const {start, end, stepEnds, stepActive} = getTimeline(steps);
     const mid = (start + end) / 2;
 
     return (
@@ -136,7 +192,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                     <Typography variant="h6" gutterBottom>Execution Timeline</Typography>
 
                     <Box sx={{display: 'flex', alignItems: 'flex-end', mb: 1}}>
-                        <Box sx={{width: LABEL_WIDTH, flexShrink: 0}} role="gantt-row-label"/>
+                        <Box sx={{minWidth: LABEL_WIDTH, flexShrink: 0}} role="gantt-row-label"/>
                         <Box sx={{
                             flex: 1, position: 'relative', height: 18,
                         }}>
@@ -148,8 +204,9 @@ export const JobProgressDisplay = ({executionSteps}) => {
 
                     {steps.map((step, index) => {
                         const stepEndMs = stepEnds[index];
-                        const {offset, width, isPoint} = getStepPlacement(step, stepEndMs, start, end);
-                        const tooltipTitle = buildTooltipTitle(step, stepEndMs);
+                        const active = stepActive[index];
+                        const {offset, width, isPoint} = getStepPlacement(step, stepEndMs, start, end, active);
+                        const tooltipTitle = buildTooltipTitle(step, stepEndMs, active);
                         return (
                             <Box key={index} role="gantt-row"
                                  sx={{display: 'flex', alignItems: 'center', height: ROW_HEIGHT, mb: 0.5}}>
@@ -173,8 +230,14 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                                 left: `${offset}%`,
                                                 width: `${width}%`,
                                                 top: 0, bottom: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
                                             }}>
-                                                <GanttBar variant="determinate" value={100}/>
+                                                <GanttBar
+                                                    active={active}
+                                                    variant={active ? 'indeterminate' : 'determinate'}
+                                                    value={active ? undefined : 100}
+                                                />
                                             </Box>
                                         )}
                                     </Tooltip>

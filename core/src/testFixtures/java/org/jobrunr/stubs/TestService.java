@@ -216,7 +216,8 @@ public class TestService implements TestServiceInterface {
         }
     }
 
-    public void doWorkThatRunsStepsOnce(JobContext jobContext) {
+    public void doWorkThatRunsStepsOnce(JobContext jobContext) throws InterruptedException {
+        Thread.sleep(1000);
         jobContext.runStepOnce("step-1", () -> {
             Thread.sleep(15000);
             return "result-1";
@@ -225,6 +226,10 @@ public class TestService implements TestServiceInterface {
         jobContext.runStepOnce("step-3", () -> {
             Thread.sleep(30000);
             return UUID.randomUUID();
+        });
+        jobContext.runStepOnce("Really long step name that should expand label", () -> {
+            Thread.sleep(10000);
+            return "result-1";
         });
     }
 
