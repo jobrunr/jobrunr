@@ -227,10 +227,6 @@ public class TestService implements TestServiceInterface {
             Thread.sleep(30000);
             return UUID.randomUUID();
         });
-        jobContext.runStepOnce("Really long step name that should expand label", () -> {
-            Thread.sleep(10000);
-            return "result-1";
-        });
     }
 
     public void doWorkThatTakesLong(int seconds) throws InterruptedException {
