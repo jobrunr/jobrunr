@@ -25,11 +25,19 @@ const GANTT_GRID_COLUMNS = 'minmax(0, max-content) 1fr';
 
 const asMs = (date) => new Date(date).getTime();
 
-const getNextJobHistoryStep = (steps, index) =>
-    steps.find((step, i) => i > index && step.state !== 'RUN_STEP_ONCE') ?? null;
+const asMicros = (date) => {
+    const matcher = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(date));
+    if (!matcher) return new Date(date).getTime() * 1000;
+    const wholeSecondMs = Date.parse(matcher[1] + (matcher[3] || 'Z'));
+    const frac = matcher[2] ? (matcher[2] + '000000').slice(0, 6) : '0';
+    return wholeSecondMs * 1000 + parseInt(frac, 10);
+};
 
 const getStepEndTime = (step) =>
-    step.updatedAt && asMs(step.updatedAt) > asMs(step.createdAt) ? asMs(step.updatedAt) : null;
+    step.updatedAt && asMicros(step.updatedAt) > asMicros(step.createdAt) ? asMs(step.updatedAt) : null;
+
+const getNextJobHistoryStep = (steps, index) =>
+    steps.find((step, i) => i > index && step.state !== 'RUN_STEP_ONCE') ?? null;
 
 const getStepEndAt = (step, nextJobHistoryStep, jobInProgress, now) => {
     if (END_STATES.includes(step.state)) {
@@ -94,7 +102,7 @@ const buildTooltipTitle = (step, stepEndMs, active) => {
     const startMs = asMs(step.createdAt);
     if (active) {
         return `${formatHumanReadableDate(startMs)} to ${formatHumanReadableDate(stepEndMs)} (in progress)`;
-    } else if (stepEndMs === null) {
+    } else if (stepEndMs === null || stepEndMs === startMs) {
         return `${formatHumanReadableDate(startMs)} ${END_STATES.includes(step.state) ? "" : "(<10 ms)"}`;
     } else {
         return `${formatHumanReadableDate(startMs)} to ${formatHumanReadableDate(stepEndMs)} (${formatDuration(startMs, stepEndMs)})`;
