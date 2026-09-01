@@ -256,6 +256,8 @@ public class JobContext {
                 markStepCompleted(step);
                 return result;
             } catch (Exception e) {
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + step, Instant.now());
+                markStepFailed(step);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }
         } else {
@@ -274,6 +276,13 @@ public class JobContext {
      */
     void markStepCompleted(String stepName) {
         saveMetadata(JOBRUNR_STEP_PREFIX + stepName, true);
+    }
+
+    /**
+     * Marks the given step as failed
+     */
+    void markStepFailed(String stepName) {
+        saveMetadata(JOBRUNR_STEP_PREFIX + stepName, false);
     }
 
     /**

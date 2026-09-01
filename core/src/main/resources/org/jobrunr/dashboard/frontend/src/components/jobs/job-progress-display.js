@@ -6,17 +6,19 @@ import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgres
 import Tooltip from '@mui/material/Tooltip';
 import {keyframes, styled} from '@mui/material/styles';
 import {lighten} from "@mui/material";
-import {RadioButtonChecked} from "@mui/icons-material";
+import {Circle} from "@mui/icons-material";
+import {useEffect, useState} from 'react';
 import {humanReadableISO8601Duration} from "../../utils/helper-functions.js";
 
 const STEP_DEFAULT_LABELS = {
+    ENQUEUED: 'Enqueued',
     PROCESSING: 'Processing',
     SUCCEEDED: 'Succeeded',
     FAILED: 'Failed',
-    DELETED: 'Deleted',
     RUN_STEP_ONCE: 'Step that ran once',
 };
-const END_STATES = ['SUCCEEDED', 'FAILED', 'DELETED'];
+const END_STATES = ['SUCCEEDED', 'FAILED'];
+const EXCLUDED_STATES = ['AWAITING', 'SCHEDULED', 'DELETED'];
 const MIN_ACTIVE_WIDTH_PERCENTAGE = 1;
 const MIN_LABEL_WIDTH = 150;
 const MAX_LABEL_WIDTH = 250;
@@ -52,9 +54,8 @@ const getStepEndAt = (step, nextJobHistoryStep, jobInProgress, now) => {
     return {end: getStepEndTime(step), active: false};
 };
 
-const convertStepsToTimeline = (steps) => {
+const convertStepsToTimeline = (steps, now) => {
     const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
-    const now = Date.now();
     let start = Infinity, end = -Infinity;
     const stepEndTimes = [];
     const stepActive = [];
@@ -71,12 +72,12 @@ const convertStepsToTimeline = (steps) => {
 };
 
 const filterOutNonProcessingStates = (executionSteps) =>
-    executionSteps.filter(step => step.state !== 'ENQUEUED' && step.state !== 'SCHEDULED' && step.state !== 'AWAITING');
+    executionSteps.filter(step => !EXCLUDED_STATES.includes(step.state));
 
 const getStepPlacement = (step, stepEndMs, start, end, active) => {
     const stepStart = asMs(step.createdAt);
-    const span = end - start;
-    const percentage = (ms) => span > 0 ? (ms / span) * 100 : 0;
+    const duration = end - start;
+    const percentage = (ms) => duration > 0 ? (ms / duration) * 100 : 0;
     const offset = percentage(stepStart - start);
     if (active) {
         let width = Math.max(percentage(stepEndMs - stepStart), 0);
@@ -92,10 +93,16 @@ const getStepLabel = (step) => {
     return STEP_DEFAULT_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
 
+const getRowSeparatorBorder = (step, previousStep, index) => {
+    if (index === 0) return undefined;
+    return step.state === 'ENQUEUED' && previousStep.state === 'SUCCEEDED' ? '2px solid black' : '1px dashed lightgray';
+};
+
 const formatHumanReadableDate = (ms, detailed = true) => {
     const date = new Date(ms);
     const pad = (n) => String(n).padStart(2, '0');
-    return pad(date.getDate()) + "/" + pad(date.getMonth() + 1) + "/" + pad(date.getFullYear()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + (detailed ? "." + date.getMilliseconds() : "");
+    return pad(date.getDate()) + "/" + pad(date.getMonth() + 1) + "/" + pad(date.getFullYear()) + " "
+        + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + (detailed ? "." + date.getMilliseconds() : "");
 }
 
 const buildTooltipTitle = (step, stepEndMs, active) => {
@@ -126,9 +133,12 @@ const animateInProgressBar = keyframes`
 
 const GanttBar = styled(LinearProgress, {
     shouldForwardProp: (prop) => prop !== 'active',
-})(({theme, active}) => {
+})(({theme, active, step}) => {
     const infoLight = theme.palette.info.light;
     const infoLighter = lighten(infoLight, 0.4);
+    const warningLight = theme.palette.warning.light;
+    const warningLighter = lighten(warningLight, 0.4);
+    const errorLight = theme.palette.error.light;
 
     return {
         height: '50%',
@@ -140,12 +150,14 @@ const GanttBar = styled(LinearProgress, {
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 4,
-            backgroundColor: infoLight,
+            backgroundColor: step.state === 'ENQUEUED' ? warningLight : step.succeeded === false ? errorLight : infoLight,
             ...(active && {
                 width: '100%',
                 transform: 'none !important',
                 animation: `${animateInProgressBar} 1s linear infinite !important`,
-                backgroundImage: `repeating-linear-gradient(45deg, ${infoLight}, ${infoLight} 10px, ${infoLighter} 10px, ${infoLighter} 20px)`,
+                backgroundImage: step.state === 'ENQUEUED'
+                    ? `repeating-linear-gradient(45deg, ${warningLight}, ${warningLight} 10px, ${warningLighter} 10px, ${warningLighter} 20px)`
+                    : `repeating-linear-gradient(45deg, ${infoLight}, ${infoLight} 10px, ${infoLighter} 10px, ${infoLighter} 20px)`,
                 backgroundSize: '28px 28px',
             }),
         },
@@ -163,18 +175,24 @@ const AxisLabel = ({sx, ...props}) => (
 
 export const JobProgressDisplay = ({executionSteps}) => {
     const steps = filterOutNonProcessingStates(executionSteps ?? []);
+    const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
+
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        if (!jobInProgress) return undefined;
+        const id = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, [jobInProgress]);
+
     if (steps.length === 0) return null;
 
-    const {start, end, stepEnds, stepActive} = convertStepsToTimeline(steps);
+    const {start, end, stepEnds, stepActive} = convertStepsToTimeline(steps, now);
     const midpoint = (start + end) / 2;
 
     return (
         <Box sx={{width: '100%'}}>
             <Card>
                 <CardContent sx={{
-                    '& .MuiBox-root[role=gantt-row]:not(:last-child)': {
-                        borderBottom: "1px dashed lightgray"
-                    },
                     '& .MuiBox-root[role=gantt-row-label]': {
                         borderRight: "1px dashed lightgray"
                     }
@@ -210,27 +228,29 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                          gridTemplateColumns: 'subgrid',
                                          gridColumn: '1 / -1',
                                          alignItems: 'center',
-                                         height: ROW_HEIGHT,
+                                         minHeight: ROW_HEIGHT,
                                          mb: 0.5,
+                                         borderTop: getRowSeparatorBorder(step, index > 0 ? steps[index - 1] : undefined, index),
                                      }}>
-                                    <Box sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1, overflow: 'hidden'}} role="gantt-row-label">
-                                        <Typography variant="body2" noWrap>{getStepLabel(step)}</Typography>
+                                    <Box sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1, overflow: 'hidden', mr: 0.5}} role="gantt-row-label">
+                                        <Tooltip title={getStepLabel(step)}>
+                                            <Typography variant="body2" noWrap
+                                                        sx={{pl: step.state === "RUN_STEP_ONCE" ? 1.5 : 0}}>{getStepLabel(step)}</Typography>
+                                        </Tooltip>
                                     </Box>
                                     <Box sx={{position: 'relative', height: 18}}>
-                                        <Tooltip title={tooltipTitle} enterDelay={0}>
+                                        <Tooltip title={tooltipTitle}>
                                             {isPoint ? (
-                                                <RadioButtonChecked
+                                                <Circle
                                                     sx={{
                                                         position: 'absolute',
                                                         left: `${offset}%`,
                                                         top: '50%',
                                                         transform: 'translate(-50%, -50%)',
-                                                        borderRadius: '50%',
                                                     }}
-                                                    fontSize="small"
+                                                    fontSize="tiny"
                                                     color={step.state === "SUCCEEDED" ? "success"
-                                                        : step.state === "FAILED" ? "error"
-                                                            : step.state === "DELETED" ? "warn" : "info"}
+                                                        : step.state === "FAILED" ? "error" : "info"}
                                                 />
                                             ) : (
                                                 <Box sx={{
@@ -245,6 +265,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                                         active={active}
                                                         variant={active ? 'indeterminate' : 'determinate'}
                                                         value={active ? undefined : 100}
+                                                        step={step}
                                                     />
                                                 </Box>
                                             )}

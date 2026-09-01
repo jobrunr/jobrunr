@@ -65,6 +65,7 @@ const NotificationTitle = ({title, date = undefined, extraMenuItems, read = fals
                 anchorOrigin={{vertical: "bottom", horizontal: "right"}}
                 transformOrigin={{vertical: "top", horizontal: "right"}}
                 onClick={stopPropagation}
+                disableScrollLock
             >
                 {read
                     ? <MenuItem onClick={onReadStatusToggled}>

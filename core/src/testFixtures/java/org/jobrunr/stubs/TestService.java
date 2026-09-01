@@ -220,9 +220,15 @@ public class TestService implements TestServiceInterface {
         Thread.sleep(1000);
         jobContext.runStepOnce("step-1", () -> {
             Thread.sleep(15000);
+            if (jobContext.amountOfFailures() < 1) {
+                throw new RuntimeException("Bad things happened!");
+            }
             return "result-1";
         });
         jobContext.runStepOnce("step-2", UUID::randomUUID);
+        if (jobContext.amountOfFailures() < 2) {
+            throw new RuntimeException("Bad things happened!");
+        }
         jobContext.runStepOnce("step-3", () -> {
             Thread.sleep(30000);
             return UUID.randomUUID();

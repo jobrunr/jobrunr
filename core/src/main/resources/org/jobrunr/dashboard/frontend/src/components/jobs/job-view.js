@@ -62,7 +62,6 @@ const JobView = (props) => {
             const executionSteps = [...job.jobHistory, ...runStepOnceMetadata];
             executionSteps.sort((a, b) => a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
             setExecutionSteps(executionSteps);
-            console.log(executionSteps)
             if (order) {
                 setJobStates([...job.jobHistory]);
             } else {
@@ -92,15 +91,18 @@ const JobView = (props) => {
             }
         }
 
-        for (let step of stepComplete) {
-            const stepName = step[0].split('jr_step_')[1];
+        for (let step of stepStarts) {
+            const stepName = step[0].split('jr_step_start_')[1];
+            const updatedAt = stepEnds.find((entry) => entry[0] === "jr_step_end_" + stepName);
+            const completed = stepComplete.find((entry) => entry[0] === "jr_step_" + stepName);
+            const result = stepResult.find((entry) => entry[0] === "jr_step_result_" + stepName);
             processedStepOnceData.push({
                 state: "RUN_STEP_ONCE",
-                createdAt: stepStarts.find((entry) => entry[0].endsWith(stepName))[1][1],
-                updatedAt: stepEnds.find((entry) => entry[0].endsWith(stepName))[1][1],
+                createdAt: step[1][1],
+                updatedAt: updatedAt ? updatedAt[1][1] : undefined,
                 stepName: stepName,
-                completed: step[1],
-                result: stepResult.find((entry) => entry[0].endsWith(stepName))[1]
+                succeeded: completed ? completed[1] : undefined,
+                result: result ? result[1] : undefined
             })
         }
 
