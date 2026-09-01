@@ -15,6 +15,7 @@ const STEP_DEFAULT_LABELS = {
     PROCESSING: 'Processing',
     SUCCEEDED: 'Succeeded',
     FAILED: 'Failed',
+    RETRYING: 'Waiting for retry',
     RUN_STEP_ONCE: 'Step that ran once',
 };
 const END_STATES = ['SUCCEEDED', 'FAILED'];
@@ -71,27 +72,55 @@ const convertStepsToTimeline = (steps, now) => {
     return {start, end, stepEnds: stepEndTimes, stepActive};
 };
 
-const filterOutNonProcessingStates = (executionSteps) =>
-    executionSteps.filter(step => !EXCLUDED_STATES.includes(step.state));
+const isRetryScheduledStep = (step) => step?.state === 'SCHEDULED' && (step.reason ?? '').includes('Retry');
+
+const toTimelineSteps = (executionSteps) => {
+    const steps = [];
+    for (let i = 0; i < executionSteps.length; i++) {
+        const step = executionSteps[i];
+        const scheduledStep = executionSteps[i + 1];
+        if (step.state === 'FAILED' && isRetryScheduledStep(scheduledStep)) {
+            const nextAfterScheduled = executionSteps[i + 2];
+            const retryPickedUp = nextAfterScheduled?.state === 'ENQUEUED';
+            const retryAborted = nextAfterScheduled !== undefined && !retryPickedUp;
+            if (!retryAborted) {
+                steps.push({
+                    state: 'RETRYING',
+                    createdAt: step.createdAt,
+                    barStart: scheduledStep.createdAt,
+                    reason: scheduledStep.reason
+                });
+                i += retryPickedUp ? 2 : 1;
+                continue;
+            }
+        }
+        if (!EXCLUDED_STATES.includes(step.state)) steps.push(step);
+    }
+    return steps;
+};
 
 const getStepPlacement = (step, stepEndMs, start, end, active) => {
-    const stepStart = asMs(step.createdAt);
     const duration = end - start;
     const percentage = (ms) => duration > 0 ? (ms / duration) * 100 : 0;
+    const dotOffset = percentage(asMs(step.createdAt) - start);
+    const stepStart = asMs(step.barStart ?? step.createdAt);
     const offset = percentage(stepStart - start);
     if (active) {
         let width = Math.max(percentage(stepEndMs - stepStart), 0);
         if (width < MIN_ACTIVE_WIDTH_PERCENTAGE) width = MIN_ACTIVE_WIDTH_PERCENTAGE;
-        return {offset, width, isPoint: false};
+        return {offset, width, isPoint: false, dotOffset};
     }
-    if (stepEndMs === null || stepEndMs <= stepStart) return {offset, width: null, isPoint: true};
-    return {offset, width: Math.max(percentage(stepEndMs - stepStart), 0), isPoint: false};
+    if (stepEndMs === null || stepEndMs <= stepStart) return {offset, width: null, isPoint: true, dotOffset};
+    return {offset, width: Math.max(percentage(stepEndMs - stepStart), 0), isPoint: false, dotOffset};
 };
 
 const getStepLabel = (step) => {
-    if (step.state === 'RUN_STEP_ONCE' && step.stepName) return step.stepName;
+    if (step.state === 'RUN_STEP_ONCE' && step.stepName) return step.stepName.split('__')[0];
     return STEP_DEFAULT_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
+
+const buildStepLabelTooltip = (step) =>
+    step.state === 'RETRYING' && step.reason ? `${getStepLabel(step)} - ${step.reason}` : getStepLabel(step);
 
 const getRowSeparatorBorder = (step, previousStep, index) => {
     if (index === 0) return undefined;
@@ -106,7 +135,7 @@ const formatHumanReadableDate = (ms, detailed = true) => {
 }
 
 const buildTooltipTitle = (step, stepEndMs, active) => {
-    const startMs = asMs(step.createdAt);
+    const startMs = asMs(step.barStart ?? step.createdAt);
     if (active) {
         return `${formatHumanReadableDate(startMs)} to ${formatHumanReadableDate(stepEndMs)} (in progress)`;
     } else if (stepEndMs === null || stepEndMs === startMs) {
@@ -139,6 +168,7 @@ const GanttBar = styled(LinearProgress, {
     const warningLight = theme.palette.warning.light;
     const warningLighter = lighten(warningLight, 0.4);
     const errorLight = theme.palette.error.light;
+    const successLight = lighten(theme.palette.success.light, 0.2);
 
     return {
         height: '50%',
@@ -150,12 +180,15 @@ const GanttBar = styled(LinearProgress, {
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 4,
-            backgroundColor: step.state === 'ENQUEUED' ? warningLight : step.succeeded === false ? errorLight : infoLight,
+            backgroundColor: step.state === 'ENQUEUED' || step.state === 'RETRYING' ? warningLight
+                : step.succeeded === false ? errorLight
+                    : step.succeeded === true ? successLight
+                        : infoLight,
             ...(active && {
                 width: '100%',
                 transform: 'none !important',
                 animation: `${animateInProgressBar} 1s linear infinite !important`,
-                backgroundImage: step.state === 'ENQUEUED'
+                backgroundImage: step.state === 'ENQUEUED' || step.state === 'RETRYING'
                     ? `repeating-linear-gradient(45deg, ${warningLight}, ${warningLight} 10px, ${warningLighter} 10px, ${warningLighter} 20px)`
                     : `repeating-linear-gradient(45deg, ${infoLight}, ${infoLight} 10px, ${infoLighter} 10px, ${infoLighter} 20px)`,
                 backgroundSize: '28px 28px',
@@ -174,7 +207,7 @@ const AxisLabel = ({sx, ...props}) => (
 );
 
 export const JobProgressDisplay = ({executionSteps}) => {
-    const steps = filterOutNonProcessingStates(executionSteps ?? []);
+    const steps = toTimelineSteps(executionSteps ?? []);
     const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
 
     const [now, setNow] = useState(() => Date.now());
@@ -219,7 +252,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         {steps.map((step, index) => {
                             const stepEndMs = stepEnds[index];
                             const active = stepActive[index];
-                            const {offset, width, isPoint} = getStepPlacement(step, stepEndMs, start, end, active);
+                            const {offset, width, isPoint, dotOffset} = getStepPlacement(step, stepEndMs, start, end, active);
                             const tooltipTitle = buildTooltipTitle(step, stepEndMs, active);
                             return (
                                 <Box key={index} role="gantt-row"
@@ -233,43 +266,82 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                          borderTop: getRowSeparatorBorder(step, index > 0 ? steps[index - 1] : undefined, index),
                                      }}>
                                     <Box sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1, overflow: 'hidden', mr: 0.5}} role="gantt-row-label">
-                                        <Tooltip title={getStepLabel(step)}>
+                                        <Tooltip title={buildStepLabelTooltip(step)}>
                                             <Typography variant="body2" noWrap
-                                                        sx={{pl: step.state === "RUN_STEP_ONCE" ? 1.5 : 0}}>{getStepLabel(step)}</Typography>
+                                                        sx={{
+                                                            pl: step.state === "RUN_STEP_ONCE" ? 1.5 : 0,
+                                                            fontWeight: step.state === "RUN_STEP_ONCE" ? 'normal' : 'bold'
+                                                        }}>
+                                                {getStepLabel(step)}
+                                            </Typography>
                                         </Tooltip>
                                     </Box>
                                     <Box sx={{position: 'relative', height: 18}}>
-                                        <Tooltip title={tooltipTitle}>
-                                            {isPoint ? (
-                                                <Circle
-                                                    sx={{
+                                        {step.state === 'RETRYING' ? (
+                                            <>
+                                                <Tooltip title={tooltipTitle}>
+                                                    <Box sx={{
                                                         position: 'absolute',
                                                         left: `${offset}%`,
-                                                        top: '50%',
-                                                        transform: 'translate(-50%, -50%)',
-                                                    }}
-                                                    fontSize="tiny"
-                                                    color={step.state === "SUCCEEDED" ? "success"
-                                                        : step.state === "FAILED" ? "error" : "info"}
-                                                />
-                                            ) : (
-                                                <Box sx={{
-                                                    position: 'absolute',
-                                                    left: `${offset}%`,
-                                                    width: `${width}%`,
-                                                    top: 0, bottom: 0,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                }}>
-                                                    <GanttBar
-                                                        active={active}
-                                                        variant={active ? 'indeterminate' : 'determinate'}
-                                                        value={active ? undefined : 100}
-                                                        step={step}
+                                                        width: `${width ?? 0}%`,
+                                                        top: 0, bottom: 0,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                    }}>
+                                                        <GanttBar
+                                                            active={active}
+                                                            variant={active ? 'indeterminate' : 'determinate'}
+                                                            value={active ? undefined : 100}
+                                                            step={step}
+                                                        />
+                                                    </Box>
+                                                </Tooltip>
+                                                <Tooltip title={formatHumanReadableDate(asMs(step.createdAt))}>
+                                                    <Circle
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            left: `${dotOffset}%`,
+                                                            top: '50%',
+                                                            transform: 'translate(-50%, -50%)',
+                                                        }}
+                                                        fontSize="tiny"
+                                                        color="error"
                                                     />
-                                                </Box>
-                                            )}
-                                        </Tooltip>
+                                                </Tooltip>
+                                            </>
+                                        ) : (
+                                            <Tooltip title={tooltipTitle}>
+                                                {isPoint ? (
+                                                    <Circle
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            left: `${offset}%`,
+                                                            top: '50%',
+                                                            transform: 'translate(-50%, -50%)',
+                                                        }}
+                                                        fontSize="tiny"
+                                                        color={step.state === "SUCCEEDED" || step.succeeded === true ? "success"
+                                                            : step.state === "FAILED" ? "error" : "info"}
+                                                    />
+                                                ) : (
+                                                    <Box sx={{
+                                                        position: 'absolute',
+                                                        left: `${offset}%`,
+                                                        width: `${width}%`,
+                                                        top: 0, bottom: 0,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                    }}>
+                                                        <GanttBar
+                                                            active={active}
+                                                            variant={active ? 'indeterminate' : 'determinate'}
+                                                            value={active ? undefined : 100}
+                                                            step={step}
+                                                        />
+                                                    </Box>
+                                                )}
+                                            </Tooltip>
+                                        )}
                                     </Box>
                                 </Box>
                             );
