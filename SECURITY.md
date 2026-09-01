@@ -19,7 +19,7 @@ Security fixes are released on the latest version only.
 | < 7.5.x | :x:                |
 
 > [!NOTE]
-> If you are a JobRunr Pro customer and cannot upgrade to a supported version, reach out to JobRunr Support and we will provide a backported security fix for the version you are running.
+> If you are a JobRunr Pro customer and cannot upgrade to a supported version, reach out to JobRunr Support and depending on your support contract, we can backport a security fix for your JobRunr Pro version.
 
 ## Reporting a Vulnerability
 
