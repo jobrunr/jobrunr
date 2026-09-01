@@ -42,7 +42,6 @@ const JobView = (props) => {
     const [job, setJob] = useState(null);
     const [stateBreadcrumb, setStateBreadcrumb] = useState({});
     const [jobStates, setJobStates] = useState([]);
-    const [executionSteps, setExecutionSteps] = useState([]);
     const [order, setOrder] = useState(true);
     const {jobId} = useParams();
 
@@ -58,10 +57,6 @@ const JobView = (props) => {
 
     useEffect(() => {
         if (job) {
-            const runStepOnceMetadata = processRunStepOnceMetadata(job.metadata);
-            const executionSteps = [...job.jobHistory, ...runStepOnceMetadata];
-            executionSteps.sort((a, b) => a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
-            setExecutionSteps(executionSteps);
             if (order) {
                 setJobStates([...job.jobHistory]);
             } else {
@@ -69,45 +64,6 @@ const JobView = (props) => {
             }
         }
     }, [job, order]);
-
-    const processRunStepOnceMetadata = (metadata) => {
-        const processedStepOnceData = [];
-        const filteredMetadata = Object.entries(metadata).filter((entry) => entry[0].startsWith('jr_step_'))
-
-        let stepStarts = [];
-        let stepEnds = [];
-        let stepResult = [];
-        let stepComplete = [];
-
-        for (let metadata of filteredMetadata) {
-            if (metadata[0].startsWith("jr_step_start_")) {
-                stepStarts.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_end_")) {
-                stepEnds.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_result_") && !metadata[0].startsWith("jr_step_result_class_")) {
-                stepResult.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_") && !metadata[0].startsWith("jr_step_result_class_")) {
-                stepComplete.push(metadata);
-            }
-        }
-
-        for (let step of stepStarts) {
-            const stepName = step[0].split('jr_step_start_')[1];
-            const updatedAt = stepEnds.find((entry) => entry[0] === "jr_step_end_" + stepName);
-            const completed = stepComplete.find((entry) => entry[0] === "jr_step_" + stepName);
-            const result = stepResult.find((entry) => entry[0] === "jr_step_result_" + stepName);
-            processedStepOnceData.push({
-                state: "RUN_STEP_ONCE",
-                createdAt: step[1][1],
-                updatedAt: updatedAt ? updatedAt[1][1] : undefined,
-                stepName: stepName,
-                succeeded: completed ? completed[1] : undefined,
-                result: result ? result[1] : undefined
-            })
-        }
-
-        return processedStepOnceData;
-    }
 
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
@@ -238,7 +194,9 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
 
-                            {executionSteps.length > 0 && <JobProgressDisplay executionSteps={executionSteps}/>}
+                            <Grid size={12}>
+                                <JobProgressDisplay job={job}/>
+                            </Grid>
 
                             <Grid size={12}>
                                 <Typography variant="h5" component="h2">
