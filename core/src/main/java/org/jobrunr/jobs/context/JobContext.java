@@ -204,22 +204,50 @@ public class JobContext {
      * @return the given value associated with the provided key.
      */
     public <T> T getMetadata(String key) {
-        return cast(job.getMetadata().entrySet().stream()
-                .filter(entry -> entry.getKey() != null && entry.getKey().startsWith(key))
-                .map(Map.Entry::getValue)
-                .findFirst()
-                .orElse(null));
+        return cast(job.getMetadata().get(key));
     }
 
     /**
      * Returns true if the given step has already completed successfully in a previous run.
      */
     public boolean hasCompletedStep(String stepName) {
-        Object value = getMetadata(JOBRUNR_STEP_PREFIX + stepName.split("__")[0]);
+        Object value = getLatestStepMetadata(JOBRUNR_STEP_PREFIX + stepName);
         if (value == null) return false;
         if (value instanceof Boolean) return (boolean) value;
         if (value instanceof String) return Boolean.parseBoolean((String) value);
         throw new IllegalStateException("Unsupported step value: " + stepName);
+    }
+
+    /**
+     * Returns the value of the latest run for a step.
+     * <p>
+     * Matches either the exact key (e.g. {@code jr_step_<name>} for the {@link ThrowingRunnable} overload),
+     * picking the entry with the highest run number so the result does not depend on the arbitrary iteration order
+     * of the underlying {@link java.util.concurrent.ConcurrentHashMap}. Unlike a plain {@code startsWith} lookup,
+     * this also avoids collisions between step names that are prefixes of each other (e.g. {@code send} vs {@code send-email}).
+     */
+    private Object getLatestStepMetadata(String key) {
+        Object latestValue = null;
+        int latestRun = -1;
+        for (Map.Entry<String, Object> entry : job.getMetadata().entrySet()) {
+            String entryKey = entry.getKey();
+            if (entryKey == null) continue;
+            if (entryKey.equals(key)) {
+                if (latestRun < 0) {
+                    latestValue = entry.getValue();
+                }
+            } else if (entryKey.startsWith(key + "__")) {
+                String suffix = entryKey.substring(key.length() + 2);
+                if (suffix.matches("\\d+")) {
+                    int run = Integer.parseInt(suffix);
+                    if (run > latestRun) {
+                        latestRun = run;
+                        latestValue = entry.getValue();
+                    }
+                }
+            }
+        }
+        return latestValue;
     }
 
     /**
@@ -251,27 +279,27 @@ public class JobContext {
      * @throws StepExecutionException when an exception happens during the execution of this step
      */
     public <T> T runStepOnce(String step, ThrowingSupplier<T> task) throws StepExecutionException {
-        step = step + "__" + job.getJobStates().size();
+        String stepKey = step + "__" + job.getJobStates().size();
         if (!hasCompletedStep(step)) {
             try {
-                saveMetadata(JOBRUNR_STEP_START_PREFIX + step, Instant.now());
+                saveMetadata(JOBRUNR_STEP_START_PREFIX + stepKey, Instant.now());
                 T result = task.get();
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + step, Instant.now());
-                saveStepResult(step, result);
-                markStepCompleted(step);
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, Instant.now());
+                saveStepResult(stepKey, result);
+                markStepCompleted(stepKey);
                 return result;
             } catch (Exception e) {
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + step, Instant.now());
-                markStepFailed(step);
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, Instant.now());
+                markStepFailed(stepKey);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }
         } else {
-            String stepResultClassName = getMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step.split("__")[0]);
+            String stepResultClassName = cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step));
             Class<T> stepResultClass = ReflectionUtils.toClass(stepResultClassName);
             if (Metadata.class.isAssignableFrom(stepResultClass)) {
-                return getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
+                return cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_PREFIX + step));
             }
-            String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step.split("__")[0]);
+            String stepResultAsString = cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_PREFIX + step));
             return autobox(stepResultAsString, stepResultClass);
         }
     }
