@@ -313,6 +313,18 @@ export const JobProgressDisplay = ({executionSteps}) => {
     const ticks = generateTimeTicks(duration, compressTime, start, vDuration, longRanges);
     let retryCount = 0;
 
+    const compactRetryEvents = [];
+    let compactRetryCount = 0;
+    rawSteps.forEach((step, idx) => {
+        if (idx > 0 && (step.state === 'RETRYING' || step.state === 'SCHEDULED')) {
+            compactRetryCount += 1;
+            const retryMs = asMs(step.barStart ?? step.createdAt);
+            const vMs = compressTime(retryMs);
+            const pct = vDuration > 0 ? ((vMs - vStart) / vDuration) * 100 : 0;
+            compactRetryEvents.push({count: compactRetryCount, pct, ms: retryMs});
+        }
+    });
+
     const groupedRows = timelineMode === "compact" ? groupStepsSequentially(rawSteps, stepEndMap, now) : [];
 
     const changeMode = (event, mode) => {
@@ -408,7 +420,14 @@ export const JobProgressDisplay = ({executionSteps}) => {
                     </Box>
 
                     <Box sx={{display: 'grid', gridTemplateColumns: GANTT_COLUMNS, position: 'relative'}}>
-                        <Box sx={{display: 'grid', gridTemplateColumns: 'subgrid', gridColumn: '1 / -1', alignItems: 'flex-end', height: 18, mb: 1}}>
+                        <Box sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'subgrid',
+                            gridColumn: '1 / -1',
+                            alignItems: 'flex-end',
+                            height: 18,
+                            mb: (timelineMode === "compact" ? 2 : 1)
+                        }}>
                             <Box role="gantt-row-label" sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1}}/>
                             <Box sx={{position: 'relative', height: 18}}>
                                 {ticks.map((t) => (
@@ -428,7 +447,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         </Box>
 
                         <Box aria-hidden="true"
-                             sx={{position: 'absolute', top: 26, bottom: 0, gridColumn: '2 / 3', width: '100%', pointerEvents: 'none', zIndex: 0}}>
+                             sx={{position: 'absolute', top: 26, bottom: 0, gridColumn: '2 / 3', width: '100%', pointerEvents: 'none', zIndex: 0,}}>
                             {ticks.map((t) => (
                                 <Box key={t.ms} sx={{
                                     position: 'absolute',
@@ -437,8 +456,22 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                     left: `${t.pct}%`,
                                     borderLeft: '1px solid',
                                     borderColor: 'divider',
-                                    opacity: 0.6
+                                    opacity: 0.6,
                                 }}/>
+                            ))}
+                            {timelineMode === "compact" && compactRetryEvents.map((retry) => (
+                                <Box key={retry.count} sx={{
+                                    position: 'absolute', top: 0, bottom: 0, left: `${retry.pct}%`,
+                                    borderLeft: '1px dashed', borderColor: 'text.secondary', opacity: 0.6,
+                                }}>
+                                    <Typography variant="caption" sx={{
+                                        position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)',
+                                        fontWeight: 600, fontSize: '10px', whiteSpace: 'nowrap',
+                                        bgcolor: 'background.paper', px: 0.5, borderRadius: 0.5, border: '1px dashed', borderColor: 'divider',
+                                    }}>
+                                        Retry {retry.count}
+                                    </Typography>
+                                </Box>
                             ))}
                         </Box>
 
