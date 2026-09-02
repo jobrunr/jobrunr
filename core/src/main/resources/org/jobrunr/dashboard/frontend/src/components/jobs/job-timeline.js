@@ -73,9 +73,18 @@ export const unwrapMetadataValue = (value) => {
 };
 
 /**
- * Reconstructs the steps executed by `JobContext.runStepOnce` from the job metadata. Only steps that
- * report a start time are returned: steps executed via the `ThrowingRunnable` overload do not record
- * timings and can hence not be placed on a timeline.
+ * `JobContext.runStepOnce` keeps every run of a step by appending `__<amount of job states>` to the
+ * metadata key, so a step that ran again after a retry is stored next to its earlier run. That suffix is
+ * an implementation detail of the storage: it identifies a run but is never shown to the user.
+ */
+const STEP_RUN_SUFFIX_PATTERN = /^(.+)__(\d+)$/;
+
+const toStepName = (metadataName) => STEP_RUN_SUFFIX_PATTERN.exec(metadataName)?.[1] ?? metadataName;
+
+/**
+ * Reconstructs the runs of the steps executed by `JobContext.runStepOnce` from the job metadata. Only
+ * runs that report a start time are returned: steps executed via the `ThrowingRunnable` overload do not
+ * record timings and can hence not be placed on a timeline.
  */
 export const getStepsFromMetadata = (metadata) => {
     if (!metadata) return [];
@@ -85,15 +94,17 @@ export const getStepsFromMetadata = (metadata) => {
     return Object.keys(metadata)
         .filter((key) => key.startsWith(STEP_START_PREFIX))
         .map((key) => {
-            const name = key.substring(STEP_START_PREFIX.length);
-            const succeeded = valueOf(STEP_PREFIX + name);
+            // the metadata name of a run, e.g. `send-email__6`, of which only `send-email` is shown
+            const metadataName = key.substring(STEP_START_PREFIX.length);
+            const succeeded = valueOf(STEP_PREFIX + metadataName);
             return {
-                name,
+                name: toStepName(metadataName),
+                metadataName,
                 start: toMicros(valueOf(key)),
-                end: toMicros(valueOf(STEP_END_PREFIX + name)),
+                end: toMicros(valueOf(STEP_END_PREFIX + metadataName)),
                 succeeded: typeof succeeded === 'string' ? succeeded === 'true' : succeeded,
-                result: valueOf(STEP_RESULT_PREFIX + name),
-                resultClass: valueOf(STEP_RESULT_CLASS_PREFIX + name),
+                result: valueOf(STEP_RESULT_PREFIX + metadataName),
+                resultClass: valueOf(STEP_RESULT_CLASS_PREFIX + metadataName),
             };
         })
         .filter((step) => step.start !== null)
@@ -150,50 +161,51 @@ const toStateSegments = (jobHistory, nowInMicros) => {
     });
 };
 
-const toStepSegment = (step, processingSegment, nowInMicros) => {
-    const isRunning = step.end === null && (processingSegment?.isRunning ?? false);
-    const hasUnknownEnd = step.end === null && !isRunning;
-    const end = step.end ?? (isRunning ? nowInMicros : processingSegment?.end ?? step.start);
+const toStepSegment = (run, processingSegment, nowInMicros) => {
+    const isRunning = run.end === null && (processingSegment?.isRunning ?? false);
+    const hasUnknownEnd = run.end === null && !isRunning;
+    const end = run.end ?? (isRunning ? nowInMicros : processingSegment?.end ?? run.start);
 
     return {
-        key: `step-${step.name}`,
+        key: `step-${run.metadataName}`,
         kind: 'step',
         type: STEP,
-        label: step.name,
-        start: step.start,
-        end: end < step.start ? step.start : end,
+        label: run.name,
+        start: run.start,
+        end: end < run.start ? run.start : end,
         isRunning,
         isMoment: false,
         hasUnknownEnd,
-        succeeded: step.succeeded,
-        result: step.result,
+        succeeded: run.succeeded,
+        result: run.result,
         attempt: processingSegment?.attempt,
-        step,
+        run,
     };
 };
 
 /**
- * A step that already completed successfully is not executed again when the job is retried
- * (see {@code JobContext.hasCompletedStep}). There is no metadata for something that did not run, so
- * these skips are derived: they are shown at the start of every attempt that came after the attempt
- * the step completed in.
+ * A step that already completed successfully is not executed again when the job is retried (see
+ * {@code JobContext.hasCompletedStep}). Nothing is stored for something that did not run, so a skip is
+ * derived: the step completed during an earlier attempt and has no run of its own in this one.
  */
-const toSkippedMarkers = (stepSegments, processingSegments) => {
-    const markers = [];
-    stepSegments.forEach((stepSegment) => {
-        if (stepSegment.succeeded !== true) return;
-        processingSegments
-            .filter((processing) => processing.start > stepSegment.end)
-            .forEach((processing) => markers.push({
-                key: `skipped-${stepSegment.label}-${processing.key}`,
-                at: processing.start,
-                attempt: processing.attempt,
-                completedDuringAttempt: stepSegment.attempt,
-                stepNames: [stepSegment.label],
-            }));
-    });
-    return markers;
-};
+const toSkippedSegment = (stepName, completedDuringAttempt, processingSegment) => ({
+    key: `skipped-${stepName}-${processingSegment.key}`,
+    kind: 'skipped',
+    type: STEP,
+    label: stepName,
+    start: processingSegment.start,
+    end: processingSegment.start,
+    attempt: processingSegment.attempt,
+    completedDuringAttempt,
+});
+
+const toMarker = (skippedSegment) => ({
+    key: skippedSegment.key,
+    at: skippedSegment.start,
+    stepName: skippedSegment.label,
+    attempt: skippedSegment.attempt,
+    completedDuringAttempt: skippedSegment.completedDuringAttempt,
+});
 
 const durationOfSpans = (spans) => spans
     .filter((span) => !span.isMoment)
@@ -203,18 +215,19 @@ const toLane = (lane) => ({
     ...lane,
     count: lane.spans.length,
     duration: durationOfSpans(lane.spans),
+    didNotRun: lane.spans.length === 0,
 });
 
-/** The detailed view gives every state and every step a lane of its own. */
-const toDetailedLanes = (segments, markers) => segments.map((segment) => toLane({
+/** The detailed view gives every state, every run of a step and every skipped step a lane of its own. */
+const toDetailedLanes = (segments) => segments.map((segment) => toLane({
     key: segment.key,
     label: segment.label,
     type: segment.type,
-    isStepLane: segment.kind === 'step',
+    isStepLane: segment.kind !== 'state',
     attempt: segment.attempt,
     startsNewAttempt: segment.startsNewAttempt,
-    spans: [segment],
-    markers: segment.kind === 'step' ? markers.filter((marker) => marker.stepNames.includes(segment.label)) : [],
+    spans: segment.kind === 'skipped' ? [] : [segment],
+    markers: segment.kind === 'skipped' ? [toMarker(segment)] : [],
 }));
 
 const COMPACT_LANE_ORDER = [STATES.AWAITING, STATES.SCHEDULED, STATES.ENQUEUED, STATES.PROCESSING];
@@ -222,10 +235,10 @@ const COMPACT_LANE_ORDER = [STATES.AWAITING, STATES.SCHEDULED, STATES.ENQUEUED, 
 /**
  * The compact view has one lane per kind of activity: the second time a job is processed is drawn as an
  * extra span on the same PROCESSING lane and the states that mark a moment in time (SUCCEEDED, FAILED,
- * DELETED) are drawn at the end of the span of the state they ended. Steps keep a lane of their own as
- * they each tell a different story.
+ * DELETED) are drawn at the end of the span of the state they ended. A step keeps a lane of its own, on
+ * which every run of that step is drawn.
  */
-const toCompactLanes = (segments, markers) => {
+const toCompactLanes = (segments) => {
     const spansPerLane = new Map();
     const addTo = (laneType, segment) => {
         if (!spansPerLane.has(laneType)) spansPerLane.set(laneType, []);
@@ -253,19 +266,52 @@ const toCompactLanes = (segments, markers) => {
             markers: [],
         }));
 
-    return [...stateLanes, ...toStepLanes(segments, markers)];
+    return [...stateLanes, ...toCompactStepLanes(segments)];
 };
 
-const toStepLanes = (segments, markers) => segments
-    .filter((segment) => segment.kind === 'step')
-    .map((segment) => toLane({
-        key: segment.key,
-        label: segment.label,
-        type: segment.type,
+/** All runs of the same step - and the attempts it was skipped in - share a lane. */
+const toCompactStepLanes = (segments) => {
+    const stepNames = [...new Set(segments.filter((segment) => segment.kind !== 'state').map((segment) => segment.label))];
+    return stepNames.map((stepName) => toLane({
+        key: `lane-step-${stepName}`,
+        label: stepName,
+        type: STEP,
         isStepLane: true,
-        spans: [segment],
-        markers: markers.filter((marker) => marker.stepNames.includes(segment.label)),
+        spans: segments.filter((segment) => segment.kind === 'step' && segment.label === stepName),
+        markers: segments.filter((segment) => segment.kind === 'skipped' && segment.label === stepName).map(toMarker),
     }));
+};
+
+/**
+ * Places the runs of the steps below the PROCESSING state they ran in, preceded by the steps that were
+ * skipped during that attempt because they already completed earlier.
+ */
+const toSegments = (stateSegments, stepRuns, nowInMicros) => {
+    const segments = [];
+    const unplacedRuns = [...stepRuns];
+    const attemptStepSucceededIn = new Map();
+
+    stateSegments.forEach((stateSegment) => {
+        segments.push(stateSegment);
+        if (stateSegment.type !== STATES.PROCESSING) return;
+
+        const runs = unplacedRuns.filter((run) => run.start >= stateSegment.start && run.start <= stateSegment.end);
+        runs.forEach((run) => unplacedRuns.splice(unplacedRuns.indexOf(run), 1));
+
+        const namesThatRan = new Set(runs.map((run) => run.name));
+        attemptStepSucceededIn.forEach((attempt, stepName) => {
+            if (!namesThatRan.has(stepName)) segments.push(toSkippedSegment(stepName, attempt, stateSegment));
+        });
+
+        runs.forEach((run) => segments.push(toStepSegment(run, stateSegment, nowInMicros)));
+        runs.filter((run) => run.succeeded === true)
+            .forEach((run) => attemptStepSucceededIn.set(run.name, stateSegment.attempt));
+    });
+
+    // runs we could not match with a PROCESSING state (e.g. a job whose history was truncated)
+    unplacedRuns.forEach((run) => segments.push(toStepSegment(run, undefined, nowInMicros)));
+    return segments;
+};
 
 /**
  * @param job the job as returned by the `/api/jobs/:id` endpoint
@@ -278,28 +324,7 @@ export const buildJobTimeline = (job, nowInMillis = Date.now()) => {
 
     const nowInMicros = nowInMillis * MICROS_PER_MILLI;
     const stateSegments = toStateSegments(jobHistory, nowInMicros);
-    const steps = getStepsFromMetadata(job?.metadata);
-
-    // steps are shown right below the PROCESSING state they ran in
-    const segments = [];
-    const unplacedSteps = [...steps];
-    stateSegments.forEach((stateSegment) => {
-        segments.push(stateSegment);
-        if (stateSegment.type !== STATES.PROCESSING) return;
-        unplacedSteps
-            .filter((step) => step.start >= stateSegment.start && step.start <= stateSegment.end)
-            .forEach((step) => {
-                unplacedSteps.splice(unplacedSteps.indexOf(step), 1);
-                segments.push(toStepSegment(step, stateSegment, nowInMicros));
-            });
-    });
-    // steps we could not match with a PROCESSING state (e.g. a job whose history was truncated)
-    unplacedSteps.forEach((step) => segments.push(toStepSegment(step, undefined, nowInMicros)));
-
-    const markers = toSkippedMarkers(
-        segments.filter((segment) => segment.kind === 'step'),
-        stateSegments.filter((segment) => segment.type === STATES.PROCESSING)
-    );
+    const segments = toSegments(stateSegments, getStepsFromMetadata(job?.metadata), nowInMicros);
 
     const start = Math.min(...segments.map((segment) => segment.start));
     const end = Math.max(...segments.map((segment) => segment.end));
@@ -310,8 +335,8 @@ export const buildJobTimeline = (job, nowInMillis = Date.now()) => {
         end: end > start ? end : start + 1,
         duration: end - start,
         segments,
-        detailedLanes: toDetailedLanes(segments, markers),
-        compactLanes: toCompactLanes(segments, markers),
+        detailedLanes: toDetailedLanes(segments),
+        compactLanes: toCompactLanes(segments),
         attempts: lastState.attempt,
         isRunning: lastState.isRunning,
         now: nowInMicros,

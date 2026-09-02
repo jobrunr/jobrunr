@@ -43,23 +43,25 @@ describe('toMicros', () => {
 });
 
 describe('getStepsFromMetadata', () => {
+    // JobContext suffixes the metadata of a step with the amount of job states, so every run is kept
     const metadata = {
         "@class": "java.util.concurrent.ConcurrentHashMap",
         "jobRunrDashboardLog-1": {"@class": "org.jobrunr.jobs.context.JobDashboardLogger$JobDashboardLogLines"},
-        "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:01Z"),
-        "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:16Z"),
-        "jr_step_step-1": ["java.lang.Boolean", true],
-        "jr_step_result_step-1": ["java.lang.String", "result-1"],
-        "jr_step_result_class_step-1": ["java.lang.String", "java.lang.String"],
-        "jr_step_start_step-2": jacksonInstant("2025-09-01T10:00:16Z"),
-        "jr_step_end_step-2": jacksonInstant("2025-09-01T10:00:16.000500Z"),
-        "jr_step_step-2": ["java.lang.Boolean", false],
+        "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:01Z"),
+        "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:16Z"),
+        "jr_step_step-1__2": ["java.lang.Boolean", true],
+        "jr_step_result_step-1__2": ["java.lang.String", "result-1"],
+        "jr_step_result_class_step-1__2": ["java.lang.String", "java.lang.String"],
+        "jr_step_start_step-2__2": jacksonInstant("2025-09-01T10:00:16Z"),
+        "jr_step_end_step-2__2": jacksonInstant("2025-09-01T10:00:16.000500Z"),
+        "jr_step_step-2__2": ["java.lang.Boolean", false],
     };
 
-    it('reconstructs the steps of a job', () => {
+    it('reconstructs every run of a step and keeps the run suffix out of its name', () => {
         expect(getStepsFromMetadata(metadata)).toEqual([
             {
                 name: "step-1",
+                metadataName: "step-1__2",
                 start: at("2025-09-01T10:00:01Z"),
                 end: at("2025-09-01T10:00:16Z"),
                 succeeded: true,
@@ -68,6 +70,7 @@ describe('getStepsFromMetadata', () => {
             },
             {
                 name: "step-2",
+                metadataName: "step-2__2",
                 start: at("2025-09-01T10:00:16Z"),
                 end: at("2025-09-01T10:00:16.000500Z"),
                 succeeded: false,
@@ -75,6 +78,30 @@ describe('getStepsFromMetadata', () => {
                 resultClass: undefined
             },
         ]);
+    });
+
+    it('returns a run per attempt for a step that ran more than once', () => {
+        const runs = getStepsFromMetadata({
+            "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:01Z"),
+            "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:16Z"),
+            "jr_step_step-1__2": ["java.lang.Boolean", false],
+            "jr_step_start_step-1__6": jacksonInstant("2025-09-01T10:00:30Z"),
+            "jr_step_end_step-1__6": jacksonInstant("2025-09-01T10:00:35Z"),
+            "jr_step_step-1__6": ["java.lang.Boolean", true],
+        });
+
+        expect(runs.map(run => [run.name, run.metadataName, run.succeeded]))
+            .toEqual([["step-1", "step-1__2", false], ["step-1", "step-1__6", true]]);
+    });
+
+    it('supports the steps of jobs that were stored before every run was kept', () => {
+        const runs = getStepsFromMetadata({
+            "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:01Z"),
+            "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:16Z"),
+            "jr_step_step-1": ["java.lang.Boolean", true],
+        });
+
+        expect(runs.map(run => [run.name, run.metadataName])).toEqual([["step-1", "step-1"]]);
     });
 
     it('also supports JsonMappers that do not wrap metadata values with their type', () => {
@@ -178,6 +205,32 @@ describe('buildJobTimeline', () => {
         expect(timeline.segments.map(row => row.attempt)).toEqual([1, 1, 1, 2, 2, 2, 2]);
     });
 
+    it('gives a step that was skipped during an attempt a lane without a span', () => {
+        const {detailedLanes} = buildJobTimeline({
+            jobHistory: [
+                enqueued("2025-09-01T10:00:00Z"),
+                processing("2025-09-01T10:00:01Z"),
+                failed("2025-09-01T10:00:31Z"),
+                enqueued("2025-09-01T10:00:40Z"),
+                processing("2025-09-01T10:00:41Z"),
+                succeeded("2025-09-01T10:00:50Z"),
+            ],
+            metadata: {
+                "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:02Z"),
+                "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:05Z"),
+                "jr_step_step-1__2": ["java.lang.Boolean", true],
+            }
+        }, now);
+
+        expect(detailedLanes.map(lane => [lane.label, lane.didNotRun])).toEqual([
+            ["Enqueued", false], ["Processing", false], ["step-1", false], ["Failed", false],
+            ["Enqueued", false], ["Processing", false], ["step-1", true], ["Succeeded", false],
+        ]);
+        const skippedLane = detailedLanes.find(lane => lane.didNotRun);
+        expect(skippedLane.spans).toEqual([]);
+        expect(skippedLane.markers).toEqual([expect.objectContaining({stepName: "step-1", attempt: 2, completedDuringAttempt: 1})]);
+    });
+
     it('shows the steps of a job below the processing state they ran in', () => {
         const job = {
             jobHistory: [
@@ -189,12 +242,12 @@ describe('buildJobTimeline', () => {
                 succeeded("2025-09-01T10:00:50Z"),
             ],
             metadata: {
-                "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z"),
-                "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:31Z"),
-                "jr_step_step-1": ["java.lang.Boolean", false],
-                "jr_step_start_step-2": jacksonInstant("2025-09-01T10:00:42Z"),
-                "jr_step_end_step-2": jacksonInstant("2025-09-01T10:00:42.000500Z"),
-                "jr_step_step-2": ["java.lang.Boolean", true],
+                "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:02Z"),
+                "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:31Z"),
+                "jr_step_step-1__2": ["java.lang.Boolean", false],
+                "jr_step_start_step-2__5": jacksonInstant("2025-09-01T10:00:42Z"),
+                "jr_step_end_step-2__5": jacksonInstant("2025-09-01T10:00:42.000500Z"),
+                "jr_step_step-2__5": ["java.lang.Boolean", true],
             }
         };
 
@@ -260,12 +313,12 @@ describe('the compact view of buildJobTimeline', () => {
             succeeded("2025-09-01T10:00:50Z"),
         ],
         metadata: {
-            "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z"),
-            "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:05Z"),
-            "jr_step_step-1": ["java.lang.Boolean", true],
-            "jr_step_start_step-2": jacksonInstant("2025-09-01T10:00:42Z"),
-            "jr_step_end_step-2": jacksonInstant("2025-09-01T10:00:48Z"),
-            "jr_step_step-2": ["java.lang.Boolean", true],
+            "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:02Z"),
+            "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:05Z"),
+            "jr_step_step-1__2": ["java.lang.Boolean", true],
+            "jr_step_start_step-2__6": jacksonInstant("2025-09-01T10:00:42Z"),
+            "jr_step_end_step-2__6": jacksonInstant("2025-09-01T10:00:48Z"),
+            "jr_step_step-2__6": ["java.lang.Boolean", true],
         }
     };
 
@@ -303,28 +356,45 @@ describe('the compact view of buildJobTimeline', () => {
         expect(compactLanes.find(lane => lane.label === "Processing").duration).toBe(39000000);
     });
 
-    it('marks the steps that were skipped because they already completed during an earlier attempt', () => {
-        const {compactLanes, detailedLanes} = buildJobTimeline(jobRetriedTwice, now);
+    it('marks the attempts a step was skipped in because it already completed', () => {
+        const {compactLanes} = buildJobTimeline(jobRetriedTwice, now);
 
-        [compactLanes, detailedLanes].forEach(lanes => {
-            expect(lanes.find(lane => lane.label === "step-1").markers).toEqual([expect.objectContaining({
-                at: at("2025-09-01T10:00:41Z"),
-                attempt: 2,
-                completedDuringAttempt: 1,
-                stepNames: ["step-1"],
-            })]);
-            // step-2 ran during the last attempt, it was never skipped
-            expect(lanes.find(lane => lane.label === "step-2").markers).toEqual([]);
-        });
+        expect(compactLanes.find(lane => lane.label === "step-1").markers).toEqual([expect.objectContaining({
+            at: at("2025-09-01T10:00:41Z"),
+            attempt: 2,
+            completedDuringAttempt: 1,
+            stepName: "step-1",
+        })]);
+        // step-2 ran during the last attempt, it was never skipped
+        expect(compactLanes.find(lane => lane.label === "step-2").markers).toEqual([]);
+    });
+
+    it('draws every run of a step on the lane of that step', () => {
+        const {compactLanes} = buildJobTimeline({
+            ...jobRetriedTwice,
+            metadata: {
+                "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:02Z"),
+                "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:31Z"),
+                "jr_step_step-1__2": ["java.lang.Boolean", false],
+                "jr_step_start_step-1__6": jacksonInstant("2025-09-01T10:00:42Z"),
+                "jr_step_end_step-1__6": jacksonInstant("2025-09-01T10:00:48Z"),
+                "jr_step_step-1__6": ["java.lang.Boolean", true],
+            }
+        }, now);
+
+        const stepLane = compactLanes.find(lane => lane.label === "step-1");
+        expect(stepLane.spans.map(span => [span.attempt, span.succeeded])).toEqual([[1, false], [2, true]]);
+        // it ran again during the second attempt, so it was never skipped
+        expect(stepLane.markers).toEqual([]);
     });
 
     it('does not mark a step that failed as skipped', () => {
         const {compactLanes} = buildJobTimeline({
             ...jobRetriedTwice,
             metadata: {
-                "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z"),
-                "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:05Z"),
-                "jr_step_step-1": ["java.lang.Boolean", false],
+                "jr_step_start_step-1__2": jacksonInstant("2025-09-01T10:00:02Z"),
+                "jr_step_end_step-1__2": jacksonInstant("2025-09-01T10:00:05Z"),
+                "jr_step_step-1__2": ["java.lang.Boolean", false],
             }
         }, now);
 

@@ -107,13 +107,14 @@ const getSpanSummary = (span, attempts) => {
 };
 
 const getLaneSummary = (lane) => {
+    if (lane.didNotRun) return `${lane.label} · did not run`;
     if (!(lane.duration > 0)) return lane.label;
     if (lane.count > 1) return `${lane.label} · ${lane.count} spans · ${formatDuration(lane.duration)} in total`;
     return `${lane.label} · ${formatDuration(lane.duration)}`;
 };
 
 const getMarkerSummary = (marker) =>
-    `${marker.stepNames.join(', ')} skipped on attempt ${marker.attempt}: already completed during attempt ${marker.completedDuringAttempt}`;
+    `${marker.stepName} skipped on attempt ${marker.attempt}: already completed during attempt ${marker.completedDuringAttempt}`;
 
 const SpanTooltip = ({span, attempts}) => (
     <Box sx={{display: 'grid', gridTemplateColumns: 'auto auto', columnGap: 1, rowGap: 0.25}}>
@@ -152,8 +153,7 @@ const MarkerTooltip = ({marker}) => (
     <Box>
         <Box sx={{fontWeight: 600}}>Skipped on attempt {marker.attempt}</Box>
         <Box sx={{opacity: 0.8}}>
-            {marker.stepNames.length === 1 ? 'This step' : `${marker.stepNames.length} steps`} already completed during
-            attempt {marker.completedDuringAttempt} and did not run again: {marker.stepNames.join(', ')}
+            {marker.stepName} already completed during attempt {marker.completedDuringAttempt} and did not run again
         </Box>
     </Box>
 );
@@ -231,7 +231,7 @@ const TimelineLane = ({lane, timeline}) => {
                  }}>
                 <Tooltip title={getLaneSummary(lane)}>
                     <Typography noWrap variant={lane.isStepLane ? 'caption' : 'body2'} component="div"
-                                sx={{color: lane.isStepLane ? 'text.secondary' : 'text.primary'}}>
+                                sx={{color: lane.didNotRun ? 'text.disabled' : lane.isStepLane ? 'text.secondary' : 'text.primary'}}>
                         {lane.isStepLane && <Box component="span" sx={{opacity: 0.6, mr: 0.5}}>└</Box>}
                         {lane.label}
                     </Typography>

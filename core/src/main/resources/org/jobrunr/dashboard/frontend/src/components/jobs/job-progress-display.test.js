@@ -13,13 +13,14 @@ const jobWithARetryAndSteps = {
         {state: "PROCESSING", createdAt: "2025-09-01T10:00:41Z", updatedAt: "2025-09-01T10:00:50Z", serverName: "server-1"},
         {state: "SUCCEEDED", createdAt: "2025-09-01T10:00:50Z", latencyDuration: 1.0, processDuration: 9.0},
     ],
+    // JobContext suffixes the metadata of a step with the amount of job states, so every run is kept
     metadata: {
-        "jr_step_start_prepare": ["java.time.Instant", "2025-09-01T10:00:02Z"],
-        "jr_step_end_prepare": ["java.time.Instant", "2025-09-01T10:00:03Z"],
-        "jr_step_prepare": ["java.lang.Boolean", true],
-        "jr_step_start_send-email": ["java.time.Instant", "2025-09-01T10:00:42Z"],
-        "jr_step_end_send-email": ["java.time.Instant", "2025-09-01T10:00:47Z"],
-        "jr_step_send-email": ["java.lang.Boolean", true],
+        "jr_step_start_prepare__2": ["java.time.Instant", "2025-09-01T10:00:02Z"],
+        "jr_step_end_prepare__2": ["java.time.Instant", "2025-09-01T10:00:03Z"],
+        "jr_step_prepare__2": ["java.lang.Boolean", true],
+        "jr_step_start_send-email__6": ["java.time.Instant", "2025-09-01T10:00:42Z"],
+        "jr_step_end_send-email__6": ["java.time.Instant", "2025-09-01T10:00:47Z"],
+        "jr_step_send-email__6": ["java.lang.Boolean", true],
     }
 };
 
@@ -42,6 +43,15 @@ describe('job progress display', () => {
     it('renders nothing for a job without history', () => {
         const {container} = render(<JobProgressDisplay job={{jobHistory: []}}/>);
         expect(container).toBeEmptyDOMElement();
+    });
+
+    it.each([timelineViewModes.compact, timelineViewModes.detailed])
+    ('never shows how the runs of a step are stored in %s view', (mode) => {
+        setTimelineViewMode(mode);
+        const {container} = render(<JobProgressDisplay job={jobWithARetryAndSteps}/>);
+
+        expect(container.textContent).not.toContain("__");
+        [...container.querySelectorAll('[aria-label]')].forEach(el => expect(el.getAttribute('aria-label')).not.toContain("__"));
     });
 
     describe('compact view', () => {
@@ -71,7 +81,7 @@ describe('job progress display', () => {
             ]);
         });
 
-        it('keeps a lane per step, just like the detailed view', () => {
+        it('gives every step a lane that holds all of its runs', () => {
             render(<JobProgressDisplay job={jobWithARetryAndSteps}/>);
 
             const [prepareLane, sendEmailLane] = screen.getAllByRole('row').slice(3);
@@ -94,16 +104,19 @@ describe('job progress display', () => {
             render(<JobProgressDisplay job={jobWithARetryAndSteps}/>);
 
             expect(laneLabels()).toEqual([
-                "Enqueued", "Processing", "└prepare", "Failed", "Scheduled", "Enqueued", "Processing", "└send-email", "Succeeded"
+                "Enqueued", "Processing", "└prepare", "Failed", "Scheduled",
+                // during the second attempt, prepare was skipped as it already completed
+                "Enqueued", "Processing", "└prepare", "└send-email", "Succeeded"
             ]);
             expect(screen.getByText("Attempt 2")).toBeInTheDocument();
         });
 
-        it('also marks the steps that were skipped on a retry', () => {
+        it('shows a step that was skipped on the attempt it was skipped in, without a bar', () => {
             render(<JobProgressDisplay job={jobWithARetryAndSteps}/>);
 
-            const stepLane = screen.getAllByRole('row')[2];
-            expect(within(stepLane).getByLabelText("prepare skipped on attempt 2: already completed during attempt 1")).toBeInTheDocument();
+            const skippedLane = screen.getAllByRole('row')[7];
+            expect(within(skippedLane).getByLabelText("prepare skipped on attempt 2: already completed during attempt 1")).toBeInTheDocument();
+            expect(within(skippedLane).queryByLabelText(/^Attempt 2 · prepare: /)).not.toBeInTheDocument();
         });
     });
 
@@ -112,11 +125,11 @@ describe('job progress display', () => {
         expect(laneLabels()).toHaveLength(5);
 
         fireEvent.click(screen.getByRole('button', {name: "Detailed"}));
-        expect(laneLabels()).toHaveLength(9);
+        expect(laneLabels()).toHaveLength(10);
 
         unmount();
         render(<JobProgressDisplay job={jobWithARetryAndSteps}/>);
-        expect(laneLabels()).toHaveLength(9);
+        expect(laneLabels()).toHaveLength(10);
         expect(localStorage.getItem('jobTimelineViewMode')).toBe("detailed");
     });
 
