@@ -19,7 +19,7 @@ export const STATES = {
     DELETED: 'DELETED',
 };
 
-export const STEP_ROW = 'STEP';
+export const STEP = 'STEP';
 
 /** States that mark a moment in time instead of a period: they end the attempt they belong to. */
 const MOMENT_IN_TIME_STATES = [STATES.SUCCEEDED, STATES.FAILED, STATES.DELETED];
@@ -102,6 +102,8 @@ export const getStepsFromMetadata = (metadata) => {
 
 const isMomentInTime = (stateName) => MOMENT_IN_TIME_STATES.includes(stateName);
 
+const toLabel = (stateName) => stateName.charAt(0) + stateName.slice(1).toLowerCase();
+
 /** A SCHEDULED or AWAITING job already knows when it will (at the earliest) resume. */
 const getPlannedEnd = (jobState) => {
     if (jobState.state === STATES.SCHEDULED) return toMicros(jobState.scheduledAt);
@@ -109,7 +111,7 @@ const getPlannedEnd = (jobState) => {
     return null;
 };
 
-const toStateRows = (jobHistory, nowInMicros) => {
+const toStateSegments = (jobHistory, nowInMicros) => {
     let attempt = 1;
     return jobHistory.map((jobState, index) => {
         const previous = jobHistory[index - 1];
@@ -133,8 +135,9 @@ const toStateRows = (jobHistory, nowInMicros) => {
 
         return {
             key: `state-${index}`,
+            kind: 'state',
             type: jobState.state,
-            label: jobState.state.charAt(0) + jobState.state.slice(1).toLowerCase(),
+            label: toLabel(jobState.state),
             start,
             end: end === null || end < start ? start : end,
             isRunning,
@@ -147,14 +150,15 @@ const toStateRows = (jobHistory, nowInMicros) => {
     });
 };
 
-const toStepRow = (step, processingRow, nowInMicros) => {
-    const isRunning = step.end === null && (processingRow?.isRunning ?? false);
+const toStepSegment = (step, processingSegment, nowInMicros) => {
+    const isRunning = step.end === null && (processingSegment?.isRunning ?? false);
     const hasUnknownEnd = step.end === null && !isRunning;
-    const end = step.end ?? (isRunning ? nowInMicros : processingRow?.end ?? step.start);
+    const end = step.end ?? (isRunning ? nowInMicros : processingSegment?.end ?? step.start);
 
     return {
         key: `step-${step.name}`,
-        type: STEP_ROW,
+        kind: 'step',
+        type: STEP,
         label: step.name,
         start: step.start,
         end: end < step.start ? step.start : end,
@@ -163,48 +167,151 @@ const toStepRow = (step, processingRow, nowInMicros) => {
         hasUnknownEnd,
         succeeded: step.succeeded,
         result: step.result,
-        attempt: processingRow?.attempt,
+        attempt: processingSegment?.attempt,
         step,
     };
 };
 
 /**
+ * A step that already completed successfully is not executed again when the job is retried
+ * (see {@code JobContext.hasCompletedStep}). There is no metadata for something that did not run, so
+ * these skips are derived: they are shown at the start of every attempt that came after the attempt
+ * the step completed in.
+ */
+const toSkippedMarkers = (stepSegments, processingSegments) => {
+    const markers = [];
+    stepSegments.forEach((stepSegment) => {
+        if (stepSegment.succeeded !== true) return;
+        processingSegments
+            .filter((processing) => processing.start > stepSegment.end)
+            .forEach((processing) => markers.push({
+                key: `skipped-${stepSegment.label}-${processing.key}`,
+                at: processing.start,
+                attempt: processing.attempt,
+                completedDuringAttempt: stepSegment.attempt,
+                stepNames: [stepSegment.label],
+            }));
+    });
+    return markers;
+};
+
+const durationOfSpans = (spans) => spans
+    .filter((span) => !span.isMoment)
+    .reduce((total, span) => total + (span.end - span.start), 0);
+
+const toLane = (lane) => ({
+    ...lane,
+    count: lane.spans.length,
+    duration: durationOfSpans(lane.spans),
+});
+
+/** The detailed view gives every state and every step a lane of its own. */
+const toDetailedLanes = (segments, markers) => segments.map((segment) => toLane({
+    key: segment.key,
+    label: segment.label,
+    type: segment.type,
+    isStepLane: segment.kind === 'step',
+    attempt: segment.attempt,
+    startsNewAttempt: segment.startsNewAttempt,
+    spans: [segment],
+    markers: segment.kind === 'step' ? markers.filter((marker) => marker.stepNames.includes(segment.label)) : [],
+}));
+
+const COMPACT_LANE_ORDER = [STATES.AWAITING, STATES.SCHEDULED, STATES.ENQUEUED, STATES.PROCESSING];
+
+/**
+ * The compact view has one lane per kind of activity: the second time a job is processed is drawn as an
+ * extra span on the same PROCESSING lane and the states that mark a moment in time (SUCCEEDED, FAILED,
+ * DELETED) are drawn at the end of the span of the state they ended. Steps keep a lane of their own as
+ * they each tell a different story.
+ */
+const toCompactLanes = (segments, markers) => {
+    const spansPerLane = new Map();
+    const addTo = (laneType, segment) => {
+        if (!spansPerLane.has(laneType)) spansPerLane.set(laneType, []);
+        spansPerLane.get(laneType).push(segment);
+    };
+
+    let previousStateType = null;
+    segments.filter((segment) => segment.kind === 'state').forEach((segment) => {
+        if (segment.isMoment) {
+            addTo(previousStateType ?? segment.type, segment);
+        } else {
+            previousStateType = segment.type;
+            addTo(segment.type, segment);
+        }
+    });
+
+    const stateLanes = COMPACT_LANE_ORDER
+        .filter((laneType) => spansPerLane.has(laneType))
+        .map((laneType) => toLane({
+            key: `lane-${laneType}`,
+            label: toLabel(laneType),
+            type: laneType,
+            isStepLane: false,
+            spans: spansPerLane.get(laneType),
+            markers: [],
+        }));
+
+    return [...stateLanes, ...toStepLanes(segments, markers)];
+};
+
+const toStepLanes = (segments, markers) => segments
+    .filter((segment) => segment.kind === 'step')
+    .map((segment) => toLane({
+        key: segment.key,
+        label: segment.label,
+        type: segment.type,
+        isStepLane: true,
+        spans: [segment],
+        markers: markers.filter((marker) => marker.stepNames.includes(segment.label)),
+    }));
+
+/**
  * @param job the job as returned by the `/api/jobs/:id` endpoint
  * @param nowInMillis the current time, used to render the states and steps that are still running
- * @returns {null|{start, end, rows, attempts, isRunning, duration}} null if there is nothing to show
+ * @returns {null|{start, end, duration, segments, detailedLanes, compactLanes, attempts, isRunning}}
  */
 export const buildJobTimeline = (job, nowInMillis = Date.now()) => {
     const jobHistory = job?.jobHistory ?? [];
     if (jobHistory.length === 0) return null;
 
     const nowInMicros = nowInMillis * MICROS_PER_MILLI;
-    const stateRows = toStateRows(jobHistory, nowInMicros);
+    const stateSegments = toStateSegments(jobHistory, nowInMicros);
     const steps = getStepsFromMetadata(job?.metadata);
 
     // steps are shown right below the PROCESSING state they ran in
-    const rows = [];
+    const segments = [];
     const unplacedSteps = [...steps];
-    stateRows.forEach((stateRow) => {
-        rows.push(stateRow);
-        if (stateRow.type !== STATES.PROCESSING) return;
-        const stepsOfAttempt = unplacedSteps.filter((step) => step.start >= stateRow.start && step.start <= stateRow.end);
-        stepsOfAttempt.forEach((step) => {
-            unplacedSteps.splice(unplacedSteps.indexOf(step), 1);
-            rows.push(toStepRow(step, stateRow, nowInMicros));
-        });
+    stateSegments.forEach((stateSegment) => {
+        segments.push(stateSegment);
+        if (stateSegment.type !== STATES.PROCESSING) return;
+        unplacedSteps
+            .filter((step) => step.start >= stateSegment.start && step.start <= stateSegment.end)
+            .forEach((step) => {
+                unplacedSteps.splice(unplacedSteps.indexOf(step), 1);
+                segments.push(toStepSegment(step, stateSegment, nowInMicros));
+            });
     });
     // steps we could not match with a PROCESSING state (e.g. a job whose history was truncated)
-    unplacedSteps.forEach((step) => rows.push(toStepRow(step, undefined, nowInMicros)));
+    unplacedSteps.forEach((step) => segments.push(toStepSegment(step, undefined, nowInMicros)));
 
-    const start = Math.min(...rows.map((row) => row.start));
-    const end = Math.max(...rows.map((row) => row.end));
-    const lastState = stateRows[stateRows.length - 1];
+    const markers = toSkippedMarkers(
+        segments.filter((segment) => segment.kind === 'step'),
+        stateSegments.filter((segment) => segment.type === STATES.PROCESSING)
+    );
+
+    const start = Math.min(...segments.map((segment) => segment.start));
+    const end = Math.max(...segments.map((segment) => segment.end));
+    const lastState = stateSegments[stateSegments.length - 1];
 
     return {
         start,
         end: end > start ? end : start + 1,
         duration: end - start,
-        rows,
+        segments,
+        detailedLanes: toDetailedLanes(segments, markers),
+        compactLanes: toCompactLanes(segments, markers),
         attempts: lastState.attempt,
         isRunning: lastState.isRunning,
         now: nowInMicros,

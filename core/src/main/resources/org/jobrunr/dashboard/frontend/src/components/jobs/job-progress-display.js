@@ -3,8 +3,11 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {alpha, keyframes, styled} from '@mui/material/styles';
 import {Fragment, useEffect, useMemo, useState} from 'react';
+import {timelineViewModes, useTimelineViewMode} from '../../hooks/useTimelineViewMode.js';
 import {
     buildJobTimeline,
     formatDateTime,
@@ -12,18 +15,15 @@ import {
     formatOffset,
     getTicks,
     STATES,
-    STEP_ROW,
+    STEP,
     toMicros
 } from './job-timeline.js';
 
 const REFRESH_INTERVAL_IN_MS = 1000;
 const MIN_BAR_WIDTH_IN_PX = 3;
-const STATE_ROW_HEIGHT = 26;
-const STEP_ROW_HEIGHT = 22;
-const STATE_BAR_HEIGHT = 12;
-const STEP_BAR_HEIGHT = 8;
+const MARKER_SIZE = 9;
 
-const LEGEND_LABELS = {
+const STATE_LABELS = {
     [STATES.AWAITING]: 'Awaiting',
     [STATES.SCHEDULED]: 'Scheduled',
     [STATES.ENQUEUED]: 'Enqueued',
@@ -31,17 +31,17 @@ const LEGEND_LABELS = {
     [STATES.SUCCEEDED]: 'Succeeded',
     [STATES.FAILED]: 'Failed',
     [STATES.DELETED]: 'Deleted',
-    [STEP_ROW]: 'Step (runStepOnce)',
+    [STEP]: 'Step',
 };
 
-const getRowColor = (theme, row) => {
-    if (row.type === STEP_ROW) {
-        if (row.isRunning) return theme.palette.warning.main;
-        if (row.succeeded === false) return theme.palette.error.main;
-        if (row.succeeded === undefined || row.hasUnknownEnd) return theme.palette.grey[500];
+const getSpanColor = (theme, span) => {
+    if (span.type === STEP) {
+        if (span.isRunning) return theme.palette.warning.main;
+        if (span.succeeded === false) return theme.palette.error.main;
+        if (span.succeeded === undefined || span.hasUnknownEnd) return theme.palette.grey[500];
         return theme.palette.success.main;
     }
-    switch (row.type) {
+    switch (span.type) {
         case STATES.AWAITING:
             return theme.palette.grey[500];
         case STATES.SCHEDULED:
@@ -61,23 +61,23 @@ const getRowColor = (theme, row) => {
     }
 };
 
-const getRowLabel = (row) => (row.type === STEP_ROW ? row.label : LEGEND_LABELS[row.type] ?? row.label);
+const getSpanLabel = (span) => (span.type === STEP ? span.label : STATE_LABELS[span.type] ?? span.label);
 
-const getDurationOf = (row) => {
-    if (row.isMoment) return '';
-    if (row.hasUnknownEnd) return '?';
-    return formatDuration(row.end - row.start);
+const getSpanDuration = (span) => {
+    if (span.isMoment) return '';
+    if (span.hasUnknownEnd) return '?';
+    return formatDuration(span.end - span.start);
 };
 
-const getRowDescription = (row) => {
-    const {jobState} = row;
-    switch (row.type) {
-        case STEP_ROW:
-            if (row.isRunning) return 'Step is running';
-            if (row.hasUnknownEnd) return 'Step did not report an end time (was the job server interrupted?)';
-            if (row.succeeded === false) return 'Step failed and will run again on the next retry';
-            if (row.succeeded === undefined) return 'Step outcome unknown';
-            return 'Step completed successfully and will be skipped on a retry';
+const getSpanDescription = (span) => {
+    const {jobState} = span;
+    switch (span.type) {
+        case STEP:
+            if (span.isRunning) return 'Step is running';
+            if (span.hasUnknownEnd) return 'Step did not report an end time (was the job server interrupted?)';
+            if (span.succeeded === false) return 'Step failed and will run again on the next retry';
+            if (span.succeeded === undefined) return 'Step outcome unknown';
+            return 'Step completed successfully and is skipped on a retry';
         case STATES.AWAITING:
             return jobState?.reason ?? 'Job is awaiting an optimal low-carbon execution window';
         case STATES.SCHEDULED:
@@ -97,43 +97,64 @@ const getRowDescription = (row) => {
     }
 };
 
-const getRowSummary = (row, attempts) => {
-    const attempt = attempts > 1 && row.attempt ? `Attempt ${row.attempt} · ` : '';
-    const period = row.isMoment
-        ? `at ${formatDateTime(row.start)}`
-        : `from ${formatDateTime(row.start)} to ${row.isRunning ? 'now' : formatDateTime(row.end)}`;
-    const duration = getDurationOf(row);
-    return `${attempt}${getRowLabel(row)}: ${period}${duration ? ` (${duration})` : ''}`;
+const getSpanSummary = (span, attempts) => {
+    const attempt = attempts > 1 && span.attempt ? `Attempt ${span.attempt} · ` : '';
+    const period = span.isMoment
+        ? `at ${formatDateTime(span.start)}`
+        : `from ${formatDateTime(span.start)} to ${span.isRunning ? 'now' : formatDateTime(span.end)}`;
+    const duration = getSpanDuration(span);
+    return `${attempt}${getSpanLabel(span)}: ${period}${duration ? ` (${duration})` : ''}`;
 };
 
-const RowTooltip = ({row}) => (
+const getLaneSummary = (lane) => {
+    if (!(lane.duration > 0)) return lane.label;
+    if (lane.count > 1) return `${lane.label} · ${lane.count} spans · ${formatDuration(lane.duration)} in total`;
+    return `${lane.label} · ${formatDuration(lane.duration)}`;
+};
+
+const getMarkerSummary = (marker) =>
+    `${marker.stepNames.join(', ')} skipped on attempt ${marker.attempt}: already completed during attempt ${marker.completedDuringAttempt}`;
+
+const SpanTooltip = ({span, attempts}) => (
     <Box sx={{display: 'grid', gridTemplateColumns: 'auto auto', columnGap: 1, rowGap: 0.25}}>
-        <Box sx={{gridColumn: '1 / -1', fontWeight: 600}}>{getRowLabel(row)}</Box>
-        <Box sx={{gridColumn: '1 / -1', opacity: 0.8}}>{getRowDescription(row)}</Box>
+        <Box sx={{gridColumn: '1 / -1', fontWeight: 600}}>
+            {getSpanLabel(span)}{attempts > 1 && span.attempt ? ` · attempt ${span.attempt} of ${attempts}` : ''}
+        </Box>
+        <Box sx={{gridColumn: '1 / -1', opacity: 0.8}}>{getSpanDescription(span)}</Box>
         <Box>Start</Box>
-        <Box>{formatDateTime(row.start)}</Box>
-        {!row.isMoment && <>
-            <Box>{row.isRunning ? 'Now' : 'End'}</Box>
-            <Box>{row.hasUnknownEnd ? 'unknown' : formatDateTime(row.end)}</Box>
+        <Box>{formatDateTime(span.start)}</Box>
+        {!span.isMoment && <>
+            <Box>{span.isRunning ? 'Now' : 'End'}</Box>
+            <Box>{span.hasUnknownEnd ? 'unknown' : formatDateTime(span.end)}</Box>
             <Box>Duration</Box>
-            <Box>{getDurationOf(row)}{row.isRunning ? ' and counting' : ''}</Box>
+            <Box>{getSpanDuration(span)}{span.isRunning ? ' and counting' : ''}</Box>
         </>}
-        {row.type === STATES.PROCESSING && row.isRunning && row.jobState?.updatedAt && <>
+        {span.type === STATES.PROCESSING && span.isRunning && span.jobState?.updatedAt && <>
             <Box>Last sign of life</Box>
-            <Box>{formatDateTime(toMicros(row.jobState.updatedAt))}</Box>
+            <Box>{formatDateTime(toMicros(span.jobState.updatedAt))}</Box>
         </>}
-        {row.type === STATES.SCHEDULED && row.plannedEnd && <>
+        {span.type === STATES.SCHEDULED && span.plannedEnd && <>
             <Box>Scheduled at</Box>
-            <Box>{formatDateTime(row.plannedEnd)}</Box>
+            <Box>{formatDateTime(span.plannedEnd)}</Box>
         </>}
-        {row.type === STATES.FAILED && row.jobState?.exceptionType && <>
+        {span.type === STATES.FAILED && span.jobState?.exceptionType && <>
             <Box>Exception</Box>
-            <Box>{row.jobState.exceptionType}</Box>
+            <Box>{span.jobState.exceptionType}</Box>
         </>}
-        {row.type === STEP_ROW && row.result !== undefined && <>
+        {span.type === STEP && span.result !== undefined && <>
             <Box>Result</Box>
-            <Box sx={{wordBreak: 'break-all'}}>{String(row.result)}</Box>
+            <Box sx={{wordBreak: 'break-all'}}>{String(span.result)}</Box>
         </>}
+    </Box>
+);
+
+const MarkerTooltip = ({marker}) => (
+    <Box>
+        <Box sx={{fontWeight: 600}}>Skipped on attempt {marker.attempt}</Box>
+        <Box sx={{opacity: 0.8}}>
+            {marker.stepNames.length === 1 ? 'This step' : `${marker.stepNames.length} steps`} already completed during
+            attempt {marker.completedDuringAttempt} and did not run again: {marker.stepNames.join(', ')}
+        </Box>
     </Box>
 );
 
@@ -147,71 +168,93 @@ const movingStripes = keyframes`
 `;
 
 const Bar = styled('div', {
-    shouldForwardProp: (prop) => prop !== 'row',
-})(({theme, row}) => {
-    const color = getRowColor(theme, row);
+    shouldForwardProp: (prop) => !['span', 'barHeight'].includes(prop),
+})(({theme, span, barHeight}) => {
+    const color = getSpanColor(theme, span);
     return {
         position: 'absolute',
         top: '50%',
         transform: 'translateY(-50%)',
         minWidth: MIN_BAR_WIDTH_IN_PX,
-        height: row.type === STEP_ROW ? STEP_BAR_HEIGHT : STATE_BAR_HEIGHT,
+        height: barHeight,
         borderRadius: 4,
         backgroundColor: color,
-        ...(row.isRunning && {
+        boxSizing: 'border-box',
+        ...(span.isRunning && {
             backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 7px, ${alpha(color, 0.45)} 7px, ${alpha(color, 0.45)} 14px)`,
             backgroundSize: '28px 28px',
             animation: `${movingStripes} 1s linear infinite`,
             '@media (prefers-reduced-motion: reduce)': {animation: 'none'},
         }),
-        ...(row.hasUnknownEnd && {
+        ...(span.hasUnknownEnd && {
             backgroundImage: `linear-gradient(to right, ${color}, ${alpha(color, 0)})`,
         }),
     };
 });
 
 const Moment = styled('div', {
-    shouldForwardProp: (prop) => prop !== 'row',
-})(({theme, row}) => ({
+    shouldForwardProp: (prop) => prop !== 'span',
+})(({theme, span}) => ({
     position: 'absolute',
     top: '50%',
-    width: 10,
-    height: 10,
+    width: MARKER_SIZE,
+    height: MARKER_SIZE,
     transform: 'translate(-50%, -50%) rotate(45deg)',
-    backgroundColor: getRowColor(theme, row),
+    backgroundColor: getSpanColor(theme, span),
     border: `1px solid ${theme.palette.background.paper}`,
 }));
 
-const TimelineRow = ({row, timeline}) => {
-    const offset = ((row.start - timeline.start) / timeline.duration) * 100;
-    const width = ((row.end - row.start) / timeline.duration) * 100;
-    const isStep = row.type === STEP_ROW;
+/** A step that did not run again because it already completed during an earlier attempt. */
+const SkippedMarker = styled('div')(({theme}) => ({
+    position: 'absolute',
+    top: '50%',
+    width: MARKER_SIZE,
+    height: MARKER_SIZE,
+    transform: 'translate(-50%, -50%) rotate(45deg)',
+    backgroundColor: theme.palette.background.paper,
+    border: `1.5px solid ${theme.palette.grey[500]}`,
+}));
+
+const TimelineLane = ({lane, timeline}) => {
+    const position = (micros) => ((micros - timeline.start) / timeline.duration) * 100;
+    const barHeight = lane.isStepLane ? 8 : 12;
 
     return (
-        <Box role="row" sx={{display: 'flex', alignItems: 'center', height: isStep ? STEP_ROW_HEIGHT : STATE_ROW_HEIGHT}}>
+        <Box role="row" sx={{display: 'flex', alignItems: 'center', height: lane.isStepLane ? 22 : 26}}>
             <Box role="rowheader"
                  sx={{
                      width: 'var(--jr-label-width)',
                      flexShrink: 0,
                      pr: 1,
-                     pl: isStep ? 2 : 0,
+                     pl: lane.isStepLane ? 2 : 0,
                      boxSizing: 'border-box',
                  }}>
-                <Tooltip title={getRowLabel(row)}>
-                    <Typography noWrap variant={isStep ? 'caption' : 'body2'} component="div"
-                                sx={{color: isStep ? 'text.secondary' : 'text.primary'}}>
-                        {isStep && <Box component="span" sx={{opacity: 0.6, mr: 0.5}}>└</Box>}
-                        {getRowLabel(row)}
+                <Tooltip title={getLaneSummary(lane)}>
+                    <Typography noWrap variant={lane.isStepLane ? 'caption' : 'body2'} component="div"
+                                sx={{color: lane.isStepLane ? 'text.secondary' : 'text.primary'}}>
+                        {lane.isStepLane && <Box component="span" sx={{opacity: 0.6, mr: 0.5}}>└</Box>}
+                        {lane.label}
                     </Typography>
                 </Tooltip>
             </Box>
-            <Box role="cell" aria-label={getRowSummary(row, timeline.attempts)} sx={{position: 'relative', flexGrow: 1, height: '100%'}}>
-                <Tooltip title={<RowTooltip row={row}/>} placement="top" followCursor>
-                    {row.isMoment
-                        ? <Moment row={row} style={{left: `${offset}%`}}/>
-                        : <Bar row={row} style={{left: `${offset}%`, width: `${width}%`}}/>}
-                </Tooltip>
+
+            <Box role="cell" sx={{position: 'relative', flexGrow: 1, height: '100%'}}>
+                {lane.spans.map((span) => (
+                    <Tooltip key={span.key} title={<SpanTooltip span={span} attempts={timeline.attempts}/>} placement="top" followCursor>
+                        {span.isMoment
+                            ? <Moment span={span} role="img" aria-label={getSpanSummary(span, timeline.attempts)}
+                                      style={{left: `${position(span.start)}%`}}/>
+                            : <Bar span={span} barHeight={barHeight} role="img" aria-label={getSpanSummary(span, timeline.attempts)}
+                                   style={{left: `${position(span.start)}%`, width: `${position(span.end) - position(span.start)}%`}}/>}
+                    </Tooltip>
+                ))}
+                {lane.markers.map((marker) => (
+                    <Tooltip key={marker.key} title={<MarkerTooltip marker={marker}/>} placement="top" followCursor>
+                        <SkippedMarker role="img" aria-label={getMarkerSummary(marker)} style={{left: `${position(marker.at)}%`}}/>
+                    </Tooltip>
+                ))}
             </Box>
+
             <Box role="cell"
                  sx={{
                      width: 'var(--jr-duration-width)',
@@ -223,7 +266,7 @@ const TimelineRow = ({row, timeline}) => {
                  }}>
                 <Typography noWrap variant="caption" component="div"
                             sx={{color: 'text.secondary', fontVariantNumeric: 'tabular-nums'}}>
-                    {getDurationOf(row)}
+                    {lane.duration > 0 ? formatDuration(lane.duration) : ''}
                 </Typography>
             </Box>
         </Box>
@@ -237,29 +280,55 @@ const AttemptSeparator = ({attempt}) => (
     </Box>
 );
 
-const Legend = ({rows}) => {
-    const types = [...new Set(rows.map((row) => row.type))];
-    return (
-        <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1.5}}>
-            {types.map((type) => (
-                <Box key={type} sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                    <Box sx={(theme) => ({
-                        width: 10,
-                        height: 10,
-                        borderRadius: '2px',
-                        backgroundColor: getRowColor(theme, {type, succeeded: true}),
-                    })}/>
-                    <Typography variant="caption" sx={{color: 'text.secondary'}}>{LEGEND_LABELS[type] ?? type}</Typography>
-                </Box>
-            ))}
-        </Box>
-    );
+const LEGEND_STATES = [STATES.AWAITING, STATES.SCHEDULED, STATES.ENQUEUED, STATES.PROCESSING, STATES.SUCCEEDED, STATES.FAILED, STATES.DELETED];
+const LEGEND_STEPS = [
+    {key: 'step-succeeded', label: 'Step succeeded', span: {type: STEP, succeeded: true}, matches: (span) => span.succeeded === true && !span.isRunning},
+    {key: 'step-failed', label: 'Step failed', span: {type: STEP, succeeded: false}, matches: (span) => span.succeeded === false},
+    {key: 'step-running', label: 'Step running', span: {type: STEP, isRunning: true}, matches: (span) => span.isRunning},
+    {key: 'step-unknown', label: 'Step outcome unknown', span: {type: STEP}, matches: (span) => span.succeeded === undefined || span.hasUnknownEnd},
+];
+
+const buildLegend = (lanes) => {
+    const spans = lanes.flatMap((lane) => lane.spans);
+    const entries = LEGEND_STATES
+        .filter((type) => spans.some((span) => span.type === type))
+        .map((type) => ({key: type, label: STATE_LABELS[type], span: {type}}));
+
+    LEGEND_STEPS
+        .filter((entry) => spans.some((span) => span.type === STEP && entry.matches(span)))
+        .forEach((entry) => entries.push(entry));
+
+    if (lanes.some((lane) => lane.markers.length > 0)) {
+        entries.push({key: 'step-skipped', label: 'Step skipped', outlined: true});
+    }
+    return entries;
 };
 
+const Legend = ({lanes}) => (
+    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1.5}}>
+        {buildLegend(lanes).map((entry) => (
+            <Box key={entry.key} sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
+                <Box sx={(theme) => ({
+                    width: 10,
+                    height: 10,
+                    borderRadius: '2px',
+                    boxSizing: 'border-box',
+                    ...(entry.outlined
+                        ? {border: `1.5px solid ${theme.palette.grey[500]}`}
+                        : {backgroundColor: getSpanColor(theme, entry.span)}),
+                })}/>
+                <Typography variant="caption" sx={{color: 'text.secondary'}}>{entry.label}</Typography>
+            </Box>
+        ))}
+    </Box>
+);
+
 export const JobProgressDisplay = ({job}) => {
+    const [viewMode, setViewMode] = useTimelineViewMode();
     const [now, setNow] = useState(() => Date.now());
     const timeline = useMemo(() => buildJobTimeline(job, now), [job, now]);
     const isRunning = timeline?.isRunning ?? false;
+    const isCompact = viewMode === timelineViewModes.compact;
 
     useEffect(() => {
         if (!isRunning) return undefined;
@@ -269,6 +338,7 @@ export const JobProgressDisplay = ({job}) => {
 
     if (!timeline) return null;
 
+    const lanes = isCompact ? timeline.compactLanes : timeline.detailedLanes;
     const ticks = getTicks(timeline.duration);
     const nowPosition = ((timeline.now - timeline.start) / timeline.duration) * 100;
 
@@ -280,14 +350,23 @@ export const JobProgressDisplay = ({job}) => {
             '--jr-duration-display': {xs: 'none', sm: 'block'},
         }}>
             <CardContent>
-                <Typography variant="h5" component="h2">Execution Timeline</Typography>
-                <Typography variant="body2" sx={{color: 'text.secondary', mb: 2}}>
-                    Started at {formatDateTime(timeline.start)} · {formatDuration(timeline.duration)}
-                    {isRunning ? ' and counting' : ''}
-                    {timeline.attempts > 1 && ` · ${timeline.attempts} attempts`}
-                </Typography>
+                <Box sx={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap'}}>
+                    <Box>
+                        <Typography variant="h5" component="h2">Execution Timeline</Typography>
+                        <Typography variant="body2" sx={{color: 'text.secondary'}}>
+                            Started at {formatDateTime(timeline.start)} · {formatDuration(timeline.duration)}
+                            {isRunning ? ' and counting' : ''}
+                            {timeline.attempts > 1 && ` · ${timeline.attempts} attempts`}
+                        </Typography>
+                    </Box>
+                    <ToggleButtonGroup exclusive size="small" value={viewMode} aria-label="Execution timeline view"
+                                       onChange={(event, mode) => mode && setViewMode(mode)}>
+                        <ToggleButton value={timelineViewModes.compact}>Compact</ToggleButton>
+                        <ToggleButton value={timelineViewModes.detailed}>Detailed</ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
 
-                <Box role="table" aria-label="Job execution timeline" sx={{position: 'relative'}}>
+                <Box role="table" aria-label="Job execution timeline" sx={{position: 'relative', mt: 2}}>
                     <Box sx={{display: 'flex', alignItems: 'flex-end', height: 20}}>
                         <Box sx={{width: 'var(--jr-label-width)', flexShrink: 0}}/>
                         <Box sx={{position: 'relative', flexGrow: 1, height: '100%'}}>
@@ -343,16 +422,16 @@ export const JobProgressDisplay = ({job}) => {
                             }
                         </Box>
 
-                        {timeline.rows.map((row) => (
-                            <Fragment key={row.key}>
-                                {row.startsNewAttempt && timeline.attempts > 1 && <AttemptSeparator attempt={row.attempt}/>}
-                                <TimelineRow row={row} timeline={timeline}/>
+                        {lanes.map((lane) => (
+                            <Fragment key={lane.key}>
+                                {lane.startsNewAttempt && timeline.attempts > 1 && <AttemptSeparator attempt={lane.attempt}/>}
+                                <TimelineLane lane={lane} timeline={timeline}/>
                             </Fragment>
                         ))}
                     </Box>
                 </Box>
 
-                <Legend rows={timeline.rows}/>
+                <Legend lanes={lanes}/>
             </CardContent>
         </Card>
     );

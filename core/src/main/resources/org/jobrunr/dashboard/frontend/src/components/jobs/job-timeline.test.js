@@ -4,7 +4,7 @@ import {
     getStepsFromMetadata,
     getTicks,
     STATES,
-    STEP_ROW,
+    STEP,
     toMicros
 } from './job-timeline.js';
 
@@ -113,10 +113,10 @@ describe('buildJobTimeline', () => {
 
         const timeline = buildJobTimeline(job, now);
 
-        expect(timeline.rows.map(row => row.type)).toEqual([STATES.ENQUEUED, STATES.PROCESSING, STATES.SUCCEEDED]);
-        expect(timeline.rows[0].end - timeline.rows[0].start).toBe(1000000);
-        expect(timeline.rows[1].end - timeline.rows[1].start).toBe(30000000);
-        expect(timeline.rows[2].isMoment).toBe(true);
+        expect(timeline.segments.map(row => row.type)).toEqual([STATES.ENQUEUED, STATES.PROCESSING, STATES.SUCCEEDED]);
+        expect(timeline.segments[0].end - timeline.segments[0].start).toBe(1000000);
+        expect(timeline.segments[1].end - timeline.segments[1].start).toBe(30000000);
+        expect(timeline.segments[2].isMoment).toBe(true);
         expect(timeline.attempts).toBe(1);
         expect(timeline.isRunning).toBe(false);
         expect(timeline.duration).toBe(31000000);
@@ -129,7 +129,7 @@ describe('buildJobTimeline', () => {
             }, now);
 
             expect(timeline.isRunning).toBe(false);
-            expect(timeline.rows.every(row => !row.isRunning)).toBe(true);
+            expect(timeline.segments.every(row => !row.isRunning)).toBe(true);
         });
     });
 
@@ -139,8 +139,8 @@ describe('buildJobTimeline', () => {
         }, now);
 
         expect(timeline.isRunning).toBe(true);
-        expect(timeline.rows[1].isRunning).toBe(true);
-        expect(timeline.rows[1].end).toBe(now * 1000);
+        expect(timeline.segments[1].isRunning).toBe(true);
+        expect(timeline.segments[1].end).toBe(now * 1000);
         expect(timeline.end).toBe(now * 1000);
     });
 
@@ -154,7 +154,7 @@ describe('buildJobTimeline', () => {
             ]
         }, now);
 
-        const scheduledRow = timeline.rows[timeline.rows.length - 1];
+        const scheduledRow = timeline.segments[timeline.segments.length - 1];
         expect(scheduledRow.isRunning).toBe(true);
         expect(scheduledRow.end).toBe(at("2025-09-01T10:05:00Z"));
         expect(timeline.end).toBe(at("2025-09-01T10:05:00Z"));
@@ -174,8 +174,8 @@ describe('buildJobTimeline', () => {
         }, now);
 
         expect(timeline.attempts).toBe(2);
-        expect(timeline.rows.filter(row => row.startsNewAttempt).map(row => row.type)).toEqual([STATES.SCHEDULED]);
-        expect(timeline.rows.map(row => row.attempt)).toEqual([1, 1, 1, 2, 2, 2, 2]);
+        expect(timeline.segments.filter(row => row.startsNewAttempt).map(row => row.type)).toEqual([STATES.SCHEDULED]);
+        expect(timeline.segments.map(row => row.attempt)).toEqual([1, 1, 1, 2, 2, 2, 2]);
     });
 
     it('shows the steps of a job below the processing state they ran in', () => {
@@ -200,13 +200,13 @@ describe('buildJobTimeline', () => {
 
         const timeline = buildJobTimeline(job, now);
 
-        expect(timeline.rows.map(row => row.type)).toEqual([
-            STATES.ENQUEUED, STATES.PROCESSING, STEP_ROW, STATES.FAILED,
-            STATES.ENQUEUED, STATES.PROCESSING, STEP_ROW, STATES.SUCCEEDED,
+        expect(timeline.segments.map(row => row.type)).toEqual([
+            STATES.ENQUEUED, STATES.PROCESSING, STEP, STATES.FAILED,
+            STATES.ENQUEUED, STATES.PROCESSING, STEP, STATES.SUCCEEDED,
         ]);
-        expect(timeline.rows[2]).toMatchObject({label: "step-1", succeeded: false, attempt: 1});
-        expect(timeline.rows[6]).toMatchObject({label: "step-2", succeeded: true, attempt: 2});
-        expect(timeline.rows[6].end - timeline.rows[6].start).toBe(500);
+        expect(timeline.segments[2]).toMatchObject({label: "step-1", succeeded: false, attempt: 1});
+        expect(timeline.segments[6]).toMatchObject({label: "step-2", succeeded: true, attempt: 2});
+        expect(timeline.segments[6].end - timeline.segments[6].start).toBe(500);
     });
 
     it('lets a step that did not report an end time run until now if the job is still processing', () => {
@@ -215,8 +215,8 @@ describe('buildJobTimeline', () => {
             metadata: {"jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z")}
         }, now);
 
-        expect(timeline.rows[2]).toMatchObject({label: "step-1", isRunning: true, hasUnknownEnd: false});
-        expect(timeline.rows[2].end).toBe(now * 1000);
+        expect(timeline.segments[2]).toMatchObject({label: "step-1", isRunning: true, hasUnknownEnd: false});
+        expect(timeline.segments[2].end).toBe(now * 1000);
     });
 
     it('marks a step without end time of a job that is no longer processing as unknown', () => {
@@ -229,8 +229,8 @@ describe('buildJobTimeline', () => {
             metadata: {"jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z")}
         }, now);
 
-        expect(timeline.rows[2]).toMatchObject({label: "step-1", isRunning: false, hasUnknownEnd: true});
-        expect(timeline.rows[2].end).toBe(at("2025-09-01T10:00:31Z"));
+        expect(timeline.segments[2]).toMatchObject({label: "step-1", isRunning: false, hasUnknownEnd: true});
+        expect(timeline.segments[2].end).toBe(at("2025-09-01T10:00:31Z"));
     });
 
     it('still shows steps that cannot be matched with a processing state', () => {
@@ -242,8 +242,93 @@ describe('buildJobTimeline', () => {
             }
         }, now);
 
-        expect(timeline.rows.map(row => row.type)).toEqual([STATES.SCHEDULED, STEP_ROW]);
+        expect(timeline.segments.map(row => row.type)).toEqual([STATES.SCHEDULED, STEP]);
         expect(timeline.start).toBe(at("2025-08-31T10:00:02Z"));
+    });
+});
+
+describe('the compact view of buildJobTimeline', () => {
+    const now = new Date("2025-09-01T10:01:00Z").getTime();
+    const jobRetriedTwice = {
+        jobHistory: [
+            enqueued("2025-09-01T10:00:00Z"),
+            processing("2025-09-01T10:00:01Z"),
+            failed("2025-09-01T10:00:31Z"),
+            scheduled("2025-09-01T10:00:31Z", "2025-09-01T10:00:40Z"),
+            enqueued("2025-09-01T10:00:40Z"),
+            processing("2025-09-01T10:00:41Z"),
+            succeeded("2025-09-01T10:00:50Z"),
+        ],
+        metadata: {
+            "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z"),
+            "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:05Z"),
+            "jr_step_step-1": ["java.lang.Boolean", true],
+            "jr_step_start_step-2": jacksonInstant("2025-09-01T10:00:42Z"),
+            "jr_step_end_step-2": jacksonInstant("2025-09-01T10:00:48Z"),
+            "jr_step_step-2": ["java.lang.Boolean", true],
+        }
+    };
+
+    it('draws every attempt as an extra span on the same lane but keeps a lane per step', () => {
+        const {compactLanes} = buildJobTimeline(jobRetriedTwice, now);
+
+        expect(compactLanes.map(lane => [lane.label, lane.count])).toEqual([
+            ["Scheduled", 1], ["Enqueued", 2], ["Processing", 4], ["step-1", 1], ["step-2", 1]
+        ]);
+    });
+
+    it('ends the span of a processing lane with the state that terminated it', () => {
+        const {compactLanes} = buildJobTimeline(jobRetriedTwice, now);
+
+        const processing = compactLanes.find(lane => lane.label === "Processing");
+        expect(processing.spans.map(span => span.type)).toEqual([STATES.PROCESSING, STATES.FAILED, STATES.PROCESSING, STATES.SUCCEEDED]);
+        expect(processing.spans[1].start).toBe(processing.spans[0].end);
+    });
+
+    it('attaches a deletion to the lane of the state the job was in', () => {
+        const {compactLanes} = buildJobTimeline({
+            jobHistory: [scheduled("2025-09-01T10:00:00Z", "2025-09-01T11:00:00Z"), deleted("2025-09-01T10:00:10Z")]
+        }, now);
+
+        expect(compactLanes.map(lane => lane.label)).toEqual(["Scheduled"]);
+        expect(compactLanes[0].spans.map(span => span.type)).toEqual([STATES.SCHEDULED, STATES.DELETED]);
+    });
+
+    it('sums the duration of all spans of a lane', () => {
+        const {compactLanes} = buildJobTimeline(jobRetriedTwice, now);
+
+        // 1 second before the first attempt and 1 second before the second one
+        expect(compactLanes.find(lane => lane.label === "Enqueued").duration).toBe(2000000);
+        // 30 seconds for the first attempt and 9 for the second one
+        expect(compactLanes.find(lane => lane.label === "Processing").duration).toBe(39000000);
+    });
+
+    it('marks the steps that were skipped because they already completed during an earlier attempt', () => {
+        const {compactLanes, detailedLanes} = buildJobTimeline(jobRetriedTwice, now);
+
+        [compactLanes, detailedLanes].forEach(lanes => {
+            expect(lanes.find(lane => lane.label === "step-1").markers).toEqual([expect.objectContaining({
+                at: at("2025-09-01T10:00:41Z"),
+                attempt: 2,
+                completedDuringAttempt: 1,
+                stepNames: ["step-1"],
+            })]);
+            // step-2 ran during the last attempt, it was never skipped
+            expect(lanes.find(lane => lane.label === "step-2").markers).toEqual([]);
+        });
+    });
+
+    it('does not mark a step that failed as skipped', () => {
+        const {compactLanes} = buildJobTimeline({
+            ...jobRetriedTwice,
+            metadata: {
+                "jr_step_start_step-1": jacksonInstant("2025-09-01T10:00:02Z"),
+                "jr_step_end_step-1": jacksonInstant("2025-09-01T10:00:05Z"),
+                "jr_step_step-1": ["java.lang.Boolean", false],
+            }
+        }, now);
+
+        expect(compactLanes.find(lane => lane.label === "step-1").markers).toEqual([]);
     });
 });
 
