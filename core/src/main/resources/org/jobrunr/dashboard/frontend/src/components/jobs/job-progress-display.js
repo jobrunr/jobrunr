@@ -1,6 +1,8 @@
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Tooltip from '@mui/material/Tooltip';
@@ -8,7 +10,6 @@ import {keyframes, styled} from '@mui/material/styles';
 import {lighten} from "@mui/material";
 import {Circle} from "@mui/icons-material";
 import {useEffect, useState} from 'react';
-import {humanReadableISO8601Duration} from "../../utils/helper-functions.js";
 
 const STEP_DEFAULT_LABELS = {
     ENQUEUED: 'Enqueued',
@@ -24,7 +25,7 @@ const MIN_ACTIVE_WIDTH_PERCENTAGE = 1;
 const MIN_LABEL_WIDTH = 150;
 const MAX_LABEL_WIDTH = 250;
 const ROW_HEIGHT = 28;
-const GANTT_GRID_COLUMNS = 'minmax(0, max-content) 1fr';
+const GANTT_GRID_COLUMNS = 'minmax(0, max-content) 1fr 90px';
 
 const asMs = (date) => new Date(date).getTime();
 
@@ -57,19 +58,18 @@ const getStepEndAt = (step, nextJobHistoryStep, jobInProgress, now) => {
 
 const convertStepsToTimeline = (steps, now) => {
     const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
+    const finalStateMs = jobInProgress ? null : (steps.length > 0 ? asMs(steps[steps.length - 1].createdAt) : null);
     let start = Infinity, end = -Infinity;
-    const stepEndTimes = [];
-    const stepActive = [];
+    const stepEndMap = new Map();
     steps.forEach((step, i) => {
         const stepStart = asMs(step.createdAt);
         if (stepStart < start) start = stepStart;
         const {end: stepEnd, active} = getStepEndAt(step, getNextJobHistoryStep(steps, i), jobInProgress, now);
         if (stepEnd !== null && stepEnd > end) end = stepEnd;
-        stepEndTimes.push(stepEnd);
-        stepActive.push(active);
+        stepEndMap.set(step, {end: stepEnd, active});
     });
     if (end < start) end = start;
-    return {start, end, stepEnds: stepEndTimes, stepActive};
+    return {start, end, stepEndMap, finalStateMs};
 };
 
 const isRetryScheduledStep = (step) => step?.state === 'SCHEDULED' && (step.reason ?? '').includes('Retry');
@@ -99,6 +99,22 @@ const toTimelineSteps = (executionSteps) => {
     return steps;
 };
 
+const toCompactSteps = (steps) => {
+    const processingSteps = steps.filter((s) => s.state === 'PROCESSING');
+    if (processingSteps.length === 0) return steps;
+    const consolidated = {
+        state: 'PROCESSING',
+        isConsolidated: true,
+        createdAt: processingSteps[0].createdAt,
+    };
+    const filtered = steps.filter((s) => s.state !== 'PROCESSING');
+    const firstEnqueuedIndex = filtered.findIndex((s) => s.state === 'ENQUEUED');
+    const insertIndex = firstEnqueuedIndex === -1 ? 0 : firstEnqueuedIndex + 1;
+    const result = [...filtered];
+    result.splice(insertIndex, 0, consolidated);
+    return result;
+};
+
 const getStepPlacement = (step, stepEndMs, start, end, active) => {
     const duration = end - start;
     const percentage = (ms) => duration > 0 ? (ms / duration) * 100 : 0;
@@ -115,6 +131,7 @@ const getStepPlacement = (step, stepEndMs, start, end, active) => {
 };
 
 const getStepLabel = (step) => {
+    if (step.isConsolidated) return 'Execution time';
     if (step.state === 'RUN_STEP_ONCE' && step.stepName) return step.stepName.split('__')[0];
     return STEP_DEFAULT_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
@@ -124,7 +141,7 @@ const buildStepLabelTooltip = (step) =>
 
 const getRowSeparatorBorder = (step, previousStep, index) => {
     if (index === 0) return undefined;
-    return step.state === 'ENQUEUED' && previousStep.state === 'SUCCEEDED' ? '2px solid black' : '1px dashed lightgray';
+    return step.state === 'RETRYING' ? '1px solid lightgray' : 'none';
 };
 
 const formatHumanReadableDate = (ms, detailed = true) => {
@@ -133,6 +150,19 @@ const formatHumanReadableDate = (ms, detailed = true) => {
     return pad(date.getDate()) + "/" + pad(date.getMonth() + 1) + "/" + pad(date.getFullYear()) + " "
         + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + (detailed ? "." + date.getMilliseconds() : "");
 }
+
+const formatElapsed = (ms, totalMs) => {
+    if (ms <= 0) return '+0s';
+    const s = ms / 1000;
+    if (totalMs < 60000) return totalMs < 10000 ? `+${s.toFixed(1)}s` : `+${Math.round(s)}s`;
+    if (totalMs < 3600000) {
+        const m = Math.floor(s / 60);
+        return `+${m}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+    }
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return `+${h}:${String(m).padStart(2, '0')}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+};
 
 const buildTooltipTitle = (step, stepEndMs, active) => {
     const startMs = asMs(step.barStart ?? step.createdAt);
@@ -147,8 +177,18 @@ const buildTooltipTitle = (step, stepEndMs, active) => {
 
 const formatDuration = (startMs, endMs) => {
     const ms = Math.max(0, endMs - startMs);
-    const durationString = Number.isFinite(ms) && ms > 0 ? `PT${ms / 1000}S` : 'PT0S';
-    return humanReadableISO8601Duration(durationString);
+    if (!Number.isFinite(ms) || ms <= 0) return '';
+    const totalSeconds = ms / 1000;
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.round((totalSeconds % 60) * 1000) / 1000;
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (minutes) parts.push(`${minutes}m`);
+    if (seconds) parts.push(`${seconds}s`);
+    return parts.join(' ');
 };
 
 const animateInProgressBar = keyframes`
@@ -180,10 +220,10 @@ const GanttBar = styled(LinearProgress, {
         },
         [`& .${linearProgressClasses.bar}`]: {
             borderRadius: 4,
-            backgroundColor: step.state === 'ENQUEUED' || step.state === 'RETRYING' ? warningLight
+            backgroundColor: step.state === 'ENQUEUED' || step.state === 'RETRYING' ? infoLight
                 : step.succeeded === false ? errorLight
                     : step.succeeded === true ? successLight
-                        : infoLight,
+                        : warningLight,
             ...(active && {
                 width: '100%',
                 transform: 'none !important',
@@ -207,8 +247,9 @@ const AxisLabel = ({sx, ...props}) => (
 );
 
 export const JobProgressDisplay = ({executionSteps}) => {
-    const steps = toTimelineSteps(executionSteps ?? []);
-    const jobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
+    const [compact, setCompact] = useState(true);
+    const rawSteps = toTimelineSteps(executionSteps ?? []);
+    const jobInProgress = rawSteps.length > 0 && !END_STATES.includes(rawSteps[rawSteps.length - 1].state);
 
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
@@ -217,20 +258,28 @@ export const JobProgressDisplay = ({executionSteps}) => {
         return () => clearInterval(id);
     }, [jobInProgress]);
 
-    if (steps.length === 0) return null;
+    if (rawSteps.length === 0) return null;
 
-    const {start, end, stepEnds, stepActive} = convertStepsToTimeline(steps, now);
-    const midpoint = (start + end) / 2;
+    const {start, end, stepEndMap, finalStateMs} = convertStepsToTimeline(rawSteps, now);
+    const steps = compact ? toCompactSteps(rawSteps) : rawSteps;
+    const duration = end - start;
 
     return (
         <Box sx={{width: '100%'}}>
             <Card>
                 <CardContent sx={{
                     '& .MuiBox-root[role=gantt-row-label]': {
-                        borderRight: "1px dashed lightgray"
+                        borderRight: "1px solid lightgray"
                     }
                 }}>
-                    <Typography variant="h5" gutterBottom>Execution Timeline</Typography>
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
+                        <Typography variant="h5">Execution Timeline</Typography>
+                        <FormControlLabel
+                            control={<Switch size="small" checked={compact} onChange={(e) => setCompact(e.target.checked)}/>}
+                            label="Compact"
+                            labelPlacement="start"
+                        />
+                    </Box>
 
                     <Box sx={{display: 'grid', gridTemplateColumns: GANTT_GRID_COLUMNS}}>
                         <Box sx={{
@@ -243,29 +292,45 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         }}>
                             <Box role="gantt-row-label" sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: 0, pr: 1}}/>
                             <Box sx={{position: 'relative', height: 18}}>
-                                <AxisLabel sx={{left: 0}}>{formatHumanReadableDate(start, false)}</AxisLabel>
-                                <AxisLabel sx={{left: '50%', transform: 'translateX(-50%)'}}>{formatHumanReadableDate(midpoint, false)}</AxisLabel>
-                                <AxisLabel sx={{right: 0}}>{formatHumanReadableDate(end, false)}</AxisLabel>
+                                <AxisLabel sx={{left: 0}}>{formatElapsed(0, duration)}</AxisLabel>
+                                <AxisLabel sx={{left: '25%', transform: 'translateX(-50%)'}}>{formatElapsed(duration / 4, duration)}</AxisLabel>
+                                <AxisLabel sx={{left: '50%', transform: 'translateX(-50%)'}}>{formatElapsed(duration / 2, duration)}</AxisLabel>
+                                <AxisLabel sx={{left: '75%', transform: 'translateX(-50%)'}}>{formatElapsed(3 * duration / 4, duration)}</AxisLabel>
+                                <AxisLabel sx={{right: 0}}>{formatElapsed(duration, duration)}</AxisLabel>
                             </Box>
                         </Box>
 
                         {steps.map((step, index) => {
-                            const stepEndMs = stepEnds[index];
-                            const active = stepActive[index];
+                            const info = step.isConsolidated
+                                ? {end: finalStateMs ?? now, active: finalStateMs === null}
+                                : stepEndMap.get(step);
+                            const stepEndMs = info.end;
+                            const active = info.active;
                             const {offset, width, isPoint, dotOffset} = getStepPlacement(step, stepEndMs, start, end, active);
                             const tooltipTitle = buildTooltipTitle(step, stepEndMs, active);
                             return (
                                 <Box key={index} role="gantt-row"
+                                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = ''}
                                      sx={{
                                          display: 'grid',
                                          gridTemplateColumns: 'subgrid',
                                          gridColumn: '1 / -1',
                                          alignItems: 'center',
                                          minHeight: ROW_HEIGHT,
-                                         mb: 0.5,
+                                         px: 0.5,
                                          borderTop: getRowSeparatorBorder(step, index > 0 ? steps[index - 1] : undefined, index),
                                      }}>
-                                    <Box sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1, overflow: 'hidden', mr: 0.5}} role="gantt-row-label">
+                                    <Box sx={{
+                                        maxWidth: MAX_LABEL_WIDTH,
+                                        minWidth: MIN_LABEL_WIDTH,
+                                        height: ROW_HEIGHT,
+                                        alignContent: "center",
+                                        pr: 1,
+                                        overflow: 'hidden',
+                                        mr: 0.5
+                                    }}
+                                         role="gantt-row-label">
                                         <Tooltip title={buildStepLabelTooltip(step)}>
                                             <Typography variant="body2" noWrap
                                                         sx={{
@@ -295,18 +360,6 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                                             step={step}
                                                         />
                                                     </Box>
-                                                </Tooltip>
-                                                <Tooltip title={formatHumanReadableDate(asMs(step.createdAt))}>
-                                                    <Circle
-                                                        sx={{
-                                                            position: 'absolute',
-                                                            left: `${dotOffset}%`,
-                                                            top: '50%',
-                                                            transform: 'translate(-50%, -50%)',
-                                                        }}
-                                                        fontSize="tiny"
-                                                        color="error"
-                                                    />
                                                 </Tooltip>
                                             </>
                                         ) : (
@@ -343,6 +396,10 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                             </Tooltip>
                                         )}
                                     </Box>
+                                    {!info.active && <Box>
+                                        <Typography
+                                            sx={{fontSize: "11px", textAlign: "right", alignSelf: "center"}}>{formatDuration(start, stepEndMs)}</Typography>
+                                    </Box>}
                                 </Box>
                             );
                         })}
