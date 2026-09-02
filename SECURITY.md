@@ -1,30 +1,28 @@
 # Security Policy
 
-
 ## JobRunr OSS Supported Versions
 
-Here you can find the different supported JobRunr OSS versions that are supported and will get security updates.
+Security fixes are released on the latest version only.
 
-| Version | Supported          |
-| ------- | ------------------ |
+| Version  | Supported          |
+| -------- | ------------------ |
 | LATEST   | :white_check_mark: |
 | < LATEST | :x:                |
 
-
 ## JobRunr Pro Supported Versions
 
-Here you can find the different supported JobRunr Pro versions that are supported and will get security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
+| Version  | Supported          |
+| -------- | ------------------ |
 | LATEST   | :white_check_mark: |
-| < LATEST   | :x:  |
-| 7.5.x  |  :white_check_mark: |
-| <= 7.5.x   | :x:  |
+| < LATEST | :x:                |
+| 7.5.x    | :white_check_mark: |
+| < 7.5.x | :x:                |
 
+> [!NOTE]
+> If you are a JobRunr Pro customer and cannot upgrade to a supported version, reach out to JobRunr Support and depending on your support contract, we can backport a security fix for your JobRunr Pro version.
 
 ## Reporting a Vulnerability
 
-If you find a security vulerability, please email us at [hello@jobrunr.io](hello@jobrunr.io) with the details.
+If you find a security vulnerability, please email us at [hello@jobrunr.io](mailto:hello@jobrunr.io) with the details. Please do not open a public GitHub issue for security reports.
 
 We will answer within 1 business day and keep you updated on our findings along the way.
