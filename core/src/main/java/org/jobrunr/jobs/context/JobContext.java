@@ -204,14 +204,18 @@ public class JobContext {
      * @return the given value associated with the provided key.
      */
     public <T> T getMetadata(String key) {
-        return cast(job.getMetadata().get(key));
+        return cast(job.getMetadata().entrySet().stream()
+                .filter(entry -> entry.getKey() != null && entry.getKey().startsWith(key))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null));
     }
 
     /**
      * Returns true if the given step has already completed successfully in a previous run.
      */
     public boolean hasCompletedStep(String stepName) {
-        Object value = getMetadata(JOBRUNR_STEP_PREFIX + stepName);
+        Object value = getMetadata(JOBRUNR_STEP_PREFIX + stepName.split("__")[0]);
         if (value == null) return false;
         if (value instanceof Boolean) return (boolean) value;
         if (value instanceof String) return Boolean.parseBoolean((String) value);
@@ -247,6 +251,7 @@ public class JobContext {
      * @throws StepExecutionException when an exception happens during the execution of this step
      */
     public <T> T runStepOnce(String step, ThrowingSupplier<T> task) throws StepExecutionException {
+        step = step + "__" + job.getJobStates().size();
         if (!hasCompletedStep(step)) {
             try {
                 saveMetadata(JOBRUNR_STEP_START_PREFIX + step, Instant.now());
@@ -261,12 +266,12 @@ public class JobContext {
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }
         } else {
-            String stepResultClassName = getMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step);
+            String stepResultClassName = getMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step.split("__")[0]);
             Class<T> stepResultClass = ReflectionUtils.toClass(stepResultClassName);
             if (Metadata.class.isAssignableFrom(stepResultClass)) {
                 return getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
             }
-            String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
+            String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step.split("__")[0]);
             return autobox(stepResultAsString, stepResultClass);
         }
     }
