@@ -51,6 +51,14 @@ export function humanReadableMillis(ms) {
     else return days + "d"
 }
 
+const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
+export function humanReadableNumber(num) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '?';
+    }
+    return decimalNumberFormatter.format(num);
+}
+
 export function parseScheduleExpression(scheduleExpressionWithOptionalCarbonAwareMargin) {
     const scheduleExpressionPattern = /(.+?)\s+\[\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*\/\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*]\s*/;
 
