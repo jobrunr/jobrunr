@@ -123,7 +123,7 @@ public class FrontEndDevelopment {
                 .withEnqueuedState(now.minus(2, ChronoUnit.DAYS))
                 .withProcessingState(now.minus(2 * 24 * 60 * 60 - 1, ChronoUnit.SECONDS))
                 .withState(new FailedState("Failed", null, null, null, null, null, false, now.minus(2 * 24 * 60 - 5, ChronoUnit.MINUTES)))
-                .withState(new ScheduledState(now.minus(24 * 60 - 5, ChronoUnit.MINUTES), "Scheduled ahead of time", now.minus(2 * 24 * 60 - 5, ChronoUnit.MINUTES)))
+                .withState(new ScheduledState(now.minus(24 * 60 - 5, ChronoUnit.MINUTES), "Retry 1 of 5", now.minus(2 * 24 * 60 - 5, ChronoUnit.MINUTES)))
                 .withProcessingState(now.minus(24 * 60 - 5, ChronoUnit.MINUTES))
                 .withSucceededState(now.minus((24 * 60 - 5) * 60 - 10, ChronoUnit.SECONDS))
                 .build());

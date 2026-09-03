@@ -142,7 +142,7 @@ const generateTimeTicks = (durationMs, compressTime, timelineStartMs, visualDura
         const pct = visualDurationMs > 0 ? ((compressTime(midRealMs) - visualTimelineStartMs) / visualDurationMs) * 100 : 0;
         const startRel = r.startMs - timelineStartMs, endRel = r.endMs - timelineStartMs;
         const startLabel = startRel <= 0 ? '0' : `+${formatDuration(0, startRel)}`;
-        return {ms: startRel, pct, label: `${startLabel} ... +${formatDuration(0, endRel)}`, isBreak: true};
+        return {ms: (startRel + endRel) / 2, pct, label: `${startLabel} ... +${formatDuration(0, endRel)}`, isBreak: true};
     });
 
     const sec = durationMs / 1000;
@@ -279,9 +279,12 @@ const groupStepsSequentially = (executionSteps, stepEndMap, now) => {
 };
 
 export const JobProgressDisplay = ({executionSteps}) => {
+    if (executionSteps[0].state === 'SCHEDULED') executionSteps.shift();
+
     const [timelineMode, setTimelineMode] = useState(localStorage.getItem("executionTimelineMode") ?? "compact");
     const rawSteps = (executionSteps ?? []).filter((step) => !EXCLUDED_NON_COMPACT.includes(step.state));
-    const detailedSteps = toTimelineSteps(executionSteps ?? [], false);
+    const detailedSteps = toTimelineSteps(executionSteps ?? [], timelineMode === "compact");
+
     const inProgress = rawSteps.length > 0 && !END_STATES.includes(rawSteps[rawSteps.length - 1].state);
 
     const [now, setNow] = useState(() => Date.now());
@@ -449,7 +452,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         <Box aria-hidden="true"
                              sx={{position: 'absolute', top: 26, bottom: 0, gridColumn: '2 / 3', width: '100%', pointerEvents: 'none', zIndex: 0,}}>
                             {ticks.map((t) => (
-                                <Box key={t.ms} sx={{
+                                <Box key={t.ms + "-divider"} sx={{
                                     position: 'absolute',
                                     top: 0,
                                     bottom: 0,
