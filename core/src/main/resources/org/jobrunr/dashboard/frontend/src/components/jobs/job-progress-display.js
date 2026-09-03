@@ -5,9 +5,9 @@ import Typography from '@mui/material/Typography';
 import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Tooltip from '@mui/material/Tooltip';
 import {keyframes, styled} from '@mui/material/styles';
-import {IconButton, lighten, ToggleButton, ToggleButtonGroup} from "@mui/material";
-import {Circle, MoreHoriz} from "@mui/icons-material";
-import {HelpCircleOutline} from "mdi-material-ui";
+import {lighten, ToggleButton, ToggleButtonGroup} from "@mui/material";
+import {MoreHoriz} from "@mui/icons-material";
+import {Rhombus} from "mdi-material-ui";
 import {Fragment, useEffect, useState} from 'react';
 
 const STEP_LABELS = {
@@ -111,7 +111,7 @@ const formatDate = (ms, detailed = true) => {
 
 const formatDuration = (startMs, endMs) => {
     const ms = Math.max(0, endMs - startMs);
-    if (!Number.isFinite(ms) || ms <= 0) return '<10 ms';
+    if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
     const s = ms / 1000, d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60),
         sec = Math.round((s % 60) * 1000) / 1000;
     return [d && `${d}d`, h && `${h}h`, m && `${m}m`, sec && `${sec}s`].filter(Boolean).slice(0, 2).join(' ');
@@ -372,17 +372,17 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
     const renderBarOrCircle = (item, isPoint, offset, width, isCompressed, breakOffsets = []) => (
         <Tooltip title={buildTooltipTitle(item, item.endMs ?? item.stepEndMs, item.active, isCompressed)}>
             {item.isSkipped ? (
-                <Circle fontSize="tiny" sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
+                <Rhombus fontSize="tiny" sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
             ) : isPoint ? (
-                <Circle fontSize="tiny" color={item.succeeded === false || item.state === 'FAILED' ? 'error' : 'success'}
-                        sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)'}}/>
+                <Rhombus fontSize="tiny" color={item.succeeded === false || item.state === 'FAILED' ? 'error' : 'success'}
+                         sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)'}}/>
             ) : (
                 <Box sx={{position: 'absolute', left: `${offset}%`, width: `${width}%`, top: 0, bottom: 0, display: 'flex', alignItems: 'center'}}>
                     <GanttBar active={item.active} variant={item.active ? 'indeterminate' : 'determinate'} value={item.active ? undefined : 100} step={item}/>
                     {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset}/>)}
                     {item.outcome && (
-                        <Circle fontSize="tiny" color={item.outcome === 'FAILED' ? 'error' : 'success'}
-                                sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
+                        <Rhombus fontSize="tiny" color={item.outcome === 'FAILED' ? 'error' : 'success'}
+                                 sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
                     )}
                 </Box>
             )}
@@ -416,11 +416,6 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                         <Box>
                             <Typography variant="body1" color="text.secondary">
                                 Started at {formatDate(start, false)}, took {formatDuration(asMs(start), asMs(end))}
-                                <Tooltip title={"Learn more about Durable Executions"}>
-                                    <IconButton size="small" target="_blank" href="https://www.jobrunr.io/en/blog/what-is-durable-execution-java/">
-                                        <HelpCircleOutline sx={{fontSize: '1.25rem'}}/>
-                                    </IconButton>
-                                </Tooltip>
                             </Typography>
                         </Box>
                         <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small">
@@ -557,6 +552,12 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                     </Box>
 
                     <Legend/>
+
+                    <Typography variant="caption" align="right" component="p" sx={{opacity: 0.8}} color="text.secondary">
+                        Monitor job progress along a visual timeline. When leveraging <a
+                        target="_blank" href="https://www.jobrunr.io/en/guides/advanced/durable-executions/"> durable executions</a>,
+                        you can inspect how long each individual step takes to complete.
+                    </Typography>
                 </CardContent>
             </Card>
         </Box>

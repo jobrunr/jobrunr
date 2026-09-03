@@ -111,6 +111,7 @@ public class FrontEndDevelopment {
                 .build());
 
         storageProvider.save(aJob().withName("A job that was scheduled early")
+                .withId(UUID.fromString("01a0665b-2b96-76b9-bb05-c83df8bbb5b0"))
                 .withAmountOfRetries(5)
                 .withState(new ScheduledState(now.minus(1, ChronoUnit.DAYS), "Scheduled ahead of time", now.minus(8, ChronoUnit.DAYS)))
                 .withEnqueuedState(now.minus(1, ChronoUnit.DAYS))
@@ -119,6 +120,7 @@ public class FrontEndDevelopment {
                 .build());
 
         storageProvider.save(aJob().withName("A job that backed off exponentially")
+                .withId(UUID.fromString("01a0665b-2b97-7d33-afda-69eea5958eb5"))
                 .withAmountOfRetries(5)
                 .withEnqueuedState(now.minus(2, ChronoUnit.DAYS))
                 .withProcessingState(now.minus(2 * 24 * 60 * 60 - 1, ChronoUnit.SECONDS))
