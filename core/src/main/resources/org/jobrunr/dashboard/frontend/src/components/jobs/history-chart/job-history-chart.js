@@ -2,14 +2,13 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Tooltip from '@mui/material/Tooltip';
-import {keyframes, styled} from '@mui/material/styles';
-import {darken, lighten, ToggleButton, ToggleButtonGroup, useColorScheme, useTheme} from "@mui/material";
-import {Rhombus} from "mdi-material-ui";
+import {ToggleButton, ToggleButtonGroup, useTheme} from "@mui/material";
+import {Rhombus, RhombusOutline} from "mdi-material-ui";
 import {Fragment, useEffect, useState} from 'react';
-import {humanReadableMillis} from "../../utils/helper-functions.js";
-import {SwitchableTimeFormatter} from "../utils/time-ago.js";
+import {humanReadableMillis} from "../../../utils/helper-functions.js";
+import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
+import {BreakIndicator, GanttBar, getBarColor, Legend, RetrySeparator} from "./job-history-chart-components.js";
 
 const STEP_LABELS = {
     AWAITING: 'Awaiting', SCHEDULED: 'Scheduled', ENQUEUED: 'Enqueued',
@@ -39,6 +38,7 @@ const convertStepsToTimeline = (steps, now) => {
     const inProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
     let start = Infinity, end = -Infinity;
     const stepEndMap = new Map();
+    const historyByStep = new Map(), stepOrder = [];
 
     steps.forEach((step, i) => {
         const stepStart = asMs(step.createdAt);
@@ -52,16 +52,43 @@ const convertStepsToTimeline = (steps, now) => {
             const e = getStepEndTime(step);
             stepEnd = e ?? (inProgress ? now : null);
             active = e === null && inProgress;
+            const [stepBase, attemptId] = step.stepName.split('__');
+            if (!historyByStep.has(stepBase)) {
+                historyByStep.set(stepBase, []);
+                stepOrder.push(stepBase);
+            }
+            historyByStep.get(stepBase).push({attemptId: +attemptId, succeeded: step.succeeded !== false, startMs: stepStart});
         } else {
             stepEnd = nextStep ? asMs(nextStep.createdAt) : (inProgress ? now : getStepEndTime(step));
             active = !nextStep && inProgress;
         }
-
         if (stepEnd !== null && stepEnd > end) end = stepEnd;
         stepEndMap.set(step, {end: stepEnd, active});
     });
 
-    return {start: Math.min(start, end), end: Math.max(start, end), stepEndMap};
+    const attemptIds = [...new Set([...historyByStep.values()].flat().map((a) => a.attemptId))].sort((a, b) => a - b);
+    const skippedSteps = [];
+    for (const attemptId of attemptIds.slice(1)) {
+        const stepsInAttempt = stepOrder.filter((name) => historyByStep.get(name).some((a) => a.attemptId === attemptId));
+        if (!stepsInAttempt.length) continue;
+        const attemptStartMs = Math.min(...stepsInAttempt.flatMap((name) => historyByStep.get(name).filter((a) => a.attemptId === attemptId).map((a) => a.startMs)));
+        for (const stepBase of stepOrder) {
+            const history = historyByStep.get(stepBase);
+            if (history.some((a) => a.attemptId === attemptId)) continue;
+            const lastPriorAttempt = history.filter((a) => a.attemptId < attemptId).sort((a, b) => b.attemptId - a.attemptId)[0];
+            if (!lastPriorAttempt?.succeeded) continue;
+            if (!stepsInAttempt.some((name) => stepOrder.indexOf(name) > stepOrder.indexOf(stepBase))) continue;
+            skippedSteps.push({
+                state: 'RUN_STEP_ONCE',
+                stepName: `${stepBase}__${attemptId}`,
+                isSkipped: true,
+                succeeded: true,
+                createdAt: new Date(attemptStartMs).toISOString()
+            });
+        }
+    }
+
+    return {start: Math.min(start, end), end: Math.max(start, end), stepEndMap, skipped: skippedSteps};
 };
 
 const createTimeCompressor = (longRanges, totalDuration, thresholdMs) => {
@@ -144,7 +171,7 @@ const generateTimeTicks = (durationMs, compressTime, timelineStartMs, visualDura
         const pct = visualDurationMs > 0 ? ((compressTime(midRealMs) - visualTimelineStartMs) / visualDurationMs) * 100 : 0;
         const startRel = r.startMs - timelineStartMs, endRel = r.endMs - timelineStartMs;
         const startLabel = startRel <= 0 ? '0' : `+${formatDuration(0, startRel)}`;
-        return {ms: (startRel + endRel) / 2, pct, label: `${startLabel} ... +${formatDuration(0, endRel)}`, isBreak: true};
+        return {ms: (startRel + endRel) / 2, pct, label: `${startLabel} ... +${formatDuration(0, endRel)}`, isBreak: true, startMs: r.startMs, endMs: r.endMs};
     });
 
     const sec = durationMs / 1000;
@@ -157,7 +184,7 @@ const generateTimeTicks = (durationMs, compressTime, timelineStartMs, visualDura
         const realTime = timelineStartMs + ms;
         if (!longRanges.some(r => realTime > r.startMs && realTime < r.endMs)) {
             const pct = visualDurationMs > 0 ? ((compressTime(realTime) - visualTimelineStartMs) / visualDurationMs) * 100 : 0;
-            regularTicks.push({ms, pct, label: ms === 0 ? '0' : `+${formatDuration(0, ms)}`, isBreak: false});
+            regularTicks.push({ms, pct, label: ms === 0 ? '0' : `+${formatDuration(0, ms)}`, isBreak: false, startMs: realTime});
         }
     }
 
@@ -175,85 +202,7 @@ const generateTimeTicks = (durationMs, compressTime, timelineStartMs, visualDura
     return ticks;
 };
 
-const animateInProgressBar = keyframes`
-    0% {
-        background-position: 0 0;
-    }
-    100% {
-        background-position: 28px 0;
-    }
-`;
-
-const getBarColor = (step, theme) => {
-    if (['ENQUEUED', 'RETRYING'].includes(step.state)) return theme.palette.info.light;
-    if (step.state === 'SCHEDULED') return theme.palette.grey[600];
-    if (step.succeeded === false || step.state === 'FAILED') return theme.palette.error.light;
-    if (step.succeeded === true || step.state === 'SUCCEEDED') return theme.palette.success.light;
-    return theme.palette.warning.light;
-};
-
-const GanttBar = styled(LinearProgress, {
-    shouldForwardProp: (prop) => prop !== 'active',
-})(({theme, active, step}) => {
-    const color = getBarColor(step, theme), lighter = lighten(color, 0.4);
-    return {
-        height: '50%', width: '100%', alignSelf: 'center', borderRadius: 4,
-        [`&.${linearProgressClasses.colorPrimary}`]: {backgroundColor: active ? '#f0f4f8' : 'transparent'},
-        [`& .${linearProgressClasses.bar}`]: {
-            borderRadius: 4, backgroundColor: color,
-            ...(active && {
-                width: '100%', transform: 'none !important',
-                animation: `${animateInProgressBar} 1s linear infinite !important`,
-                backgroundImage: `repeating-linear-gradient(45deg, ${color}, ${color} 10px, ${lighter} 10px, ${lighter} 20px)`,
-                backgroundSize: '28px 28px',
-            }),
-        },
-        ...(active && {[`& .${linearProgressClasses.bar2Indeterminate}`]: {display: 'none'}}),
-    };
-});
-
-const BreakIndicator = ({leftPct = 50, color}) => {
-    const {mode, systemMode} = useColorScheme();
-
-    return (
-        <Box sx={{
-            position: 'absolute', left: `${leftPct}%`, top: '51.5%', transform: 'translate(-50%, -50%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3,
-            px: 1, fontSize: '1.5rem', fontWeight: 600,
-            color: mode === "light" || systemMode === "light" ? darken(color, 0.3) : lighten(color, 0.6),
-        }}>
-            //
-        </Box>
-    )
-};
-
-const RetrySeparator = ({label}) => (
-    <Box aria-hidden="true" sx={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 1, pl: 0.5, zIndex: 1}}>
-        <Typography variant="caption" sx={{color: 'text.secondary', flexShrink: 0, fontWeight: 600, opacity: 0.6}}>{label}</Typography>
-        <Box sx={{flexGrow: 1, borderTop: '1px dashed', borderColor: 'divider'}}/>
-    </Box>
-);
-
-const Legend = () => (
-    <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, pt: 1, borderTop: '1px solid', borderColor: 'divider'}}>
-        {[
-            {label: 'Scheduled', color: 'grey.600'}, {label: 'Enqueued', color: 'info.light'},
-            {label: 'Processing', color: 'warning.light'}, {label: 'Succeeded', color: 'success.light'},
-            {label: 'Failed', color: 'error.light'},
-        ].map((item) => (
-            <Box key={item.label} sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
-                <Box sx={{width: 10, height: 10, borderRadius: '2px', bgcolor: item.color}}/>
-                <Typography variant="caption" color="text.secondary">{item.label}</Typography>
-            </Box>
-        ))}
-        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
-            <Typography sx={{fontWeight: 600}}>//</Typography>
-            <Typography variant="caption" color="text.secondary">Compressed</Typography>
-        </Box>
-    </Box>
-);
-
-const groupStepsSequentially = (executionSteps, stepEndMap, now) => {
+const groupStepsSequentially = (executionSteps, stepEndMap, now, skipped = []) => {
     const rows = [
         {key: 'SCHEDULED', label: 'Scheduled', isStep: false, items: []},
         {key: 'ENQUEUED', label: 'Enqueued', isStep: false, items: []},
@@ -283,20 +232,26 @@ const groupStepsSequentially = (executionSteps, stepEndMap, now) => {
         }
     });
 
+    skipped.forEach((step) => {
+        const name = getStepLabel(step), startMs = asMs(step.createdAt);
+        if (!stepMap.has(name)) stepMap.set(name, {key: name, label: name, isStep: true, items: []});
+        stepMap.get(name).items.push({...step, startMs, endMs: startMs, active: false, isSkipped: true});
+    });
+
     return [...rows.filter(r => r.items.length > 0), ...Array.from(stepMap.values())].map(row => ({
         ...row,
         totalMs: row.items.reduce((sum, item) => sum + Math.max(0, (item.endMs ?? item.startMs) - item.startMs), 0)
     }));
 };
 
-export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
+export const JobHistoryChart = ({executionSteps, reverse = false}) => {
     const theme = useTheme();
     if (executionSteps[0].state === 'SCHEDULED') executionSteps.shift();
 
     const [timelineMode, setTimelineMode] = useState(localStorage.getItem("executionTimelineMode") ?? "compact");
     const [compressionMode, setCompressionMode] = useState(localStorage.getItem("executionTimelineCompression") ?? "compressed");
     const rawSteps = (executionSteps ?? []).filter((step) => !EXCLUDED_NON_COMPACT.includes(step.state));
-    const detailedSteps = toTimelineSteps(executionSteps ?? [], timelineMode === "compact");
+    const baseDetailed = toTimelineSteps(executionSteps ?? [], timelineMode === "compact");
 
     const inProgress = rawSteps.length > 0 && !END_STATES.includes(rawSteps[rawSteps.length - 1].state);
 
@@ -309,7 +264,10 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
 
     if (rawSteps.length === 0) return null;
 
-    const {start, end, stepEndMap} = convertStepsToTimeline(rawSteps, now);
+    const {start, end, stepEndMap, skipped} = convertStepsToTimeline(rawSteps, now);
+    const detailedSteps = skipped.length && timelineMode !== "compact"
+        ? [...baseDetailed, ...skipped].sort((a, b) => asMs(a.createdAt) - asMs(b.createdAt) || (a.isSkipped ? -1 : 0) - (b.isSkipped ? -1 : 0))
+        : baseDetailed;
     const duration = end - start, compressionThresholdMs = Math.max(MIN_COMPRESSION_THRESHOLD_MS, duration * COMPRESSION_THRESHOLD);
 
     const timestamps = new Set([start, end]);
@@ -354,7 +312,7 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
         }
     });
 
-    const groupedRows = timelineMode === "compact" ? groupStepsSequentially(rawSteps, stepEndMap, now) : [];
+    const groupedRows = timelineMode === "compact" ? groupStepsSequentially(rawSteps, stepEndMap, now, skipped) : [];
     const compactRows = reverse ? groupedRows.slice().reverse() : groupedRows;
 
     let chronologicalRetry = 0;
@@ -391,10 +349,9 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
             });
 
         const isCompressed = itemBreaks.length > 0;
-        const baseOffset = isEndState ? offset : (calculatedWidth === 0 ? offset - 0.5 : offset);
-        const baseWidth = isEndState ? 0 : Math.max(calculatedWidth, isCompressed ? 3.0 : 0.5);
+        const baseWidth = isEndState ? 0 : Math.max(calculatedWidth, isCompressed ? 3.0 : 0.3);
         return {
-            offset: reverse ? 100 - baseOffset - baseWidth : baseOffset,
+            offset: reverse ? 100 - offset - baseWidth : offset,
             width: baseWidth,
             isPoint: isEndState,
             isCompressed,
@@ -405,7 +362,8 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
     const renderBarOrCircle = (item, isPoint, offset, width, isCompressed, breakOffsets = []) => (
         <Tooltip title={buildTooltipTitle(item, item.endMs ?? item.stepEndMs, item.active, isCompressed)}>
             {item.isSkipped ? (
-                <Rhombus fontSize="tiny" sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
+                <RhombusOutline fontSize="tiny"
+                                sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
             ) : isPoint ? (
                 <Rhombus fontSize="tiny" color={item.succeeded === false || item.state === 'FAILED' ? 'error' : 'success'}
                          sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)'}}/>
@@ -447,8 +405,8 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                 <CardContent sx={{position: 'relative'}}>
                     <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
                         <Box>
-                            <Typography variant="body1" color="text.secondary">
-                                Created: <SwitchableTimeFormatter date={new Date(start)}/>
+                            <Typography variant="body2" color="text.secondary" sx={{opacity: 0.8}}>
+                                Created <SwitchableTimeFormatter date={new Date(start)}/>
                             </Typography>
                         </Box>
                         <Box sx={{display: 'flex', gap: 1, alignItems: 'center'}}>
@@ -475,16 +433,21 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                             <Box role="gantt-row-label" sx={{maxWidth: MAX_LABEL_WIDTH, minWidth: MIN_LABEL_WIDTH, pr: 1}}/>
                             <Box sx={{position: 'relative', height: 18}}>
                                 {ticks.map((t) => (
-                                    <Typography key={t.ms} variant="caption" sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: `${reverse ? 100 - t.pct : t.pct}%`,
-                                        transform: 'translateX(-50%)',
-                                        whiteSpace: 'nowrap',
-                                        color: 'text.secondary'
-                                    }}>
-                                        {t.label}
-                                    </Typography>
+                                    <Tooltip title={<>
+                                        <SwitchableTimeFormatter date={new Date(t.startMs)}/>
+                                        {t.endMs && <> - <SwitchableTimeFormatter date={new Date(t.endMs)}/></>}
+                                    </>}>
+                                        <Typography key={t.ms} variant="caption" sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: `${reverse ? 100 - t.pct : t.pct}%`,
+                                            transform: 'translateX(-50%)',
+                                            whiteSpace: 'nowrap',
+                                            color: 'text.secondary'
+                                        }}>
+                                            {t.label}
+                                        </Typography>
+                                    </Tooltip>
                                 ))}
                             </Box>
                             <Box/>
@@ -579,7 +542,7 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                                             <Box>
                                                 <Typography
                                                     sx={{fontSize: '11px', textAlign: 'right', color: 'text.secondary', fontVariantNumeric: 'tabular-nums'}}>
-                                                    {formatDuration(stepStartMs, stepEndMs)}
+                                                    {item.isSkipped ? 'skipped' : formatDuration(stepStartMs, stepEndMs)}
                                                 </Typography>
                                             </Box>
                                         )}

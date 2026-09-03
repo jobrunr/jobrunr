@@ -32,7 +32,7 @@ import CarbonAwareScheduledNotification from "./notifications/carbon-aware-sched
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
-import {JobProgressDisplay} from "./job-progress-display.js";
+import {JobHistoryChart} from "./history-chart/job-history-chart.js";
 
 const JobView = (props) => {
     const navigate = useNavigate();
@@ -292,7 +292,7 @@ const JobView = (props) => {
                                 </Grid>}
 
                                 {selectedHistoryDisplayMode === "chart" && <Grid id="job-history-chart-panel" size={12}>
-                                    {executionSteps.length > 0 && <JobProgressDisplay executionSteps={executionSteps} reverse={!order}/>}
+                                    {executionSteps.length > 0 && <JobHistoryChart executionSteps={executionSteps} reverse={!order}/>}
                                 </Grid>}
                             </Grid>
 
