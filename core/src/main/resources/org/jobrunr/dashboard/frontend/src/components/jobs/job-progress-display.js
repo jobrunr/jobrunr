@@ -5,10 +5,11 @@ import Typography from '@mui/material/Typography';
 import LinearProgress, {linearProgressClasses} from '@mui/material/LinearProgress';
 import Tooltip from '@mui/material/Tooltip';
 import {keyframes, styled} from '@mui/material/styles';
-import {lighten, ToggleButton, ToggleButtonGroup} from "@mui/material";
-import {MoreHoriz} from "@mui/icons-material";
+import {darken, lighten, ToggleButton, ToggleButtonGroup, useColorScheme, useTheme} from "@mui/material";
 import {Rhombus} from "mdi-material-ui";
 import {Fragment, useEffect, useState} from 'react';
+import {humanReadableMillis} from "../../utils/helper-functions.js";
+import {SwitchableTimeFormatter} from "../utils/time-ago.js";
 
 const STEP_LABELS = {
     AWAITING: 'Awaiting', SCHEDULED: 'Scheduled', ENQUEUED: 'Enqueued',
@@ -63,17 +64,25 @@ const convertStepsToTimeline = (steps, now) => {
     return {start: Math.min(start, end), end: Math.max(start, end), stepEndMap};
 };
 
-const createTimeCompressor = (longRanges, totalDuration) => {
-    const totalLongGapDuration = longRanges.reduce((sum, r) => sum + (r.endMs - r.startMs), 0);
-    const uncompressedDuration = Math.max(totalDuration - totalLongGapDuration, 1000);
-    const compressionFactor = Math.min(Math.max((0.25 * uncompressedDuration) / Math.max(totalLongGapDuration, 1), 0.01), 0.30);
+const createTimeCompressor = (longRanges, totalDuration, thresholdMs) => {
+    const baseScale = Math.max(thresholdMs / 2, 1);
+    const floor = 0.15 * baseScale;
+    const scaleFor = (r) => {
+        const d = r.endMs - r.startMs;
+        const share = d / Math.max(totalDuration, 1);
+        return Math.min(Math.max(baseScale * (1 - share), floor), baseScale);
+    };
+    const gapFactor = (r) => {
+        const scale = scaleFor(r), d = r.endMs - r.startMs;
+        return (scale * Math.log(1 + d / scale)) / d;
+    };
 
     return (timeMs) => {
         let compressedTimeSaved = 0;
         for (const r of longRanges) {
             if (timeMs <= r.startMs) break;
             const spanInGap = Math.min(timeMs, r.endMs) - r.startMs;
-            compressedTimeSaved += spanInGap * (1 - compressionFactor);
+            compressedTimeSaved += spanInGap * (1 - gapFactor(r));
         }
         return timeMs - compressedTimeSaved;
     };
@@ -104,25 +113,18 @@ const getStepLabel = (step) => {
     return STEP_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
 
-const formatDate = (ms, detailed = true) => {
-    const d = new Date(ms), p = (n) => String(n).padStart(2, '0');
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${detailed ? 'at' : ''} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${detailed ? '.' + d.getMilliseconds() : ''}`;
-};
-
 const formatDuration = (startMs, endMs) => {
     const ms = Math.max(0, endMs - startMs);
     if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
-    const s = ms / 1000, d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60),
-        sec = Math.round((s % 60) * 1000) / 1000;
-    return [d && `${d}d`, h && `${h}h`, m && `${m}m`, sec && `${sec}s`].filter(Boolean).slice(0, 2).join(' ');
+    return humanReadableMillis(ms);
 };
 
 const buildTooltipTitle = (step, stepEndMs, active, isCompressed = false) => {
     const startMs = asMs(step.barStart ?? step.createdAt), includeEnd = !(stepEndMs === null) && !(stepEndMs === startMs);
     return (
         <Box>
-            <Typography variant="caption" component="p">{includeEnd ? "Started" : "Completed"} on {formatDate(startMs)}</Typography>
-            {includeEnd && <Typography variant="caption" component="p">Ended on {formatDate(stepEndMs)}</Typography>}
+            <Typography variant="caption" component="p">{includeEnd ? "Started" : "Completed"}: <SwitchableTimeFormatter date={new Date(startMs)}/></Typography>
+            {includeEnd && <Typography variant="caption" component="p">Ended: <SwitchableTimeFormatter date={new Date(stepEndMs)}/></Typography>}
             {!END_STATES.includes(step.state) && (
                 <Typography variant="caption" component="p">
                     {active ? "Still in progress..." : `Took ${includeEnd ? formatDuration(startMs, stepEndMs) : "<10 ms"}`}{isCompressed && " (visually shortened)"}
@@ -210,19 +212,24 @@ const GanttBar = styled(LinearProgress, {
     };
 });
 
-const BreakIndicator = ({leftPct = 50}) => (
-    <Box sx={{
-        position: 'absolute', left: `${leftPct}%`, top: '50%', transform: 'translate(-50%, -50%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3,
-        bgcolor: 'background.paper', px: 0.5, maxHeight: "12px", borderRadius: 2, border: "1px solid lightgray",
-    }}>
-        <MoreHoriz sx={{p: 0, m: 0}}/>
-    </Box>
-);
+const BreakIndicator = ({leftPct = 50, color}) => {
+    const {mode, systemMode} = useColorScheme();
+
+    return (
+        <Box sx={{
+            position: 'absolute', left: `${leftPct}%`, top: '51.5%', transform: 'translate(-50%, -50%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3,
+            px: 1, fontSize: '1.5rem', fontWeight: 600,
+            color: mode === "light" || systemMode === "light" ? darken(color, 0.3) : lighten(color, 0.6),
+        }}>
+            //
+        </Box>
+    )
+};
 
 const RetrySeparator = ({label}) => (
-    <Box aria-hidden="true" sx={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 1, zIndex: 1}}>
-        <Typography variant="caption" sx={{color: 'text.secondary', flexShrink: 0, fontWeight: 600}}>{label}</Typography>
+    <Box aria-hidden="true" sx={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 1, pl: 0.5, zIndex: 1}}>
+        <Typography variant="caption" sx={{color: 'text.secondary', flexShrink: 0, fontWeight: 600, opacity: 0.6}}>{label}</Typography>
         <Box sx={{flexGrow: 1, borderTop: '1px dashed', borderColor: 'divider'}}/>
     </Box>
 );
@@ -239,6 +246,10 @@ const Legend = () => (
                 <Typography variant="caption" color="text.secondary">{item.label}</Typography>
             </Box>
         ))}
+        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
+            <Typography sx={{fontWeight: 600}}>//</Typography>
+            <Typography variant="caption" color="text.secondary">Compressed</Typography>
+        </Box>
     </Box>
 );
 
@@ -279,9 +290,11 @@ const groupStepsSequentially = (executionSteps, stepEndMap, now) => {
 };
 
 export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
+    const theme = useTheme();
     if (executionSteps[0].state === 'SCHEDULED') executionSteps.shift();
 
     const [timelineMode, setTimelineMode] = useState(localStorage.getItem("executionTimelineMode") ?? "compact");
+    const [compressionMode, setCompressionMode] = useState(localStorage.getItem("executionTimelineCompression") ?? "compressed");
     const rawSteps = (executionSteps ?? []).filter((step) => !EXCLUDED_NON_COMPACT.includes(step.state));
     const detailedSteps = toTimelineSteps(executionSteps ?? [], timelineMode === "compact");
 
@@ -306,14 +319,28 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
         if (Number.isFinite(eMs)) timestamps.add(eMs);
     });
 
+    const protectedSpans = [];
+    rawSteps.forEach((step, i) => {
+        if (step.state !== 'PROCESSING') return;
+        let hasSubStep = false;
+        for (let j = i + 1; j < rawSteps.length && rawSteps[j].state === 'RUN_STEP_ONCE'; j++) hasSubStep = true;
+        if (!hasSubStep) return;
+        const pStart = asMs(step.createdAt), pEnd = stepEndMap.get(step)?.end ?? pStart;
+        if (pEnd > pStart) protectedSpans.push({startMs: pStart, endMs: pEnd});
+    });
+
     const sortedTs = Array.from(timestamps).sort((a, b) => a - b), longRanges = [];
     for (let i = 0; i < sortedTs.length - 1; i++) {
-        if (sortedTs[i + 1] - sortedTs[i] > compressionThresholdMs) longRanges.push({startMs: sortedTs[i], endMs: sortedTs[i + 1]});
+        const s = sortedTs[i], e = sortedTs[i + 1];
+        if (e - s <= compressionThresholdMs) continue;
+        if (protectedSpans.some((p) => s >= p.startMs && e <= p.endMs)) continue;
+        longRanges.push({startMs: s, endMs: e});
     }
 
-    const compressTime = createTimeCompressor(longRanges, duration);
+    const compressRanges = compressionMode === "actual" ? [] : longRanges;
+    const compressTime = createTimeCompressor(compressRanges, duration, compressionThresholdMs);
     const vStart = compressTime(start), vEnd = compressTime(end), vDuration = vEnd - vStart;
-    const ticks = generateTimeTicks(duration, compressTime, start, vDuration, longRanges);
+    const ticks = generateTimeTicks(duration, compressTime, start, vDuration, compressRanges);
 
     const compactRetryEvents = [];
     let compactRetryCount = 0;
@@ -344,13 +371,19 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
         setTimelineMode(mode);
     };
 
+    const changeCompression = (event, mode) => {
+        if (!mode) return;
+        localStorage.setItem("executionTimelineCompression", mode);
+        setCompressionMode(mode);
+    };
+
     const getPlacement = (startMs, endMs, state) => {
         const itemStartMs = startMs, itemEndMs = endMs ?? startMs;
         const vS = compressTime(itemStartMs), vE = compressTime(itemEndMs);
         const pct = (v) => vDuration > 0 ? ((v - vStart) / vDuration) * 100 : 0;
 
         const offset = pct(vS), calculatedWidth = pct(vE) - offset, isEndState = END_STATES.includes(state);
-        const itemBreaks = longRanges
+        const itemBreaks = compressRanges
             .filter(r => r.startMs >= itemStartMs && r.endMs <= itemEndMs)
             .map(r => {
                 const barVDuration = vE - vS, breakVPos = compressTime(r.startMs + (r.endMs - r.startMs) / 2);
@@ -379,7 +412,7 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
             ) : (
                 <Box sx={{position: 'absolute', left: `${offset}%`, width: `${width}%`, top: 0, bottom: 0, display: 'flex', alignItems: 'center'}}>
                     <GanttBar active={item.active} variant={item.active ? 'indeterminate' : 'determinate'} value={item.active ? undefined : 100} step={item}/>
-                    {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset}/>)}
+                    {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset} color={getBarColor(item, theme)}/>)}
                     {item.outcome && (
                         <Rhombus fontSize="tiny" color={item.outcome === 'FAILED' ? 'error' : 'success'}
                                  sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
@@ -415,13 +448,19 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                     <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
                         <Box>
                             <Typography variant="body1" color="text.secondary">
-                                Started at {formatDate(start, false)}, took {formatDuration(asMs(start), asMs(end))}
+                                Created: <SwitchableTimeFormatter date={new Date(start)}/>
                             </Typography>
                         </Box>
-                        <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small">
-                            <ToggleButton value="compact">Compact</ToggleButton>
-                            <ToggleButton value="detailed">Detailed</ToggleButton>
-                        </ToggleButtonGroup>
+                        <Box sx={{display: 'flex', gap: 1, alignItems: 'center'}}>
+                            <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small" sx={{maxHeight: "32px"}}>
+                                <ToggleButton value="compact" sx={{fontSize: "12px"}}>Compact</ToggleButton>
+                                <ToggleButton value="detailed" sx={{fontSize: "12px"}}>Detailed</ToggleButton>
+                            </ToggleButtonGroup>
+                            <ToggleButtonGroup onChange={changeCompression} value={compressionMode} exclusive size="small" sx={{maxHeight: "32px"}}>
+                                <ToggleButton value="actual" sx={{fontSize: "12px"}}>Linear</ToggleButton>
+                                <ToggleButton value="compressed" sx={{fontSize: "12px"}}>Compressed</ToggleButton>
+                            </ToggleButtonGroup>
+                        </Box>
                     </Box>
 
                     <Box sx={{display: 'grid', gridTemplateColumns: GANTT_COLUMNS, position: 'relative'}}>
@@ -467,12 +506,11 @@ export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
                             {timelineMode === "compact" && compactRetryEvents.map((retry) => (
                                 <Box key={retry.count} sx={{
                                     position: 'absolute', top: 0, bottom: 0, left: `${reverse ? 100 - retry.pct : retry.pct}%`,
-                                    borderLeft: '1px dashed', borderColor: 'text.secondary', opacity: 0.6,
+                                    borderLeft: '1px dashed', borderColor: 'divider', opacity: 0.6,
                                 }}>
                                     <Typography variant="caption" sx={{
                                         position: 'absolute', top: -7, left: '50%', transform: 'translateX(-50%)',
-                                        fontWeight: 600, fontSize: '10px', whiteSpace: 'nowrap',
-                                        bgcolor: 'background.paper', px: 0.5, borderRadius: 0.5, border: '1px dashed', borderColor: 'divider',
+                                        fontWeight: 600, fontSize: '10px', whiteSpace: 'nowrap', bgcolor: 'background.paper', px: 0.5,
                                     }}>
                                         Retry {retry.count}
                                     </Typography>
