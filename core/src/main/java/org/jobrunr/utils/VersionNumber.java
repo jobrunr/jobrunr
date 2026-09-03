@@ -117,7 +117,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     @Override
-    public int  compareTo(VersionNumber o) {
+    public int compareTo(VersionNumber o) {
         int majorVersionComparison = compareVersionNumber(majorVersion, o.majorVersion);
         if (majorVersionComparison != 0) return majorVersionComparison;
 
@@ -144,6 +144,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
     @Override
     public String toString() {
         return completeVersion;
+    }
+
+    public boolean isV1Snapshot() {
+        return "1.0.0-SNAPSHOT".equals(completeVersion);
     }
 
     private int compareVersionNumber(String myself, String other) {

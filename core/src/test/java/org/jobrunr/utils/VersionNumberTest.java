@@ -127,4 +127,10 @@ class VersionNumberTest {
         assertThat(v("5.8.0").hasMajorMinorAndPatchVersionHigherOrEqualTo("8.0.1")).isFalse();
         assertThat(v("8.0.0").hasMajorMinorAndPatchVersionHigherOrEqualTo("8.0.1")).isFalse();
     }
+
+    @Test
+    void isV1Snapshot() {
+        assertThat(v("1.0.0-SNAPSHOT").isV1Snapshot()).isTrue();
+        assertThat(v("8.3.0").isV1Snapshot()).isFalse();
+    }
 }
