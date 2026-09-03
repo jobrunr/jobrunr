@@ -57,7 +57,7 @@ const convertStepsToTimeline = (steps, now) => {
                 historyByStep.set(stepBase, []);
                 stepOrder.push(stepBase);
             }
-            historyByStep.get(stepBase).push({attemptId: +attemptId, succeeded: step.succeeded !== false, startMs: stepStart});
+            historyByStep.get(stepBase).push({attemptId: +attemptId, succeeded: step.succeeded !== false, startMs: stepStart, startAt: step.createdAt});
         } else {
             stepEnd = nextStep ? asMs(nextStep.createdAt) : (inProgress ? now : getStepEndTime(step));
             active = !nextStep && inProgress;
@@ -71,7 +71,9 @@ const convertStepsToTimeline = (steps, now) => {
     for (const attemptId of attemptIds.slice(1)) {
         const stepsInAttempt = stepOrder.filter((name) => historyByStep.get(name).some((a) => a.attemptId === attemptId));
         if (!stepsInAttempt.length) continue;
-        const attemptStartMs = Math.min(...stepsInAttempt.flatMap((name) => historyByStep.get(name).filter((a) => a.attemptId === attemptId).map((a) => a.startMs)));
+        const attemptStart = stepsInAttempt
+            .flatMap((name) => historyByStep.get(name).filter((a) => a.attemptId === attemptId))
+            .sort((a, b) => asMicros(a.startAt) - asMicros(b.startAt))[0];
         for (const stepBase of stepOrder) {
             const history = historyByStep.get(stepBase);
             if (history.some((a) => a.attemptId === attemptId)) continue;
@@ -81,9 +83,10 @@ const convertStepsToTimeline = (steps, now) => {
             skippedSteps.push({
                 state: 'RUN_STEP_ONCE',
                 stepName: `${stepBase}__${attemptId}`,
+                attemptId,
                 isSkipped: true,
                 succeeded: true,
-                createdAt: new Date(attemptStartMs).toISOString()
+                createdAt: attemptStart.startAt
             });
         }
     }
@@ -113,6 +116,31 @@ const createTimeCompressor = (longRanges, totalDuration, thresholdMs) => {
         }
         return timeMs - compressedTimeSaved;
     };
+};
+
+// Skipped steps share a timestamp with the attempt's first real step, so sorting by time cannot
+// place them reliably. Splice each attempt's skipped steps in directly ahead of the first step that
+// actually ran in it — always after the PROCESSING state that opened the attempt.
+const mergeSkippedSteps = (steps, skipped) => {
+    const pending = new Map();
+    skipped.forEach((step) => {
+        if (!pending.has(step.attemptId)) pending.set(step.attemptId, []);
+        pending.get(step.attemptId).push(step);
+    });
+
+    const merged = [];
+    steps.forEach((step) => {
+        if (step.state === 'RUN_STEP_ONCE' && step.stepName) {
+            const attemptId = +step.stepName.split('__')[1];
+            if (pending.has(attemptId)) {
+                merged.push(...pending.get(attemptId));
+                pending.delete(attemptId);
+            }
+        }
+        merged.push(step);
+    });
+
+    return [...merged, ...[...pending.values()].flat()];
 };
 
 const toTimelineSteps = (executionSteps, compact) => {
@@ -266,7 +294,7 @@ export const JobHistoryChart = ({executionSteps, reverse = false}) => {
 
     const {start, end, stepEndMap, skipped} = convertStepsToTimeline(rawSteps, now);
     const detailedSteps = skipped.length && timelineMode !== "compact"
-        ? [...baseDetailed, ...skipped].sort((a, b) => asMs(a.createdAt) - asMs(b.createdAt) || (a.isSkipped ? -1 : 0) - (b.isSkipped ? -1 : 0))
+        ? mergeSkippedSteps(baseDetailed, skipped)
         : baseDetailed;
     const duration = end - start, compressionThresholdMs = Math.max(MIN_COMPRESSION_THRESHOLD_MS, duration * COMPRESSION_THRESHOLD);
 
