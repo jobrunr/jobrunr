@@ -95,12 +95,11 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
             setErrorText(undefined);
         }
 
-        fetch("https://n8n.srv851199.hstgr.cloud/webhook/f7a5e38e-4b1d-4f5b-b534-e014ff6b80fe", {
+        fetch("https://api.jobrunr.io/api/trial-request", {
             method: "POST",
             body: JSON.stringify({
                 "email": email,
                 "company": company,
-                "username": "",
                 "form": "trial",
                 "utm_source": "oss-dashboard",
                 "utm_medium": "pop-up"
@@ -109,7 +108,7 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
                 "Content-type": "application/json"
             }
         }).then((response) => {
-            if (response.status === 200) {
+            if (response.ok) {
                 setFormSubmitted(true);
                 handleClose();
             } else {
