@@ -66,7 +66,7 @@ const convertStepsToTimeline = (steps, now) => {
 const createTimeCompressor = (longRanges, totalDuration) => {
     const totalLongGapDuration = longRanges.reduce((sum, r) => sum + (r.endMs - r.startMs), 0);
     const uncompressedDuration = Math.max(totalDuration - totalLongGapDuration, 1000);
-    const compressionFactor = Math.min(Math.max((0.25 * uncompressedDuration) / Math.max(totalLongGapDuration, 1), 0.01), 0.10);
+    const compressionFactor = Math.min(Math.max((0.25 * uncompressedDuration) / Math.max(totalLongGapDuration, 1), 0.01), 0.30);
 
     return (timeMs) => {
         let compressedTimeSaved = 0;
@@ -278,7 +278,7 @@ const groupStepsSequentially = (executionSteps, stepEndMap, now) => {
     }));
 };
 
-export const JobProgressDisplay = ({executionSteps}) => {
+export const JobProgressDisplay = ({executionSteps, reverse = false}) => {
     if (executionSteps[0].state === 'SCHEDULED') executionSteps.shift();
 
     const [timelineMode, setTimelineMode] = useState(localStorage.getItem("executionTimelineMode") ?? "compact");
@@ -314,7 +314,6 @@ export const JobProgressDisplay = ({executionSteps}) => {
     const compressTime = createTimeCompressor(longRanges, duration);
     const vStart = compressTime(start), vEnd = compressTime(end), vDuration = vEnd - vStart;
     const ticks = generateTimeTicks(duration, compressTime, start, vDuration, longRanges);
-    let retryCount = 0;
 
     const compactRetryEvents = [];
     let compactRetryCount = 0;
@@ -329,6 +328,15 @@ export const JobProgressDisplay = ({executionSteps}) => {
     });
 
     const groupedRows = timelineMode === "compact" ? groupStepsSequentially(rawSteps, stepEndMap, now) : [];
+    const compactRows = reverse ? groupedRows.slice().reverse() : groupedRows;
+
+    let chronologicalRetry = 0;
+    const detailedRows = detailedSteps.map((step, index) => {
+        const isRetry = index > 0 && (step.state === 'RETRYING' || step.state === 'SCHEDULED');
+        if (isRetry) chronologicalRetry += 1;
+        return {step, isRetry, retryNumber: chronologicalRetry};
+    });
+    const orderedDetailedRows = reverse ? detailedRows.slice().reverse() : detailedRows;
 
     const changeMode = (event, mode) => {
         if (!mode) return;
@@ -350,12 +358,14 @@ export const JobProgressDisplay = ({executionSteps}) => {
             });
 
         const isCompressed = itemBreaks.length > 0;
+        const baseOffset = isEndState ? offset : (calculatedWidth === 0 ? offset - 0.5 : offset);
+        const baseWidth = isEndState ? 0 : Math.max(calculatedWidth, isCompressed ? 3.0 : 0.5);
         return {
-            offset: isEndState ? offset : (calculatedWidth === 0 ? offset - 0.5 : offset),
-            width: isEndState ? 0 : Math.max(calculatedWidth, isCompressed ? 3.0 : 0.5),
+            offset: reverse ? 100 - baseOffset - baseWidth : baseOffset,
+            width: baseWidth,
             isPoint: isEndState,
             isCompressed,
-            breakOffsets: itemBreaks,
+            breakOffsets: reverse ? itemBreaks.map((b) => 100 - b) : itemBreaks,
         };
     };
 
@@ -372,7 +382,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                     {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset}/>)}
                     {item.outcome && (
                         <Circle fontSize="tiny" color={item.outcome === 'FAILED' ? 'error' : 'success'}
-                                sx={{position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
+                                sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
                     )}
                 </Box>
             )}
@@ -404,16 +414,13 @@ export const JobProgressDisplay = ({executionSteps}) => {
                 <CardContent sx={{position: 'relative'}}>
                     <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
                         <Box>
-                            <Typography variant="h5">
-                                Execution Timeline
+                            <Typography variant="body1" color="text.secondary">
+                                Started at {formatDate(start, false)}, took {formatDuration(asMs(start), asMs(end))}
                                 <Tooltip title={"Learn more about Durable Executions"}>
                                     <IconButton size="small" target="_blank" href="https://www.jobrunr.io/en/blog/what-is-durable-execution-java/">
                                         <HelpCircleOutline sx={{fontSize: '1.25rem'}}/>
                                     </IconButton>
                                 </Tooltip>
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Started at {formatDate(start, false)}, took {formatDuration(asMs(start), asMs(end))}
                             </Typography>
                         </Box>
                         <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small">
@@ -437,7 +444,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                     <Typography key={t.ms} variant="caption" sx={{
                                         position: 'absolute',
                                         top: 0,
-                                        left: `${t.pct}%`,
+                                        left: `${reverse ? 100 - t.pct : t.pct}%`,
                                         transform: 'translateX(-50%)',
                                         whiteSpace: 'nowrap',
                                         color: 'text.secondary'
@@ -456,7 +463,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                                     position: 'absolute',
                                     top: 0,
                                     bottom: 0,
-                                    left: `${t.pct}%`,
+                                    left: `${reverse ? 100 - t.pct : t.pct}%`,
                                     borderLeft: '1px solid',
                                     borderColor: 'divider',
                                     opacity: 0.6,
@@ -464,7 +471,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                             ))}
                             {timelineMode === "compact" && compactRetryEvents.map((retry) => (
                                 <Box key={retry.count} sx={{
-                                    position: 'absolute', top: 0, bottom: 0, left: `${retry.pct}%`,
+                                    position: 'absolute', top: 0, bottom: 0, left: `${reverse ? 100 - retry.pct : retry.pct}%`,
                                     borderLeft: '1px dashed', borderColor: 'text.secondary', opacity: 0.6,
                                 }}>
                                     <Typography variant="caption" sx={{
@@ -479,7 +486,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         </Box>
 
                         {/* COMPACT MODE */}
-                        {timelineMode === "compact" && groupedRows.map((row) => (
+                        {timelineMode === "compact" && compactRows.map((row) => (
                             <Box key={row.key} role="gantt-row"
                                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'}
                                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = ''}
@@ -508,10 +515,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
                         ))}
 
                         {/* DETAILED MODE */}
-                        {timelineMode === "detailed" && detailedSteps.map((step, index) => {
-                            const isRetry = index > 0 && (step.state === 'RETRYING' || step.state === 'SCHEDULED');
-                            if (isRetry) retryCount += 1;
-
+                        {timelineMode === "detailed" && orderedDetailedRows.map(({step, isRetry, retryNumber}, index) => {
                             const info = stepEndMap.get(step);
                             const stepStartMs = asMs(step.barStart ?? step.createdAt);
                             const stepEndMs = info?.end ?? null;
@@ -521,7 +525,7 @@ export const JobProgressDisplay = ({executionSteps}) => {
 
                             return (
                                 <Fragment key={index}>
-                                    {isRetry && <RetrySeparator label={`Retry ${retryCount}`}/>}
+                                    {isRetry && <RetrySeparator label={`Retry ${retryNumber}`}/>}
                                     <Box role="gantt-row"
                                          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.03)'}
                                          onMouseOut={(e) => e.currentTarget.style.backgroundColor = ''}

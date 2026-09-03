@@ -17,7 +17,7 @@ import Succeeded from "./states/succeeded-state";
 import Failed from "./states/failed-state";
 import Deleted from "./states/deleted-state";
 import JobCode from "./job-code";
-import {Snackbar} from "@mui/material";
+import {Snackbar, Tab, Tabs} from "@mui/material";
 import {SortAscending, SortDescending} from "mdi-material-ui";
 import IconButton from "@mui/material/IconButton";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
@@ -45,6 +45,13 @@ const JobView = (props) => {
     const [executionSteps, setExecutionSteps] = useState([]);
     const [order, setOrder] = useState(true);
     const {jobId} = useParams();
+
+    const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? "timeline");
+
+    const handleHistoryDisplayModeChange = (event, newValue) => {
+        localStorage.setItem("jobHistoryDisplayMode", newValue);
+        setSelectedHistoryDisplayMode(newValue);
+    };
 
     useEffect(() => {
         getJob(jobId);
@@ -238,60 +245,71 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
 
-                            {executionSteps.length > 0 && <JobProgressDisplay executionSteps={executionSteps}/>}
-
                             <Grid size={12}>
-                                <Typography variant="h5" component="h2">
-                                    History&nbsp;
-                                    <IconButton
-                                        id={`jobhistory-sort-${order ? "desc" : "asc"}-btn`}
-                                        color="inherit"
-                                        onClick={changeSortOrder}
-                                        style={{scrollMarginTop: '70px'}}
-                                        size="large"
-                                    >
-                                        {order ? <SortDescending/> : <SortAscending/>}
-                                    </IconButton>
-                                </Typography>
+                                <Grid size={12}>
+                                    <Typography variant="h5" component="h2">
+                                        History&nbsp;
+                                        <IconButton
+                                            id={`jobhistory-sort-${order ? "desc" : "asc"}-btn`}
+                                            color="inherit"
+                                            onClick={changeSortOrder}
+                                            style={{scrollMarginTop: '70px'}}
+                                            size="large"
+                                        >
+                                            {order ? <SortDescending/> : <SortAscending/>}
+                                        </IconButton>
+                                    </Typography>
+                                </Grid>
+
+                                <Tabs value={selectedHistoryDisplayMode} onChange={handleHistoryDisplayModeChange} aria-label="History display mode selection"
+                                      sx={{mb: 1}}>
+                                    <Tab label="Timeline" value={"timeline"}/>
+                                    <Tab label="Chart" value={"chart"}/>
+                                </Tabs>
+
+                                {selectedHistoryDisplayMode === "timeline" && <Grid id="job-history-panel" size={12}>
+                                    {
+                                        jobStates.map((jobState, index) => {
+                                            switch (jobState.state) {
+                                                case 'AWAITING':
+                                                    return <Awaiting key={index} job={job} jobState={jobState}/>;
+                                                case 'SCHEDULED':
+                                                    return <Scheduled key={index} jobState={jobState}/>;
+                                                case 'ENQUEUED':
+                                                    return <Enqueued key={index} jobState={jobState}/>;
+                                                case 'PROCESSING':
+                                                    return <Processing key={index} index={index} job={job} jobState={jobState}/>;
+                                                case 'FAILED':
+                                                    return <Failed key={index} jobState={jobState}/>;
+                                                case 'SUCCEEDED':
+                                                    return <Succeeded key={index} jobState={jobState}/>;
+                                                case 'DELETED':
+                                                    return <Deleted key={index} jobState={jobState}/>;
+                                                default:
+                                                    return <div key={index}>Unknown state</div>
+                                            }
+                                        })}
+                                </Grid>}
+
+                                {selectedHistoryDisplayMode === "chart" && <Grid id="job-history-chart-panel" size={12}>
+                                    {executionSteps.length > 0 && <JobProgressDisplay executionSteps={executionSteps} reverse={!order}/>}
+                                </Grid>}
                             </Grid>
 
-                            <Grid id="job-history-panel" size={12}>
-                                {
-                                    jobStates.map((jobState, index) => {
-                                        switch (jobState.state) {
-                                            case 'AWAITING':
-                                                return <Awaiting key={index} job={job} jobState={jobState}/>;
-                                            case 'SCHEDULED':
-                                                return <Scheduled key={index} jobState={jobState}/>;
-                                            case 'ENQUEUED':
-                                                return <Enqueued key={index} jobState={jobState}/>;
-                                            case 'PROCESSING':
-                                                return <Processing key={index} index={index} job={job} jobState={jobState}/>;
-                                            case 'FAILED':
-                                                return <Failed key={index} jobState={jobState}/>;
-                                            case 'SUCCEEDED':
-                                                return <Succeeded key={index} jobState={jobState}/>;
-                                            case 'DELETED':
-                                                return <Deleted key={index} jobState={jobState}/>;
-                                            default:
-                                                return <div key={index}>Unknown state</div>
-                                        }
-                                    })}
-                            </Grid>
                         </Grid>
-                        {apiStatus &&
-                            <Snackbar open={true}
-                                      autoHideDuration={3000}
-                                      onClose={handleCloseAlert}
-                                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-                            >
-                                <Alert severity={apiStatus.severity}>
-                                    {apiStatus.message}
-                                </Alert>
-                            </Snackbar>
-                        }
+                                {apiStatus &&
+                                    <Snackbar open={true}
+                                              autoHideDuration={3000}
+                                              onClose={handleCloseAlert}
+                                              anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                                    >
+                                        <Alert severity={apiStatus.severity}>
+                                            {apiStatus.message}
+                                        </Alert>
+                                    </Snackbar>
+                                }
                     </>
-                }
+                    }
                 </>
             }
             <VersionFooter/>
