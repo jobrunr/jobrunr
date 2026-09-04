@@ -112,8 +112,10 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
                 setFormSubmitted(true);
                 handleClose();
             } else {
-                setErrorText("Something went wrong submitting the form, please try again");
+                throw new Error("Something went wrong submitting the form, error code received: " + response.status);
             }
+        }).catch((_) => {
+            setErrorText("Something went wrong submitting the form, please try again");
         });
     }
 
