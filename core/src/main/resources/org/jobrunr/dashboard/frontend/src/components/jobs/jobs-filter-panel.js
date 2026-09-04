@@ -18,12 +18,13 @@ import {styled} from "@mui/material/styles";
 import {Event, ExpandMoreOutlined} from "@mui/icons-material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import {Magnify} from "mdi-material-ui";
-import {useEffect, useRef, useState} from "react";
+import {useRef, useState} from "react";
 import Dialog from "@mui/material/Dialog";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import {useLocation} from "react-router";
+import {humanReadableNumber} from "../../utils/helper-functions.js";
 
 const Heading = styled(Typography)(({theme}) => ({
     fontSize: theme.typography.pxToRem(15),
@@ -57,7 +58,7 @@ const FilterField = ({decorationIcon: Icon = Magnify, setShowDialog, ...rest}) =
     );
 };
 
-const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
+const TryProDialog = ({open, setOpen, setFormSubmitted, total}) => {
     const location = useLocation();
 
     const urlSearchParams = new URLSearchParams(location.search);
@@ -65,23 +66,10 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
 
     const formRef = useRef(null);
     const [errorText, setErrorText] = useState(undefined);
-    const [numberOfJobs, setNumberOfJobs] = useState(undefined);
     const handleClose = () => {
         setErrorText(undefined);
         setOpen(false);
     }
-
-    useEffect(() => {
-        if (open) {
-            let url = `/api/jobs?state=${jobState.toUpperCase()}&limit=1000`;
-            fetch(url,)
-                .then(res => res.json())
-                .then(response => {
-                    setNumberOfJobs(response.total);
-                })
-                .catch(error => console.log(error));
-        }
-    }, [open]);
 
     const submitForm = () => {
         const formData = new FormData(formRef.current);
@@ -127,7 +115,7 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
             aria-describedby="try-pro-dialog-description"
         >
             <DialogTitle id="try-pro-dialog-title">
-                Search all {numberOfJobs ? ((numberOfJobs > 999 ? "999+" : numberOfJobs) + " " + jobState.toLowerCase()) : "your"} jobs in this dashboard
+                Search all {total ? (humanReadableNumber(total) + " " + jobState.toLowerCase()) : "your"} jobs in this dashboard
             </DialogTitle>
             <DialogContent dividers>
                 <DialogContentText id="try-pro-dialog-description">
@@ -177,7 +165,7 @@ const TryProDialog = ({open, setOpen, setFormSubmitted}) => {
     );
 }
 
-export const JobsFilterPanel = ({}) => {
+export const JobsFilterPanel = ({total}) => {
     const [showDialog, setShowDialog] = useState(false);
     const [formSubmitted, setFormSubmitted] = useState(false);
 
@@ -258,7 +246,7 @@ export const JobsFilterPanel = ({}) => {
                     </Grid>
                 </AccordionDetails>
             </Accordion>
-            <TryProDialog open={showDialog} setOpen={setShowDialog} setFormSubmitted={setFormSubmitted}/>
+            <TryProDialog open={showDialog} setOpen={setShowDialog} setFormSubmitted={setFormSubmitted} total={total}/>
             <Snackbar open={formSubmitted}
                       autoHideDuration={5000}
                       onClose={() => setFormSubmitted(false)}

@@ -79,7 +79,7 @@ const JobsView = () => {
                             rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr
                             Pro</a> you would have already found it.</JobRunrProNotice>
                     }
-                    <JobsFilterPanel/>
+                    <JobsFilterPanel total={jobPage.total}/>
                     <div>&nbsp;</div>
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>

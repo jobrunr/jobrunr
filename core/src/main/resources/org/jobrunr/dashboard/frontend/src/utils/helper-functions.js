@@ -67,6 +67,13 @@ export function convertToBrowserDefaultDateStyle(date) {
     return dateString.toString().substring(0, dateString.indexOf(' ('));
 }
 
+export function humanReadableNumber(num) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '?';
+    }
+    return num.toLocaleString("en", {notation: "compact", compactDisplay: "short"});
+}
+
 export function stringToColor(text) {
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
