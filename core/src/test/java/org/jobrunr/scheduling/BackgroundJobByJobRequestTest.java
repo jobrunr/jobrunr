@@ -159,8 +159,7 @@ public class BackgroundJobByJobRequestTest {
                 .hasMetadata("test", "test");
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
-                .hasMetadataOnlyContainingJobProgressAndLogging();
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

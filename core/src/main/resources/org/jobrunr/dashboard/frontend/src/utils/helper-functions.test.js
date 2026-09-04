@@ -1,4 +1,4 @@
-import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from './helper-functions';
+import {convertISO8601DurationToSeconds, formatDuration, humanFileSize, javaDateAsMicroseconds, javaDateAsMilliseconds, parseScheduleExpression} from './helper-functions';
 
 describe('humanFileSize', () => {
     it('returns bytes correctly for small numbers', () => {
@@ -113,3 +113,39 @@ describe('parseScheduleExpression', () => {
         });
     });
 })
+
+describe('javaDateAsMilliseconds / javaDateAsMicroseconds', () => {
+    const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
+    const iso = (offsetMs) => new Date(BASE + offsetMs).toISOString();
+
+    it('parses ISO strings to milliseconds', () => {
+        expect(javaDateAsMilliseconds(iso(0))).toBe(BASE);
+        expect(javaDateAsMilliseconds(iso(5000))).toBe(BASE + 5000);
+    });
+
+    it('javaDateAsMicroseconds preserves sub-millisecond precision that javaDateAsMilliseconds loses', () => {
+        const t = '2024-01-01T00:00:00.123456Z';
+        expect(javaDateAsMilliseconds(t)).toBe(1704067200123);
+        expect(javaDateAsMicroseconds(t)).toBe(1704067200123456);
+        expect(javaDateAsMicroseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000 + 456);
+    });
+
+    it('javaDateAsMicroseconds matches javaDateAsMilliseconds*1000 when there is no fractional second', () => {
+        const t = iso(0);
+        expect(javaDateAsMicroseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000);
+    });
+});
+
+describe('formatDuration', () => {
+    it('formats millisecond and second ranges', () => {
+        expect(formatDuration(0, 500)).toBe('500ms');
+        expect(formatDuration(2000, 5000)).toBe('3s');
+        expect(formatDuration(0, 61000)).toBe('1m');
+    });
+
+    it('returns a sub-millisecond placeholder for zero, negative, or invalid spans', () => {
+        expect(formatDuration(0, 0)).toBe('<1 ms');
+        expect(formatDuration(2000, 1000)).toBe('<1 ms');
+        expect(formatDuration(0, null)).toBe('<1 ms');
+    });
+});

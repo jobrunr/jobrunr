@@ -69,6 +69,22 @@ public class JobContextTest {
     }
 
     @Test
+    void getMetadataReturnsExactKeyAndDoesNotMatchPrefixes() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.saveMetadata("foo", "foo-value");
+        jobContext.saveMetadata("foobar", "foobar-value");
+
+        assertThat((String) jobContext.getMetadata("foo")).isEqualTo("foo-value");
+        assertThat((String) jobContext.getMetadata("foobar")).isEqualTo("foobar-value");
+        // a shorter key must not prefix-match a longer stored key (public API contract)
+        assertThat((String) jobContext.getMetadata("fo")).isNull();
+        assertThat((String) jobContext.getMetadata("fooba")).isNull();
+    }
+
+    @Test
     void jobContextNbrOfRetries() {
         final Job job = aFailedJobWithRetries(2) // 0 based
                 .withEnqueuedState(Instant.now())
@@ -103,6 +119,33 @@ public class JobContextTest {
         assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
         jobContext.markStepCompleted("step-1");
         assertThat(jobContext.hasCompletedStep("step-1")).isTrue();
+    }
+
+    @Test
+    void hasCompletedStepDoesNotMatchStepWhoseNameIsAPrefixOfAnotherStep() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        // a different step "send-email" completed via the Supplier path (key jr_step_send-email__2)
+        jobContext.markStepCompleted("send-email__2");
+
+        // step "send" has never run and must not be considered completed
+        assertThat(jobContext.hasCompletedStep("send")).isFalse();
+    }
+
+    @Test
+    void hasCompletedStepUsesTheLatestRunNotTheFirstMatch() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        // attempt 2 failed and attempt 6 succeeded (realistic Supplier-overhead keys jr_step_<name>__<run>)
+        jobContext.markStepFailed("send__2");
+        jobContext.markStepCompleted("send__6");
+
+        // a later attempt must see the latest (successful) run, not the failed one
+        assertThat(jobContext.hasCompletedStep("send")).isTrue();
     }
 
     @Test

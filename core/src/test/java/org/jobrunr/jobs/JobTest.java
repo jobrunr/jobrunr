@@ -209,7 +209,7 @@ class JobTest {
     }
 
     @Test
-    void metadataIsClearedWhenAJobSucceeds() {
+    void metadataIsClearedWhenAJobIsRequeued() {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
@@ -220,6 +220,9 @@ class JobTest {
         assertThat(job).hasMetadata("key", "value");
 
         job.succeeded();
+        assertThat(job).hasMetadata("key", "value");
+
+        job.requeue();
         assertThat(job).hasNoMetadata();
     }
 

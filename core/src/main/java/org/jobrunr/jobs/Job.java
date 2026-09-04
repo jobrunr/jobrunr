@@ -164,6 +164,11 @@ public class Job extends AbstractJob {
         return history.subList(actualStateChanges, history.size());
     }
 
+    public void requeue() {
+        clearMetadata();
+        enqueue();
+    }
+
     public void enqueue() {
         addJobState(new EnqueuedState());
     }
@@ -189,7 +194,6 @@ public class Job extends AbstractJob {
             throw new IllegalStateException("Job cannot succeed if it was not enqueued before.");
         }
 
-        clearMetadata();
         Duration latencyDuration = Duration.between(lastEnqueuedState.get().getEnqueuedAt(), getJobState().getCreatedAt());
         Duration processDuration = Duration.between(getJobState().getCreatedAt(), Instant.now());
         addJobState(new SucceededState(latencyDuration, processDuration));

@@ -6,9 +6,10 @@ import org.jobrunr.SevereJobRunrException;
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.jobs.states.FailedState;
+import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.carbonaware.CarbonAware;
-import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
 import org.jobrunr.server.dashboard.DashboardNotificationManager;
 import org.jobrunr.storage.InMemoryStorageProvider;
@@ -21,18 +22,18 @@ import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import static java.time.Instant.now;
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
 import static org.jobrunr.jobs.JobTestBuilder.aJob;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
-import static org.jobrunr.utils.LocalDateUtils.nowUsingSystemDefault;
 import static org.jobrunr.utils.diagnostics.DiagnosticsBuilder.diagnostics;
 
 /**
@@ -43,6 +44,7 @@ public class FrontEndDevelopment {
 
     public static void main(String[] args) throws Exception {
         StorageProvider storageProvider = inMemoryStorageProvider();
+        JacksonJsonMapper jsonMapper = new JacksonJsonMapper();
 
         //StubDataProvider.using(storageProvider)
         //.addALotOfEnqueuedJobsThatTakeSomeTime()
@@ -56,12 +58,84 @@ public class FrontEndDevelopment {
         storageProvider.save(anEnqueuedJob().withName("A job with label").withLabels("Label 1", "Label 3", "Label 2").build());
         storageProvider.save(aJob().withEnqueuedState(now()).withName("A job").build());
 
+        Instant now = Instant.now();
+        storageProvider.save(aJob().withName("A job that succeeded after some retries")
+                .withId(UUID.fromString("01a061e8-0ce5-717b-a4e7-8b9d91535da0"))
+                .withAmountOfRetries(5)
+                .withEnqueuedState(now.minus(8, ChronoUnit.HOURS))
+                .withProcessingState(now.minus(8, ChronoUnit.HOURS))
+                .withState(new FailedState("Failed", null, null, null, null, null, false, now.minus(8 * 60 - 10, ChronoUnit.MINUTES)))
+                .withState(new ScheduledState(now.minus(4 * 60 - 20, ChronoUnit.MINUTES), "Retry attempt 1 of 5", now.minus(8 * 60 - 10, ChronoUnit.MINUTES)))
+                .withEnqueuedState(now.minus(4 * 60 - 20, ChronoUnit.MINUTES))
+                .withProcessingState(now.minus(4 * 60 - 21, ChronoUnit.MINUTES))
+                .withState(new FailedState("Failed", null, null, null, null, null, false, now.minus(2 * 60, ChronoUnit.MINUTES)))
+                .withState(new ScheduledState(now.minus(2 * 60 - 40, ChronoUnit.MINUTES), "Retry attempt 1 of 5", now.minus(2 * 60, ChronoUnit.MINUTES)))
+                .withEnqueuedState(now.minus(2 * 60 - 40, ChronoUnit.MINUTES))
+                .withProcessingState(now.minus(2 * 60 - 44, ChronoUnit.MINUTES))
+                .withSucceededState()
+                .withMetadata(Map.ofEntries(
+                        Map.entry("jr_step_first-step__2", false),
+                        Map.entry("jr_step_start_first-step__2", now.minus(8 * 60 - 5, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_first-step__2", now.minus(8 * 60 - 10, ChronoUnit.MINUTES).toString()),
+
+                        Map.entry("jr_step_first-step__6", true),
+                        Map.entry("jr_step_start_first-step__6", now.minus(4 * 60 - 21, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_first-step__6", now.minus(4 * 60 - 23, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_result_first-step__6", "Some amazing result"),
+                        Map.entry("jr_step_result_class_first-step__6", "java.lang.String"),
+                        Map.entry("jr_step_second-step__6", true),
+                        Map.entry("jr_step_start_second-step__6", now.minus(4 * 60 - 23, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_second-step__6", now.minus(3 * 60, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_result_second-step__6", "Some second amazing result"),
+                        Map.entry("jr_step_result_class_second-step__6", "java.lang.String"),
+                        Map.entry("jr_step_third-step__6", false),
+                        Map.entry("jr_step_start_third-step__6", now.minus(3 * 60, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_third-step__6", now.minus(2 * 60, ChronoUnit.MINUTES).toString()),
+
+                        Map.entry("jr_step_third-step__10", true),
+                        Map.entry("jr_step_start_third-step__10", now.minus(2 * 60 - 44, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_third-step__10", now.minus((2 * 60 - 44) * 60 - 10, ChronoUnit.SECONDS).toString()),
+                        Map.entry("jr_step_result_third-step__10", "Some third amazing result"),
+                        Map.entry("jr_step_result_class_third-step__10", "java.lang.String"),
+                        Map.entry("jr_step_fourth-step__10", true),
+                        Map.entry("jr_step_start_fourth-step__10", now.minus(2 * 60 - 50, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_fourth-step__10", now.minus(60, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_result_fourth-step__10", "Some fourth amazing result"),
+                        Map.entry("jr_step_result_class_fourth-step__10", "java.lang.String"),
+                        Map.entry("jr_step_fifth-step__10", true),
+                        Map.entry("jr_step_start_fifth-step__10", now.minus(60, ChronoUnit.MINUTES).toString()),
+                        Map.entry("jr_step_end_fifth-step__10", now.minus(10, ChronoUnit.SECONDS).toString()),
+                        Map.entry("jr_step_result_fifth-step__10", "Some fifth amazing result"),
+                        Map.entry("jr_step_result_class_fifth-step__10", "java.lang.String")
+                ))
+                .build());
+
+        storageProvider.save(aJob().withName("A job that was scheduled early")
+                .withId(UUID.fromString("01a0665b-2b96-76b9-bb05-c83df8bbb5b0"))
+                .withAmountOfRetries(5)
+                .withState(new ScheduledState(now.minus(1, ChronoUnit.DAYS), "Scheduled ahead of time", now.minus(8, ChronoUnit.DAYS)))
+                .withEnqueuedState(now.minus(1, ChronoUnit.DAYS))
+                .withProcessingState(now.minus(1, ChronoUnit.MINUTES))
+                .withSucceededState()
+                .build());
+
+        storageProvider.save(aJob().withName("A job that backed off exponentially")
+                .withId(UUID.fromString("01a0665b-2b97-7d33-afda-69eea5958eb5"))
+                .withAmountOfRetries(5)
+                .withEnqueuedState(now.minus(2, ChronoUnit.DAYS))
+                .withProcessingState(now.minus(2 * 24 * 60 * 60 - 1, ChronoUnit.SECONDS))
+                .withState(new FailedState("Failed", null, null, null, null, null, false, now.minus(2 * 24 * 60 - 5, ChronoUnit.MINUTES)))
+                .withState(new ScheduledState(now.minus(24 * 60 - 5, ChronoUnit.MINUTES), "Retry 1 of 5", now.minus(2 * 24 * 60 - 5, ChronoUnit.MINUTES)))
+                .withProcessingState(now.minus(24 * 60 - 5, ChronoUnit.MINUTES))
+                .withSucceededState(now.minus((24 * 60 - 5) * 60 - 10, ChronoUnit.SECONDS))
+                .build());
+
         var carbonConfig = usingStandardCarbonAwareJobProcessingConfiguration()
                 .andAreaCode("BE");
 
         JobRunr
                 .configure()
-                .useJsonMapper(new JacksonJsonMapper())
+                .useJsonMapper(jsonMapper)
                 .useStorageProvider(storageProvider)
                 .useDashboardIf(dashboardIsEnabled(args), 8000)
                 .useBackgroundJobServer(usingStandardBackgroundJobServerConfiguration()
@@ -77,16 +151,16 @@ public class FrontEndDevelopment {
 //        BackgroundJob.<TestService>scheduleRecurrently("normal-rj", Cron.daily(), x -> x.doWorkWithJobAnnotationAndLabels(1, "eager"));
 
         //BackgroundJob.<TestService>scheduleRecurrently(Duration.ofMinutes(1), x -> x.doWorkThatTakesLong(JobContext.Null));
-        BackgroundJob.<TestService>scheduleRecurrently(Cron.every30seconds(), x -> x.doWorkThatTakesLong(15));
+//        BackgroundJob.<TestService>scheduleRecurrently(Cron.every30seconds(), x -> x.doWorkThatTakesLong(15));
 
-        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(4, HOURS), Duration.ofHours(4)), x -> x.doWork(4));
-        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));
-        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(48, HOURS), Duration.ofHours(4)), x -> x.doWork(52));
-        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(72));
-        BackgroundJob.<TestService>schedule(CarbonAware.between(nowUsingSystemDefault().atTime(20, 0), nowUsingSystemDefault().atTime(22, 0)), x -> x.doWork(72));
-        BackgroundJob.<TestService>schedule(CarbonAware.at(now().minus(10, DAYS), Duration.ofHours(4)), x -> x.doWork(-240));
+//        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(4, HOURS), Duration.ofHours(4)), x -> x.doWork(4));
+//        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(24, HOURS), Duration.ofHours(4)), x -> x.doWork(28));
+//        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(48, HOURS), Duration.ofHours(4)), x -> x.doWork(52));
+//        BackgroundJob.<TestService>schedule(CarbonAware.at(now().plus(3, DAYS), Duration.ofHours(4)), x -> x.doWork(72));
+//        BackgroundJob.<TestService>schedule(CarbonAware.between(nowUsingSystemDefault().atTime(20, 0), nowUsingSystemDefault().atTime(22, 0)), x -> x.doWork(72));
+//        BackgroundJob.<TestService>schedule(CarbonAware.at(now().minus(10, DAYS), Duration.ofHours(4)), x -> x.doWork(-240));
 
-        BackgroundJob.<TestService>enqueue(x -> x.doWorkThatTakesLong(JobContext.Null));
+        BackgroundJob.<TestService>enqueue(x -> x.doWorkThatRunsStepsOnce(JobContext.Null));
 
         DashboardNotificationManager dashboardNotificationManager = new DashboardNotificationManager(JobRunr.getBackgroundJobServer().getId(), storageProvider);
         new Timer().schedule(new TimerTask() {

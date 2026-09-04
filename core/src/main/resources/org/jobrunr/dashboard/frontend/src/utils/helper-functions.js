@@ -39,6 +39,27 @@ export function humanReadableISO8601Duration(durationString) {
     return result.trim();
 }
 
+export function humanReadableMillis(ms) {
+    let seconds = (ms / 1000).toFixed(0);
+    let minutes = (ms / (1000 * 60)).toFixed(0);
+    let hours = (ms / (1000 * 60 * 60)).toFixed(0);
+    let days = (ms / (1000 * 60 * 60 * 24)).toFixed(0);
+    if (ms < 1000) return ms + "ms";
+    else if (seconds < 60) return seconds + "s";
+    else if (minutes < 60) return minutes + "m";
+    else if (hours < 24) return hours + "h";
+    else return days + "d"
+}
+
+const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
+
+export function humanReadableNumber(num) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '?';
+    }
+    return decimalNumberFormatter.format(num);
+}
+
 export function parseScheduleExpression(scheduleExpressionWithOptionalCarbonAwareMargin) {
     const scheduleExpressionPattern = /(.+?)\s+\[\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*\/\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*]\s*/;
 
@@ -78,3 +99,18 @@ export function stringToColor(text) {
 
     return "#" + "00000".substring(0, 6 - c.length) + c;
 }
+
+export const javaDateAsMilliseconds = (date) => new Date(date).getTime();
+
+export const javaDateAsMicroseconds = (date) => {
+    const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(date));
+    if (!match) return javaDateAsMilliseconds(date) * 1000;
+    const frac = match[2] ? (match[2] + '000000').slice(0, 6) : '0';
+    return Date.parse(match[1] + (match[3] || 'Z')) * 1000 + parseInt(frac, 10);
+};
+
+export const formatDuration = (startMs, endMs) => {
+    const ms = Math.max(0, endMs - startMs);
+    if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
+    return humanReadableMillis(ms);
+};
