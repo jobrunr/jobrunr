@@ -93,8 +93,8 @@ const JobView = (props) => {
         return starts.map(([name, start]) => ({
             state: 'RUN_STEP_ONCE',
             stepName: name,
-            createdAt: start[1],
-            updatedAt: ends.get(name)?.[1],
+            createdAt: start,
+            updatedAt: ends.get(name),
             succeeded: completed.get(name),
             result: results.get(name),
         }));

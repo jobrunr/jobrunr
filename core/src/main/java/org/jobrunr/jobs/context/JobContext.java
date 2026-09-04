@@ -282,14 +282,20 @@ public class JobContext {
         String stepKey = step + "__" + job.getJobStates().size();
         if (!hasCompletedStep(step)) {
             try {
-                saveMetadata(JOBRUNR_STEP_START_PREFIX + stepKey, Instant.now());
+                Instant stepStartTime = Instant.now();
+                saveMetadata(JOBRUNR_STEP_START_PREFIX + stepKey, stepStartTime.toString());
+                logger().info("Step '" + step + "' started at " + stepStartTime);
                 T result = task.get();
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, Instant.now());
+                Instant stepEndTime = Instant.now();
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
+                logger().info("Step '" + step + "' succeeded at " + stepEndTime);
                 saveStepResult(stepKey, result);
                 markStepCompleted(stepKey);
                 return result;
             } catch (Exception e) {
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, Instant.now());
+                Instant stepEndTime = Instant.now();
+                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
+                logger().info("Step '" + step + "' failed at " + stepEndTime);
                 markStepFailed(stepKey);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }

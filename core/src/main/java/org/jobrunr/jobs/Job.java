@@ -206,6 +206,7 @@ public class Job extends AbstractJob {
     }
 
     public Job delete(String reason) {
+        clearMetadata();
         addJobState(new DeletedState(reason));
         return this;
     }
