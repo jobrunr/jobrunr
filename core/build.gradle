@@ -201,6 +201,7 @@ tasks.withType(Test).configureEach {
 }
 
 tasks.register('npmInstall', Exec) {
+    outputs.upToDateWhen { false }
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
