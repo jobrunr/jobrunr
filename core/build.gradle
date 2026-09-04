@@ -206,7 +206,7 @@ tasks.register('npmInstall', Exec) {
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
     commandLine 'sh', '-c', 'npm ci'
-    outputs.cacheIf { false }
+    outputs.cacheIf { true }
 }
 
 tasks.register('npmRunBuild', Exec) {
