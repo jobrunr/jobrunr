@@ -78,43 +78,27 @@ const JobView = (props) => {
     }, [job, order]);
 
     const processRunStepOnceMetadata = (metadata) => {
-        const processedStepOnceData = [];
-        const filteredMetadata = Object.entries(metadata).filter((entry) => entry[0].startsWith('jr_step_'))
-
-        let stepStarts = [];
-        let stepEnds = [];
-        let stepResult = [];
-        let stepComplete = [];
-
-        for (let metadata of filteredMetadata) {
-            if (metadata[0].startsWith("jr_step_start_")) {
-                stepStarts.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_end_")) {
-                stepEnds.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_result_") && !metadata[0].startsWith("jr_step_result_class_")) {
-                stepResult.push(metadata);
-            } else if (metadata[0].startsWith("jr_step_") && !metadata[0].startsWith("jr_step_result_class_")) {
-                stepComplete.push(metadata);
-            }
+        const starts = [];
+        const ends = new Map();
+        const results = new Map();
+        const completed = new Map();
+        for (const [key, value] of Object.entries(metadata)) {
+            if (key.startsWith('jr_step_result_class_')) continue;
+            if (key.startsWith('jr_step_start_')) starts.push([key.slice('jr_step_start_'.length), value]);
+            else if (key.startsWith('jr_step_end_')) ends.set(key.slice('jr_step_end_'.length), value);
+            else if (key.startsWith('jr_step_result_')) results.set(key.slice('jr_step_result_'.length), value);
+            else if (key.startsWith('jr_step_')) completed.set(key.slice('jr_step_'.length), value);
         }
 
-        for (let step of stepStarts) {
-            const stepName = step[0].split('jr_step_start_')[1];
-            const updatedAt = stepEnds.find((entry) => entry[0] === "jr_step_end_" + stepName);
-            const completed = stepComplete.find((entry) => entry[0] === "jr_step_" + stepName);
-            const result = stepResult.find((entry) => entry[0] === "jr_step_result_" + stepName);
-            processedStepOnceData.push({
-                state: "RUN_STEP_ONCE",
-                createdAt: step[1][1],
-                updatedAt: updatedAt ? updatedAt[1][1] : undefined,
-                stepName: stepName,
-                succeeded: completed ? completed[1] : undefined,
-                result: result ? result[1] : undefined
-            })
-        }
-
-        return processedStepOnceData;
-    }
+        return starts.map(([name, start]) => ({
+            state: 'RUN_STEP_ONCE',
+            stepName: name,
+            createdAt: start[1],
+            updatedAt: ends.get(name)?.[1],
+            succeeded: completed.get(name),
+            result: results.get(name),
+        }));
+    };
 
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
@@ -297,19 +281,19 @@ const JobView = (props) => {
                             </Grid>
 
                         </Grid>
-                                {apiStatus &&
-                                    <Snackbar open={true}
-                                              autoHideDuration={3000}
-                                              onClose={handleCloseAlert}
-                                              anchorOrigin={{vertical: "bottom", horizontal: "center"}}
-                                    >
-                                        <Alert severity={apiStatus.severity}>
-                                            {apiStatus.message}
-                                        </Alert>
-                                    </Snackbar>
-                                }
+                        {apiStatus &&
+                            <Snackbar open={true}
+                                      autoHideDuration={3000}
+                                      onClose={handleCloseAlert}
+                                      anchorOrigin={{vertical: "bottom", horizontal: "center"}}
+                            >
+                                <Alert severity={apiStatus.severity}>
+                                    {apiStatus.message}
+                                </Alert>
+                            </Snackbar>
+                        }
                     </>
-                    }
+                }
                 </>
             }
             <VersionFooter/>

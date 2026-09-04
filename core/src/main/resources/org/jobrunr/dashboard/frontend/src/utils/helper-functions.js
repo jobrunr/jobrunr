@@ -52,6 +52,7 @@ export function humanReadableMillis(ms) {
 }
 
 const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
+
 export function humanReadableNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) {
         return '?';
@@ -98,3 +99,18 @@ export function stringToColor(text) {
 
     return "#" + "00000".substring(0, 6 - c.length) + c;
 }
+
+export const javaDateAsMilliseconds = (date) => new Date(date).getTime();
+
+export const javaDateAsMicroseconds = (date) => {
+    const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(date));
+    if (!match) return javaDateAsMilliseconds(date) * 1000;
+    const frac = match[2] ? (match[2] + '000000').slice(0, 6) : '0';
+    return Date.parse(match[1] + (match[3] || 'Z')) * 1000 + parseInt(frac, 10);
+};
+
+export const formatDuration = (startMs, endMs) => {
+    const ms = Math.max(0, endMs - startMs);
+    if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
+    return humanReadableMillis(ms);
+};
