@@ -24,7 +24,6 @@ import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import {useLocation} from "react-router";
-import {humanReadableNumber} from "../../utils/helper-functions.js";
 
 const Heading = styled(Typography)(({theme}) => ({
     fontSize: theme.typography.pxToRem(15),
@@ -115,7 +114,8 @@ const TryProDialog = ({open, setOpen, setFormSubmitted, total}) => {
             aria-describedby="try-pro-dialog-description"
         >
             <DialogTitle id="try-pro-dialog-title">
-                Search all {total ? (humanReadableNumber(total) + " " + jobState.toLowerCase()) : "your"} jobs in this dashboard
+                Search all {total ? (total.toLocaleString("en") + " " + jobState.toLowerCase()) : "your"} jobs
+                in this dashboard
             </DialogTitle>
             <DialogContent dividers>
                 <DialogContentText id="try-pro-dialog-description">
