@@ -1,20 +1,19 @@
 import {formatDuration, javaDateAsMicroseconds, javaDateAsMilliseconds} from "../../../utils/helper-functions.js";
+import {END_STATES, ENQUEUED, PROCESSING, SCHEDULED, STATE_LABELS} from "../../utils/state-names.js";
 
-export const END_STATES = ['SUCCEEDED', 'FAILED'];
 export const EXCLUDED_NON_COMPACT = ['AWAITING', 'DELETED'];
 
 const STEP_LABELS = {
-    AWAITING: 'Awaiting', SCHEDULED: 'Scheduled', ENQUEUED: 'Enqueued',
-    PROCESSING: 'Processing', SUCCEEDED: 'Succeeded', FAILED: 'Failed',
+    ...STATE_LABELS,
     RUN_STEP_ONCE: 'Step (runStepOnce)',
 };
 const MIN_COMPRESSION_THRESHOLD_MS = 60000;
 const COMPRESSION_THRESHOLD = 0.15;
 
 const lifecycleRows = () => [
-    {key: 'SCHEDULED', label: 'Scheduled', isStep: false, items: []},
-    {key: 'ENQUEUED', label: 'Enqueued', isStep: false, items: []},
-    {key: 'PROCESSING', label: 'Processing', isStep: false, items: []},
+    {key: SCHEDULED, label: STEP_LABELS[SCHEDULED], isStep: false, items: []},
+    {key: ENQUEUED, label: STEP_LABELS[ENQUEUED], isStep: false, items: []},
+    {key: PROCESSING, label: STEP_LABELS[PROCESSING], isStep: false, items: []},
 ];
 
 export const getStepEndTime = (step) => step.updatedAt && javaDateAsMicroseconds(step.updatedAt) > javaDateAsMicroseconds(step.createdAt) ? javaDateAsMilliseconds(step.updatedAt) : null;

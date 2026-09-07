@@ -4,13 +4,13 @@ import Tooltip from '@mui/material/Tooltip';
 import {useTheme} from "@mui/material";
 import {Rhombus, RhombusOutline} from "mdi-material-ui";
 import {Fragment} from 'react';
-import {END_STATES} from "./timeline-data.js";
 import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {Legend} from "./legend.js";
 import {formatDuration} from "../../../utils/helper-functions.js";
 import {GanttBar, getBarColor} from "./gantt-bar.js";
 import {BreakIndicator} from "./break-indicator.js";
 import {RetrySeparator} from "./retry-separator.js";
+import {END_STATES} from "../../utils/state-names.js";
 
 const MIN_LABEL_WIDTH = 150;
 const MAX_LABEL_WIDTH = 250;

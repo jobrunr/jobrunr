@@ -6,7 +6,8 @@ import {ToggleButton, ToggleButtonGroup} from "@mui/material";
 import {useEffect, useState} from 'react';
 import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {TimelineChart} from "./timeline-chart.js";
-import {buildTimelineModel, END_STATES, EXCLUDED_NON_COMPACT, removeInitialScheduled} from "./timeline-data.js";
+import {buildTimelineModel, EXCLUDED_NON_COMPACT, removeInitialScheduled} from "./timeline-data.js";
+import {END_STATES} from "../../utils/state-names.js";
 
 export const JobHistoryChart = ({executionSteps, reverse = false}) => {
     const [timelineMode, setTimelineMode] = useState(() => localStorage.getItem("executionTimelineMode") ?? "compact");

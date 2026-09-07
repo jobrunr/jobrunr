@@ -219,38 +219,6 @@ public class JobContext {
     }
 
     /**
-     * Returns the value of the latest run for a step.
-     * <p>
-     * Matches either the exact key (e.g. {@code jr_step_<name>} for the {@link ThrowingRunnable} overload),
-     * picking the entry with the highest run number so the result does not depend on the arbitrary iteration order
-     * of the underlying {@link java.util.concurrent.ConcurrentHashMap}. Unlike a plain {@code startsWith} lookup,
-     * this also avoids collisions between step names that are prefixes of each other (e.g. {@code send} vs {@code send-email}).
-     */
-    private Object getLatestStepMetadata(String key) {
-        Object latestValue = null;
-        int latestRun = -1;
-        for (Map.Entry<String, Object> entry : job.getMetadata().entrySet()) {
-            String entryKey = entry.getKey();
-            if (entryKey == null) continue;
-            if (entryKey.equals(key)) {
-                if (latestRun < 0) {
-                    latestValue = entry.getValue();
-                }
-            } else if (entryKey.startsWith(key + "__")) {
-                String suffix = entryKey.substring(key.length() + 2);
-                if (suffix.matches("\\d+")) {
-                    int run = Integer.parseInt(suffix);
-                    if (run > latestRun) {
-                        latestRun = run;
-                        latestValue = entry.getValue();
-                    }
-                }
-            }
-        }
-        return latestValue;
-    }
-
-    /**
      * Run the supplied task exactly once (i.e. only if it hasn’t already completed).
      * If the task throws any {@link Exception}, the step won’t be marked completed.
      *
@@ -338,6 +306,38 @@ public class JobContext {
         } else {
             throw new IllegalStateException("Result of step '" + stepName + "' must be supported by the Autoboxer or a class implementing StepResult and was '" + result.getClass().getName() + "'");
         }
+    }
+
+    /**
+     * Returns the value of the latest run for a step.
+     * <p>
+     * Matches either the exact key (e.g. {@code jr_step_<name>} for the {@link ThrowingRunnable} overload),
+     * picking the entry with the highest run number so the result does not depend on the arbitrary iteration order
+     * of the underlying {@link java.util.concurrent.ConcurrentHashMap}. Unlike a plain {@code startsWith} lookup,
+     * this also avoids collisions between step names that are prefixes of each other (e.g. {@code send} vs {@code send-email}).
+     */
+    private Object getLatestStepMetadata(String key) {
+        Object latestValue = null;
+        int latestRun = -1;
+        for (Map.Entry<String, Object> entry : job.getMetadata().entrySet()) {
+            String entryKey = entry.getKey();
+            if (entryKey == null) continue;
+            if (entryKey.equals(key)) {
+                if (latestRun < 0) {
+                    latestValue = entry.getValue();
+                }
+            } else if (entryKey.startsWith(key + "__")) {
+                String suffix = entryKey.substring(key.length() + 2);
+                if (suffix.matches("\\d+")) {
+                    int run = Integer.parseInt(suffix);
+                    if (run > latestRun) {
+                        latestRun = run;
+                        latestValue = entry.getValue();
+                    }
+                }
+            }
+        }
+        return latestValue;
     }
 
     private static void validateMetadata(Object metadata) {

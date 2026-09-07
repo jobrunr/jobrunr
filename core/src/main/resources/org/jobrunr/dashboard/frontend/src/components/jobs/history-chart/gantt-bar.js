@@ -10,6 +10,7 @@ const animateInProgressBar = keyframes`
         background-position: 28px 0;
     }
 `;
+
 export const getBarColor = (step, theme) => {
     if (step.state === 'ENQUEUED') return theme.palette.info.light;
     if (step.state === 'SCHEDULED') return theme.palette.grey[600];
@@ -17,6 +18,7 @@ export const getBarColor = (step, theme) => {
     if (step.succeeded === true || step.state === 'SUCCEEDED') return theme.palette.success.light;
     return theme.palette.warning.light;
 };
+
 export const GanttBar = styled(LinearProgress, {
     shouldForwardProp: (prop) => prop !== 'active',
 })(({theme, active, step}) => {
