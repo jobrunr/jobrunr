@@ -180,7 +180,7 @@ const buildBreakTicks = (longRanges, compressTime, timelineStartMs, compressedTi
         return {
             ms: (startRel + endRel) / 2,
             pct: visualPercentage(midRealMs, compressTime, compressedTimelineStart, compressedTimelineDuration),
-            label: `${startLabel} ... +${formatDuration(0, endRel)}`,
+            label: `${startLabel} ... +${formatDuration(0, endRel, 2)}`,
             isBreak: true, startMs: r.startMs, endMs: r.endMs,
         };
     });
@@ -193,7 +193,7 @@ const buildRegularTicks = (durationMs, stepSec, compressTime, timelineStartMs, c
         ticks.push({
             ms, startMs: realTime, isBreak: false,
             pct: visualPercentage(realTime, compressTime, compressedTimelineStart, compressedTimelineDuration),
-            label: ms === 0 ? '0' : `+${formatDuration(0, ms)}`,
+            label: ms === 0 ? '0' : `+${formatDuration(0, ms, 2)}`,
         });
     }
     return ticks;

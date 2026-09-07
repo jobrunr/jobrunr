@@ -46,6 +46,7 @@ export function humanReadableMillis(ms, significantUnits = 1) {
         {value: parts.hours, label: "h"},
         {value: parts.minutes, label: "m"},
         {value: parts.seconds, label: "s"},
+        {value: parts.milliseconds, label: "ms"},
     ];
 
     const start = units.findIndex(u => u.value > 0);
@@ -62,13 +63,15 @@ export function humanReadableMillis(ms, significantUnits = 1) {
 }
 
 const getDaysHoursMinutesAndSecondsFromMillis = (ms) => {
-    const totalSeconds = (ms / 1000).toFixed(2);
+    const totalSeconds = (ms / 1000).toFixed(3);
     const days = Math.floor(totalSeconds / 86_400);
     const hours = Math.floor((totalSeconds - (days * 86_400)) / 3600);
     const minutes = Math.floor((totalSeconds - (days * 86_400) - (hours * 3600)) / 60);
-    const seconds = Math.floor((totalSeconds - (days * 86_400) - (hours * 3600) - (minutes * 60)) * 100) / 100;
-    return {days, hours, minutes, seconds};
-}
+    const remainingSeconds = totalSeconds - (days * 86_400) - (hours * 3600) - (minutes * 60);
+    const seconds = Math.floor(remainingSeconds);
+    const milliseconds = Math.round((remainingSeconds - seconds) * 1000);
+    return {days, hours, minutes, seconds, milliseconds};
+};
 
 const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
 
@@ -128,8 +131,8 @@ export const javaDateAsMicroseconds = (date) => {
     return Date.parse(match[1] + (match[3] || 'Z')) * 1000 + parseInt(frac, 10);
 };
 
-export const formatDuration = (startMs, endMs) => {
+export const formatDuration = (startMs, endMs, significantUnits = 1) => {
     const ms = Math.max(0, endMs - startMs);
     if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
-    return humanReadableMillis(ms, 2);
+    return humanReadableMillis(ms, significantUnits);
 };
