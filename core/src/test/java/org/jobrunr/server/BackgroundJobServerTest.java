@@ -158,7 +158,7 @@ class BackgroundJobServerTest {
         sleep(100, MILLISECONDS);
         assertThat(backgroundJobServer.isAnnounced()).isTrue();
         assertThat(backgroundJobServer.isNotReadyToProcessJobs()).isTrue();
-        assertThat(logger).hasErrorMessageContaining("JobRunr Pro Version number 6.0.0 is older than database version number 9999.99. BackgroundJobServer will not process any jobs.");
+        assertThat(logger).hasErrorMessageContaining("JobRunr Pro Version number 1.0.0-SNAPSHOT is older than database version number 9999.99. BackgroundJobServer will not process any jobs.");
     }
 
     @Test
