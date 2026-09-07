@@ -1,8 +1,11 @@
 package org.jobrunr.storage.sql;
 
 import org.jobrunr.storage.StorageProviderUtils;
+import org.jobrunr.storage.sql.common.DatabaseMigrationsProvider;
 import org.jobrunr.storage.sql.common.migrations.SqlMigration;
 import org.jobrunr.storage.sql.common.migrations.SqlMigrationByPath;
+import org.jobrunr.storage.sql.mariadb.MariaDbStorageProvider;
+import org.jobrunr.storage.sql.mysql.MySqlStorageProvider;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -14,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +27,33 @@ public class SqlScriptsTest {
     void validateAllMigrationScriptsHaveCorrectSQLCasingAndCorrectFieldCasing() throws IOException {
         allMigrations()
                 .forEach(this::validateSqlMigrationScript);
+    }
+
+    @Test
+    void validateJobStatsViewIsCreatedUsingSqlSecurityInvokerForMySqlAndMariaDb() {
+        Stream.of(MySqlStorageProvider.class, MariaDbStorageProvider.class)
+                .forEach(this::assertJobStatsViewIsCreatedUsingSqlSecurityInvoker);
+    }
+
+    private void assertJobStatsViewIsCreatedUsingSqlSecurityInvoker(Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+        String lastStatementCreatingTheJobStatsView = new DatabaseMigrationsProvider(sqlStorageProviderClass).getMigrations()
+                .sorted(comparing(SqlMigration::getFileName))
+                .flatMap(this::statementsOf)
+                .filter(statement -> statement.trim().startsWith("CREATE") && statement.contains("VIEW jobrunr_jobs_stats"))
+                .reduce((first, second) -> second)
+                .orElseThrow(() -> new AssertionError("Expected a migration creating the jobrunr_jobs_stats view for " + sqlStorageProviderClass.getSimpleName()));
+
+        assertThat(lastStatementCreatingTheJobStatsView)
+                .describedAs("The jobrunr_jobs_stats view of %s must be created using SQL SECURITY INVOKER. Using the default SQL SECURITY DEFINER stores the user that ran the migrations inside the view definition, which breaks the dashboard as soon as the database is restored in an environment where that user does not exist.", sqlStorageProviderClass.getSimpleName())
+                .contains("SQL SECURITY INVOKER");
+    }
+
+    private Stream<String> statementsOf(SqlMigration sqlMigration) {
+        try {
+            return Stream.of(sqlMigration.getMigrationSql().split(";"));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load SQL file", e);
+        }
     }
 
     void validateSqlMigrationScript(SqlMigrationByPath sqlMigration) {
