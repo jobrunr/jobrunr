@@ -39,16 +39,35 @@ export function humanReadableISO8601Duration(durationString) {
     return result.trim();
 }
 
-export function humanReadableMillis(ms) {
-    let seconds = (ms / 1000).toFixed(0);
-    let minutes = (ms / (1000 * 60)).toFixed(0);
-    let hours = (ms / (1000 * 60 * 60)).toFixed(0);
-    let days = (ms / (1000 * 60 * 60 * 24)).toFixed(0);
-    if (ms < 1000) return ms + "ms";
-    else if (seconds < 60) return seconds + "s";
-    else if (minutes < 60) return minutes + "m";
-    else if (hours < 24) return hours + "h";
-    else return days + "d"
+export function humanReadableMillis(ms, significantUnits = 1) {
+    const parts = getDaysHoursMinutesAndSecondsFromMillis(ms);
+    const units = [
+        {value: parts.days, label: "d"},
+        {value: parts.hours, label: "h"},
+        {value: parts.minutes, label: "m"},
+        {value: parts.seconds, label: "s"},
+    ];
+
+    const start = units.findIndex(u => u.value > 0);
+    if (start === -1) return "0s";
+
+    let resultString = "";
+    for (let i = start; i < units.length && (i - start) < significantUnits; i++) {
+        const unit = units[i];
+        if (unit.value > 0) {
+            resultString += unit.value + unit.label + " ";
+        }
+    }
+    return resultString.trim() || "0s";
+}
+
+const getDaysHoursMinutesAndSecondsFromMillis = (ms) => {
+    const totalSeconds = (ms / 1000).toFixed(2);
+    const days = Math.floor(totalSeconds / 86_400);
+    const hours = Math.floor((totalSeconds - (days * 86_400)) / 3600);
+    const minutes = Math.floor((totalSeconds - (days * 86_400) - (hours * 3600)) / 60);
+    const seconds = Math.floor((totalSeconds - (days * 86_400) - (hours * 3600) - (minutes * 60)) * 100) / 100;
+    return {days, hours, minutes, seconds};
 }
 
 const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
@@ -112,5 +131,5 @@ export const javaDateAsMicroseconds = (date) => {
 export const formatDuration = (startMs, endMs) => {
     const ms = Math.max(0, endMs - startMs);
     if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
-    return humanReadableMillis(ms);
+    return humanReadableMillis(ms, 2);
 };
