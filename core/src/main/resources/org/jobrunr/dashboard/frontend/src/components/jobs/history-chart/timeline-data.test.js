@@ -236,7 +236,7 @@ describe('buildTimelineModel', () => {
             {state: 'SUCCEEDED', createdAt: iso(120100)},
         ];
         const compressed = buildTimelineModel({steps: gappedJob(), mode: 'compact', compression: 'compressed', reverse: false, now: ms(120100)});
-        const linear = buildTimelineModel({steps: gappedJob(), mode: 'compact', compression: 'actual', reverse: false, now: ms(120100)});
+        const linear = buildTimelineModel({steps: gappedJob(), mode: 'compact', compression: 'linear', reverse: false, now: ms(120100)});
         expect(compressed.compactRows[0].items[0].placement.isCompressed).toBe(true);
         expect(linear.compactRows[0].items[0].placement.isCompressed).toBe(false);
     });

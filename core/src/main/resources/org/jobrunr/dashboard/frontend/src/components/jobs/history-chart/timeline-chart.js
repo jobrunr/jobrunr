@@ -10,7 +10,7 @@ import {formatDuration} from "../../../utils/helper-functions.js";
 import {GanttBar, getBarColor} from "./gantt-bar.js";
 import {BreakIndicator} from "./break-indicator.js";
 import {RetrySeparator} from "./retry-separator.js";
-import {END_STATES} from "../../utils/state-names.js";
+import {END_STATES, FAILED} from "../../utils/state-names.js";
 
 const MIN_LABEL_WIDTH = 150;
 const MAX_LABEL_WIDTH = 250;
@@ -44,14 +44,14 @@ const renderBarOrCircle = (item, theme, reverse) => {
                 <RhombusOutline fontSize="tiny"
                                 sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
             ) : isPoint ? (
-                <Rhombus fontSize="tiny" color={item.succeeded === false || item.state === 'FAILED' ? 'error' : 'success'}
+                <Rhombus fontSize="tiny" color={item.succeeded === false || item.state === FAILED ? 'error' : 'success'}
                          sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)'}}/>
             ) : (
                 <Box sx={{position: 'absolute', left: `${offset}%`, width: `${width}%`, top: 0, bottom: 0, display: 'flex', alignItems: 'center'}}>
                     <GanttBar active={item.active} variant={item.active ? 'indeterminate' : 'determinate'} value={item.active ? undefined : 100} step={item}/>
                     {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset} color={getBarColor(item, theme)}/>)}
                     {item.outcome && (
-                        <Rhombus fontSize="tiny" color={item.outcome === 'FAILED' ? 'error' : 'success'}
+                        <Rhombus fontSize="tiny" color={item.outcome === FAILED ? 'error' : 'success'}
                                  sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
                     )}
                 </Box>
@@ -115,13 +115,13 @@ export const TimelineChart = ({model, timelineMode, reverse = false}) => {
                             </Tooltip>
                         ))}
                     </Box>
-                    <Box/>
+                    <div/>
                 </Box>
 
                 <Box aria-hidden="true"
                      sx={{position: 'absolute', top: 26, bottom: 0, gridColumn: '2 / 3', width: '100%', pointerEvents: 'none', zIndex: 0,}}>
                     {ticks.map((t) => (
-                        <Box key={t.ms + "-divider"} sx={{
+                        <Box key={t.ms} sx={{
                             position: 'absolute',
                             top: 0,
                             bottom: 0,

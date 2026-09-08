@@ -66,7 +66,7 @@ const SidebarDrawer = (props) => {
             </SidebarContainer>
             <Toggle collapsed={collapsed}>
                 <IconButton
-                    onClick={() => setManualCollapsed(prev => !prev)}
+                    onClick={() => setManualCollapsed(prev => prev === null ? !isSmallScreen : !prev)}
                     title="Toggle sidebar"
                     size={collapsed ? "medium" : "large"}>
                     {collapsed ? <ChevronRight/> : <ChevronLeft/>}

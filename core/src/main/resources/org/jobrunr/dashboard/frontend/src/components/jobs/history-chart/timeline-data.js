@@ -1,7 +1,7 @@
 import {formatDuration, javaDateAsMicroseconds, javaDateAsMilliseconds} from "../../../utils/helper-functions.js";
-import {END_STATES, ENQUEUED, PROCESSING, SCHEDULED, STATE_LABELS} from "../../utils/state-names.js";
+import {AWAITING, DELETED, END_STATES, ENQUEUED, PROCESSING, SCHEDULED, STATE_LABELS} from "../../utils/state-names.js";
 
-export const EXCLUDED_NON_COMPACT = ['AWAITING', 'DELETED'];
+export const EXCLUDED_STATES = [AWAITING, DELETED];
 
 const STEP_LABELS = {
     ...STATE_LABELS,
@@ -20,7 +20,7 @@ export const getStepEndTime = (step) => step.updatedAt && javaDateAsMicroseconds
 
 export const removeInitialScheduled = (steps) => {
     const list = steps ?? [];
-    return list.length > 0 && list[0].state === 'SCHEDULED' ? list.slice(1) : list;
+    return list.length > 0 && list[0].state === SCHEDULED ? list.slice(1) : list;
 };
 
 export const getStepLabel = (step) => {
@@ -133,7 +133,7 @@ export const addSkippedStepsToPerformedSteps = (steps, skipped) => {
 };
 
 export const toTimelineSteps = (executionSteps) =>
-    executionSteps.filter((step) => !EXCLUDED_NON_COMPACT.includes(step.state));
+    executionSteps.filter((step) => !EXCLUDED_STATES.includes(step.state));
 
 const compressorScale = (range, totalDuration, thresholdMs) => {
     const baseScale = Math.max(thresholdMs / 2, 1);
@@ -241,7 +241,7 @@ const collectStepsIntoCompactRows = (executionSteps, stepEndMap, now) => {
             const name = getStepLabel(step);
             if (!stepMap.has(name)) stepMap.set(name, {key: name, label: name, isStep: true, items: []});
             stepMap.get(name).items.push({...step, startMs, endMs, active: info?.active, isSkipped: step.skipped || step.isSkipped});
-        } else if (['SCHEDULED', 'ENQUEUED', 'PROCESSING'].includes(step.state)) {
+        } else if ([SCHEDULED, 'ENQUEUED', 'PROCESSING'].includes(step.state)) {
             const row = rows.find(r => r.key === step.state);
             if (row) row.items.push({...step, startMs, endMs, active: info?.active, outcome: processOutcomeOfStep(step, nextStep)});
         }
@@ -344,7 +344,7 @@ const buildCompactRetryEvents = (rawSteps, compressTime, compressedTimelineStart
     const events = [];
     let count = 0;
     rawSteps.forEach((step, idx) => {
-        if (idx > 0 && step.state === 'SCHEDULED') {
+        if (idx > 0 && step.state === SCHEDULED) {
             count += 1;
             const retryMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
             const pct = compressedTimelineDuration > 0 ? ((compressTime(retryMs) - compressedTimelineStart) / compressedTimelineDuration) * 100 : 0;
@@ -372,7 +372,7 @@ const buildDetailedRows = (detailedSteps, stepEndMap, getPlacement, reverse) => 
         const stepStartMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
         const stepEndMs = info?.end ?? null;
         const active = info?.active ?? false;
-        const isRetry = index > 0 && step.state === 'SCHEDULED';
+        const isRetry = index > 0 && step.state === SCHEDULED;
         if (isRetry) chronologicalRetry += 1;
         return {
             step,
@@ -394,7 +394,7 @@ const buildDetailedRows = (detailedSteps, stepEndMap, getPlacement, reverse) => 
 };
 
 export const buildTimelineModel = ({steps, mode, compression, reverse, now}) => {
-    const rawSteps = (steps ?? []).filter((step) => !EXCLUDED_NON_COMPACT.includes(step.state));
+    const rawSteps = (steps ?? []).filter((step) => !EXCLUDED_STATES.includes(step.state));
     if (rawSteps.length === 0) return null;
 
     const {start, end, stepEndTimesMap, skipped} = convertStepsToTimeline(rawSteps, now);
@@ -404,7 +404,7 @@ export const buildTimelineModel = ({steps, mode, compression, reverse, now}) => 
     const compressionThresholdMs = Math.max(MIN_COMPRESSION_THRESHOLD_MS, duration * COMPRESSION_THRESHOLD);
 
     const longRanges = detectLongRangesToCompress(rawSteps, stepEndTimesMap, start, end, now, compressionThresholdMs);
-    const compressRanges = compression === 'actual' ? [] : longRanges;
+    const compressRanges = compression === 'linear' ? [] : longRanges;
     const compressTime = createTimeCompressor(compressRanges, duration, compressionThresholdMs);
     const compressedTimelineStart = compressTime(start);
     const compressedTimelineEnd = compressTime(end);
