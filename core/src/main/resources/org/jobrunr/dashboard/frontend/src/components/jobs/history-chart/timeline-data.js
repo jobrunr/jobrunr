@@ -1,4 +1,4 @@
-import {formatDuration, javaDateAsMicroseconds, javaDateAsMilliseconds} from "../../../utils/helper-functions.js";
+import {formatDuration, javaDateAsMilliseconds, javaDateAsNanoseconds} from "../../../utils/helper-functions.js";
 import {AWAITING, DELETED, END_STATES, ENQUEUED, PROCESSING, SCHEDULED, STATE_LABELS} from "../../utils/state-names.js";
 
 export const EXCLUDED_STATES = [AWAITING, DELETED];
@@ -16,7 +16,7 @@ const lifecycleRows = () => [
     {key: PROCESSING, label: STEP_LABELS[PROCESSING], isStep: false, items: []},
 ];
 
-export const getStepEndTime = (step) => step.updatedAt && javaDateAsMicroseconds(step.updatedAt) > javaDateAsMicroseconds(step.createdAt) ? javaDateAsMilliseconds(step.updatedAt) : null;
+export const getStepEndTime = (step) => step.updatedAt && javaDateAsNanoseconds(step.updatedAt) > javaDateAsNanoseconds(step.createdAt) ? javaDateAsMilliseconds(step.updatedAt) : null;
 
 export const removeInitialScheduled = (steps) => {
     const list = steps ?? [];
@@ -70,7 +70,7 @@ const computeStepBounds = (steps, now) => {
 const earliestEntryForRetry = (historyByStep, stepOrder, attemptId) =>
     stepOrder
         .flatMap((name) => historyByStep.get(name).filter((a) => a.attemptId === attemptId))
-        .sort((a, b) => javaDateAsMicroseconds(a.startAt) - javaDateAsMicroseconds(b.startAt))[0];
+        .sort((a, b) => javaDateAsNanoseconds(a.startAt) - javaDateAsNanoseconds(b.startAt))[0];
 
 const isStepSkippedForRetry = (historyByStep, stepOrder, attemptId, stepBase, stepsInAttempt) => {
     const history = historyByStep.get(stepBase);

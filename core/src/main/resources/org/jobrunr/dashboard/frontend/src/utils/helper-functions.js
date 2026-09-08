@@ -124,7 +124,8 @@ export function stringToColor(text) {
 
 export const javaDateAsMilliseconds = (date) => new Date(date).getTime();
 
-export const javaDateAsMicroseconds = (date) => {
+export const javaDateAsNanoseconds = (date) => {
+    // TODO instead pad string and compare strings, and compare with localeCompare?
     const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(date));
     if (!match) return javaDateAsMilliseconds(date) * 1000;
     const frac = match[2] ? (match[2] + '000000').slice(0, 6) : '0';

@@ -1,4 +1,11 @@
-import {convertISO8601DurationToSeconds, formatDuration, humanFileSize, javaDateAsMicroseconds, javaDateAsMilliseconds, parseScheduleExpression} from './helper-functions';
+import {
+    convertISO8601DurationToSeconds,
+    formatDuration,
+    humanFileSize,
+    javaDateAsMilliseconds,
+    javaDateAsNanoseconds,
+    parseScheduleExpression
+} from './helper-functions';
 
 describe('humanFileSize', () => {
     it('returns bytes correctly for small numbers', () => {
@@ -125,14 +132,14 @@ describe('javaDateAsMilliseconds / javaDateAsMicroseconds', () => {
 
     it('javaDateAsMicroseconds preserves sub-millisecond precision that javaDateAsMilliseconds loses', () => {
         const t = '2024-01-01T00:00:00.123456Z';
+        expect(javaDateAsNanoseconds(t)).toBe(1704067200123456);
+        expect(javaDateAsNanoseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000 + 456);
         expect(javaDateAsMilliseconds(t)).toBe(1704067200123);
-        expect(javaDateAsMicroseconds(t)).toBe(1704067200123456);
-        expect(javaDateAsMicroseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000 + 456);
     });
 
     it('javaDateAsMicroseconds matches javaDateAsMilliseconds*1000 when there is no fractional second', () => {
         const t = iso(0);
-        expect(javaDateAsMicroseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000);
+        expect(javaDateAsNanoseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000);
     });
 });
 
