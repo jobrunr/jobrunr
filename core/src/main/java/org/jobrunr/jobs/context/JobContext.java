@@ -70,11 +70,11 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  */
 public class JobContext {
 
-    private static final String JOBRUNR_STEP_PREFIX = "jr_step_";
-    private static final String JOBRUNR_STEP_START_PREFIX = "jr_step_start_";
-    private static final String JOBRUNR_STEP_END_PREFIX = "jr_step_end_";
-    private static final String JOBRUNR_STEP_RESULT_PREFIX = "jr_step_result_";
-    private static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = "jr_step_result_class_";
+    public static final String JOBRUNR_STEP_PREFIX = "jr_step_";
+    public static final String JOBRUNR_STEP_START_PREFIX = JOBRUNR_STEP_PREFIX + "start_";
+    public static final String JOBRUNR_STEP_END_PREFIX = JOBRUNR_STEP_PREFIX + "end_";
+    public static final String JOBRUNR_STEP_RESULT_PREFIX = JOBRUNR_STEP_PREFIX + "result_";
+    public static final String JOBRUNR_STEP_RESULT_CLASS_PREFIX = JOBRUNR_STEP_RESULT_PREFIX + "class_";
 
     public static final JobContext Null = new JobContext(null);
 
@@ -211,7 +211,7 @@ public class JobContext {
      * Returns true if the given step has already completed successfully in a previous run.
      */
     public boolean hasCompletedStep(String stepName) {
-        Object value = getLatestStepMetadata(JOBRUNR_STEP_PREFIX + stepName);
+        Object value = getStepCompletedValue(stepName);
         if (value == null) return false;
         if (value instanceof Boolean) return (boolean) value;
         if (value instanceof String) return Boolean.parseBoolean((String) value);
@@ -229,9 +229,11 @@ public class JobContext {
     public void runStepOnce(String step, ThrowingRunnable task) throws StepExecutionException {
         if (!hasCompletedStep(step)) {
             try {
+                markStepStarted(step);
                 task.run();
                 markStepCompleted(step);
             } catch (Exception e) {
+                markStepFailed(step);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }
         }
@@ -247,48 +249,57 @@ public class JobContext {
      * @throws StepExecutionException when an exception happens during the execution of this step
      */
     public <T> T runStepOnce(String step, ThrowingSupplier<T> task) throws StepExecutionException {
-        String stepKey = step + "__" + job.getJobStates().size();
         if (!hasCompletedStep(step)) {
             try {
-                Instant stepStartTime = Instant.now();
-                saveMetadata(JOBRUNR_STEP_START_PREFIX + stepKey, stepStartTime.toString());
-                logger().info("Step '" + step + "' started at " + stepStartTime);
+                markStepStarted(step);
                 T result = task.get();
-                Instant stepEndTime = Instant.now();
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
-                logger().info("Step '" + step + "' succeeded at " + stepEndTime);
-                saveStepResult(stepKey, result);
-                markStepCompleted(stepKey);
+                saveStepResult(step, result);
+                markStepCompleted(step);
                 return result;
             } catch (Exception e) {
-                Instant stepEndTime = Instant.now();
-                saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
-                logger().info("Step '" + step + "' failed at " + stepEndTime);
-                markStepFailed(stepKey);
+                markStepFailed(step);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
             }
         } else {
-            String stepResultClassName = cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step));
+            String stepResultClassName = getMetadata(JOBRUNR_STEP_RESULT_CLASS_PREFIX + step);
             Class<T> stepResultClass = ReflectionUtils.toClass(stepResultClassName);
             if (Metadata.class.isAssignableFrom(stepResultClass)) {
-                return cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_PREFIX + step));
+                return getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
             }
-            String stepResultAsString = cast(getLatestStepMetadata(JOBRUNR_STEP_RESULT_PREFIX + step));
+            String stepResultAsString = getMetadata(JOBRUNR_STEP_RESULT_PREFIX + step);
             return autobox(stepResultAsString, stepResultClass);
         }
+    }
+
+    void markStepStarted(String stepName) {
+        Instant stepStartTime = Instant.now();
+        logger().info("Step '" + stepName + "' started at " + stepStartTime);
+
+        String stepKey = getStepKey(stepName);
+        saveMetadata(JOBRUNR_STEP_START_PREFIX + stepKey, stepStartTime.toString());
     }
 
     /**
      * Marks the given step as completed (so it won’t run again if a job retries due to an exception).
      */
     void markStepCompleted(String stepName) {
-        saveMetadata(JOBRUNR_STEP_PREFIX + stepName, true);
+        Instant stepEndTime = Instant.now();
+        logger().info("Step '" + stepName + "' succeeded at " + stepEndTime);
+
+        String stepKey = getStepKey(stepName);
+        saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
+        saveMetadata(JOBRUNR_STEP_PREFIX + stepKey, true);
     }
 
     /**
      * Marks the given step as failed
      */
     void markStepFailed(String stepName) {
+        Instant stepEndTime = Instant.now();
+        logger().info("Step '" + stepName + "' failed at " + stepEndTime);
+
+        String stepKey = getStepKey(stepName);
+        saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
         saveMetadata(JOBRUNR_STEP_PREFIX + stepName, false);
     }
 
@@ -308,36 +319,34 @@ public class JobContext {
         }
     }
 
-    /**
-     * Returns the value of the latest run for a step.
-     * <p>
-     * Matches either the exact key (e.g. {@code jr_step_<name>} for the {@link ThrowingRunnable} overload),
-     * picking the entry with the highest run number so the result does not depend on the arbitrary iteration order
-     * of the underlying {@link java.util.concurrent.ConcurrentHashMap}. Unlike a plain {@code startsWith} lookup,
-     * this also avoids collisions between step names that are prefixes of each other (e.g. {@code send} vs {@code send-email}).
-     */
-    private Object getLatestStepMetadata(String key) {
-        Object latestValue = null;
+    private String getStepKey(String stepName) {
+        return stepName + "__" + job.getJobStates().size();
+    }
+
+    private Object getStepCompletedValue(String stepName) {
+        String prefixedStep = JOBRUNR_STEP_PREFIX + stepName;
+        String prefixedStepKey = prefixedStep + "__";
         int latestRun = -1;
-        for (Map.Entry<String, Object> entry : job.getMetadata().entrySet()) {
-            String entryKey = entry.getKey();
-            if (entryKey == null) continue;
-            if (entryKey.equals(key)) {
-                if (latestRun < 0) {
-                    latestValue = entry.getValue();
-                }
-            } else if (entryKey.startsWith(key + "__")) {
-                String suffix = entryKey.substring(key.length() + 2);
-                if (suffix.matches("\\d+")) {
-                    int run = Integer.parseInt(suffix);
-                    if (run > latestRun) {
-                        latestRun = run;
-                        latestValue = entry.getValue();
-                    }
-                }
-            }
+        for (String key : job.getMetadata().keySet()) {
+            int run = parseStepIndex(key, prefixedStepKey);
+            if (run > latestRun) latestRun = run;
         }
-        return latestValue;
+
+        return latestRun != -1 ? getMetadata(prefixedStepKey + latestRun) : getMetadata(prefixedStep);
+    }
+
+    private int parseStepIndex(String metadataKey, String prefixedStepKey) {
+        if (!metadataKey.startsWith(prefixedStepKey)) return -1;
+        int i = prefixedStepKey.length();
+        int len = metadataKey.length();
+        if (i == len) return -1;
+        int run = 0;
+        while (i < len) {
+            char c = metadataKey.charAt(i++);
+            if (c < '0' || c > '9') return -1;
+            run = run * 10 + (c - '0');
+        }
+        return run;
     }
 
     private static void validateMetadata(Object metadata) {
@@ -346,12 +355,12 @@ public class JobContext {
         }
     }
 
-    // marker interface for Json Serialization
+    // marker interface for JSON Serialization
     public interface Metadata {
 
     }
 
-    // marker interface for Json Serialization
+    // marker interface for JSON Serialization
     public interface StepResult extends Metadata {
 
     }

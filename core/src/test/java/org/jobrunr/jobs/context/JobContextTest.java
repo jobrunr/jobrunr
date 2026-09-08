@@ -5,6 +5,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.stubs.Mocks;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
@@ -140,12 +141,33 @@ public class JobContextTest {
 
         JobContext jobContext = new JobContext(job);
 
-        // attempt 2 failed and attempt 6 succeeded (realistic Supplier-overhead keys jr_step_<name>__<run>)
-        jobContext.markStepFailed("send__2");
-        jobContext.markStepCompleted("send__6");
+        final AtomicInteger counter = new AtomicInteger();
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .isInstanceOf(StepExecutionException.class)
+                .hasMessageContaining("Exception during execution of step 'my-step'");
+        assertThat(jobContext.hasCompletedStep("my-step")).isFalse();
+
+        job.failed("Exception during execution of step 'my-step'", new StepExecutionException("Exception during execution of step 'my-step'", new RuntimeException()));
+        job.scheduleAt(Instant.now(), "retry");
+        job.enqueue();
+        job.startProcessingOn(Mocks.ofBackgroundJobServer());
+
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .doesNotThrowAnyException();
 
         // a later attempt must see the latest (successful) run, not the failed one
-        assertThat(jobContext.hasCompletedStep("send")).isTrue();
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void hasStepCompletedDoesNotThrowNumberFormatException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.markStepCompleted("send__6");
+
+        // test that a prefix doesn't lead to a number format exception
+        assertThatCode(() -> jobContext.hasCompletedStep("send")).doesNotThrowAnyException();
     }
 
     @Test

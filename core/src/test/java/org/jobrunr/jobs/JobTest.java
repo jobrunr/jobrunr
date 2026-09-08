@@ -1,6 +1,7 @@
 package org.jobrunr.jobs;
 
 import org.assertj.core.data.Offset;
+import org.jobrunr.jobs.context.JobContext;
 import org.jobrunr.jobs.context.JobDashboardLogger;
 import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
@@ -209,7 +210,7 @@ class JobTest {
     }
 
     @Test
-    void metadataIsClearedWhenAJobIsRequeued() {
+    void metadataIsClearedWhenAJobSucceeds() {
         Job job = aJobInProgress().withMetadata("key", "value").build();
         assertThat(job).hasMetadata("key", "value");
 
@@ -220,10 +221,29 @@ class JobTest {
         assertThat(job).hasMetadata("key", "value");
 
         job.succeeded();
-        assertThat(job).hasMetadata("key", "value");
+        assertThat(job).hasNoMetadata();
+    }
+
+    @Test
+    void stepResultIsClearedWhenAJobIsRequeued() {
+        Job job = aJobInProgress().build();
+        var step = "step";
+        var stepKey = step + "__1";
+
+        job.succeeded();
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_PREFIX + stepKey, true);
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_START_PREFIX + stepKey, now().toString());
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_END_PREFIX + stepKey, now().toString());
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_RESULT_CLASS_PREFIX + step, "java.lang.String");
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_RESULT_PREFIX + step, "value");
 
         job.requeue();
-        assertThat(job).hasNoMetadata();
+        assertThat(job)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_CLASS_PREFIX + step)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_PREFIX + step)
+                .hasMetadata(JobContext.JOBRUNR_STEP_PREFIX + stepKey)
+                .hasMetadata(JobContext.JOBRUNR_STEP_START_PREFIX + stepKey)
+                .hasMetadata(JobContext.JOBRUNR_STEP_END_PREFIX + stepKey);
     }
 
     @Test
