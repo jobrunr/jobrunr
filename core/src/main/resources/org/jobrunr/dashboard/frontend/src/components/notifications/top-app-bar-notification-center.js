@@ -254,12 +254,16 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 onClick={openNotifications}
                 ref={popperAnchorEl}
                 id="notifications-center-button"
+                aria-label={`Open notifications (${amountOfUnreadNotifications} unread)`}
+                aria-expanded={isOpen}
+                aria-controls="notifications-center-dialog"
             >
                 <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
                     <Notifications/>
                 </Badge>
             </IconButton>
-            <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
+            <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current} aria-label="Notifications"
+                             id="notifications-center-dialog">
                 <Paper elevation={6}>
                     <Box sx={{maxWidth: 500, maxHeight: "70vh", overflow: "auto"}} id="notifications-center-container">
                         <Box sx={{p: 2}}>

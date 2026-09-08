@@ -53,12 +53,15 @@ export const Preferences = () => {
                 sx={{marginRight: 1.5}}
                 onClick={openNotifications}
                 ref={popperAnchorEl}
-                id="control-center-button"
+                aria-label="Open control center"
+                aria-expanded={isOpen}
+                aria-controls="control-center-dialog"
             >
                 <Person/>
             </IconButton>
 
-            <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current}>
+            <ClickAwayPopper isOpen={isOpen} handleClickAway={closeNotifications} anchorEl={popperAnchorEl?.current} aria-label="Control center"
+                             id="control-center-dialog">
                 <Paper elevation={6}>
                     <Box
                         sx={{
