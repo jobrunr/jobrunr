@@ -54,42 +54,6 @@ const JobView = (props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobId]);
 
-    // TODO move to these to JobHistoryChart's responsibility
-    const getExecutionSteps = () => {
-        if (job) {
-            const runStepOnceMetadata = processRunStepOnceMetadata(job.metadata);
-            const executionSteps = [...job.jobHistory, ...runStepOnceMetadata];
-            executionSteps.sort((a, b) => a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
-            return executionSteps;
-        }
-        return [];
-    }
-
-    const processRunStepOnceMetadata = (metadata) => {
-        const starts = [];
-        const ends = new Map();
-        const results = new Map();
-        const completed = new Map();
-        for (const [key, value] of Object.entries(metadata)) {
-            if (key.startsWith('jr_step_result_class_')) continue;
-            if (key.startsWith('jr_step_start_')) starts.push([key.slice('jr_step_start_'.length), value]);
-            else if (key.startsWith('jr_step_end_')) ends.set(key.slice('jr_step_end_'.length), value);
-            else if (key.startsWith('jr_step_result_')) results.set(key.slice('jr_step_result_'.length), value);
-            else if (key.startsWith('jr_step_')) completed.set(key.slice('jr_step_'.length), value);
-        }
-
-        return starts.map(([name, start]) => ({
-            state: 'RUN_STEP_ONCE',
-            stepName: name,
-            createdAt: start,
-            updatedAt: ends.get(name),
-            succeeded: completed.get(name),
-            result: results.get(name),
-        }));
-    };
-
-    const executionSteps = getExecutionSteps();
-
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
             .then(res => {
@@ -246,7 +210,7 @@ const JobView = (props) => {
                                 </Grid>}
 
                                 {selectedHistoryDisplayMode === "chart" && <Grid id="job-history-chart-panel" size={12}>
-                                    {executionSteps.length > 0 && <JobHistoryChart executionSteps={executionSteps} reverse={!order}/>}
+                                    <JobHistoryChart jobHistory={job.jobHistory} jobMetadata={job.metadata} reverse={!order}/>
                                 </Grid>}
                             </Grid>
 

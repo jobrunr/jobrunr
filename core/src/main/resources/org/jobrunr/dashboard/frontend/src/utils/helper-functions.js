@@ -122,14 +122,15 @@ export function stringToColor(text) {
     return "#" + "00000".substring(0, 6 - c.length) + c;
 }
 
-export const javaDateAsMilliseconds = (date) => new Date(date).getTime();
+export const dateAsMilliseconds = (date) => new Date(date).getTime();
 
-export const javaDateAsNanoseconds = (date) => {
-    // TODO instead pad string and compare strings, and compare with localeCompare?
-    const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/.exec(String(date));
-    if (!match) return javaDateAsMilliseconds(date) * 1000;
-    const frac = match[2] ? (match[2] + '000000').slice(0, 6) : '0';
-    return Date.parse(match[1] + (match[3] || 'Z')) * 1000 + parseInt(frac, 10);
+export const comparedPreciseDates = (firstDate, secondDate) => {
+    if (firstDate === undefined) return 1;
+    if (secondDate === undefined) return -1;
+    const firstDatePadded = firstDate.toString().replace("Z", "").padEnd(35, "0");
+    const secondDatePadded = secondDate.toString().replace("Z", "").padEnd(35, "0");
+
+    return firstDatePadded.localeCompare(secondDatePadded, "en", {sensitivity: "base"});
 };
 
 export const formatDuration = (startMs, endMs, significantUnits = 1) => {

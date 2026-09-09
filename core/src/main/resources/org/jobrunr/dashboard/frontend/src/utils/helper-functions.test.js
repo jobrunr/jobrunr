@@ -1,9 +1,9 @@
 import {
+    comparedPreciseDates,
     convertISO8601DurationToSeconds,
+    dateAsMilliseconds,
     formatDuration,
     humanFileSize,
-    javaDateAsMilliseconds,
-    javaDateAsNanoseconds,
     parseScheduleExpression
 } from './helper-functions';
 
@@ -121,25 +121,32 @@ describe('parseScheduleExpression', () => {
     });
 })
 
-describe('javaDateAsMilliseconds / javaDateAsMicroseconds', () => {
+describe('dateAsMilliseconds / comparedPreciseDates', () => {
     const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
     const iso = (offsetMs) => new Date(BASE + offsetMs).toISOString();
 
     it('parses ISO strings to milliseconds', () => {
-        expect(javaDateAsMilliseconds(iso(0))).toBe(BASE);
-        expect(javaDateAsMilliseconds(iso(5000))).toBe(BASE + 5000);
+        expect(dateAsMilliseconds(iso(0))).toBe(BASE);
+        expect(dateAsMilliseconds(iso(5000))).toBe(BASE + 5000);
     });
 
-    it('javaDateAsMicroseconds preserves sub-millisecond precision that javaDateAsMilliseconds loses', () => {
-        const t = '2024-01-01T00:00:00.123456Z';
-        expect(javaDateAsNanoseconds(t)).toBe(1704067200123456);
-        expect(javaDateAsNanoseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000 + 456);
-        expect(javaDateAsMilliseconds(t)).toBe(1704067200123);
+    it('comparedPreciseDates preserves sub-millisecond precision that dateAsMilliseconds loses', () => {
+        const earlier = '2024-01-01T00:00:00.12345666Z';
+        const later = '2024-01-01T00:00:00.123789Z';
+        expect(comparedPreciseDates(earlier, later)).toBeLessThan(0);
+        expect(comparedPreciseDates(later, earlier)).toBeGreaterThan(0);
+        expect(comparedPreciseDates(earlier, earlier)).toBe(0);
     });
 
-    it('javaDateAsMicroseconds matches javaDateAsMilliseconds*1000 when there is no fractional second', () => {
-        const t = iso(0);
-        expect(javaDateAsNanoseconds(t)).toBe(javaDateAsMilliseconds(t) * 1000);
+    it('comparedPreciseDates orders dates correctly when there is no fractional second', () => {
+        expect(comparedPreciseDates(iso(0), iso(0))).toBe(0);
+        expect(comparedPreciseDates(iso(0), iso(5000))).toBeLessThan(0);
+        expect(comparedPreciseDates(iso(5000), iso(0))).toBeGreaterThan(0);
+    });
+
+    it('comparedPreciseDates sorts undefined values to the end', () => {
+        expect(comparedPreciseDates(undefined, iso(0))).toBeGreaterThan(0);
+        expect(comparedPreciseDates(iso(0), undefined)).toBeLessThan(0);
     });
 });
 

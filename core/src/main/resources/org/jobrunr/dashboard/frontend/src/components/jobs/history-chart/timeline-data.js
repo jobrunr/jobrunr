@@ -1,5 +1,6 @@
-import {formatDuration, javaDateAsMilliseconds, javaDateAsNanoseconds} from "../../../utils/helper-functions.js";
+import {comparedPreciseDates, dateAsMilliseconds, formatDuration} from "../../../utils/helper-functions.js";
 import {AWAITING, DELETED, END_STATES, ENQUEUED, PROCESSING, SCHEDULED, STATE_LABELS} from "../../utils/state-names.js";
+import {TIMELINE_COMPRESSION_MODES, TIMELINE_MODES} from "./job-history-chart.js";
 
 export const EXCLUDED_STATES = [AWAITING, DELETED];
 
@@ -16,7 +17,7 @@ const lifecycleRows = () => [
     {key: PROCESSING, label: STEP_LABELS[PROCESSING], isStep: false, items: []},
 ];
 
-export const getStepEndTime = (step) => step.updatedAt && javaDateAsNanoseconds(step.updatedAt) > javaDateAsNanoseconds(step.createdAt) ? javaDateAsMilliseconds(step.updatedAt) : null;
+export const getStepEndTime = (step) => step.updatedAt && comparedPreciseDates(step.updatedAt, step.createdAt) > 0 ? dateAsMilliseconds(step.updatedAt) : null;
 
 export const removeInitialScheduled = (steps) => {
     const list = steps ?? [];
@@ -29,6 +30,28 @@ export const getStepLabel = (step) => {
     return STEP_LABELS[step.state] ?? step.state ?? 'Unknown';
 };
 
+function determineEndTimeBasedOnStepType(step, stepStart, isJobInProgress, now, historyForRunStepOnce, stepOrder, nextStep) {
+    let stepEnd;
+    let isStepActive = false;
+    if (END_STATES.includes(step.state)) {
+        stepEnd = stepStart;
+    } else if (step.state === 'RUN_STEP_ONCE') {
+        const endTime = getStepEndTime(step);
+        stepEnd = endTime ?? (isJobInProgress ? now : null);
+        isStepActive = endTime === null && isJobInProgress;
+        const [stepBase, attemptId] = step.stepName.split('__');
+        if (!historyForRunStepOnce.has(stepBase)) {
+            historyForRunStepOnce.set(stepBase, []);
+            stepOrder.push(stepBase);
+        }
+        historyForRunStepOnce.get(stepBase).push({attemptId: +attemptId, succeeded: step.succeeded !== false, startMs: stepStart, startAt: step.createdAt});
+    } else {
+        stepEnd = nextStep ? dateAsMilliseconds(nextStep.createdAt) : (isJobInProgress ? now : getStepEndTime(step));
+        isStepActive = !nextStep && isJobInProgress;
+    }
+    return {stepEnd, active: isStepActive};
+}
+
 const computeStepBounds = (steps, now) => {
     const isJobInProgress = steps.length > 0 && !END_STATES.includes(steps[steps.length - 1].state);
     let start = Infinity;
@@ -38,28 +61,11 @@ const computeStepBounds = (steps, now) => {
     const stepOrder = [];
 
     steps.forEach((step, i) => {
-        const stepStart = javaDateAsMilliseconds(step.createdAt);
+        const stepStart = dateAsMilliseconds(step.createdAt);
         if (stepStart < start) start = stepStart;
         const nextStep = steps.slice(i + 1).find((s) => s.state !== 'RUN_STEP_ONCE');
 
-        let stepEnd;
-        let active = false;
-        if (END_STATES.includes(step.state)) {
-            stepEnd = stepStart;
-        } else if (step.state === 'RUN_STEP_ONCE') {
-            const endTime = getStepEndTime(step);
-            stepEnd = endTime ?? (isJobInProgress ? now : null);
-            active = endTime === null && isJobInProgress;
-            const [stepBase, attemptId] = step.stepName.split('__');
-            if (!historyForRunStepOnce.has(stepBase)) {
-                historyForRunStepOnce.set(stepBase, []);
-                stepOrder.push(stepBase);
-            }
-            historyForRunStepOnce.get(stepBase).push({attemptId: +attemptId, succeeded: step.succeeded !== false, startMs: stepStart, startAt: step.createdAt});
-        } else {
-            stepEnd = nextStep ? javaDateAsMilliseconds(nextStep.createdAt) : (isJobInProgress ? now : getStepEndTime(step));
-            active = !nextStep && isJobInProgress;
-        }
+        let {stepEnd, active} = determineEndTimeBasedOnStepType(step, stepStart, isJobInProgress, now, historyForRunStepOnce, stepOrder, nextStep);
         if (stepEnd !== null && stepEnd > end) end = stepEnd;
         stepEndTimesMap.set(step, {end: stepEnd, active});
     });
@@ -70,7 +76,7 @@ const computeStepBounds = (steps, now) => {
 const earliestEntryForRetry = (historyByStep, stepOrder, attemptId) =>
     stepOrder
         .flatMap((name) => historyByStep.get(name).filter((a) => a.attemptId === attemptId))
-        .sort((a, b) => javaDateAsNanoseconds(a.startAt) - javaDateAsNanoseconds(b.startAt))[0];
+        .sort((a, b) => comparedPreciseDates(a.startAt, b.startAt))[0];
 
 const isStepSkippedForRetry = (historyByStep, stepOrder, attemptId, stepBase, stepsInAttempt) => {
     const history = historyByStep.get(stepBase);
@@ -233,7 +239,7 @@ const collectStepsIntoCompactRows = (executionSteps, stepEndMap, now) => {
     const rows = lifecycleRows();
     const stepMap = new Map();
     executionSteps.forEach((step, idx) => {
-        const info = stepEndMap.get(step), startMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
+        const info = stepEndMap.get(step), startMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
         const endMs = info?.end ?? (info?.active ? now : startMs);
         const nextStep = executionSteps.slice(idx + 1).find((s) => s.state !== 'RUN_STEP_ONCE');
 
@@ -252,7 +258,7 @@ const collectStepsIntoCompactRows = (executionSteps, stepEndMap, now) => {
 const addSkippedStepsToAllSteps = (stepMap, skipped) => {
     skipped.forEach((step) => {
         const name = getStepLabel(step);
-        const startMs = javaDateAsMilliseconds(step.createdAt);
+        const startMs = dateAsMilliseconds(step.createdAt);
         if (!stepMap.has(name)) stepMap.set(name, {key: name, label: name, isStep: true, items: []});
         stepMap.get(name).items.push({...step, startMs, endMs: startMs, active: false, isSkipped: true});
     });
@@ -304,7 +310,7 @@ const createBarPlacements = ({compressTime, compressedTimelineStart, compressedT
 const collectTimestamps = (rawSteps, stepEndMap, start, end, now) => {
     const timestamps = new Set([start, end]);
     rawSteps.forEach((step) => {
-        const startMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
+        const startMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
         const info = stepEndMap.get(step);
         const endMs = info?.end ?? (info?.active ? now : startMs);
         if (Number.isFinite(startMs)) timestamps.add(startMs);
@@ -320,7 +326,7 @@ const detectSpansThatShouldNotCompress = (rawSteps, stepEndMap) => {
         let hasSubStep = false;
         for (let j = i + 1; j < rawSteps.length && rawSteps[j].state === 'RUN_STEP_ONCE'; j++) hasSubStep = true;
         if (!hasSubStep) return;
-        const processingStart = javaDateAsMilliseconds(step.createdAt);
+        const processingStart = dateAsMilliseconds(step.createdAt);
         const processingEnd = stepEndMap.get(step)?.end ?? processingStart;
         if (processingEnd > processingStart) protectedSpans.push({startMs: processingStart, endMs: processingEnd});
     });
@@ -346,7 +352,7 @@ const buildCompactRetryEvents = (rawSteps, compressTime, compressedTimelineStart
     rawSteps.forEach((step, idx) => {
         if (idx > 0 && step.state === SCHEDULED) {
             count += 1;
-            const retryMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
+            const retryMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
             const pct = compressedTimelineDuration > 0 ? ((compressTime(retryMs) - compressedTimelineStart) / compressedTimelineDuration) * 100 : 0;
             events.push({count, pct, ms: retryMs});
         }
@@ -369,7 +375,7 @@ const buildDetailedRows = (detailedSteps, stepEndMap, getPlacement, reverse) => 
     let chronologicalRetry = 0;
     const detailedRows = detailedSteps.map((step, index) => {
         const info = stepEndMap.get(step);
-        const stepStartMs = javaDateAsMilliseconds(step.barStart ?? step.createdAt);
+        const stepStartMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
         const stepEndMs = info?.end ?? null;
         const active = info?.active ?? false;
         const isRetry = index > 0 && step.state === SCHEDULED;
@@ -399,12 +405,12 @@ export const buildTimelineModel = ({steps, mode, compression, reverse, now}) => 
 
     const {start, end, stepEndTimesMap, skipped} = convertStepsToTimeline(rawSteps, now);
     const baseDetailed = toTimelineSteps(steps ?? []);
-    const detailedSteps = skipped.length && mode !== 'compact' ? addSkippedStepsToPerformedSteps(baseDetailed, skipped) : baseDetailed;
+    const detailedSteps = skipped.length && mode !== TIMELINE_MODES.COMPACT ? addSkippedStepsToPerformedSteps(baseDetailed, skipped) : baseDetailed;
     const duration = end - start;
     const compressionThresholdMs = Math.max(MIN_COMPRESSION_THRESHOLD_MS, duration * COMPRESSION_THRESHOLD);
 
     const longRanges = detectLongRangesToCompress(rawSteps, stepEndTimesMap, start, end, now, compressionThresholdMs);
-    const compressRanges = compression === 'linear' ? [] : longRanges;
+    const compressRanges = compression === TIMELINE_COMPRESSION_MODES.LINEAR ? [] : longRanges;
     const compressTime = createTimeCompressor(compressRanges, duration, compressionThresholdMs);
     const compressedTimelineStart = compressTime(start);
     const compressedTimelineEnd = compressTime(end);
@@ -417,7 +423,7 @@ export const buildTimelineModel = ({steps, mode, compression, reverse, now}) => 
         start, end, duration,
         ticks: generateTimeTicks(duration, compressTime, start, compressedTimelineDuration, compressRanges),
         retryEvents: buildCompactRetryEvents(rawSteps, compressTime, compressedTimelineStart, compressedTimelineDuration),
-        compactRows: mode === 'compact' ? buildCompactRows(rawSteps, stepEndTimesMap, now, skipped, getPlacement, reverse) : [],
+        compactRows: mode === TIMELINE_MODES.COMPACT ? buildCompactRows(rawSteps, stepEndTimesMap, now, skipped, getPlacement, reverse) : [],
         orderedDetailedRows: buildDetailedRows(detailedSteps, stepEndTimesMap, getPlacement, reverse),
     };
 };
