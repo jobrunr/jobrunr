@@ -1,14 +1,14 @@
+import {addSkippedStepsToPerformedSteps} from './determine-skipped-steps.js';
 import {
-    addSkippedStepsToPerformedSteps,
     buildTimelineModel,
     convertStepsToTimeline,
     createTimeCompressor,
+    filterStepsForTimeline,
     generateTimeTicks,
     getStepEndTime,
     getStepLabel,
     groupCompactStepsSequentially,
     removeInitialScheduled,
-    toTimelineSteps,
 } from './timeline-data.js';
 
 const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
@@ -71,7 +71,7 @@ describe('toTimelineSteps', () => {
             {state: 'ENQUEUED', createdAt: iso(2)},
             {state: 'DELETED', createdAt: iso(3)},
         ];
-        const result = toTimelineSteps(steps);
+        const result = filterStepsForTimeline(steps);
         expect(result.map((s) => s.state)).toEqual(['SCHEDULED', 'ENQUEUED']);
     });
 });

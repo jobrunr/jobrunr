@@ -1,5 +1,5 @@
 import {
-    comparedPreciseDates,
+    comparePreciseDates,
     convertISO8601DurationToSeconds,
     dateAsMilliseconds,
     formatDuration,
@@ -130,23 +130,40 @@ describe('dateAsMilliseconds / comparedPreciseDates', () => {
         expect(dateAsMilliseconds(iso(5000))).toBe(BASE + 5000);
     });
 
-    it('comparedPreciseDates preserves sub-millisecond precision that dateAsMilliseconds loses', () => {
+    it('comparePreciseDates preserves sub-millisecond precision that dateAsMilliseconds loses', () => {
         const earlier = '2024-01-01T00:00:00.12345666Z';
         const later = '2024-01-01T00:00:00.123789Z';
-        expect(comparedPreciseDates(earlier, later)).toBeLessThan(0);
-        expect(comparedPreciseDates(later, earlier)).toBeGreaterThan(0);
-        expect(comparedPreciseDates(earlier, earlier)).toBe(0);
+        expect(comparePreciseDates(earlier, later)).toBeLessThan(0);
+        expect(comparePreciseDates(later, earlier)).toBeGreaterThan(0);
+        expect(comparePreciseDates(earlier, earlier)).toBe(0);
     });
 
-    it('comparedPreciseDates orders dates correctly when there is no fractional second', () => {
-        expect(comparedPreciseDates(iso(0), iso(0))).toBe(0);
-        expect(comparedPreciseDates(iso(0), iso(5000))).toBeLessThan(0);
-        expect(comparedPreciseDates(iso(5000), iso(0))).toBeGreaterThan(0);
+    it('comparePreciseDates preserves sorting accuracy where fractional part is missing', () => {
+        let earlier = '2024-01-01T00:00:00Z';
+        let later = '2024-01-01T00:00:00.12345666Z';
+        expect(comparePreciseDates(earlier, later)).toBeLessThan(0);
+        expect(comparePreciseDates(later, earlier)).toBeGreaterThan(0);
+
+        earlier = '2024-01-01T00:00:00.12345666Z';
+        later = '2024-01-01T00:00:01Z';
+        expect(comparePreciseDates(earlier, later)).toBeLessThan(0);
+        expect(comparePreciseDates(later, earlier)).toBeGreaterThan(0);
+
+        earlier = '2024-01-01 00:00:00';
+        later = '2024-01-01T00:00:00.12345666Z';
+        expect(comparePreciseDates(earlier, later)).toBeLessThan(0);
+        expect(comparePreciseDates(later, earlier)).toBeGreaterThan(0);
     });
 
-    it('comparedPreciseDates sorts undefined values to the end', () => {
-        expect(comparedPreciseDates(undefined, iso(0))).toBeGreaterThan(0);
-        expect(comparedPreciseDates(iso(0), undefined)).toBeLessThan(0);
+    it('comparePreciseDates orders dates correctly when there is no fractional second', () => {
+        expect(comparePreciseDates(iso(0), iso(0))).toBe(0);
+        expect(comparePreciseDates(iso(0), iso(5000))).toBeLessThan(0);
+        expect(comparePreciseDates(iso(5000), iso(0))).toBeGreaterThan(0);
+    });
+
+    it('comparePreciseDates sorts undefined values to the end', () => {
+        expect(comparePreciseDates(undefined, iso(0))).toBeGreaterThan(0);
+        expect(comparePreciseDates(iso(0), undefined)).toBeLessThan(0);
     });
 });
 

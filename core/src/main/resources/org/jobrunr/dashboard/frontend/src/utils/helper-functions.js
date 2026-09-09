@@ -124,11 +124,19 @@ export function stringToColor(text) {
 
 export const dateAsMilliseconds = (date) => new Date(date).getTime();
 
-export const comparedPreciseDates = (firstDate, secondDate) => {
+const padDate = (date) => {
+    let cleanedDate = date.toString().replace("Z", "");
+    if (!cleanedDate.includes(".")) cleanedDate += ".0";
+    if (!cleanedDate.includes("T")) cleanedDate = cleanedDate.replace(" ", "T");
+    cleanedDate = cleanedDate.padEnd(35, "0");
+    return cleanedDate;
+}
+
+export const comparePreciseDates = (firstDate, secondDate) => {
     if (firstDate === undefined) return 1;
     if (secondDate === undefined) return -1;
-    const firstDatePadded = firstDate.toString().replace("Z", "").padEnd(35, "0");
-    const secondDatePadded = secondDate.toString().replace("Z", "").padEnd(35, "0");
+    const firstDatePadded = padDate(firstDate);
+    const secondDatePadded = padDate(secondDate);
 
     return firstDatePadded.localeCompare(secondDatePadded, "en", {sensitivity: "base"});
 };
