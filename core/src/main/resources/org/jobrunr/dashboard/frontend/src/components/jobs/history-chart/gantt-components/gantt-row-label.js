@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {MAX_LABEL_WIDTH, MIN_LABEL_WIDTH, ROW_HEIGHT} from "./timeline-gantt-chart.js";
+import {MAX_LABEL_WIDTH, MIN_LABEL_WIDTH, ROW_HEIGHT} from "../timeline-gantt-chart.js";
 
 export const GanttRowLabel = (label, isStep) => (
     <Box sx={{

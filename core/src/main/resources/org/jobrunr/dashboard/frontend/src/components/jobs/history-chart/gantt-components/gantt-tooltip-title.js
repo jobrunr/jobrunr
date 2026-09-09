@@ -1,8 +1,8 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
-import {END_STATES} from "../../utils/state-names.js";
-import {formatDuration} from "../../../utils/helper-functions.js";
+import {SwitchableTimeFormatter} from "../../../utils/time-ago.js";
+import {END_STATES} from "../../../utils/state-names.js";
+import {formatDuration} from "../../../../utils/helper-functions.js";
 
 export const GanttTooltipTitle = ({item}) => {
     const {startMs, endMs, active, state, result, placement, isSkipped} = item;

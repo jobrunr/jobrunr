@@ -6,7 +6,7 @@ import {ToggleButton, ToggleButtonGroup} from "@mui/material";
 import {useEffect, useState} from 'react';
 import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {TimelineGanttChart} from "./timeline-gantt-chart.js";
-import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled} from "./timeline-data.js";
+import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled} from "./timeline-data-components/timeline-data.js";
 import {END_STATES} from "../../utils/state-names.js";
 
 export const TIMELINE_MODES = {
@@ -59,15 +59,15 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
             createdAt: start,
             updatedAt: ends.get(name),
             succeeded: completed.get(name),
-            result: results.get(name),
+            result: completed.get(name) ? results.get(name.split('__')[0]) : undefined,
         }));
     };
 
     const executionSteps = getExecutionSteps();
 
     const steps = removeInitialScheduled(executionSteps);
-    const rawSteps = steps.filter((step) => !EXCLUDED_STATES.includes(step.state));
-    const hasCompleted = rawSteps.length === 0 || END_STATES.includes(rawSteps[rawSteps.length - 1].state);
+    const filteredSteps = steps.filter((step) => !EXCLUDED_STATES.includes(step.state));
+    const hasCompleted = filteredSteps.length === 0 || END_STATES.includes(filteredSteps[filteredSteps.length - 1].state);
 
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {

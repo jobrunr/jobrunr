@@ -1,5 +1,5 @@
 import Tooltip from "@mui/material/Tooltip";
-import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
+import {SwitchableTimeFormatter} from "../../../utils/time-ago.js";
 import Typography from "@mui/material/Typography";
 
 export const GanttTimelineEntry = ({time, position}) => {

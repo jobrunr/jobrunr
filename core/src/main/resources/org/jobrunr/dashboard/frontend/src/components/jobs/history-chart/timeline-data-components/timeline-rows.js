@@ -1,5 +1,5 @@
-import {dateAsMilliseconds} from "../../../utils/helper-functions.js";
-import {ENQUEUED, FAILED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../utils/state-names.js";
+import {dateAsMilliseconds} from "../../../../utils/helper-functions.js";
+import {ENQUEUED, FAILED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../../utils/state-names.js";
 import {addSkippedStepsToAllSteps} from "./determine-skipped-steps.js";
 
 const lifecycleRows = () => [

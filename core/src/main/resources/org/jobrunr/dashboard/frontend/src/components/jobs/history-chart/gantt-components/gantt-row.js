@@ -1,5 +1,5 @@
 import {GanttRowLabel} from "./gantt-row-label.js";
-import {ROW_HEIGHT} from "./timeline-gantt-chart.js";
+import {ROW_HEIGHT} from "../timeline-gantt-chart.js";
 import Box from '@mui/material/Box';
 
 export const GanttRow = ({label, isStep, children, ...rest}) => {

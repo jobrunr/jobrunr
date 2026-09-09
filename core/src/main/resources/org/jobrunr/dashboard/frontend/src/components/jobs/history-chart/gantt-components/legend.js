@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {RhombusOutline} from "mdi-material-ui";
-import {ENQUEUED, FAILED, PROCESSING, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../utils/state-names.js";
+import {ENQUEUED, FAILED, PROCESSING, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../../utils/state-names.js";
 
 export const Legend = () => {
     const states = [

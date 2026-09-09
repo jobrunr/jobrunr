@@ -300,7 +300,7 @@ public class JobContext {
 
         String stepKey = getStepKey(stepName);
         saveMetadata(JOBRUNR_STEP_END_PREFIX + stepKey, stepEndTime.toString());
-        saveMetadata(JOBRUNR_STEP_PREFIX + stepName, false);
+        saveMetadata(JOBRUNR_STEP_PREFIX + stepKey, false);
     }
 
     /**

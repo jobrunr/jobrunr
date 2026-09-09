@@ -1,6 +1,6 @@
-import {comparePreciseDates, dateAsMilliseconds} from "../../../utils/helper-functions.js";
-import {AWAITING, DELETED, END_STATES, RUN_STEP_ONCE, SCHEDULED} from "../../utils/state-names.js";
-import {TIMELINE_COMPRESSION_MODES, TIMELINE_MODES} from "./job-history-chart.js";
+import {comparePreciseDates, dateAsMilliseconds} from "../../../../utils/helper-functions.js";
+import {AWAITING, DELETED, END_STATES, RUN_STEP_ONCE, SCHEDULED} from "../../../utils/state-names.js";
+import {TIMELINE_COMPRESSION_MODES, TIMELINE_MODES} from "../job-history-chart.js";
 import {addSkippedStepsToPerformedSteps, detectSkippedSteps} from "./determine-skipped-steps.js";
 import {createBarPlacements, createCompressedAxis, createTimeCompressor, detectLongRangesToCompress, generateTimeTicks} from "./timeline-axis.js";
 import {buildCompactRetryEvents, buildCompactRows, buildDetailedRows} from "./timeline-rows.js";
