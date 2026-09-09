@@ -16,7 +16,6 @@ const COMPRESSION_THRESHOLD = 0.15;
 export const getStepEndTime = (step) => step.updatedAt && comparePreciseDates(step.updatedAt, step.createdAt) > 0 ? dateAsMilliseconds(step.updatedAt) : null;
 
 export const removeInitialScheduled = (steps) => {
-    // TODO work out how to deal with awaiting, perhaps slice the list up to the point of the first scheduled (though that risks losing runs if there is so initial scheduled)
     const list = steps ?? [];
     return list.length > 0 && list[0].state === SCHEDULED ? list.slice(1) : list;
 };

@@ -65,9 +65,9 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
 
     const executionSteps = getExecutionSteps();
 
-    const steps = removeInitialScheduled(executionSteps);
-    const filteredSteps = steps.filter((step) => !EXCLUDED_STATES.includes(step.state));
-    const hasCompleted = filteredSteps.length === 0 || END_STATES.includes(filteredSteps[filteredSteps.length - 1].state);
+    const filteredSteps = executionSteps.filter((step) => !EXCLUDED_STATES.includes(step.state));
+    const steps = removeInitialScheduled(filteredSteps);
+    const hasCompleted = steps.length === 0 || END_STATES.includes(steps[steps.length - 1].state);
 
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
