@@ -16,6 +16,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import DnsIcon from '@mui/icons-material/Dns';
 import useMediaQuery from "@mui/material/useMediaQuery";
+import {humanReadableNumber} from "../utils/helper-functions.js";
 
 const StyledAppBar = styled(AppBar)(({theme}) => ({
     zIndex: theme.zIndex.drawer + 1
@@ -83,7 +84,7 @@ const MenuButtonWithStat = ({text, mobileText, stat, icon, ...rest}) => {
                     {label}
                 </>
             ) : (
-                <>{label} <StatChip color="secondary" label={stat}/></>
+                <>{label} <StatChip color="secondary" label={humanReadableNumber(stat)}/></>
             )}
         </MobileFriendlyButton>
     )

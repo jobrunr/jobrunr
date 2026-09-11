@@ -124,6 +124,11 @@ public class JobAssert extends AbstractAssert<JobAssert, Job> {
         return this;
     }
 
+    public JobAssert hasNoMetadata(String key) {
+        Assertions.assertThat(actual.getMetadata()).doesNotContainKey(key);
+        return this;
+    }
+
     public JobAssert hasVersion(int version) {
         Assertions.assertThat(actual.getVersion()).isEqualTo(version);
         return this;

@@ -12,7 +12,7 @@ SELECT coalesce((SELECT sum(job_stat_results.count) FROM job_stat_results), 0)  
        coalesce((SELECT sum(job_stat_results.count) FROM job_stat_results WHERE state = 'PROCESSED'), 0)  AS processed,
        coalesce((SELECT sum(job_stat_results.count) FROM job_stat_results WHERE state = 'FAILED'), 0)     AS failed,
        coalesce((SELECT sum(job_stat_results.count) FROM job_stat_results WHERE state = 'SUCCEEDED'), 0)  AS succeeded,
-       coalesce((SELECT cASt(cASt(value AS char(10)) AS decimal(10, 0))
+       coalesce((SELECT cast(cast(value AS char(10)) AS decimal(10, 0))
                  FROM jobrunr_metadata jm
                  WHERE jm.id = 'succeeded-jobs-counter-cluster'),
                 0)                                                                                        AS allTimeSucceeded,

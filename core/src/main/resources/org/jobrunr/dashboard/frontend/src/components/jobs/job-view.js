@@ -8,16 +8,8 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
-
-import Awaiting from "./states/awaiting-state";
-import Scheduled from "./states/scheduled-state";
-import Enqueued from "./states/enqueued-state";
-import Processing from "./states/processing-state";
-import Succeeded from "./states/succeeded-state";
-import Failed from "./states/failed-state";
-import Deleted from "./states/deleted-state";
 import JobCode from "./job-code";
-import {Snackbar} from "@mui/material";
+import {Snackbar, Tab, Tabs} from "@mui/material";
 import {SortAscending, SortDescending} from "mdi-material-ui";
 import IconButton from "@mui/material/IconButton";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
@@ -32,6 +24,8 @@ import CarbonAwareScheduledNotification from "./notifications/carbon-aware-sched
 import VersionFooter from "../utils/version-footer";
 import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
+import {JobHistoryChart} from "./history-chart/job-history-chart.js";
+import {JobHistoryTimeline} from "./history-timeline/job-history-timeline.js";
 
 const JobView = (props) => {
     const navigate = useNavigate();
@@ -40,9 +34,15 @@ const JobView = (props) => {
     const [isLoading, setIsLoading] = useState(true);
     const [job, setJob] = useState(null);
     const [stateBreadcrumb, setStateBreadcrumb] = useState({});
-    const [jobStates, setJobStates] = useState([]);
     const [order, setOrder] = useState(true);
     const {jobId} = useParams();
+
+    const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? "timeline");
+
+    const handleHistoryDisplayModeChange = (event, newValue) => {
+        localStorage.setItem("jobHistoryDisplayMode", newValue);
+        setSelectedHistoryDisplayMode(newValue);
+    };
 
     useEffect(() => {
         getJob(jobId);
@@ -53,16 +53,6 @@ const JobView = (props) => {
         return () => eventSource.close();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobId]);
-
-    useEffect(() => {
-        if (job) {
-            if (order) {
-                setJobStates([...job.jobHistory]);
-            } else {
-                setJobStates([...job.jobHistory].reverse());
-            }
-        }
-    }, [job, order]);
 
     const getJob = (id) => {
         fetch(`/api/jobs/${id}`)
@@ -194,43 +184,36 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
 
                             <Grid size={12}>
-                                <Typography variant="h5" component="h2">
-                                    History&nbsp;
-                                    <IconButton
-                                        id={`jobhistory-sort-${order ? "desc" : "asc"}-btn`}
-                                        color="inherit"
-                                        onClick={changeSortOrder}
-                                        style={{scrollMarginTop: '70px'}}
-                                        size="large"
-                                    >
-                                        {order ? <SortDescending/> : <SortAscending/>}
-                                    </IconButton>
-                                </Typography>
+                                <Grid size={12}>
+                                    <Typography variant="h5" component="h2">
+                                        History&nbsp;
+                                        <IconButton
+                                            id={`jobhistory-sort-${order ? "desc" : "asc"}-btn`}
+                                            color="inherit"
+                                            onClick={changeSortOrder}
+                                            style={{scrollMarginTop: '70px'}}
+                                            size="large"
+                                        >
+                                            {order ? <SortDescending/> : <SortAscending/>}
+                                        </IconButton>
+                                    </Typography>
+                                </Grid>
+
+                                <Tabs value={selectedHistoryDisplayMode} onChange={handleHistoryDisplayModeChange} aria-label="History display mode selection"
+                                      sx={{mb: 1}}>
+                                    <Tab label="Timeline" value="timeline"/>
+                                    <Tab label="Chart" value="chart"/>
+                                </Tabs>
+
+                                {selectedHistoryDisplayMode === "timeline" && <Grid id="job-history-panel" size={12}>
+                                    <JobHistoryTimeline job={job} order={order}/>
+                                </Grid>}
+
+                                {selectedHistoryDisplayMode === "chart" && <Grid id="job-history-chart-panel" size={12}>
+                                    <JobHistoryChart jobHistory={job.jobHistory} jobMetadata={job.metadata} reverse={!order}/>
+                                </Grid>}
                             </Grid>
 
-                            <Grid id="job-history-panel" size={12}>
-                                {
-                                    jobStates.map((jobState, index) => {
-                                        switch (jobState.state) {
-                                            case 'AWAITING':
-                                                return <Awaiting key={index} job={job} jobState={jobState}/>;
-                                            case 'SCHEDULED':
-                                                return <Scheduled key={index} jobState={jobState}/>;
-                                            case 'ENQUEUED':
-                                                return <Enqueued key={index} jobState={jobState}/>;
-                                            case 'PROCESSING':
-                                                return <Processing key={index} index={index} job={job} jobState={jobState}/>;
-                                            case 'FAILED':
-                                                return <Failed key={index} jobState={jobState}/>;
-                                            case 'SUCCEEDED':
-                                                return <Succeeded key={index} jobState={jobState}/>;
-                                            case 'DELETED':
-                                                return <Deleted key={index} jobState={jobState}/>;
-                                            default:
-                                                return <div key={index}>Unknown state</div>
-                                        }
-                                    })}
-                            </Grid>
                         </Grid>
                         {apiStatus &&
                             <Snackbar open={true}
