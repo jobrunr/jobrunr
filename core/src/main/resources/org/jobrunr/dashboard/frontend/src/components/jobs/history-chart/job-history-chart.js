@@ -107,8 +107,8 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
                                 <ToggleButton value={TIMELINE_MODES.DETAILED} sx={{fontSize: "12px"}}>Detailed</ToggleButton>
                             </ToggleButtonGroup>
                             <ToggleButtonGroup onChange={changeCompression} value={compressionMode} exclusive size="small" sx={{maxHeight: "32px"}}>
-                                <ToggleButton value={TIMELINE_COMPRESSION_MODES.LINEAR} sx={{fontSize: "12px"}}>Linear</ToggleButton>
                                 <ToggleButton value={TIMELINE_COMPRESSION_MODES.COMPRESSED} sx={{fontSize: "12px"}}>Compressed</ToggleButton>
+                                <ToggleButton value={TIMELINE_COMPRESSION_MODES.LINEAR} sx={{fontSize: "12px"}}>Linear</ToggleButton>
                             </ToggleButtonGroup>
                         </Box>
                     </Box>
