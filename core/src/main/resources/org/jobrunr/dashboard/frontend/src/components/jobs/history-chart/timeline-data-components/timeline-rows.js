@@ -29,7 +29,7 @@ const getOrCreateStepRow = (stepMap, name) => {
 
 const addRunStepOnceRow = (stepMap, step, startMs, endMs, info) => {
     getOrCreateStepRow(stepMap, getStepLabel(step))
-        .items.push({...step, startMs, endMs, active: info?.active, isSkipped: step.skipped || step.isSkipped});
+        .items.push({...step, startMs, endMs, active: info?.active, isSkipped: step.isSkipped});
 };
 
 const addLifecycleRow = (rows, step, startMs, endMs, info, nextStep) => {
