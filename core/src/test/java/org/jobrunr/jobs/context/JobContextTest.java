@@ -116,9 +116,9 @@ public class JobContextTest {
         JobContext jobContext = new JobContext(job);
 
         assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
-        jobContext.markStepCompleted("step-A");
+        jobContext.markStepSucceeded("step-A");
         assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
-        jobContext.markStepCompleted("step-1");
+        jobContext.markStepSucceeded("step-1");
         assertThat(jobContext.hasCompletedStep("step-1")).isTrue();
     }
 
@@ -129,7 +129,7 @@ public class JobContextTest {
         JobContext jobContext = new JobContext(job);
 
         // a different step "send-email" completed via the Supplier path (key jr_step_send-email__2)
-        jobContext.markStepCompleted("send-email__2");
+        jobContext.markStepSucceeded("send-email__2");
 
         // step "send" has never run and must not be considered completed
         assertThat(jobContext.hasCompletedStep("send")).isFalse();
@@ -164,10 +164,43 @@ public class JobContextTest {
         final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
         JobContext jobContext = new JobContext(job);
 
-        jobContext.markStepCompleted("send__6");
+        jobContext.markStepSucceeded("send__6");
 
         // test that a prefix doesn't lead to a number format exception
         assertThatCode(() -> jobContext.hasCompletedStep("send")).doesNotThrowAnyException();
+    }
+
+    @Test
+    void hasStepCompletedDoesNotFalselyStateStepCompleted() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.markStepSucceeded("send__step");
+
+        // test that a prefix doesn't lead to a number format exception
+        assertThat(jobContext.hasCompletedStep("send")).isFalse();
+    }
+
+    @Test
+    void canDistinguishSiblingStepAtHigherRun() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        // step "send" completes at the current (low) run index
+        jobContext.markStepSucceeded("send");
+        assertThat(jobContext.hasCompletedStep("send")).isTrue();
+
+        // bump job state count so the next markStepCompleted gets a higher run index
+        job.failed("retry", new RuntimeException());
+        job.scheduleAt(Instant.now(), "retry");
+        job.enqueue();
+        job.startProcessingOn(Mocks.ofBackgroundJobServer());
+
+        // a different step whose name contains "__" fails at the higher run index
+        jobContext.markStepFailed("send__step");
+
+        // "send" still completed (its run is in metadata) -> must stay true
+        assertThat(jobContext.hasCompletedStep("send")).isTrue();
     }
 
     @Test

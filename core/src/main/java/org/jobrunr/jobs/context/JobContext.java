@@ -231,7 +231,7 @@ public class JobContext {
             try {
                 markStepStarted(step);
                 task.run();
-                markStepCompleted(step);
+                markStepSucceeded(step);
             } catch (Exception e) {
                 markStepFailed(step);
                 throw new StepExecutionException("Exception during execution of step '" + step + "'", e);
@@ -254,7 +254,7 @@ public class JobContext {
                 markStepStarted(step);
                 T result = task.get();
                 saveStepResult(step, result);
-                markStepCompleted(step);
+                markStepSucceeded(step);
                 return result;
             } catch (Exception e) {
                 markStepFailed(step);
@@ -282,7 +282,7 @@ public class JobContext {
     /**
      * Marks the given step as completed (so it won’t run again if a job retries due to an exception).
      */
-    void markStepCompleted(String stepName) {
+    void markStepSucceeded(String stepName) {
         Instant stepEndTime = Instant.now();
         logger().info("Step '" + stepName + "' succeeded at " + stepEndTime);
 
@@ -337,16 +337,13 @@ public class JobContext {
 
     private int parseStepIndex(String metadataKey, String prefixedStepKey) {
         if (!metadataKey.startsWith(prefixedStepKey)) return -1;
-        int i = prefixedStepKey.length();
-        int len = metadataKey.length();
-        if (i == len) return -1;
-        int run = 0;
-        while (i < len) {
-            char c = metadataKey.charAt(i++);
-            if (c < '0' || c > '9') return -1;
-            run = run * 10 + (c - '0');
+
+        String s = metadataKey.substring(prefixedStepKey.length());
+        try {
+            return s.isEmpty() ? -1 : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return -1;
         }
-        return run;
     }
 
     private static void validateMetadata(Object metadata) {
