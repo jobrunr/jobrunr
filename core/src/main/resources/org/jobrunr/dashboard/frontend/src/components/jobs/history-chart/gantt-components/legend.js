@@ -1,15 +1,16 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {RhombusOutline} from "mdi-material-ui";
-import {ENQUEUED, FAILED, PROCESSING, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../../utils/state-names.js";
+import {ENQUEUED, FAILED, PROCESSING, SCHEDULED, SUCCEEDED} from "../../../utils/state-names.js";
+import {TIMELINE_ENTRY_LABELS} from "../model/timeline-entries.js";
 
 export const Legend = () => {
     const states = [
-        {label: STATE_LABELS[SCHEDULED], color: 'grey.600'},
-        {label: STATE_LABELS[ENQUEUED], color: 'info.light'},
-        {label: STATE_LABELS[PROCESSING], color: 'warning.light'},
-        {label: STATE_LABELS[SUCCEEDED], color: 'success.light'},
-        {label: STATE_LABELS[FAILED], color: 'error.light'},
+        {label: TIMELINE_ENTRY_LABELS[SCHEDULED], color: 'grey.600'},
+        {label: TIMELINE_ENTRY_LABELS[ENQUEUED], color: 'info.light'},
+        {label: TIMELINE_ENTRY_LABELS[PROCESSING], color: 'warning.light'},
+        {label: TIMELINE_ENTRY_LABELS[SUCCEEDED], color: 'success.light'},
+        {label: TIMELINE_ENTRY_LABELS[FAILED], color: 'error.light'},
     ];
     return (
         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2, pt: 1, borderTop: '1px solid', borderColor: 'divider'}}>

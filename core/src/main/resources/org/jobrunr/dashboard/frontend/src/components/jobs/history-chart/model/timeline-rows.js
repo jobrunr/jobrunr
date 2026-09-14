@@ -1,11 +1,11 @@
-import {ENQUEUED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS} from "../../../utils/state-names.js";
-import {REQUEUE_STEP, RETRY_STEP} from "./timeline-entries.js";
+import {ENQUEUED, PROCESSING, SCHEDULED} from "../../../utils/state-names.js";
+import {REQUEUE_STEP, RETRY_STEP, RUN_STEP_ONCE, TIMELINE_ENTRY_LABELS} from "./timeline-entries.js";
 
 const LIFECYCLE_STATES = [SCHEDULED, ENQUEUED, PROCESSING];
 
-const lifecycleRows = () => LIFECYCLE_STATES.map((state) => ({key: state, label: STATE_LABELS[state], isStep: false, items: []}));
+const lifecycleRows = () => LIFECYCLE_STATES.map((state) => ({key: state, label: TIMELINE_ENTRY_LABELS[state], isStep: false, items: []}));
 
-export const getStepLabel = (step) => step.label ?? STATE_LABELS[step.state] ?? step.state ?? 'Unknown';
+export const getStepLabel = (step) => step.label ?? TIMELINE_ENTRY_LABELS[step.state] ?? step.state ?? 'Unknown';
 
 const getOrCreateStepRow = (stepMap, name) => {
     if (!stepMap.has(name)) stepMap.set(name, {key: name, label: name, isStep: true, items: []});

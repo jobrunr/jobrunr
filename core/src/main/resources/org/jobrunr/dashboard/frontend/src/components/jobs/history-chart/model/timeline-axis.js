@@ -1,5 +1,6 @@
 import {formatDuration} from "../../../../utils/helper-functions.js";
-import {PROCESSING, RUN_STEP_ONCE} from "../../../utils/state-names.js";
+import {PROCESSING} from "../../../utils/state-names.js";
+import {RUN_STEP_ONCE} from "./timeline-entries.js";
 
 const COMPRESSOR_FLOOR_RATIO = 0.15;
 const TICK_MERGE_PCT = 8;

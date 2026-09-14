@@ -5,6 +5,13 @@ export const RUN_STEP_ONCE = "RUN_STEP_ONCE";
 export const RETRY_STEP = "RETRY";
 export const REQUEUE_STEP = "REQUEUE";
 
+export const TIMELINE_ENTRY_LABELS = {
+    ...STATE_LABELS,
+    RUN_STEP_ONCE: "Step (runStepOnce)",
+    RETRY_STEP: "Retry",
+    REQUEUE_STEP: "Requeue",
+}
+
 export const ENTRY_TYPES = {
     span: "span",
     milestone: "milestone",
