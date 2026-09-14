@@ -1,8 +1,7 @@
-import {GanttRowLabel} from "./gantt-row-label.js";
 import {ROW_HEIGHT} from "../timeline-gantt-chart.js";
 import Box from '@mui/material/Box';
 
-export const GanttRow = ({label, isStep, children, ...rest}) => {
+export const GanttRow = ({children, ...rest}) => {
     return (
         <Box {...rest}
              sx={{
@@ -17,7 +16,6 @@ export const GanttRow = ({label, isStep, children, ...rest}) => {
                      backgroundColor: 'rgba(0, 0, 0, 0.03)',
                  },
              }}>
-            {GanttRowLabel(label, isStep)}
             {children}
         </Box>
     );

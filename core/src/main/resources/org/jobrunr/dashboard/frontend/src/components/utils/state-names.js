@@ -6,6 +6,7 @@ export const SUCCEEDED = "SUCCEEDED";
 export const FAILED = "FAILED";
 export const DELETED = "DELETED";
 
+// TODO not a state?
 export const RUN_STEP_ONCE = "RUN_STEP_ONCE";
 
 export const STATE_LABELS = {

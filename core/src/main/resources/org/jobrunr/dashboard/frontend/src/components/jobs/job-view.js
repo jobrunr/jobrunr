@@ -27,6 +27,11 @@ import {ItemsNotFound} from "../utils/items-not-found";
 import {JobHistoryChart} from "./history-chart/job-history-chart.js";
 import {JobHistoryTimeline} from "./history-timeline/job-history-timeline.js";
 
+const JOB_HISTORY_DISPLAY_MODES = {
+    timeline: "timeline",
+    chart: "chart",
+};
+
 const JobView = (props) => {
     const navigate = useNavigate();
 
@@ -37,7 +42,7 @@ const JobView = (props) => {
     const [order, setOrder] = useState(true);
     const {jobId} = useParams();
 
-    const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? "timeline");
+    const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? JOB_HISTORY_DISPLAY_MODES.timeline);
 
     const handleHistoryDisplayModeChange = (event, newValue) => {
         localStorage.setItem("jobHistoryDisplayMode", newValue);
@@ -201,15 +206,15 @@ const JobView = (props) => {
 
                                 <Tabs value={selectedHistoryDisplayMode} onChange={handleHistoryDisplayModeChange} aria-label="History display mode selection"
                                       sx={{mb: 1}}>
-                                    <Tab label="Timeline" value="timeline"/>
-                                    <Tab label="Chart" value="chart"/>
+                                    <Tab label="Timeline" value={JOB_HISTORY_DISPLAY_MODES.timeline}/>
+                                    <Tab label="Chart" value={JOB_HISTORY_DISPLAY_MODES.chart}/>
                                 </Tabs>
 
-                                {selectedHistoryDisplayMode === "timeline" && <Grid id="job-history-panel" size={12}>
+                                {selectedHistoryDisplayMode === JOB_HISTORY_DISPLAY_MODES.timeline && <Grid id="job-history-panel" size={12}>
                                     <JobHistoryTimeline job={job} order={order}/>
                                 </Grid>}
 
-                                {selectedHistoryDisplayMode === "chart" && <Grid id="job-history-chart-panel" size={12}>
+                                {selectedHistoryDisplayMode === JOB_HISTORY_DISPLAY_MODES.chart && <Grid id="job-history-chart-panel" size={12}>
                                     <JobHistoryChart jobHistory={job.jobHistory} jobMetadata={job.metadata} reverse={!order}/>
                                 </Grid>}
                             </Grid>

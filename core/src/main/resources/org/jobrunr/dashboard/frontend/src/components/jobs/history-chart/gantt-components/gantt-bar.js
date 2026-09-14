@@ -1,6 +1,7 @@
 import {keyframes, styled} from "@mui/material/styles";
 import LinearProgress, {linearProgressClasses} from "@mui/material/LinearProgress";
 import {lighten} from "@mui/material";
+import {ENQUEUED, FAILED, SCHEDULED, SUCCEEDED} from "../../../utils/state-names.js";
 
 const animateInProgressBar = keyframes`
     0% {
@@ -12,10 +13,10 @@ const animateInProgressBar = keyframes`
 `;
 
 export const getBarColor = (step, theme) => {
-    if (step.state === 'ENQUEUED') return theme.palette.info.light;
-    if (step.state === 'SCHEDULED') return theme.palette.grey[600];
-    if (step.succeeded === false || step.state === 'FAILED') return theme.palette.error.light;
-    if (step.succeeded === true || step.state === 'SUCCEEDED') return theme.palette.success.light;
+    if (step.state === ENQUEUED) return theme.palette.info.light;
+    if (step.state === SCHEDULED) return theme.palette.grey[600];
+    if (step.succeeded === false || step.state === FAILED) return theme.palette.error.light;
+    if (step.succeeded === true || step.state === SUCCEEDED) return theme.palette.success.light;
     return theme.palette.warning.light;
 };
 

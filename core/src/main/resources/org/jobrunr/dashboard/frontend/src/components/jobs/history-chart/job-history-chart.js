@@ -8,6 +8,7 @@ import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {TimelineGanttChart} from "./timeline-gantt-chart.js";
 import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled} from "./timeline-data-components/timeline-data.js";
 import {END_STATES} from "../../utils/state-names.js";
+import {ItemsNotFound} from "../../utils/items-not-found.js";
 
 export const TIMELINE_MODES = {
     COMPACT: "compact",
@@ -76,9 +77,6 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
         return () => clearInterval(id);
     }, [hasCompleted]);
 
-    const timelineModel = buildTimelineModel({steps, mode: timelineMode, compression: compressionMode, reverse, now});
-    if (!timelineModel) return null;
-
     const changeMode = (event, mode) => {
         if (!mode) return;
         localStorage.setItem(TIMELINE_MODE_STORAGE_KEY, mode);
@@ -91,7 +89,9 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
         setCompressionMode(compression);
     };
 
-    return (
+    const timelineModel = buildTimelineModel({steps, mode: timelineMode, compression: compressionMode, reverse, now});
+
+    return timelineModel && (
         <Box sx={{width: '100%'}}>
             <Card>
                 <CardContent sx={{position: 'relative'}}>
@@ -113,7 +113,10 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
                         </Box>
                     </Box>
 
-                    {executionSteps.length > 0 && <TimelineGanttChart model={timelineModel} timelineMode={timelineMode} reverse={reverse}/>}
+                    {executionSteps.length
+                        ? <TimelineGanttChart model={timelineModel} timelineMode={timelineMode} reverse={reverse}/>
+                        : <ItemsNotFound>Waiting for the job to move to the <code>ENQUEUED</code> state.</ItemsNotFound>
+                    }
                 </CardContent>
             </Card>
         </Box>

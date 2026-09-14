@@ -2,7 +2,7 @@ import Tooltip from "@mui/material/Tooltip";
 import {SwitchableTimeFormatter} from "../../../utils/time-ago.js";
 import Typography from "@mui/material/Typography";
 
-export const GanttTimelineEntry = ({time, position}) => {
+export const GanttTimelineTickLabel = ({time, position}) => {
     return <Tooltip key={time.ms} title={<>
         <SwitchableTimeFormatter date={new Date(time.startMs)}/>
         {time.endMs && <> - <SwitchableTimeFormatter date={new Date(time.endMs)}/></>}
