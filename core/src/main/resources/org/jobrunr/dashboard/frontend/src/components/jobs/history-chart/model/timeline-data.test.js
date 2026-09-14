@@ -1,13 +1,13 @@
 import {
     buildTimelineModel,
     createTimeCompressor,
+    EXCLUDED_STATES,
     generateTimeTicks,
     getStepLabel,
     groupCompactStepsSequentially,
     removeInitialScheduled,
 } from './timeline-data.js';
-import {createJobExecutionTimelineEntries} from '../utils/timeline-entries.js';
-import {EXCLUDED_STATES} from './timeline-data.js';
+import {createJobExecutionTimelineEntries} from './timeline-entries.js';
 
 const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
 const iso = (offsetMs) => new Date(BASE + offsetMs).toISOString();
@@ -147,7 +147,13 @@ describe('buildTimelineModel', () => {
             {state: 'PROCESSING', label: 'Processing', startedAt: iso(120000), finishedAt: iso(120100), type: 'span'},
             {state: 'SUCCEEDED', label: 'Succeeded', startedAt: iso(120100), finishedAt: iso(120100), type: 'milestone'},
         ];
-        const compressed = buildTimelineModel({steps: gappedEntries(), timelineMode: 'compact', compressionMode: 'compressed', reverse: false, now: ms(120100)});
+        const compressed = buildTimelineModel({
+            steps: gappedEntries(),
+            timelineMode: 'compact',
+            compressionMode: 'compressed',
+            reverse: false,
+            now: ms(120100)
+        });
         const linear = buildTimelineModel({steps: gappedEntries(), timelineMode: 'compact', compressionMode: 'linear', reverse: false, now: ms(120100)});
         expect(compressed.compactRows[0].items[0].placement.isCompressed).toBe(true);
         expect(linear.compactRows[0].items[0].placement.isCompressed).toBe(false);

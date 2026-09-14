@@ -6,14 +6,8 @@ import {ToggleButton, ToggleButtonGroup} from "@mui/material";
 import {useEffect, useState} from 'react';
 import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {TimelineGanttChart} from "./timeline-gantt-chart.js";
-import {
-    buildTimelineModel,
-    EXCLUDED_STATES,
-    removeInitialScheduled,
-    TIMELINE_COMPRESSION_MODES,
-    TIMELINE_MODES
-} from "./timeline-data-components/timeline-data.js";
-import {createJobExecutionTimelineEntries} from "./utils/timeline-entries.js";
+import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled, TIMELINE_COMPRESSION_MODES, TIMELINE_MODES} from "./model/timeline-data.js";
+import {createJobExecutionTimelineEntries} from "./model/timeline-entries.js";
 import {ItemsNotFound} from "../../utils/items-not-found.js";
 
 const TIMELINE_MODE_STORAGE_KEY = "executionTimelineMode";

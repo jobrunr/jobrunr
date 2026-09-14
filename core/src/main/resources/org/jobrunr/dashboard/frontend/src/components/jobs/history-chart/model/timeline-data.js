@@ -1,6 +1,6 @@
 import {dateAsMilliseconds} from "../../../../utils/helper-functions.js";
 import {AWAITING, DELETED, SCHEDULED} from "../../../utils/state-names.js";
-import {ENTRY_TYPES, RUN_STEP_ONCE} from "../utils/timeline-entries.js";
+import {ENTRY_TYPES, RUN_STEP_ONCE} from "./timeline-entries.js";
 import {createBarPlacements, createCompressedAxis, createTimeCompressor, detectLongRangesToCompress, generateTimeTicks} from "./timeline-axis.js";
 import {buildCompactRetryEvents, buildCompactRows, buildDetailedRows} from "./timeline-rows.js";
 

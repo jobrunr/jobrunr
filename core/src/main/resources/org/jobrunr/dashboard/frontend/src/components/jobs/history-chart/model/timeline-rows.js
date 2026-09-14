@@ -1,5 +1,5 @@
 import {ENQUEUED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS} from "../../../utils/state-names.js";
-import {REQUEUE_STEP, RETRY_STEP} from "../utils/timeline-entries.js";
+import {REQUEUE_STEP, RETRY_STEP} from "./timeline-entries.js";
 
 const LIFECYCLE_STATES = [SCHEDULED, ENQUEUED, PROCESSING];
 

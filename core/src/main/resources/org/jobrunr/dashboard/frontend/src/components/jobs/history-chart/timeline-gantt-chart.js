@@ -16,7 +16,7 @@ import {GanttRowDuration} from "./gantt-components/gantt-row-duration.js";
 import {GanttTimelineTickLabel} from "./gantt-components/gantt-timeline-tick-label.js";
 import {GanttRowLabel} from "./gantt-components/gantt-row-label.js";
 import {styled} from "@mui/material/styles";
-import {TIMELINE_MODES} from "./timeline-data-components/timeline-data.js";
+import {TIMELINE_MODES} from "./model/timeline-data.js";
 
 export const MIN_LABEL_WIDTH = 150;
 export const MAX_LABEL_WIDTH = 250;
