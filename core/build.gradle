@@ -207,6 +207,7 @@ tasks.register('npmInstall', Exec) {
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
     commandLine 'sh', '-c', 'npm ci'
     outputs.cacheIf { true }
+    outputs.upToDateWhen { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
@@ -221,7 +222,6 @@ tasks.register('npmRunBuild', Exec) {
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/build')
     commandLine 'sh', '-c', 'npm run build'
     outputs.cacheIf { true }
-    outputs.upToDateWhen { false }
 }
 
 tasks.register('npmRunTest', Exec) {
