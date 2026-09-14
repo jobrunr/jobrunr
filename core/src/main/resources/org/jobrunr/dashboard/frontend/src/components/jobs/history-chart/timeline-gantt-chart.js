@@ -115,7 +115,7 @@ export const TimelineGanttChart = ({model, timelineMode, reverse = false}) => {
                         }}/>
                     ))}
                     {timelineMode === TIMELINE_MODES.COMPACT && retryEvents.map((retry) => (
-                        <VerticalRetrySeparator key={retry.count} label={retry.label} position={pos(retry.pct)}/>
+                        <VerticalRetrySeparator key={retry.count} label={retry.label} position={pos(retry.pct)} isRequeue={retry.isRequeue}/>
                     ))}
                 </Box>
 
@@ -123,7 +123,7 @@ export const TimelineGanttChart = ({model, timelineMode, reverse = false}) => {
                 {timelineMode === TIMELINE_MODES.COMPACT && compactRows.map((row) => renderCompactGanttChartRow(row, theme, reverse))}
                 {timelineMode === TIMELINE_MODES.DETAILED &&
                     orderedDetailedRows.map((row) => row.isSeparator
-                        ? <HorizontalRetrySeparator key={`separator-${row.label}`} label={row.label}/>
+                        ? <HorizontalRetrySeparator key={`separator-${row.label}`} label={row.label} isRequeue={row.isRequeue}/>
                         : renderSimpleGanttChartRow(row, theme, reverse))
                 }
             </Box>

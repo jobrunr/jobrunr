@@ -2,10 +2,10 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import {useId} from "react";
 
-export const VerticalRetrySeparator = ({label, position}) => (
+export const VerticalRetrySeparator = ({label, position, isRequeue}) => (
     <Box sx={{
         position: 'absolute', top: 0, bottom: 0, left: `${position}%`,
-        borderLeft: '1px dashed', borderColor: 'divider', opacity: 0.6,
+        borderLeft: isRequeue ? '2px solid' : '1px dashed', borderColor: 'divider', opacity: 0.6,
     }}>
         <Typography variant="caption" sx={{
             position: 'absolute',
@@ -21,7 +21,7 @@ export const VerticalRetrySeparator = ({label, position}) => (
     </Box>
 )
 
-export const HorizontalRetrySeparator = ({label}) => {
+export const HorizontalRetrySeparator = ({label, isRequeue}) => {
     const id = useId();
 
     return (
@@ -29,7 +29,7 @@ export const HorizontalRetrySeparator = ({label}) => {
             <Typography variant="caption" sx={{color: 'text.secondary', flexShrink: 0, opacity: 0.6}} id={id}>
                 {label}
             </Typography>
-            <Box sx={{flexGrow: 1, borderTop: '1px dashed', borderColor: 'divider'}} aria-labelledby={id}/>
+            <Box sx={{flexGrow: 1, borderTop: isRequeue ? '2px solid' : '1px dashed', borderColor: 'divider'}} aria-labelledby={id}/>
         </Box>
     )
 }

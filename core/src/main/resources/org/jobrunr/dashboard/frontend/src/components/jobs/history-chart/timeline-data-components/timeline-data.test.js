@@ -215,14 +215,43 @@ describe('createJobExecutionTimelineEntries + buildTimelineModel', () => {
 
     it('creates retry events from the retry milestones', () => {
         const model = buildModel('compact');
-        expect(model.retryEvents.map((event) => event.label)).toEqual(['Retry 1', 'Retry 2']);
+        expect(model.retryEvents.map((event) => ({label: event.label, isRequeue: event.isRequeue})))
+            .toEqual([{label: 'Retry 1', isRequeue: false}, {label: 'Retry 2', isRequeue: false}]);
         expect(model.retryEvents.map((event) => event.ms)).toEqual([ms(10000), ms(20000)]);
     });
 
     it('renders retry milestones as separators in the detailed rows', () => {
         const model = buildModel('detailed');
         const separators = model.orderedDetailedRows.filter((row) => row.isSeparator);
-        expect(separators.map((row) => row.label)).toEqual(['Retry 1', 'Retry 2']);
+        expect(separators.map((row) => ({label: row.label, isRequeue: row.isRequeue})))
+            .toEqual([{label: 'Retry 1', isRequeue: false}, {label: 'Retry 2', isRequeue: false}]);
+    });
+
+    it('flags requeue markers separately from retries', () => {
+        const requeuedJob = () => ({
+            jobHistory: [
+                {state: 'ENQUEUED', createdAt: iso(0)},
+                {state: 'PROCESSING', createdAt: iso(1000)},
+                {state: 'FAILED', createdAt: iso(5000)},
+                {state: 'SCHEDULED', createdAt: iso(6000), scheduledAt: iso(6500)},
+                {state: 'ENQUEUED', createdAt: iso(7000)},
+                {state: 'PROCESSING', createdAt: iso(7500)},
+                {state: 'SUCCEEDED', createdAt: iso(9000)},
+                {state: 'ENQUEUED', createdAt: iso(10000)},
+                {state: 'PROCESSING', createdAt: iso(10500)},
+                {state: 'SUCCEEDED', createdAt: iso(12000)},
+            ],
+            metadata: {},
+        });
+        const steps = createJobExecutionTimelineEntries(requeuedJob())
+            .filter((entry) => !EXCLUDED_STATES.includes(entry.state));
+        const build = (timelineMode) => buildTimelineModel({steps, timelineMode, compressionMode: 'linear', reverse: false, now: ms(12000)});
+
+        expect(build('compact').retryEvents.map((event) => ({label: event.label, isRequeue: event.isRequeue})))
+            .toEqual([{label: 'Retry 1', isRequeue: false}, {label: 'Requeue 1', isRequeue: true}]);
+        expect(build('detailed').orderedDetailedRows.filter((row) => row.isSeparator)
+            .map((row) => ({label: row.label, isRequeue: row.isRequeue})))
+            .toEqual([{label: 'Retry 1', isRequeue: false}, {label: 'Requeue 1', isRequeue: true}]);
     });
 
     it('shows the processing outcome as a marker on the bar in compact mode only', () => {

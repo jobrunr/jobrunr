@@ -12,6 +12,8 @@ const getOrCreateStepRow = (stepMap, name) => {
     return stepMap.get(name);
 };
 
+const isRequeueMarker = (item) => item.state === REQUEUE_STEP;
+
 const isRetryOrRequeueMarker = (item) => item.state === RETRY_STEP || item.state === REQUEUE_STEP;
 
 const collectStepsIntoCompactRows = (items) => {
@@ -50,13 +52,14 @@ export const buildCompactRetryEvents = (items, axis) =>
     items.filter(isRetryOrRequeueMarker).map((item, index) => ({
         count: index + 1,
         label: item.label,
+        isRequeue: isRequeueMarker(item),
         pct: axis.percentage(item.startMs),
         ms: item.startMs,
     }));
 
 export const buildDetailedRows = (items, getPlacement, reverse) => {
     const detailedRows = items.map((item) => {
-        if (isRetryOrRequeueMarker(item)) return {item, label: item.label, isSeparator: true};
+        if (isRetryOrRequeueMarker(item)) return {item, label: item.label, isSeparator: true, isRequeue: isRequeueMarker(item)};
         // why: in detailed mode the outcome of an attempt is shown by the FAILED/SUCCEEDED milestone row that follows it, not by a marker on the processing bar
         const {outcome, ...itemWithoutOutcome} = item;
         return {
