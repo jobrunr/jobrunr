@@ -39,6 +39,49 @@ export function humanReadableISO8601Duration(durationString) {
     return result.trim();
 }
 
+export function humanReadableMillis(ms, significantUnits = 1) {
+    const parts = getDaysHoursMinutesAndSecondsFromMillis(ms);
+    const units = [
+        {value: parts.days, label: "d"},
+        {value: parts.hours, label: "h"},
+        {value: parts.minutes, label: "m"},
+        {value: parts.seconds, label: "s"},
+        {value: parts.milliseconds, label: "ms"},
+    ];
+
+    const start = units.findIndex(u => u.value > 0);
+    if (start === -1) return "0s";
+
+    let resultString = "";
+    for (let i = start; i < units.length && (i - start) < significantUnits; i++) {
+        const unit = units[i];
+        if (unit.value > 0) {
+            resultString += unit.value + unit.label + " ";
+        }
+    }
+    return resultString.trim() || "0s";
+}
+
+const getDaysHoursMinutesAndSecondsFromMillis = (ms) => {
+    const totalSeconds = (ms / 1000).toFixed(3);
+    const days = Math.floor(totalSeconds / 86_400);
+    const hours = Math.floor((totalSeconds - (days * 86_400)) / 3600);
+    const minutes = Math.floor((totalSeconds - (days * 86_400) - (hours * 3600)) / 60);
+    const remainingSeconds = totalSeconds - (days * 86_400) - (hours * 3600) - (minutes * 60);
+    const seconds = Math.floor(remainingSeconds);
+    const milliseconds = Math.round((remainingSeconds - seconds) * 1000);
+    return {days, hours, minutes, seconds, milliseconds};
+};
+
+const decimalNumberFormatter = new Intl.NumberFormat("en", {notation: "compact"});
+
+export function humanReadableNumber(num) {
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '?';
+    }
+    return decimalNumberFormatter.format(num);
+}
+
 export function parseScheduleExpression(scheduleExpressionWithOptionalCarbonAwareMargin) {
     const scheduleExpressionPattern = /(.+?)\s+\[\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*\/\s*(PT(?:\d+D)?(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d{1,6})?S)?)\s*]\s*/;
 
@@ -78,3 +121,29 @@ export function stringToColor(text) {
 
     return "#" + "00000".substring(0, 6 - c.length) + c;
 }
+
+export const dateAsMilliseconds = (date) => new Date(date).getTime();
+
+const padInstant = (instant) => {
+    let cleanedInstant = instant.toString().replace("Z", "");
+    if (!cleanedInstant.includes(".")) cleanedInstant += ".0";
+    if (!cleanedInstant.includes("T")) cleanedInstant = cleanedInstant.replace(" ", "T"); // TODO why?
+    cleanedInstant = cleanedInstant.padEnd(35, "0");
+    return cleanedInstant;
+}
+
+export const compareInstants = (firstInstant, secondInstant) => {
+    if (firstInstant === secondInstant) return 0;
+    if (firstInstant === undefined) return 1;
+    if (secondInstant === undefined) return -1;
+    const firstDatePadded = padInstant(firstInstant);
+    const secondDatePadded = padInstant(secondInstant);
+
+    return firstDatePadded.localeCompare(secondDatePadded, "en", {sensitivity: "base"});
+};
+
+export const formatDuration = (startMs, endMs, significantUnits = 1) => {
+    const ms = Math.max(0, endMs - startMs);
+    if (!Number.isFinite(ms) || ms <= 0) return '<1 ms';
+    return humanReadableMillis(ms, significantUnits);
+};

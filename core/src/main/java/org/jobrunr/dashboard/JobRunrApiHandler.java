@@ -106,7 +106,7 @@ public class JobRunrApiHandler extends RestHttpHandler {
     private HttpRequestHandler requeueJobById() {
         return (request, response) -> {
             final Job job = storageProvider.getJobById(request.param(":id", UUID.class));
-            job.enqueue();
+            job.requeue();
             storageProvider.save(job);
             response.statusCode(204);
         };

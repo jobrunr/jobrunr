@@ -103,3 +103,6 @@ yarn-error.log*
 dependency-check-bin
 dependency-check-reports
 /renovate.js
+
+.pi
+skills-lock.json
