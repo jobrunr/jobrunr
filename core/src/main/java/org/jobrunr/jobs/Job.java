@@ -50,7 +50,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
  */
 public class Job extends AbstractJob {
 
-    private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)|\\b" + JobContext.JOBRUNR_STEP_PREFIX + ".+");
+    private static final Pattern METADATA_PATTERN = Pattern.compile("(\\b" + JobDashboardLogger.JOBRUNR_LOG_KEY + "\\b|\\b" + JobDashboardProgressBar.JOBRUNR_PROGRESSBAR_KEY + "\\b)-(\\d+)|\\b(?!" + JobContext.JOBRUNR_STEP_RESULT_PREFIX + ")" + JobContext.JOBRUNR_STEP_PREFIX + ".+");
     public static final JobSortColumns ALLOWED_SORT_COLUMNS = new JobSortColumns();
 
     private static final UUIDv7Factory UUID_FACTORY = UUIDv7Factory.builder().withIncrementPlus1().build();
@@ -166,7 +166,7 @@ public class Job extends AbstractJob {
     }
 
     public void requeue() {
-        clearStepResult();
+        clearStepMetadata();
         enqueue();
     }
 
@@ -253,7 +253,7 @@ public class Job extends AbstractJob {
         metadata.entrySet().removeIf(entry -> !METADATA_PATTERN.matcher(entry.getKey()).matches());
     }
 
-    private void clearStepResult() {
-        metadata.entrySet().removeIf(entry -> entry.getKey().startsWith(JobContext.JOBRUNR_STEP_RESULT_PREFIX));
+    private void clearStepMetadata() {
+        metadata.entrySet().removeIf(entry -> entry.getKey().startsWith(JobContext.JOBRUNR_STEP_PREFIX));
     }
 }
