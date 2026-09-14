@@ -6,69 +6,26 @@ import {ToggleButton, ToggleButtonGroup} from "@mui/material";
 import {useEffect, useState} from 'react';
 import {SwitchableTimeFormatter} from "../../utils/time-ago.js";
 import {TimelineGanttChart} from "./timeline-gantt-chart.js";
-import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled} from "./timeline-data-components/timeline-data.js";
-import {END_STATES} from "../../utils/state-names.js";
+import {
+    buildTimelineModel,
+    EXCLUDED_STATES,
+    removeInitialScheduled,
+    TIMELINE_COMPRESSION_MODES,
+    TIMELINE_MODES
+} from "./timeline-data-components/timeline-data.js";
+import {createJobExecutionTimelineEntries} from "./utils/timeline-entries.js";
 import {ItemsNotFound} from "../../utils/items-not-found.js";
 
-export const TIMELINE_MODES = {
-    COMPACT: "compact",
-    DETAILED: "detailed",
-}
-export const TIMELINE_COMPRESSION_MODES = {
-    LINEAR: "linear",
-    COMPRESSED: "compressed",
-}
 const TIMELINE_MODE_STORAGE_KEY = "executionTimelineMode";
 const TIMELINE_COMPRESSION_STORAGE_KEY = "executionTimelineCompression";
 
-const JOBRUNR_STEP_PREFIX = "jr_step_";
-const JOBRUNR_STEP_START_PREFIX = JOBRUNR_STEP_PREFIX + "start_";
-const JOBRUNR_STEP_END_PREFIX = JOBRUNR_STEP_PREFIX + "end_";
-const JOBRUNR_STEP_RESULT_PREFIX = JOBRUNR_STEP_PREFIX + "result_";
-const JOBRUNR_STEP_RESULT_CLASS_PREFIX = JOBRUNR_STEP_RESULT_PREFIX + "class_";
-
-export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
+export const JobHistoryChart = ({job, reverse = false}) => {
     const [timelineMode, setTimelineMode] = useState(() => localStorage.getItem(TIMELINE_MODE_STORAGE_KEY) ?? TIMELINE_MODES.COMPACT);
     const [compressionMode, setCompressionMode] = useState(() => localStorage.getItem(TIMELINE_COMPRESSION_STORAGE_KEY) ?? TIMELINE_COMPRESSION_MODES.COMPRESSED);
 
-    const getExecutionSteps = () => {
-        if (jobMetadata) {
-            const runStepOnceMetadata = processRunStepOnceMetadata(jobMetadata);
-            const executionSteps = [...jobHistory, ...runStepOnceMetadata];
-            executionSteps.sort((a, b) => a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
-            return executionSteps;
-        }
-        return [];
-    }
-
-    const processRunStepOnceMetadata = (metadata) => {
-        const starts = [];
-        const ends = new Map();
-        const results = new Map();
-        const completed = new Map();
-        for (const [key, value] of Object.entries(metadata)) {
-            if (key.startsWith(JOBRUNR_STEP_RESULT_CLASS_PREFIX)) continue;
-            if (key.startsWith(JOBRUNR_STEP_START_PREFIX)) starts.push([key.slice(JOBRUNR_STEP_START_PREFIX.length), value]);
-            else if (key.startsWith(JOBRUNR_STEP_END_PREFIX)) ends.set(key.slice(JOBRUNR_STEP_END_PREFIX.length), value);
-            else if (key.startsWith(JOBRUNR_STEP_RESULT_PREFIX)) results.set(key.slice(JOBRUNR_STEP_RESULT_PREFIX.length), value);
-            else if (key.startsWith(JOBRUNR_STEP_PREFIX)) completed.set(key.slice(JOBRUNR_STEP_PREFIX.length), value);
-        }
-
-        return starts.map(([name, start]) => ({
-            state: 'RUN_STEP_ONCE',
-            stepName: name,
-            createdAt: start,
-            updatedAt: ends.get(name),
-            succeeded: completed.get(name),
-            result: completed.get(name) ? results.get(name.split('__')[0]) : undefined,
-        }));
-    };
-
-    const executionSteps = getExecutionSteps();
-
-    const filteredSteps = executionSteps.filter((step) => !EXCLUDED_STATES.includes(step.state));
-    const steps = removeInitialScheduled(filteredSteps);
-    const hasCompleted = steps.length === 0 || END_STATES.includes(steps[steps.length - 1].state);
+    const timelineEntries = createJobExecutionTimelineEntries(job);
+    const steps = removeInitialScheduled(timelineEntries.filter((entry) => !EXCLUDED_STATES.includes(entry.state)));
+    const hasCompleted = steps.every((entry) => entry.finishedAt);
 
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
@@ -89,7 +46,7 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
         setCompressionMode(compression);
     };
 
-    const timelineModel = buildTimelineModel({steps, mode: timelineMode, compression: compressionMode, reverse, now});
+    const timelineModel = buildTimelineModel({steps, timelineMode, compressionMode, reverse, now});
 
     return timelineModel && (
         <Box sx={{width: '100%'}}>
@@ -113,7 +70,7 @@ export const JobHistoryChart = ({jobMetadata, jobHistory, reverse = false}) => {
                         </Box>
                     </Box>
 
-                    {executionSteps.length
+                    {steps.length
                         ? <TimelineGanttChart model={timelineModel} timelineMode={timelineMode} reverse={reverse}/>
                         : <ItemsNotFound>Waiting for the job to move to the <code>ENQUEUED</code> state.</ItemsNotFound>
                     }

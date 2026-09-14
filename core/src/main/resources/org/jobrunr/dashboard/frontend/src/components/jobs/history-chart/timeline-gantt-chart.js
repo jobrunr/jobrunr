@@ -10,13 +10,13 @@ import {GanttBar, getBarColor} from "./gantt-components/gantt-bar.js";
 import {BreakIndicator} from "./gantt-components/break-indicator.js";
 import {HorizontalRetrySeparator, VerticalRetrySeparator} from "./gantt-components/retry-separator.js";
 import {FAILED} from "../../utils/state-names.js";
-import {TIMELINE_MODES} from "./job-history-chart.js";
 import {GanttTooltipTitle} from "./gantt-components/gantt-tooltip-title.js";
 import {GanttRow} from "./gantt-components/gantt-row.js";
 import {GanttRowDuration} from "./gantt-components/gantt-row-duration.js";
 import {GanttTimelineTickLabel} from "./gantt-components/gantt-timeline-tick-label.js";
 import {GanttRowLabel} from "./gantt-components/gantt-row-label.js";
 import {styled} from "@mui/material/styles";
+import {TIMELINE_MODES} from "./timeline-data-components/timeline-data.js";
 
 export const MIN_LABEL_WIDTH = 150;
 export const MAX_LABEL_WIDTH = 250;
@@ -63,9 +63,9 @@ function renderCompactGanttChartRow(row, theme, reverse) {
     </GanttRow>
 }
 
-function renderSimpleGanttChartRow(isRetry, retryNumber, label, isStep, item, theme, reverse) {
-    return <Fragment key={item.state + item.createdAt + label}>
-        {isRetry && <HorizontalRetrySeparator label={`Retry ${retryNumber}`}/>}
+function renderSimpleGanttChartRow(row, theme, reverse) {
+    const {item, label, isStep} = row;
+    return <Fragment key={item.state + item.startedAt + label}>
         <GanttRow label={label}>
             <GanttRowLabel label={label} isStep={isStep}/>
             <GanttRowTimeline>
@@ -115,16 +115,16 @@ export const TimelineGanttChart = ({model, timelineMode, reverse = false}) => {
                         }}/>
                     ))}
                     {timelineMode === TIMELINE_MODES.COMPACT && retryEvents.map((retry) => (
-                        <VerticalRetrySeparator key={retry.count} label={`Retry ${retry.count}`} position={pos(retry.pct)}/>
+                        <VerticalRetrySeparator key={retry.count} label={retry.label} position={pos(retry.pct)}/>
                     ))}
                 </Box>
 
                 {/* Gantt Rows */}
                 {timelineMode === TIMELINE_MODES.COMPACT && compactRows.map((row) => renderCompactGanttChartRow(row, theme, reverse))}
                 {timelineMode === TIMELINE_MODES.DETAILED &&
-                    orderedDetailedRows.map(({item, label, isStep, isRetry, retryNumber}) => renderSimpleGanttChartRow(
-                        isRetry, retryNumber, label, isStep, item, theme, reverse)
-                    )
+                    orderedDetailedRows.map((row) => row.isSeparator
+                        ? <HorizontalRetrySeparator key={`separator-${row.label}`} label={row.label}/>
+                        : renderSimpleGanttChartRow(row, theme, reverse))
                 }
             </Box>
 

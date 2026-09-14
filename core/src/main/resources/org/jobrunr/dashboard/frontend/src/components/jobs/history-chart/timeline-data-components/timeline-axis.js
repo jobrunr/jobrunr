@@ -1,5 +1,5 @@
-import {dateAsMilliseconds, formatDuration} from "../../../../utils/helper-functions.js";
-import {END_STATES, PROCESSING, RUN_STEP_ONCE} from "../../../utils/state-names.js";
+import {formatDuration} from "../../../../utils/helper-functions.js";
+import {PROCESSING, RUN_STEP_ONCE} from "../../../utils/state-names.js";
 
 const COMPRESSOR_FLOOR_RATIO = 0.15;
 const TICK_MERGE_PCT = 8;
@@ -18,7 +18,7 @@ const roundToNearest = (value, bucket) => Math.round(value / bucket) * bucket;
 
 // Scale factor for how much a gap shrinks: a gap taking a larger share of the total
 // duration shrinks more, floored so a gap never collapses to zero width.
-const compressorScale = (range, totalDuration, thresholdMs) => {
+const getCompressionScale = (range, totalDuration, thresholdMs) => {
     const baseScale = Math.max(thresholdMs / 2, 1);
     const floor = COMPRESSOR_FLOOR_RATIO * baseScale;
     const duration = range.endMs - range.startMs;
@@ -29,8 +29,8 @@ const compressorScale = (range, totalDuration, thresholdMs) => {
 // Fraction of a gap's real duration that stays visible after compression.
 // A log curve — small gaps stay ~full, large gaps shrink proportionally rather
 // than vanishing. Drives how much time `createTimeCompressor` subtracts per gap.
-const visualWidthRatio = (range, totalDuration, thresholdMs) => {
-    const scale = compressorScale(range, totalDuration, thresholdMs);
+const getVisualWidthRatio = (range, totalDuration, thresholdMs) => {
+    const scale = getCompressionScale(range, totalDuration, thresholdMs);
     const duration = range.endMs - range.startMs;
     return (scale * Math.log(1 + duration / scale)) / duration;
 };
@@ -40,7 +40,7 @@ export const createTimeCompressor = (longRanges, totalDuration, thresholdMs) => 
     for (const r of longRanges) {
         if (timeMs <= r.startMs) break;
         const spanInGap = Math.min(timeMs, r.endMs) - r.startMs;
-        compressedTimeSaved += spanInGap * (1 - visualWidthRatio(r, totalDuration, thresholdMs));
+        compressedTimeSaved += spanInGap * (1 - getVisualWidthRatio(r, totalDuration, thresholdMs));
     }
     return timeMs - compressedTimeSaved;
 };
@@ -50,7 +50,7 @@ export const createCompressedAxis = (compressTime, start, duration) => ({
     percentage: (realMs) => duration > 0 ? ((compressTime(realMs) - start) / duration) * 100 : 0,
 });
 
-const tickStepSeconds = (durationMs) => {
+const convertTickStepToSeconds = (durationMs) => {
     const totalSec = durationMs / 1000;
     let stepSec = roundToNearest(totalSec / TARGET_TICK_COUNT, FINE_BUCKET_SEC) || (totalSec < FINE_BUCKET_SEC ? 1 : FINE_BUCKET_SEC);
     if (stepSec > COARSE_BUCKET_SEC) return roundToNearest(stepSec, COARSE_BUCKET_SEC);
@@ -107,39 +107,34 @@ export const generateTimeTicks = (durationMs, compressTime, timelineStartMs, com
     if (!durationMs || durationMs <= 0) return [{ms: 0, pct: 0, label: '0'}];
     const axis = createCompressedAxis(compressTime, compressTime(timelineStartMs), compressedTimelineDuration);
     const breakTicks = buildBreakTicks(longRanges, axis, timelineStartMs);
-    const regularTicks = buildRegularTicks(durationMs, tickStepSeconds(durationMs), axis, timelineStartMs, longRanges);
+    const regularTicks = buildRegularTicks(durationMs, convertTickStepToSeconds(durationMs), axis, timelineStartMs, longRanges);
     return mergeTicks(breakTicks, regularTicks);
 };
 
-const collectTimestamps = (rawSteps, stepEndMap, start, end, now) => {
+const collectTimestamps = (items, start, end) => {
     const timestamps = new Set([start, end]);
-    rawSteps.forEach((step) => {
-        const startMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
-        const info = stepEndMap.get(step);
-        const endMs = info?.end ?? (info?.active ? now : startMs);
-        if (Number.isFinite(startMs)) timestamps.add(startMs);
-        if (Number.isFinite(endMs)) timestamps.add(endMs);
+    items.forEach((item) => {
+        if (Number.isFinite(item.startMs)) timestamps.add(item.startMs);
+        if (Number.isFinite(item.endMs)) timestamps.add(item.endMs);
     });
     return timestamps;
 };
 
-const hasFollowingRunStepOnce = (rawSteps, i) =>
-    i + 1 < rawSteps.length && rawSteps[i + 1].state === RUN_STEP_ONCE;
+const hasFollowingRunStepOnce = (items, i) =>
+    i + 1 < items.length && items[i + 1].state === RUN_STEP_ONCE;
 
-const detectSpansThatShouldNotCompress = (rawSteps, stepEndMap) => {
+const detectSpansThatShouldNotCompress = (items) => {
     const protectedSpans = [];
-    rawSteps.forEach((step, i) => {
-        if (step.state !== PROCESSING || !hasFollowingRunStepOnce(rawSteps, i)) return;
-        const processingStart = dateAsMilliseconds(step.createdAt);
-        const processingEnd = stepEndMap.get(step)?.end ?? processingStart;
-        if (processingEnd > processingStart) protectedSpans.push({startMs: processingStart, endMs: processingEnd});
+    items.forEach((item, i) => {
+        if (item.state !== PROCESSING || !hasFollowingRunStepOnce(items, i)) return;
+        if (item.endMs > item.startMs) protectedSpans.push({startMs: item.startMs, endMs: item.endMs});
     });
     return protectedSpans;
 };
 
-export const detectLongRangesToCompress = (rawSteps, stepEndMap, start, end, now, compressionThresholdMs) => {
-    const sortedTimestamps = Array.from(collectTimestamps(rawSteps, stepEndMap, start, end, now)).sort((a, b) => a - b);
-    const protectedSpans = detectSpansThatShouldNotCompress(rawSteps, stepEndMap);
+export const detectLongRangesToCompress = (items, start, end, compressionThresholdMs) => {
+    const sortedTimestamps = Array.from(collectTimestamps(items, start, end)).sort((a, b) => a - b);
+    const protectedSpans = detectSpansThatShouldNotCompress(items);
     const longRanges = [];
     for (let i = 0; i < sortedTimestamps.length - 1; i++) {
         const segmentStart = sortedTimestamps[i], segmentEnd = sortedTimestamps[i + 1];
@@ -159,21 +154,18 @@ const computeBreakOffsetsWithinGanttBar = (compressRanges, itemStartMs, itemEndM
             return compressedBarDuration > 0 ? ((compressedBreakMidpoint - compressedBarStart) / compressedBarDuration) * 100 : DEFAULT_BREAK_OFFSET_PCT;
         });
 
-export const createBarPlacements = ({axis, compressRanges, reverse}) => (startMs, endMs, state) => {
-    const itemStartMs = startMs;
-    const itemEndMs = endMs ?? startMs;
-    const compressedBarStart = axis.compressTime(itemStartMs);
-    const compressedBarEnd = axis.compressTime(itemEndMs);
-    const offset = axis.percentage(itemStartMs);
-    const calculatedWidth = axis.percentage(itemEndMs) - offset;
-    const isEndState = END_STATES.includes(state);
-    const itemBreaks = computeBreakOffsetsWithinGanttBar(compressRanges, itemStartMs, itemEndMs, axis.compressTime, compressedBarStart, compressedBarEnd);
+export const createBarPlacements = ({axis, compressRanges, reverse}) => (item) => {
+    const compressedBarStart = axis.compressTime(item.startMs);
+    const compressedBarEnd = axis.compressTime(item.endMs);
+    const offset = axis.percentage(item.startMs);
+    const calculatedWidth = axis.percentage(item.endMs) - offset;
+    const itemBreaks = computeBreakOffsetsWithinGanttBar(compressRanges, item.startMs, item.endMs, axis.compressTime, compressedBarStart, compressedBarEnd);
     const isCompressed = itemBreaks.length > 0;
-    const baseWidth = isEndState ? 0 : Math.max(calculatedWidth, isCompressed ? MIN_COMPRESSED_BAR_WIDTH : MIN_BAR_WIDTH);
+    const baseWidth = item.isPoint ? 0 : Math.max(calculatedWidth, isCompressed ? MIN_COMPRESSED_BAR_WIDTH : MIN_BAR_WIDTH);
     return {
         offset: reverse ? 100 - offset - baseWidth : offset,
         width: baseWidth,
-        isPoint: isEndState,
+        isPoint: item.isPoint,
         isCompressed,
         breakOffsets: reverse ? itemBreaks.map((b) => 100 - b) : itemBreaks,
     };

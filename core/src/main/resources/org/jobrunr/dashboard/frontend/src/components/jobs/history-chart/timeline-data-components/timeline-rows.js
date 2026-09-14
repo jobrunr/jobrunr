@@ -1,117 +1,68 @@
-import {dateAsMilliseconds} from "../../../../utils/helper-functions.js";
-import {ENQUEUED, FAILED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS, SUCCEEDED} from "../../../utils/state-names.js";
-import {addSkippedStepsToAllSteps} from "./determine-skipped-steps.js";
+import {ENQUEUED, PROCESSING, RUN_STEP_ONCE, SCHEDULED, STATE_LABELS} from "../../../utils/state-names.js";
+import {REQUEUE_STEP, RETRY_STEP} from "../utils/timeline-entries.js";
 
-const lifecycleRows = () => [
-    {key: SCHEDULED, label: STATE_LABELS[SCHEDULED], isStep: false, items: []},
-    {key: ENQUEUED, label: STATE_LABELS[ENQUEUED], isStep: false, items: []},
-    {key: PROCESSING, label: STATE_LABELS[PROCESSING], isStep: false, items: []},
-];
+const LIFECYCLE_STATES = [SCHEDULED, ENQUEUED, PROCESSING];
 
-export const getStepLabel = (step) => {
-    if (step.isConsolidated) return 'Execution time';
-    if (step.state === RUN_STEP_ONCE && step.stepName) return step.stepName.split('__')[0];
-    return STATE_LABELS[step.state] ?? step.state ?? 'Unknown';
-};
+const lifecycleRows = () => LIFECYCLE_STATES.map((state) => ({key: state, label: STATE_LABELS[state], isStep: false, items: []}));
 
-const processOutcomeOfStep = (step, nextStep) => {
-    if (step.state !== PROCESSING) return null;
-    let outcome = null;
-    if (nextStep?.state === FAILED || step.succeeded === false) outcome = FAILED;
-    if (nextStep?.state === SUCCEEDED || step.succeeded === true) outcome = SUCCEEDED;
-    return outcome;
-};
+export const getStepLabel = (step) => step.label ?? STATE_LABELS[step.state] ?? step.state ?? 'Unknown';
 
 const getOrCreateStepRow = (stepMap, name) => {
     if (!stepMap.has(name)) stepMap.set(name, {key: name, label: name, isStep: true, items: []});
     return stepMap.get(name);
 };
 
-const addRunStepOnceRow = (stepMap, step, startMs, endMs, info) => {
-    getOrCreateStepRow(stepMap, getStepLabel(step))
-        .items.push({...step, startMs, endMs, active: info?.active, isSkipped: step.isSkipped});
-};
+const isRetryOrRequeueMarker = (item) => item.state === RETRY_STEP || item.state === REQUEUE_STEP;
 
-const addLifecycleRow = (rows, step, startMs, endMs, info, nextStep) => {
-    const row = rows.find(r => r.key === step.state);
-    if (row) row.items.push({...step, startMs, endMs, active: info?.active, outcome: processOutcomeOfStep(step, nextStep)});
-};
-
-const collectStepsIntoCompactRows = (executionSteps, stepEndMap, now) => {
+const collectStepsIntoCompactRows = (items) => {
     const rows = lifecycleRows();
     const stepMap = new Map();
-    executionSteps.forEach((step, idx) => {
-        const info = stepEndMap.get(step);
-        const startMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
-        const endMs = info?.end ?? (info?.active ? now : startMs);
-        const nextStep = executionSteps.slice(idx + 1).find((s) => s.state !== RUN_STEP_ONCE);
-        if (step.state === RUN_STEP_ONCE) addRunStepOnceRow(stepMap, step, startMs, endMs, info);
-        else if ([SCHEDULED, ENQUEUED, PROCESSING].includes(step.state)) addLifecycleRow(rows, step, startMs, endMs, info, nextStep);
+    items.forEach((item) => {
+        if (item.state === RUN_STEP_ONCE) getOrCreateStepRow(stepMap, item.label).items.push(item);
+        else if (LIFECYCLE_STATES.includes(item.state)) rows.find((row) => row.key === item.state).items.push(item);
     });
     return {rows, stepMap};
 };
 
 const computeCompactRowTotalMs = (rows, stepMap) =>
-    [...rows.filter(r => r.items.length > 0), ...Array.from(stepMap.values())].map(row => ({
+    [...rows.filter((row) => row.items.length > 0), ...Array.from(stepMap.values())].map((row) => ({
         ...row,
-        totalMs: row.items.reduce((sum, item) => sum + Math.max(0, (item.endMs ?? item.startMs) - item.startMs), 0)
+        totalMs: row.items.reduce((sum, item) => sum + Math.max(0, item.endMs - item.startMs), 0),
     }));
 
-export const groupCompactStepsSequentially = (executionSteps, stepEndMap, now, skipped = []) => {
-    const {rows, stepMap} = collectStepsIntoCompactRows(executionSteps, stepEndMap, now);
-    addSkippedStepsToAllSteps(stepMap, skipped);
+export const groupCompactStepsSequentially = (items) => {
+    const {rows, stepMap} = collectStepsIntoCompactRows(items);
     return computeCompactRowTotalMs(rows, stepMap);
 };
 
 const applyPlacement = (item, getPlacement) => {
-    const {offset, width, isPoint, isCompressed, breakOffsets} = getPlacement(item.startMs, item.endMs, item.state);
+    const {offset, width, isPoint, isCompressed, breakOffsets} = getPlacement(item);
     return {...item, placement: {offset, width, isPoint, isCompressed, breakOffsets}};
 };
 
-export const buildCompactRows = (rawSteps, stepEndMap, now, skipped, getPlacement, reverse) => {
-    const groupedRows = groupCompactStepsSequentially(rawSteps, stepEndMap, now, skipped);
+export const buildCompactRows = (items, getPlacement, reverse) => {
+    const groupedRows = groupCompactStepsSequentially(items);
     const ordered = reverse ? groupedRows.slice().reverse() : groupedRows;
     return ordered.map((row) => ({...row, items: row.items.map((item) => applyPlacement(item, getPlacement))}));
 };
 
-export const buildCompactRetryEvents = (rawSteps, axis) => {
-    const events = [];
-    let count = 0;
-    rawSteps.forEach((step, idx) => {
-        if (idx > 0 && step.state === SCHEDULED) {
-            count += 1;
-            const retryMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
-            events.push({count, pct: axis.percentage(retryMs), ms: retryMs});
-        }
-    });
-    return events;
-};
+export const buildCompactRetryEvents = (items, axis) =>
+    items.filter(isRetryOrRequeueMarker).map((item, index) => ({
+        count: index + 1,
+        label: item.label,
+        pct: axis.percentage(item.startMs),
+        ms: item.startMs,
+    }));
 
-const buildDetailedItem = (step, info, getPlacement) => {
-    const stepStartMs = dateAsMilliseconds(step.barStart ?? step.createdAt);
-    const stepEndMs = info?.end ?? null;
-    return {
-        ...step,
-        startMs: stepStartMs,
-        endMs: stepEndMs,
-        active: info?.active ?? false,
-        isSkipped: step.isSkipped,
-        placement: getPlacement(stepStartMs, stepEndMs, step.state)
-    };
-};
-
-export const buildDetailedRows = (detailedSteps, stepEndMap, getPlacement, reverse) => {
-    let chronologicalRetry = 0;
-    const detailedRows = detailedSteps.map((step, index) => {
-        const isRetry = index > 0 && step.state === SCHEDULED;
-        if (isRetry) chronologicalRetry += 1;
+export const buildDetailedRows = (items, getPlacement, reverse) => {
+    const detailedRows = items.map((item) => {
+        if (isRetryOrRequeueMarker(item)) return {item, label: item.label, isSeparator: true};
+        // why: in detailed mode the outcome of an attempt is shown by the FAILED/SUCCEEDED milestone row that follows it, not by a marker on the processing bar
+        const {outcome, ...itemWithoutOutcome} = item;
         return {
-            step,
-            item: buildDetailedItem(step, stepEndMap.get(step), getPlacement),
-            label: getStepLabel(step),
-            isStep: step.state === RUN_STEP_ONCE,
-            isRetry,
-            retryNumber: chronologicalRetry,
+            item: applyPlacement(itemWithoutOutcome, getPlacement),
+            label: getStepLabel(item),
+            isStep: item.state === RUN_STEP_ONCE,
         };
     });
     return reverse ? detailedRows.slice().reverse() : detailedRows;

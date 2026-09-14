@@ -215,7 +215,7 @@ const JobView = (props) => {
                                 </Grid>}
 
                                 {selectedHistoryDisplayMode === JOB_HISTORY_DISPLAY_MODES.chart && <Grid id="job-history-chart-panel" size={12}>
-                                    <JobHistoryChart jobHistory={job.jobHistory} jobMetadata={job.metadata} reverse={!order}/>
+                                    <JobHistoryChart job={job} reverse={!order}/>
                                 </Grid>}
                             </Grid>
 
