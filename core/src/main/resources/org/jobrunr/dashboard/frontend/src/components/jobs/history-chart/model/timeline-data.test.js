@@ -8,6 +8,7 @@ import {
     removeInitialScheduled,
 } from './timeline-data.js';
 import {createJobExecutionTimelineEntries} from './timeline-entries.js';
+import {FAILED, SUCCEEDED} from "../../../utils/state-names.js";
 
 const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
 const iso = (offsetMs) => new Date(BASE + offsetMs).toISOString();
@@ -263,7 +264,11 @@ describe('createJobExecutionTimelineEntries + buildTimelineModel', () => {
     it('shows the processing outcome as a marker on the bar in compact mode only', () => {
         const compactModel = buildModel('compact');
         const compactProcessing = compactModel.compactRows.find((row) => row.key === 'PROCESSING').items;
-        expect(compactProcessing.map((item) => item.outcome)).toEqual(['FAILED', 'FAILED', 'SUCCEEDED']);
+        expect(compactProcessing.map((item) => item.outcome)).toEqual([
+            {state: FAILED, result: undefined},
+            {state: FAILED, result: undefined},
+            {state: SUCCEEDED, result: undefined}
+        ]);
 
         const detailedModel = buildModel('detailed');
         const detailedProcessing = detailedModel.orderedDetailedRows.filter((row) => !row.isSeparator && row.item.state === 'PROCESSING');
