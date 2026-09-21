@@ -165,17 +165,19 @@ public class Job extends AbstractJob {
         return history.subList(actualStateChanges, history.size());
     }
 
-    public void requeue() {
-        clearStepMetadata();
-        enqueue();
-    }
-
     public void enqueue() {
+        clearMetadataIfRequeueOnSucceeded();
         addJobState(new EnqueuedState());
     }
 
     public void scheduleAt(Instant instant, String reason) {
         addJobState(new ScheduledState(instant, reason));
+    }
+
+    public void clearMetadataIfRequeueOnSucceeded() {
+        if (getJobState() instanceof SucceededState || (getJobState() instanceof DeletedState && getJobState(-2) instanceof SucceededState)) {
+            clearStepMetadata();
+        }
     }
 
     public void startProcessingOn(BackgroundJobServer backgroundJobServer) {

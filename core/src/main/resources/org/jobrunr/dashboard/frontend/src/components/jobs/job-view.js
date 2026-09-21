@@ -26,6 +26,7 @@ import JobLabel from "../utils/job-label";
 import {ItemsNotFound} from "../utils/items-not-found";
 import {JobHistoryChart} from "./history-chart/job-history-chart.js";
 import {JobHistoryTimeline} from "./history-timeline/job-history-timeline.js";
+import {SUCCEEDED} from "../utils/state-names.js";
 
 const JOB_HISTORY_DISPLAY_MODES = {
     timeline: "timeline",
@@ -158,7 +159,7 @@ const JobView = (props) => {
                                             <ButtonGroup>
                                                 {stateBreadcrumb.state !== 'ENQUEUED' &&
                                                     <Button variant="outlined" color="primary" onClick={requeueJob}>
-                                                        Requeue
+                                                        {stateBreadcrumb.state === SUCCEEDED ? "Requeue" : "Retry"}
                                                     </Button>
                                                 }
                                                 {stateBreadcrumb.state !== 'DELETED' &&

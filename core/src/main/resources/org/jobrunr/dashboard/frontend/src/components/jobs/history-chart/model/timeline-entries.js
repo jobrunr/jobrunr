@@ -23,6 +23,13 @@ const JOBRUNR_STEP_END_PREFIX = JOBRUNR_STEP_PREFIX + "end_";
 const JOBRUNR_STEP_RESULT_PREFIX = JOBRUNR_STEP_PREFIX + "result_";
 const JOBRUNR_STEP_RESULT_CLASS_PREFIX = JOBRUNR_STEP_RESULT_PREFIX + "class_";
 
+const formatResult = (result) => {
+    if (result === null || result === undefined) return;
+    if (Array.isArray(result)) return `[${result.map(formatResult).join(", ")}]`;
+    if (typeof result === "object") return JSON.stringify(result, null, 2);
+    return result;
+}
+
 const getOrCreateStep = (steps, name) => (steps[name] ??= {});
 
 const formatProcessingSteps = (jobMetadata) => {
@@ -43,7 +50,7 @@ const formatProcessingSteps = (jobMetadata) => {
                 ...value,
                 state: RUN_STEP_ONCE,
                 label: name,
-                result: value.succeeded ? results.get(name) : undefined,
+                result: formatResult(value.succeeded ? results.get(name) : undefined),
             };
         })
         .sort((a, b) => compareInstants(a.startedAt, b.startedAt));
@@ -119,10 +126,13 @@ const createRequeueStep = (nextJobState, requeueNumber) => {
 }
 
 const getProcessingOutcome = (jobState, nextJobState) => {
-    if (jobState.state !== PROCESSING) return null;
-    if (nextJobState?.state === FAILED) return FAILED;
-    if (nextJobState?.state === SUCCEEDED) return SUCCEEDED;
-    return null;
+    if (nextJobState?.state === FAILED) return {state: FAILED, result: getStateResult(nextJobState)};
+    if (nextJobState?.state === SUCCEEDED) return {state: SUCCEEDED, result: getStateResult(nextJobState)};
+}
+
+const getStateResult = (jobState) => {
+    if (jobState.state === SUCCEEDED) return jobState.result;
+    if (jobState.state === FAILED) return jobState.stackTrace;
 }
 
 const formatJobStates = (jobHistory) => {
@@ -135,6 +145,7 @@ const formatJobStates = (jobHistory) => {
             finishedAt: getStateFinishedAt(jobState, nextJobState),
             type: getTimelineType(jobState.state),
             outcome: getProcessingOutcome(jobState, nextJobState),
+            result: formatResult(getStateResult(jobState)),
         };
     });
 }
