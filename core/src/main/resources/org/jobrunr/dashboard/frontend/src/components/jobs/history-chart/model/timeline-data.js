@@ -47,7 +47,7 @@ export const buildTimelineModel = ({steps, timelineMode, compressionMode, revers
 
     const items = toTimelineItems(steps, now);
     const start = items[0].startMs;
-    const end = Math.max(items[items.length - 1].endMs, start);
+    const end = items.reduce((maxEnd, item) => Math.max(maxEnd, item.endMs), start);
     const duration = end - start;
     const compressionThresholdMs = Math.max(MIN_COMPRESSION_THRESHOLD_MS, duration * COMPRESSION_THRESHOLD);
 

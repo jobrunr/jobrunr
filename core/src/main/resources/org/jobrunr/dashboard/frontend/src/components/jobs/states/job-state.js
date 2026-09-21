@@ -1,4 +1,4 @@
-import Alert from '@mui/material/Alert';
+import Alert, {alertClasses} from '@mui/material/Alert';
 import {SwitchableTimeFormatter} from "../../utils/time-ago";
 import Icon from "@mui/material/Icon";
 import Typography from "@mui/material/Typography";
@@ -14,11 +14,11 @@ const COLOR_VARIANTS_LIGHT = {
     deleted: {
         color: '#ffe4bf',
         backgroundColor: '#654b3d',
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: '#e78f73',
             backgroundColor: '#654b3d',
         },
-        '& div.MuiAlert-standardInfo': {
+        [`& .${alertClasses.standard}.${alertClasses.colorInfo}`]: {
             color: '#ffe4bf',
             backgroundColor: '#654b3d',
         }
@@ -26,7 +26,7 @@ const COLOR_VARIANTS_LIGHT = {
     scheduled: {
         color: "rgb(13, 60, 97)",
         backgroundColor: "#CFD8DC",
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: "rgb(13, 60, 97)"
         }
     },
@@ -49,11 +49,11 @@ const COLOR_VARIANTS_LIGHT = {
     awaiting: {
         color: "rgb(161, 164, 157)",
         backgroundColor: "rgb(250 254 245)",
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: 'rgb(161, 164, 157)',
             backgroundColor: 'rgb(250 254 245)',
         },
-        '& div.MuiAlert-standardInfo': {
+        [`& .${alertClasses.standard}.${alertClasses.colorInfo}`]: {
             color: 'rgb(161, 164, 157)',
             backgroundColor: 'rgb(250 254 245)',
         }
@@ -64,11 +64,11 @@ const COLOR_VARIANTS_DARK = {
     deleted: {
         color: '#ffb380',
         backgroundColor: '#3d2817',
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: '#ff8a65',
             backgroundColor: '#3d2817',
         },
-        '& div.MuiAlert-standardInfo': {
+        [`& .${alertClasses.standard}.${alertClasses.colorInfo}`]: {
             color: '#ffb380',
             backgroundColor: '#3d2817',
         }
@@ -76,7 +76,7 @@ const COLOR_VARIANTS_DARK = {
     scheduled: {
         color: "rgb(144, 202, 249)",
         backgroundColor: "rgb(18, 35, 48)",
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: "rgb(144, 202, 249)"
         }
     },
@@ -99,11 +99,11 @@ const COLOR_VARIANTS_DARK = {
     awaiting: {
         color: "rgb(189, 189, 189)",
         backgroundColor: "rgb(33, 37, 30)",
-        '& div.MuiAlert-icon': {
+        [`& .${alertClasses.icon}`]: {
             color: 'rgb(189, 189, 189)',
             backgroundColor: 'rgb(33, 37, 30)',
         },
-        '& div.MuiAlert-standardInfo': {
+        [`& .${alertClasses.standard}.${alertClasses.colorInfo}`]: {
             color: 'rgb(189, 189, 189)',
             backgroundColor: 'rgb(33, 37, 30)',
         }

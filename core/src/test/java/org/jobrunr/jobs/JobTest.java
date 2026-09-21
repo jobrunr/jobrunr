@@ -244,7 +244,30 @@ class JobTest {
                 .hasMetadata(JobContext.JOBRUNR_STEP_START_PREFIX + stepKey)
                 .hasMetadata(JobContext.JOBRUNR_STEP_END_PREFIX + stepKey);
 
-        job.requeue();
+        job.enqueue();
+        assertThat(job)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_CLASS_PREFIX + step)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_PREFIX + step)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_PREFIX + stepKey)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_START_PREFIX + stepKey)
+                .hasNoMetadata(JobContext.JOBRUNR_STEP_END_PREFIX + stepKey);
+    }
+
+    @Test
+    void allStepMetadataIsClearedWhenAJobIsRequeuedFromDeletedState() {
+        Job job = aJobInProgress().build();
+        var step = "step";
+        var stepKey = step + "__1";
+
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_PREFIX + stepKey, true);
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_START_PREFIX + stepKey, now().toString());
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_END_PREFIX + stepKey, now().toString());
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_RESULT_CLASS_PREFIX + step, "java.lang.String");
+        job.getMetadata().put(JobContext.JOBRUNR_STEP_RESULT_PREFIX + step, "value");
+
+        job.succeeded();
+        job.delete("Test setup");
+        job.enqueue();
         assertThat(job)
                 .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_CLASS_PREFIX + step)
                 .hasNoMetadata(JobContext.JOBRUNR_STEP_RESULT_PREFIX + step)

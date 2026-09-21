@@ -22,10 +22,11 @@ export const MIN_LABEL_WIDTH = 150;
 export const MAX_LABEL_WIDTH = 250;
 export const ROW_HEIGHT = 28;
 
-const renderBarOrMilestone = (item, theme, reverse) => {
+const GanttBarOrMilestone = ({item, reverse}) => {
+    const theme = useTheme();
     const {offset, width, isPoint, isCompressed, breakOffsets} = item.placement;
     return (
-        <Tooltip title={<GanttTooltipTitle item={item}/>}>
+        <Tooltip title={<GanttTooltipTitle item={item}/>} slotProps={{tooltip: {sx: {maxWidth: 'none'}}}}>
             {item.isSkipped ? (
                 <RhombusOutline fontSize="tiny"
                                 sx={{position: 'absolute', left: `${offset}%`, top: '50%', transform: 'translate(-50%, -50%)', color: 'grey.500'}}/>
@@ -37,7 +38,7 @@ const renderBarOrMilestone = (item, theme, reverse) => {
                     <GanttBar active={item.active} variant={item.active ? 'indeterminate' : 'determinate'} value={item.active ? undefined : 100} step={item}/>
                     {isCompressed && breakOffsets.map((bOffset, bIdx) => <BreakIndicator key={bIdx} leftPct={bOffset} color={getBarColor(item, theme)}/>)}
                     {item.outcome && (
-                        <Rhombus fontSize="tiny" color={item.outcome === FAILED ? 'error' : 'success'}
+                        <Rhombus fontSize="tiny" color={item.outcome.state === FAILED ? 'error' : 'success'}
                                  sx={{position: 'absolute', [reverse ? 'left' : 'right']: -6, top: '50%', transform: 'translateY(-50%)', zIndex: 2}}/>
                     )}
                 </Box>
@@ -51,29 +52,27 @@ const GanttRowTimeline = styled("div")({
     height: 18
 });
 
-function renderCompactGanttChartRow(row, theme, reverse) {
+const CompactGanttChartRow = ({row, reverse}) => {
     return <GanttRow key={row.key} label={row.label}>
         <GanttRowLabel label={row.label} isStep={row.isStep}/>
         <GanttRowTimeline>
             {row.items.map((item, idx) => (
-                <Fragment key={row.key + idx}>{renderBarOrMilestone(item, theme, reverse)}</Fragment>
+                <Fragment key={row.key + idx}>{<GanttBarOrMilestone item={item} reverse={reverse}/>}</Fragment>
             ))}
         </GanttRowTimeline>
         <GanttRowDuration duration={formatDuration(0, row.totalMs)}/>
     </GanttRow>
 }
 
-function renderSimpleGanttChartRow(row, theme, reverse) {
+const DetailedGanttChartRow = ({row, reverse}) => {
     const {item, label, isStep} = row;
-    return <Fragment key={item.state + item.startedAt + label}>
-        <GanttRow label={label}>
-            <GanttRowLabel label={label} isStep={isStep}/>
-            <GanttRowTimeline>
-                {renderBarOrMilestone(item, theme, reverse)}
-            </GanttRowTimeline>
-            {!item.active && <GanttRowDuration duration={item.isSkipped ? 'skipped' : formatDuration(item.startMs, item.endMs)}/>}
-        </GanttRow>
-    </Fragment>;
+    return <GanttRow label={label}>
+        <GanttRowLabel label={label} isStep={isStep}/>
+        <GanttRowTimeline>
+            {<GanttBarOrMilestone item={item} reverse={reverse}/>}
+        </GanttRowTimeline>
+        {!item.active && <GanttRowDuration duration={item.isSkipped ? 'skipped' : formatDuration(item.startMs, item.endMs)}/>}
+    </GanttRow>;
 }
 
 export const TimelineGanttChart = ({model, timelineMode, reverse = false}) => {
@@ -120,11 +119,11 @@ export const TimelineGanttChart = ({model, timelineMode, reverse = false}) => {
                 </Box>
 
                 {/* Gantt Rows */}
-                {timelineMode === TIMELINE_MODES.COMPACT && compactRows.map((row) => renderCompactGanttChartRow(row, theme, reverse))}
+                {timelineMode === TIMELINE_MODES.COMPACT && compactRows.map((row) => <CompactGanttChartRow key={row.key} row={row} reverse={reverse}/>)}
                 {timelineMode === TIMELINE_MODES.DETAILED &&
                     orderedDetailedRows.map((row) => row.isSeparator
                         ? <HorizontalRetrySeparator key={`separator-${row.label}`} label={row.label} isRequeue={row.isRequeue}/>
-                        : renderSimpleGanttChartRow(row, theme, reverse))
+                        : <DetailedGanttChartRow key={row.item.state + row.item.startedAt + row.label} row={row} reverse={reverse}/>)
                 }
             </Box>
 
