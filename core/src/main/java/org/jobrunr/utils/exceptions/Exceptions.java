@@ -11,14 +11,11 @@ import java.util.function.Supplier;
 public class Exceptions {
 
     /**
-     * JobRunr uses reflection to run jobs. Any error in jobs is wrapped in {@link InvocationTargetException}.
-     * Job details shows {@link InvocationTargetException} and its stacktrace on UI
+     * JobRunr uses reflection to run jobs. Any error in jobs is wrapped in {@link InvocationTargetException}, and
+     * step execution failures are wrapped in {@link StepExecutionException}.
+     * Job details shows {@link InvocationTargetException} or {@link StepExecutionException} and its stacktrace on UI
      * with lots of internal details not related to the job.
-     * It makes harder for users to read exceptions
-     * and leaves less space for the actual errors' stacktraces on UI.
-     * <p>
-     * For durable executions, the exception is wrapped in {@link StepExecutionException}.
-     * We unwrap the exception to show the actual error on UI and within the analytics.
+     * It makes it harder for users to read exceptions and leaves less space for the actual errors' stacktraces on UI.
      */
     public static Exception unwrapException(Exception e) {
         Exception unwrapped = e;

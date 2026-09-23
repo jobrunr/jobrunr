@@ -27,6 +27,7 @@ import {ItemsNotFound} from "../utils/items-not-found";
 import {JobHistoryChart} from "./history-chart/job-history-chart.js";
 import {JobHistoryTimeline} from "./history-timeline/job-history-timeline.js";
 import {SUCCEEDED} from "../utils/state-names.js";
+import JobTooLargeNotification from "./notifications/job-too-large-notification.js";
 
 const JOB_HISTORY_DISPLAY_MODES = {
     timeline: "timeline",
@@ -41,6 +42,7 @@ const JobView = (props) => {
     const [job, setJob] = useState(null);
     const [stateBreadcrumb, setStateBreadcrumb] = useState({});
     const [order, setOrder] = useState(true);
+    const [jsonLength, setJsonLength] = useState(0);
     const {jobId} = useParams();
 
     const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? JOB_HISTORY_DISPLAY_MODES.timeline);
@@ -64,8 +66,10 @@ const JobView = (props) => {
         fetch(`/api/jobs/${id}`)
             .then(res => {
                 if (res.status === 200) {
-                    res.json()
-                        .then(job => onJob(job));
+                    res.json().then(job => {
+                        setJsonLength(JSON.stringify(job).length);
+                        onJob(job);
+                    });
                 } else {
                     onJobNotFound();
                 }
@@ -188,6 +192,7 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
+                            {jsonLength > 3_000_000 && <JobTooLargeNotification/>}
 
                             <Grid size={12}>
                                 <Grid size={12}>
