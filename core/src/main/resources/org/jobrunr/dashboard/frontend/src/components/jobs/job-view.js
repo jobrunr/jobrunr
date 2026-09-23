@@ -42,7 +42,6 @@ const JobView = (props) => {
     const [job, setJob] = useState(null);
     const [stateBreadcrumb, setStateBreadcrumb] = useState({});
     const [order, setOrder] = useState(true);
-    const [jsonLength, setJsonLength] = useState(0);
     const {jobId} = useParams();
 
     const [selectedHistoryDisplayMode, setSelectedHistoryDisplayMode] = useState(localStorage.getItem("jobHistoryDisplayMode") ?? JOB_HISTORY_DISPLAY_MODES.timeline);
@@ -66,10 +65,7 @@ const JobView = (props) => {
         fetch(`/api/jobs/${id}`)
             .then(res => {
                 if (res.status === 200) {
-                    res.json().then(job => {
-                        setJsonLength(JSON.stringify(job).length);
-                        onJob(job);
-                    });
+                    res.json().then(job => onJob(job));
                 } else {
                     onJobNotFound();
                 }
@@ -192,7 +188,7 @@ const JobView = (props) => {
                             {stateBreadcrumb.state === 'DELETED' && <DeletedNotification job={job}/>}
                             {stateBreadcrumb.state === 'SCHEDULED' && <CarbonAwareScheduledNotification job={job}/>}
                             {stateBreadcrumb.state === 'AWAITING' && <CarbonAwareScheduledNotification job={job}/>}
-                            {jsonLength > 3_000_000 && <JobTooLargeNotification/>}
+                            <JobTooLargeNotification job={job}/>
 
                             <Grid size={12}>
                                 <Grid size={12}>
