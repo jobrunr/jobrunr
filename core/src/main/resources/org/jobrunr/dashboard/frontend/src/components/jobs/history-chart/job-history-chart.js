@@ -9,6 +9,7 @@ import {TimelineGanttChart} from "./timeline-gantt-chart.js";
 import {buildTimelineModel, EXCLUDED_STATES, removeInitialScheduled, TIMELINE_COMPRESSION_MODES, TIMELINE_MODES} from "./model/timeline-data.js";
 import {createJobExecutionTimelineEntries} from "./model/timeline-entries.js";
 import {ItemsNotFound} from "../../utils/items-not-found.js";
+import Paper from "@mui/material/Paper";
 
 const TIMELINE_MODE_STORAGE_KEY = "executionTimelineMode";
 const TIMELINE_COMPRESSION_STORAGE_KEY = "executionTimelineCompression";
@@ -42,34 +43,34 @@ export const JobHistoryChart = ({job, reverse = false}) => {
 
     const timelineModel = buildTimelineModel({steps, timelineMode, compressionMode, reverse, now});
 
-    return timelineModel && (
-        <Box sx={{width: '100%'}}>
-            <Card>
-                <CardContent sx={{position: 'relative'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 2}}>
-                        <Box>
-                            <Typography variant="body2" color="text.secondary" sx={{opacity: 0.8}}>
-                                Created <SwitchableTimeFormatter date={new Date(timelineModel.start)}/>
-                            </Typography>
+    return steps.length
+        ? (
+            <Box sx={{width: '100%'}}>
+                <Card>
+                    <CardContent sx={{position: 'relative'}}>
+                        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 2}}>
+                            <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{opacity: 0.8}}>
+                                    Created <SwitchableTimeFormatter date={new Date(timelineModel.start)}/>
+                                </Typography>
+                            </Box>
+                            <Box sx={{display: 'flex', gap: 1, alignItems: 'center'}}>
+                                <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small" sx={{maxHeight: "32px"}}>
+                                    <ToggleButton value={TIMELINE_MODES.COMPACT} sx={{fontSize: "12px"}}>Compact</ToggleButton>
+                                    <ToggleButton value={TIMELINE_MODES.DETAILED} sx={{fontSize: "12px"}}>Detailed</ToggleButton>
+                                </ToggleButtonGroup>
+                                <ToggleButtonGroup onChange={changeCompression} value={compressionMode} exclusive size="small" sx={{maxHeight: "32px"}}>
+                                    <ToggleButton value={TIMELINE_COMPRESSION_MODES.COMPRESSED} sx={{fontSize: "12px"}}>Compressed</ToggleButton>
+                                    <ToggleButton value={TIMELINE_COMPRESSION_MODES.LINEAR} sx={{fontSize: "12px"}}>Linear</ToggleButton>
+                                </ToggleButtonGroup>
+                            </Box>
                         </Box>
-                        <Box sx={{display: 'flex', gap: 1, alignItems: 'center'}}>
-                            <ToggleButtonGroup onChange={changeMode} value={timelineMode} exclusive size="small" sx={{maxHeight: "32px"}}>
-                                <ToggleButton value={TIMELINE_MODES.COMPACT} sx={{fontSize: "12px"}}>Compact</ToggleButton>
-                                <ToggleButton value={TIMELINE_MODES.DETAILED} sx={{fontSize: "12px"}}>Detailed</ToggleButton>
-                            </ToggleButtonGroup>
-                            <ToggleButtonGroup onChange={changeCompression} value={compressionMode} exclusive size="small" sx={{maxHeight: "32px"}}>
-                                <ToggleButton value={TIMELINE_COMPRESSION_MODES.COMPRESSED} sx={{fontSize: "12px"}}>Compressed</ToggleButton>
-                                <ToggleButton value={TIMELINE_COMPRESSION_MODES.LINEAR} sx={{fontSize: "12px"}}>Linear</ToggleButton>
-                            </ToggleButtonGroup>
-                        </Box>
-                    </Box>
 
-                    {steps.length
-                        ? <TimelineGanttChart model={timelineModel} timelineMode={timelineMode} reverse={reverse}/>
-                        : <ItemsNotFound>Waiting for the job to move to the <code>ENQUEUED</code> state.</ItemsNotFound>
-                    }
-                </CardContent>
-            </Card>
-        </Box>
-    );
+                        <TimelineGanttChart model={timelineModel} timelineMode={timelineMode} reverse={reverse}/>
+                    </CardContent>
+                </Card>
+            </Box>
+        ) : <Paper>
+            <ItemsNotFound>Waiting for the job to move to the <code>ENQUEUED</code> state.</ItemsNotFound>
+        </Paper>;
 };
