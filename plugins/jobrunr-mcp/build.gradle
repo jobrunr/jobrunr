@@ -1,0 +1,92 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+compileJava {
+    options.release = 17
+}
+
+compileTestJava {
+    options.release = 17
+}
+
+dependencies {
+    api project(':core')
+
+    compileOnly platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
+    compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+
+    testImplementation platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
+    testImplementation testFixtures(project(':core'))
+    testImplementation 'org.springframework.boot:spring-boot-autoconfigure'
+    testImplementation 'org.springframework.boot:spring-boot-test'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes 'Automatic-Module-Name': 'org.jobrunr.mcp'
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-mcp'
+            version = project.version
+            from components.java
+
+            pom {
+                name = 'JobRunr MCP'
+                description = 'Connects JobRunr to the JobRunr MCP server so AI agents can inspect and operate your jobs.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'iNicholasBE'
+                        name = "Nicholas D'hondt"
+                        email = 'nicholas@jobrunr.io'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                withXml {
+                    asNode().remove(asNode().dependencyManagement)
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}
+
+sonar {
+    skipProject = true
+}
