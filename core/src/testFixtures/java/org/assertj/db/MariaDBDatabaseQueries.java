@@ -9,8 +9,10 @@ public class MariaDBDatabaseQueries extends DefaultDatabaseQueries {
 
     @Override
     public String getAllIndicesQuery() {
-        return "select index_name\n" +
-                "from information_schema.statistics\n" +
-                "where table_schema not in ('information_schema', 'mysql', 'performance_schema', 'sys')";
+        return """
+                select index_name
+                from information_schema.statistics
+                where table_schema not in ('information_schema', 'mysql', 'performance_schema', 'sys')
+                """;
     }
 }

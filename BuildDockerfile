@@ -1,16 +1,16 @@
 # build stage for Maven
-FROM maven:3.9.15-eclipse-temurin-26 AS maven-dist
+FROM maven:3.9.16-eclipse-temurin-26 AS maven-dist
 # build stage for Gradle
-FROM gradle:9.6.1-jdk26 AS gradle-dist
+FROM gradle:9.8.0-jdk26 AS gradle-dist
 # Main build stage
 FROM eclipse-temurin:26-jdk@sha256:2784bd6a3c45161c142eb7cb07dbcde4a45476ba8443920741f31d3d84178fdc
 
-ARG NODE_VERSION=24.11.1
+ARG NODE_VERSION=24.21.0
 
 RUN apt-get update
 RUN apt-get install -y software-properties-common git ca-certificates curl gnupg lsb-release docker.io
 SHELL ["/bin/bash", "--login", "-i", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
 RUN source /root/.bashrc
 RUN nvm install $NODE_VERSION
 RUN npm -v
@@ -20,7 +20,7 @@ RUN ln -s /root/.nvm/versions/node/v$NODE_VERSION/bin/npx /usr/bin/npx
 
 # Playwright support
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN npx -y playwright@1.61.0 install --with-deps chromium
+RUN npx -y playwright@1.63.0 install --with-deps chromium
 RUN chmod -R a+rX /ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 

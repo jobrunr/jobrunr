@@ -3,8 +3,8 @@ import groovy.json.JsonSlurper
 plugins {
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-    id 'com.github.ben-manes.versions' version '0.53.0' apply false
-    id 'net.ltgt.errorprone' version '5.1.0' apply false
+    id 'io.github.ben-manes.versions' version '0.64.0' apply false
+    id 'net.ltgt.errorprone' version '5.1.1' apply false
     id 'org.sonarqube' version '7.2.2.6593'
 }
 
@@ -89,9 +89,9 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { !it.name.contains('quarkus') && it.name != 'language-support' && it.name != 'platform' && it.name != 'framework-support' }) {
+configure(subprojects.findAll { it.name != 'language-support' && it.name != 'platform' && it.name != 'framework-support' }) {
 
-    apply plugin: 'com.github.ben-manes.versions'
+    apply plugin: 'io.github.ben-manes.versions'
 
     tasks.named("dependencyUpdates").configure {
         rejectVersionIf {
@@ -136,7 +136,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     dependencies {
         implementation platform(project(':platform'))
-        compileOnly 'org.apache.groovy:groovy-json:4.0.29'
+        compileOnly 'org.apache.groovy:groovy-json:4.0.33'
 
         errorprone 'com.google.errorprone:error_prone_core:2.50.0'
 
@@ -184,7 +184,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacoco {
-        toolVersion = "0.8.14"
+        toolVersion = "0.8.15"
     }
 
     jacocoTestReport {

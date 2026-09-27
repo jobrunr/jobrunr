@@ -94,7 +94,7 @@ public class FailedState extends AbstractJobState {
     }
 
     private static boolean hasCause(Exception exception) {
-        return exception.getCause() != null && exception.getCause() != exception;
+        return exception.getCause() != null && !exception.equals(exception.getCause());
     }
 
     private static boolean isProblematicAndDoNotRetry(Exception exception) {
