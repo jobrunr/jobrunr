@@ -84,8 +84,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof SomeParameter)) return false;
-            SomeParameter that = (SomeParameter) o;
+            if (!(o instanceof SomeParameter that)) return false;
             return value == that.value;
         }
 

@@ -118,7 +118,6 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.enabled = true
-        //options.errorprone.disableWarningsInGeneratedCode = true
         options.errorprone {
             // built-in error-prone rules
             disable("CanonicalDuration")                        // we'd rather have ofHours() on every line next to each other
@@ -127,6 +126,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             disable("StringCaseLocaleUsage")                    // we are never going to run into this issue
             disable("TypeParameterUnusedInFormals")            // due to heavy reflection usage in JobRunr
             disable("InlineMeSuggester")                        // Do not want to depend on an annotation
+            disable("ReferenceEquality")                        // False positive: https://github.com/google/error-prone/issues/5865
         }
     }
 
