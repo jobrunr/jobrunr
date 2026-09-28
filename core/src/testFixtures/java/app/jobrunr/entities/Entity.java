@@ -23,9 +23,7 @@ public class Entity {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Entity)) return false;
-
-        Entity entity = (Entity) o;
+        if (!(o instanceof Entity entity)) return false;
         return Objects.equals(name, entity.name);
     }
 

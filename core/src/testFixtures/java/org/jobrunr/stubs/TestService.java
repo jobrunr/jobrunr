@@ -395,10 +395,8 @@ public class TestService implements TestServiceInterface {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Work)) return false;
-
-            Work work = (Work) o;
-
+            if (!(o instanceof Work work)) return false;
+            
             if (workCount != work.workCount) return false;
             if (!Objects.equals(someString, work.someString)) return false;
             return Objects.equals(uuid, work.uuid);
