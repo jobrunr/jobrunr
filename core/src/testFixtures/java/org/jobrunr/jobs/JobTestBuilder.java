@@ -241,16 +241,6 @@ public class JobTestBuilder {
         return this;
     }
 
-    @Deprecated
-    public JobTestBuilder withJobDetails(JobLambda jobLambda) {
-       return this.withJobLambda(jobLambda);
-    }
-
-    @Deprecated
-    public <S> JobTestBuilder withJobDetails(IocJobLambda<S> jobLambda) {
-        return this.withJobLambda(jobLambda);
-    }
-
     public JobTestBuilder withJobLambda(JobLambda jobLambda) {
         this.jobDetails = new CachingJobDetailsGenerator(new JobDetailsAsmGenerator()).toJobDetails(jobLambda);
         return this;

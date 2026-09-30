@@ -16,7 +16,7 @@ public class DurationTypeDeserializer implements JsonbDeserializer<Duration> {
     @Override
     public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext, Type type) {
         JsonValue value = jsonParser.getValue();
-        if (value != JsonValue.NULL) {
+        if (JsonValue.NULL != value) {
             if (value instanceof JsonString) {
                 return Duration.parse(jsonParser.getString());
             } else {

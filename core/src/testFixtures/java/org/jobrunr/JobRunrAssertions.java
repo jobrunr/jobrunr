@@ -49,7 +49,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class JobRunrAssertions extends Assertions {
 
     public static Condition<Throwable> failedJob(Job job) {
-        return new Condition<>(x -> x instanceof ConcurrentJobModificationException && ((ConcurrentJobModificationException) x).getConcurrentUpdatedJobs().contains(job), "Should contain job");
+        return new Condition<>(x -> x instanceof ConcurrentJobModificationException cjme && cjme.getConcurrentUpdatedJobs().contains(job), "Should contain job");
     }
 
     public static <T extends Job> IdListAssert<Job, JobAssert> assertThatJobs(Page<T> jobPage) {

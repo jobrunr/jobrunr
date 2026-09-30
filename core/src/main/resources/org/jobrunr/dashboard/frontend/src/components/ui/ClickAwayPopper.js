@@ -5,7 +5,6 @@ export const ClickAwayPopper = ({children, isOpen, handleClickAway, ...rest}) =>
         isOpen &&
         <ClickAwayListener onClickAway={handleClickAway}>
             <Popper
-                aria-labelledby="jobrunr-clusters-menu"
                 sx={{zIndex: 1250}} // TODO use theme to determine z-index
                 open
                 placement="bottom-end"

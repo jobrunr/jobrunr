@@ -216,6 +216,25 @@ public class TestService implements TestServiceInterface {
         }
     }
 
+    public void doWorkThatRunsStepsOnce(JobContext jobContext) throws InterruptedException {
+        Thread.sleep(1000);
+        jobContext.runStepOnce("step-1", () -> {
+            Thread.sleep(15000);
+            if (jobContext.amountOfFailures() < 1) {
+                throw new RuntimeException("Bad things happened!");
+            }
+            return "result-1";
+        });
+        jobContext.runStepOnce("step-2", UUID::randomUUID);
+        if (jobContext.amountOfFailures() < 2) {
+            throw new RuntimeException("Bad things happened!");
+        }
+        jobContext.runStepOnce("step-3", () -> {
+            Thread.sleep(30000);
+            return UUID.randomUUID();
+        });
+    }
+
     public void doWorkThatTakesLong(int seconds) throws InterruptedException {
         try {
             TimeUnit.SECONDS.sleep(seconds);
@@ -376,10 +395,8 @@ public class TestService implements TestServiceInterface {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Work)) return false;
-
-            Work work = (Work) o;
-
+            if (!(o instanceof Work work)) return false;
+            
             if (workCount != work.workCount) return false;
             if (!Objects.equals(someString, work.someString)) return false;
             return Objects.equals(uuid, work.uuid);

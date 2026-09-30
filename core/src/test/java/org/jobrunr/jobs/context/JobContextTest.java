@@ -5,6 +5,7 @@ import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.exceptions.StepExecutionException;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.stubs.Mocks;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
@@ -69,6 +70,22 @@ public class JobContextTest {
     }
 
     @Test
+    void getMetadataReturnsExactKeyAndDoesNotMatchPrefixes() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.saveMetadata("foo", "foo-value");
+        jobContext.saveMetadata("foobar", "foobar-value");
+
+        assertThat((String) jobContext.getMetadata("foo")).isEqualTo("foo-value");
+        assertThat((String) jobContext.getMetadata("foobar")).isEqualTo("foobar-value");
+        // a shorter key must not prefix-match a longer stored key (public API contract)
+        assertThat((String) jobContext.getMetadata("fo")).isNull();
+        assertThat((String) jobContext.getMetadata("fooba")).isNull();
+    }
+
+    @Test
     void jobContextNbrOfRetries() {
         final Job job = aFailedJobWithRetries(2) // 0 based
                 .withEnqueuedState(Instant.now())
@@ -99,10 +116,91 @@ public class JobContextTest {
         JobContext jobContext = new JobContext(job);
 
         assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
-        jobContext.markStepCompleted("step-A");
+        jobContext.markStepSucceeded("step-A");
         assertThat(jobContext.hasCompletedStep("step-1")).isFalse();
-        jobContext.markStepCompleted("step-1");
+        jobContext.markStepSucceeded("step-1");
         assertThat(jobContext.hasCompletedStep("step-1")).isTrue();
+    }
+
+    @Test
+    void hasCompletedStepDoesNotMatchStepWhoseNameIsAPrefixOfAnotherStep() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        // a different step "send-email" completed via the Supplier path (key jr_step_send-email__2)
+        jobContext.markStepSucceeded("send-email__2");
+
+        // step "send" has never run and must not be considered completed
+        assertThat(jobContext.hasCompletedStep("send")).isFalse();
+    }
+
+    @Test
+    void hasCompletedStepUsesTheLatestRunNotTheFirstMatch() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+
+        JobContext jobContext = new JobContext(job);
+
+        final AtomicInteger counter = new AtomicInteger();
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .isInstanceOf(StepExecutionException.class)
+                .hasMessageContaining("Exception during execution of step 'my-step'");
+        assertThat(jobContext.hasCompletedStep("my-step")).isFalse();
+
+        job.failed("Exception during execution of step 'my-step'", new StepExecutionException("Exception during execution of step 'my-step'", new RuntimeException()));
+        job.scheduleAt(Instant.now(), "retry");
+        job.enqueue();
+        job.startProcessingOn(Mocks.ofBackgroundJobServer());
+
+        assertThatCode(() -> jobContext.runStepOnce("my-step", () -> doSomethingThatThrowsAnException(counter)))
+                .doesNotThrowAnyException();
+
+        // a later attempt must see the latest (successful) run, not the failed one
+        assertThat(jobContext.hasCompletedStep("my-step")).isTrue();
+    }
+
+    @Test
+    void hasStepCompletedDoesNotThrowNumberFormatException() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.markStepSucceeded("send__6");
+
+        // test that a prefix doesn't lead to a number format exception
+        assertThatCode(() -> jobContext.hasCompletedStep("send")).doesNotThrowAnyException();
+    }
+
+    @Test
+    void hasStepCompletedDoesNotFalselyStateStepCompleted() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        jobContext.markStepSucceeded("send__step");
+
+        // test that a prefix doesn't lead to a number format exception
+        assertThat(jobContext.hasCompletedStep("send")).isFalse();
+    }
+
+    @Test
+    void canDistinguishSiblingStepAtHigherRun() {
+        final Job job = aJobInProgress().withName("job1").withLabels("my-label").build();
+        JobContext jobContext = new JobContext(job);
+
+        // step "send" completes at the current (low) run index
+        jobContext.markStepSucceeded("send");
+        assertThat(jobContext.hasCompletedStep("send")).isTrue();
+
+        // bump job state count so the next markStepCompleted gets a higher run index
+        job.failed("retry", new RuntimeException());
+        job.scheduleAt(Instant.now(), "retry");
+        job.enqueue();
+        job.startProcessingOn(Mocks.ofBackgroundJobServer());
+
+        // a different step whose name contains "__" fails at the higher run index
+        jobContext.markStepFailed("send__step");
+
+        // "send" still completed (its run is in metadata) -> must stay true
+        assertThat(jobContext.hasCompletedStep("send")).isTrue();
     }
 
     @Test

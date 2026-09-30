@@ -23,7 +23,7 @@ public class AsyncJobValidator {
 
     @EventListener
     void startup(StartupEvent event) {
-        Collection<BeanDefinition<?>> definitions = applicationContext.getBeanDefinitions(Qualifiers.byStereotype(AsyncJob.class));
+        Collection<BeanDefinition<Object>> definitions = applicationContext.getBeanDefinitions(Qualifiers.byStereotype(AsyncJob.class));
 
         for (BeanDefinition<?> beanDefinition : definitions) {
             var executableMethods = beanDefinition.getExecutableMethods();

@@ -67,7 +67,7 @@ const Servers = memo(() => {
 
     return (
         <div>
-            <Box my={3}>
+            <Box sx={{my: 3}}>
                 <Typography variant="h4">Background Job Servers</Typography>
             </Box>
             <Paper>

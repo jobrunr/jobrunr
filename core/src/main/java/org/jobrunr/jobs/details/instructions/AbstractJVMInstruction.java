@@ -16,7 +16,7 @@ public abstract class AbstractJVMInstruction {
 
     public void invokeInstructionAndPushOnStack() {
         Object result = invokeInstruction();
-        if (result != DO_NOT_PUT_ON_STACK) {
+        if (DO_NOT_PUT_ON_STACK != result) {
             jobDetailsBuilder.getStack().add(result);
         }
     }

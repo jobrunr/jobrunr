@@ -1,9 +1,13 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
 import java.text.SimpleDateFormat
 
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
+    id 'org.springframework.boot' version '3.5.16' apply false
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 compileJava {
@@ -14,11 +18,13 @@ compileTestJava {
     options.release = 17
 }
 
-dependencies {
-    api platform(project(':platform'))
-    api platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
-    annotationProcessor platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
+dependencyManagement {
+    imports {
+        mavenBom(SpringBootPlugin.BOM_COORDINATES)
+    }
+}
 
+dependencies {
     api project(':core')
     api 'org.springframework.boot:spring-boot-starter'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
@@ -42,6 +48,12 @@ dependencies {
     testImplementation 'org.springframework.data:spring-data-redis'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'io.micrometer:micrometer-core'
+}
+
+dependencyUpdates {
+    rejectVersionIf {
+        it.candidate.group.startsWith('org.springframework') && !it.candidate.version.startsWith('3')
+    }
 }
 
 tasks.withType(Test).configureEach {

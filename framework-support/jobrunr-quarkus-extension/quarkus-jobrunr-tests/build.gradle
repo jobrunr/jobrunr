@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'io.quarkus' version '3.33.3'
+    id 'io.quarkus' version '3.40.1'
 }
 
 compileJava {
@@ -13,14 +13,14 @@ compileTestJava {
 
 dependencies {
     api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.33.3')
+    api enforcedPlatform('io.quarkus.platform:quarkus-bom:3.40.1')
 
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr-deployment')
     implementation 'io.quarkus:quarkus-core'
     implementation 'io.quarkus:quarkus-arc'
-    implementation 'io.quarkus:quarkus-resteasy'
-    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
 

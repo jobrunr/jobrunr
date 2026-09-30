@@ -1,5 +1,6 @@
 package org.jobrunr.micronaut.it;
 
+import io.micronaut.context.annotation.Requires;
 import jakarta.inject.Singleton;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.annotations.Recurring;
@@ -7,6 +8,7 @@ import org.jobrunr.jobs.context.JobContext;
 
 
 @Singleton
+@Requires(property = "test.service.enabled", value = "true")
 public class TestService {
 
     @Recurring(id = "my-recurring-job", cron = "*/15 * * * *")
