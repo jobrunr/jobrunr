@@ -15,8 +15,8 @@ Security fixes are released on the latest version only.
 | -------- | ------------------ |
 | LATEST   | :white_check_mark: |
 | < LATEST | :x:                |
-| 7.5.x    | :white_check_mark: |
-| < 7.5.x | :x:                |
+| 8.8.x    | :white_check_mark: |
+| < 8.8.x | :x:                |
 
 > [!NOTE]
 > If you are a JobRunr Pro customer and cannot upgrade to a supported version, reach out to JobRunr Support and depending on your support contract, we can backport a security fix for your JobRunr Pro version.
