@@ -1,3 +1,6 @@
+import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping
+import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
+
 import java.text.SimpleDateFormat
 
 plugins {
@@ -200,6 +203,15 @@ tasks.withType(Test).configureEach {
     jvmArgs '--illegal-final-field-mutation=deny'
 }
 
+// Gradle does not automatically publish sources and javadoc for test-fixtures, see https://github.com/gradle/gradle/issues/20539.
+// This is a workaround that uses Gradle internals to achieve the desired result.
+components.named('java', DefaultJvmSoftwareComponent) { javaComponent ->
+    javaComponent.features.named('testFixtures') { feature ->
+        javaComponent.addVariantsFromConfiguration(feature.maybeRegisterSourcesElements(), new JavaConfigurationVariantMapping('runtime', true))
+        javaComponent.addVariantsFromConfiguration(feature.maybeRegisterJavadocElements(), new JavaConfigurationVariantMapping('runtime', true))
+    }
+}
+
 tasks.register('npmInstall', Exec) {
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
@@ -282,6 +294,8 @@ publishing {
             version = project.version
             from components.java
 
+            ['Api', 'Runtime', 'Sources', 'Javadoc'].each { suppressPomMetadataWarningsFor("testFixtures${it}Elements") }
+
             pom {
                 name = 'JobRunr'
                 description = 'An easy way to perform background processing on the JVM. Backed by persistent storage. Open and free for commercial use.'
@@ -326,6 +340,15 @@ publishing {
                 }
             }
         }
+    }
+}
+
+// The test-fixtures capability is derived from the project name (core), not the published artifactId (jobrunr).
+// This changes that.
+tasks.withType(GenerateModuleMetadata).configureEach {
+    doLast {
+        def file = outputFile.get().asFile
+        file.text = file.text.replace("\"${project.name}-test-fixtures\"", "\"${publication.get().artifactId}-test-fixtures\"")
     }
 }
 
