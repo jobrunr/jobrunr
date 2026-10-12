@@ -72,6 +72,7 @@ public class JobRunrAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public JobRunrStarter jobRunrStarter(Optional<BackgroundJobServer> backgroundJobServer, Optional<JobRunrDashboardWebServer> webServer) {
         return new JobRunrStarter(backgroundJobServer, webServer);
     }
