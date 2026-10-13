@@ -24,13 +24,13 @@ public class JobRunrStarter {
     }
 
     @EventListener
-    void startup(StartupEvent event) {
+    protected void startup(StartupEvent event) {
         backgroundJobServer.ifPresent(BackgroundJobServer::start);
         dashboardWebServer.ifPresent(JobRunrDashboardWebServer::start);
     }
 
     @EventListener
-    void shutdown(ShutdownEvent event) {
+    protected void shutdown(ShutdownEvent event) {
         backgroundJobServer.ifPresent(BackgroundJobServer::stop);
         dashboardWebServer.ifPresent(JobRunrDashboardWebServer::stop);
         storageProvider.close();
