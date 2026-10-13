@@ -24,6 +24,7 @@ public class RecurringJobTable extends Sql<RecurringJob> {
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_recurring_jobs")
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeRecurringJob)
+                .with(FIELD_ID, RecurringJob::getId)
                 .with(FIELD_CREATED_AT, recurringJob -> recurringJob.getCreatedAt().toEpochMilli());
     }
 
