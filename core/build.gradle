@@ -205,8 +205,10 @@ tasks.register('npmInstall', Exec) {
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
-    commandLine 'sh', '-c', 'npm ci'
-    outputs.cacheIf { true }
+    commandLine 'sh', '-c', 'npm ci --prefer-offline'
+    // The node_modules folder must not be cached: Gradle dereferences symlinks when storing outputs,
+    // turning node_modules/.bin/* symlinks into copies and breaking e.g. rsbuild's relative imports.
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
