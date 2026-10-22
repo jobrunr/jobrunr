@@ -46,9 +46,9 @@ public abstract class JobHandler implements Runnable {
                 backgroundJobServer.stop();
             } else if (e instanceof StorageException) {
                 if (taskStatistics.hasManyExceptions()) {
-                    LOGGER.warn("JobRunr encountered many exceptions related to your StorageProvider. If exceptions continue, processing will pause until the StorageProvider recovers.", e);
+                    LOGGER.warn("JobRunr encountered many exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
                 } else if (taskStatistics.hasExceptions()) {
-                    LOGGER.info("JobRunr encountered continued exceptions related to your StorageProvider. If exceptions continue, processing will pause until the StorageProvider recovers", e);
+                    LOGGER.info("JobRunr encountered continued exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
                 } else {
                     LOGGER.debug("JobRunr encountered an exception related to your StorageProvider.", e);
                 }
