@@ -15,6 +15,7 @@ import org.jobrunr.utils.JarUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -44,7 +45,7 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
                 @Override
                 public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
                     InvokeDynamicInstruction instruction = AllJVMInstructions.get(Opcodes.INVOKEDYNAMIC, jobDetailsBuilder);
-                    instruction.load(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+                    instruction.load(name, descriptor, bootstrapMethodArguments);
                 }
 
                 @Override
@@ -81,6 +82,26 @@ abstract class AbstractJobDetailsFinder extends ClassVisitor {
                 public void visitTypeInsn(int opcode, String type) {
                     VisitTypeInstruction instruction = AllJVMInstructions.get(opcode, jobDetailsBuilder);
                     instruction.load(type);
+                }
+
+                @Override
+                public void visitIincInsn(int varIndex, int increment) {
+                    AllJVMInstructions.get(Opcodes.IINC, jobDetailsBuilder);
+                }
+
+                @Override
+                public void visitJumpInsn(int opcode, Label label) {
+                    AllJVMInstructions.get(opcode, jobDetailsBuilder);
+                }
+
+                @Override
+                public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
+                    AllJVMInstructions.get(Opcodes.TABLESWITCH, jobDetailsBuilder);
+                }
+
+                @Override
+                public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+                    AllJVMInstructions.get(Opcodes.LOOKUPSWITCH, jobDetailsBuilder);
                 }
             };
         } else {

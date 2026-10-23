@@ -4,8 +4,8 @@ import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.JobId;
 import org.jobrunr.jobs.RecurringJob;
-import org.jobrunr.jobs.details.JobDetailsAsmGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGeneratorFactory;
 import org.jobrunr.jobs.filters.JobFilter;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
@@ -58,7 +58,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobFilters      list of jobFilters that will be used for every job
      */
     public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        this(storageProvider, new JobDetailsAsmGenerator(), jobFilters);
+        this(storageProvider, JobDetailsGeneratorFactory.createDefault(), jobFilters);
     }
 
     public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {

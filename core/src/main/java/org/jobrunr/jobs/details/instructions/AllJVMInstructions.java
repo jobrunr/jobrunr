@@ -2,15 +2,24 @@ package org.jobrunr.jobs.details.instructions;
 
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.details.JobDetailsBuilder;
+import org.jobrunr.jobs.details.UnsupportedLambdaException;
 import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
+/**
+ * AllJVMInstructions contains the instructions supported by JobRunr and also all unsupported instructions.
+ * <p>
+ * <note>Although this class references {@link Opcodes} from ASM, all Opcodes are inlined during compilation.
+ * This means that when on Java 25, one does not need to have ASM on the classpath as the Java Class File API is then used.</note>
+ */
 public class AllJVMInstructions {
 
     private static final Map<Integer, Function<JobDetailsBuilder, AbstractJVMInstruction>> instructions = new HashMap<>();
@@ -32,6 +41,7 @@ public class AllJVMInstructions {
         instructions.put(Opcodes.I2F, I2FOperandInstruction::new);
         instructions.put(Opcodes.I2L, I2LOperandInstruction::new);
         instructions.put(Opcodes.I2S, I2SOperandInstruction::new);
+        instructions.put(Opcodes.ICONST_M1, IConstM1OperandInstruction::new);
         instructions.put(Opcodes.ICONST_0, IConst0OperandInstruction::new);
         instructions.put(Opcodes.ICONST_1, IConst1OperandInstruction::new);
         instructions.put(Opcodes.ICONST_2, IConst2OperandInstruction::new);
@@ -63,17 +73,14 @@ public class AllJVMInstructions {
         // needed to support Jacoco
         instructions.put(Opcodes.BASTORE, BAStoreOperandInstruction::new);
 
-        String mathematicalPerformanceSuffix = " - for performance reasons it is better to do the calculation outside of the job lambda";
-        asList(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD)
-                .forEach(instr -> unsupportedInstructions.put(instr, "You are summing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
-        asList(Opcodes.ISUB, Opcodes.LSUB, Opcodes.FSUB, Opcodes.DSUB)
-                .forEach(instr -> unsupportedInstructions.put(instr, "You are subtracting two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
-        asList(Opcodes.IMUL, Opcodes.LMUL, Opcodes.FMUL, Opcodes.DMUL)
-                .forEach(instr -> unsupportedInstructions.put(instr, "You are multiplying two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
-        asList(Opcodes.IDIV, Opcodes.LDIV, Opcodes.FDIV, Opcodes.DDIV)
-                .forEach(instr -> unsupportedInstructions.put(instr, "You are dividing two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
-        asList(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM)
-                .forEach(instr -> unsupportedInstructions.put(instr, "You are calculating the remainder (%) for two numbers while enqueueing/scheduling jobs" + mathematicalPerformanceSuffix));
+        registerUnsupported(sumOpcodes(), UnsupportedLambdaException.SUM);
+        registerUnsupported(subtractionOpcodes(), UnsupportedLambdaException.SUBTRACTION);
+        registerUnsupported(multiplicationOpcodes(), UnsupportedLambdaException.MULTIPLICATION);
+        registerUnsupported(divisionOpcodes(), UnsupportedLambdaException.DIVISION);
+        registerUnsupported(remainderOpcodes(), UnsupportedLambdaException.REMAINDER);
+        registerUnsupported(incrementOpcodes(), UnsupportedLambdaException.INCREMENT);
+        registerUnsupported(jumpOpcodes(), UnsupportedLambdaException.JUMP);
+        registerUnsupported(switchOpcodes(), UnsupportedLambdaException.SWITCH);
     }
 
     private AllJVMInstructions() {
@@ -84,11 +91,50 @@ public class AllJVMInstructions {
         final Function<JobDetailsBuilder, AbstractJVMInstruction> instructionBuilder = instructions.get(opcode);
         if (instructionBuilder == null) {
             if (unsupportedInstructions.containsKey(opcode)) {
-                throw new IllegalArgumentException("Unsupported lambda", new UnsupportedOperationException(unsupportedInstructions.get(opcode)));
+                throw new UnsupportedLambdaException(unsupportedInstructions.get(opcode));
             }
             throw JobRunrException.shouldNotHappenException(new IllegalArgumentException("Instruction " + opcode + " not found"));
         }
         return cast(instructionBuilder.apply(jobDetailsBuilder));
+    }
+
+    private static void registerUnsupported(List<Integer> opcodes, String message) {
+        opcodes.forEach(opcode -> unsupportedInstructions.put(opcode, message));
+    }
+
+    private static List<Integer> sumOpcodes() {
+        return asList(Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD);
+    }
+
+    private static List<Integer> subtractionOpcodes() {
+        return asList(Opcodes.ISUB, Opcodes.LSUB, Opcodes.FSUB, Opcodes.DSUB);
+    }
+
+    private static List<Integer> multiplicationOpcodes() {
+        return asList(Opcodes.IMUL, Opcodes.LMUL, Opcodes.FMUL, Opcodes.DMUL);
+    }
+
+    private static List<Integer> divisionOpcodes() {
+        return asList(Opcodes.IDIV, Opcodes.LDIV, Opcodes.FDIV, Opcodes.DDIV);
+    }
+
+    private static List<Integer> remainderOpcodes() {
+        return asList(Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM);
+    }
+
+    private static List<Integer> incrementOpcodes() {
+        return singletonList(Opcodes.IINC);
+    }
+
+    private static List<Integer> jumpOpcodes() {
+        return asList(Opcodes.IFEQ, Opcodes.IFNE, Opcodes.IFLT, Opcodes.IFGE, Opcodes.IFGT, Opcodes.IFLE,
+                Opcodes.IF_ICMPEQ, Opcodes.IF_ICMPNE, Opcodes.IF_ICMPLT, Opcodes.IF_ICMPGE, Opcodes.IF_ICMPGT, Opcodes.IF_ICMPLE,
+                Opcodes.IF_ACMPEQ, Opcodes.IF_ACMPNE, Opcodes.IFNULL, Opcodes.IFNONNULL,
+                Opcodes.GOTO, Opcodes.JSR);
+    }
+
+    private static List<Integer> switchOpcodes() {
+        return asList(Opcodes.TABLESWITCH, Opcodes.LOOKUPSWITCH);
     }
 
 }
