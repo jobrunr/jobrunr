@@ -153,13 +153,14 @@ class JobBuilderTest {
     }
 
     @Test
-    void testThatOnlyOneOfScheduleInScheduleIsAllowed() {
-        // TODO this test isn't doing what it's meant to do...
-        assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO).build(jobDetailsGenerator))
-                .isInstanceOf(IllegalArgumentException.class);
+    void testThatOnlyOneOfScheduleAtOrScheduleInIsAllowed() {
+        assertThatThrownBy(() -> aJob().scheduleAt(Instant.now()).scheduleIn(Duration.ZERO))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Only one of scheduleAt() or scheduleIn() can be used to schedule a job.");
 
-        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()).build(jobDetailsGenerator))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> aJob().scheduleIn(Duration.ZERO).scheduleAt(Instant.now()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Only one of scheduleAt() or scheduleIn() can be used to schedule a job.");
     }
 
     @Test
