@@ -1,11 +1,10 @@
 package org.jobrunr.quarkus.autoconfigure;
 
-import io.quarkus.runtime.annotations.ConfigDocMapKey;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithParentName;
+import io.smallrye.config.WithName;
 
 import java.util.Optional;
 
@@ -31,8 +30,7 @@ public interface JobRunrBuildTimeConfiguration {
     /**
      * Whether a health check is published in case the smallrye-health extension is present.
      */
-    @WithParentName
-    @ConfigDocMapKey("health.enabled")
+    @WithName("health.enabled")
     @WithDefault("true")
     boolean healthEnabled();
 
