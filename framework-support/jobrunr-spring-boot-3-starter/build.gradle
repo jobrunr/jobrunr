@@ -75,7 +75,7 @@ normalization {
 jar {
     archiveClassifier = ''
     manifest {
-        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot-3.starter'
+        attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot.starter'
         attributes 'Built-By': 'build.jobrunr.io'
         attributes 'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())
         attributes 'Build-Version': project.version

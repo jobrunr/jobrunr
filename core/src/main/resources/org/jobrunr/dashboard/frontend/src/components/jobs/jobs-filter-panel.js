@@ -145,10 +145,10 @@ const TryProDialog = ({open, setOpen, setFormSubmitted, total}) => {
                 </form>
             </DialogContent>
             <DialogActions sx={{px: '1rem', pt: '1rem', pb: 0}} style={{justifyContent: "start"}}>
-                <Button onClick={submitForm} variant="contained" color="inherit" sx={{backgroundColor: "#00F0B5"}}>
+                <Button onClick={submitForm} variant="contained" color="success">
                     Unlock job search
                 </Button>
-                <Button onClick={handleClose} color="inherit" variant="contained">
+                <Button onClick={handleClose} variant="contained" color="inherit">
                     Dismiss
                 </Button>
             </DialogActions>

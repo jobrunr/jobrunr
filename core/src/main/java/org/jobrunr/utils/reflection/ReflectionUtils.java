@@ -11,7 +11,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -224,10 +223,6 @@ public class ReflectionUtils {
         }
     }
 
-    public static boolean isStaticMethod(Method method) {
-        return Modifier.isStatic(method.getModifiers());
-    }
-
     public static Field getField(Class<?> clazz, String fieldName) {
         return findField(clazz, fieldName)
                 .orElseThrow(() -> new FieldNotFoundException(clazz, fieldName));
@@ -259,11 +254,6 @@ public class ReflectionUtils {
                 || clazz1.isAssignableFrom(clazz2)
                 || (clazz1.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz1).equals(clazz2))
                 || (clazz1.isPrimitive() && Boolean.TYPE.equals(clazz1) && Integer.class.equals(clazz2));
-    }
-
-    public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {
-        if (object == null) return false;
-        return objectContainsField(object, fieldName) || objectContainsProperty(object, fieldName);
     }
 
     public static Object getValueFromFieldOrProperty(Object object, String paramName) {
@@ -398,11 +388,4 @@ public class ReflectionUtils {
         return (T) anObject;
     }
 
-    private static boolean objectContainsField(Object object, String fieldName) {
-        return findField(object.getClass(), fieldName).isPresent();
-    }
-
-    private static boolean objectContainsProperty(Object object, String fieldName) {
-        return findMethod(object.getClass(), "get" + capitalize(fieldName)).isPresent();
-    }
 }

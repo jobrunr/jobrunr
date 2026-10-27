@@ -1,6 +1,5 @@
 package org.jobrunr.storage.sql.common;
 
-import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.JobListVersioner;
 import org.jobrunr.jobs.JobVersioner;
@@ -58,8 +57,13 @@ public class JobTable extends Sql<Job> {
         this.jobMapper = jobMapper;
         this
                 .using(connection, dialect, tablePrefix, "jobrunr_jobs")
-                .withVersion(AbstractJob::getVersion)
                 .with(FIELD_JOB_AS_JSON, jobMapper::serializeJob)
+                .with(FIELD_ID, Job::getId)
+                .withVersion(Job::getVersion)
+                .withPreviousVersion(j -> j.getVersion() - 1)
+                .with(FIELD_STATE, Job::getState)
+                .with(FIELD_CREATED_AT, Job::getCreatedAt)
+                .with(FIELD_UPDATED_AT, Job::getUpdatedAt)
                 .with(FIELD_JOB_SIGNATURE, JobUtils::getJobSignature)
                 .with(FIELD_SCHEDULED_AT, job -> job.getLastJobStateOfType(SchedulableState.class).map(SchedulableState::getScheduledAt).orElse(null))
                 .with(FIELD_RECURRING_JOB_ID, job -> job.getRecurringJobId().orElse(null));

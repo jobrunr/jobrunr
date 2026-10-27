@@ -26,7 +26,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
-import static org.jobrunr.utils.reflection.ReflectionUtils.objectContainsFieldOrProperty;
 
 @ExtendWith(MockitoExtension.class)
 class ReflectionUtilsTest {
@@ -45,15 +44,6 @@ class ReflectionUtilsTest {
 
         assertThat(ReflectionUtils.toClass("java.lang.String")).isEqualTo(String.class);
         assertThatThrownBy(() -> ReflectionUtils.toClass("class.that.does.not.exist")).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void testObjectContainsFieldOrProperty() {
-        final TestObject test = new TestObject("test");
-
-        assertThat(objectContainsFieldOrProperty(test, "field")).isTrue();
-        assertThat(objectContainsFieldOrProperty(test, "anotherField")).isTrue();
-        assertThat(objectContainsFieldOrProperty(test, "doesNotExist")).isFalse();
     }
 
     @Test

@@ -169,6 +169,10 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the {@link RecurringJobBuilder} (using id, cron expression and {@link JobRequest}). JobRunr will try to find the JobRequestHandler in
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * If no zoneId is set on the builder, the jobs will be scheduled using the systemDefault timezone.
      * <h5>An example:</h5>
@@ -212,6 +216,10 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression) and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * the IoC container, or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>Examples:</h5>
      * <pre>{@code
@@ -235,6 +243,10 @@ public class JobRequestScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression), {@code ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * the IoC container, or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>Examples:</h5>
      * <pre>{@code
