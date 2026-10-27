@@ -16,6 +16,7 @@ import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -50,6 +51,8 @@ import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 public abstract class AbstractJobDetailsGeneratorTest {
 
@@ -80,6 +83,27 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     protected JobDetails toJobDetails(IocJobLambda<TestService> iocJobLambda) {
         return jobDetailsGenerator.toJobDetails(iocJobLambda);
+    }
+
+    @Test
+    void eachLambdaIsSerializedOnlyOnce() {
+        JobLambda lambda = () -> testService.doWorkWithoutParameters();
+        IocJobLambda<TestService> iocLambda = TestService::doWorkWithoutParameters;
+        JobLambdaFromStream<Integer> streamLambda = item -> testService.doWork(item);
+        IocJobLambdaFromStream<TestService, Integer> iocStreamLambda = (service, item) -> service.doWork(item);
+
+        try (MockedStatic<SerializedLambdaConverter> converter = mockStatic(SerializedLambdaConverter.class, CALLS_REAL_METHODS)) {
+            assertThat(jobDetailsGenerator.toJobDetails(lambda)).hasMethodName("doWorkWithoutParameters").hasNoArgs();
+            assertThat(jobDetailsGenerator.toJobDetails(iocLambda)).hasMethodName("doWorkWithoutParameters").hasNoArgs();
+            assertThat(jobDetailsGenerator.toJobDetails(42, streamLambda)).hasMethodName("doWork").hasArgs(42);
+            assertThat(jobDetailsGenerator.toJobDetails(42, iocStreamLambda)).hasMethodName("doWork").hasArgs(42);
+
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(lambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(iocLambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(streamLambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(iocStreamLambda));
+            converter.verifyNoMoreInteractions();
+        }
     }
 
     @Test
@@ -1316,6 +1340,14 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     public void doWorkWithUUID(UUID uuid) {
         System.out.println("Doing some work... " + uuid);
+    }
+
+    public static JobLambda javaLambdaFor(Runnable service) {
+        return () -> service.run();
+    }
+
+    public static JobLambda javaMethodReferenceFor(Runnable service) {
+        return service::run;
     }
 
     public static class TestUtils {

@@ -9,28 +9,32 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.loadClass;
 
 public class JobDetailsGeneratorFactory {
 
-    private static final String CLASS_FILE_API_JOB_DETAILS_GENERATOR = "org.jobrunr.jobs.details.ClassFileApiJobDetailsGenerator";
+    private static final String JOB_DETAILS_CLASS_FILE_API_GENERATOR = "org.jobrunr.jobs.details.JobDetailsClassFileApiGenerator";
 
     private JobDetailsGeneratorFactory() {
     }
 
     public static JobDetailsGenerator createDefault() {
-        return isClassFileApiJobDetailsGeneratorAvailable()
-                ? newClassFileApiJobDetailsGenerator()
-                : new JobDetailsAsmGenerator();
+        return isJobDetailsClassFileApiGeneratorAvailable()
+                ? jobDetailsClassFileApiGenerator()
+                : jobDetailsAsmGenerator();
     }
 
-    private static boolean isClassFileApiJobDetailsGeneratorAvailable() {
+    private static boolean isJobDetailsClassFileApiGeneratorAvailable() {
         return VersionNumber.JAVA_VERSION.hasMajorVersionHigherOrEqualTo(25)
                 && !GraalVMUtils.isRunningInGraalVMNativeMode()
-                && classExists(CLASS_FILE_API_JOB_DETAILS_GENERATOR);
+                && classExists(JOB_DETAILS_CLASS_FILE_API_GENERATOR);
     }
 
-    private static JobDetailsGenerator newClassFileApiJobDetailsGenerator() {
+    private static JobDetailsGenerator jobDetailsClassFileApiGenerator() {
         try {
-            return (JobDetailsGenerator) loadClass(CLASS_FILE_API_JOB_DETAILS_GENERATOR).getDeclaredConstructor().newInstance();
+            return (JobDetailsGenerator) loadClass(JOB_DETAILS_CLASS_FILE_API_GENERATOR).getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw shouldNotHappenException(e);
         }
+    }
+
+    private static JobDetailsGenerator jobDetailsAsmGenerator() {
+        return new JobDetailsAsmGenerator();
     }
 }

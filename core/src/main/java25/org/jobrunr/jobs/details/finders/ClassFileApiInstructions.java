@@ -1,6 +1,6 @@
-package org.jobrunr.jobs.details;
+package org.jobrunr.jobs.details.finders;
 
-import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.jobrunr.jobs.details.instructions.AllJVMInstructions;
 import org.jobrunr.jobs.details.instructions.LdcInstruction;
 import org.jobrunr.jobs.details.instructions.SingleIntOperandInstruction;
@@ -9,15 +9,10 @@ import org.jobrunr.jobs.details.instructions.VisitLocalVariableInstruction;
 import org.jobrunr.jobs.details.instructions.VisitMethodInstruction;
 import org.jobrunr.jobs.details.instructions.VisitTypeInstruction;
 import org.jobrunr.jobs.details.instructions.ZeroOperandInstruction;
-import org.jobrunr.jobs.lambdas.JobRunrJob;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.classfile.ClassFile;
-import java.lang.classfile.ClassModel;
 import java.lang.classfile.CodeElement;
+import java.lang.classfile.CodeModel;
 import java.lang.classfile.Instruction;
-import java.lang.classfile.MethodModel;
 import java.lang.classfile.Opcode;
 import java.lang.classfile.instruction.ArrayLoadInstruction;
 import java.lang.classfile.instruction.ArrayStoreInstruction;
@@ -43,44 +38,23 @@ import java.lang.classfile.instruction.StoreInstruction;
 import java.lang.classfile.instruction.TableSwitchInstruction;
 import java.lang.classfile.instruction.ThrowInstruction;
 import java.lang.classfile.instruction.TypeCheckInstruction;
-import java.lang.invoke.SerializedLambda;
 
-import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.getJavaClassContainingLambdaAsInputStream;
-import static org.jobrunr.utils.StringUtils.substringAfter;
 
-class JavaClassFileApiJobDetailsFinder {
+/**
+ * Feeds the instructions of one method into the shared {@link AllJVMInstructions} table. Shared by the
+ * Java and the Kotlin Class File API finders so both read bytecode the same way.
+ */
+class ClassFileApiInstructions {
 
     private final JobDetailsBuilder jobDetailsBuilder;
 
-    JavaClassFileApiJobDetailsFinder(JobRunrJob jobRunrJob, SerializedLambda serializedLambda, Object... params) {
-        this.jobDetailsBuilder = new JavaJobDetailsBuilder(serializedLambda, params);
-        if (isLambda(serializedLambda)) {
-            try (InputStream classContainingLambdaInputStream = getJavaClassContainingLambdaAsInputStream(jobRunrJob)) {
-                parse(serializedLambda.getImplMethodName(), classContainingLambdaInputStream.readAllBytes());
-            } catch (IOException e) {
-                throw shouldNotHappenException(e);
-            }
-        } else if (isKotlinMethodReference(serializedLambda)) {
-            this.jobDetailsBuilder.setClassName(serializedLambda.getCapturedArg(0).getClass().getName());
-            this.jobDetailsBuilder.setMethodName(serializedLambda.getImplMethodName().contains("$")
-                    ? substringAfter(serializedLambda.getImplMethodName(), "$")
-                    : serializedLambda.getImplMethodName());
-        }
+    ClassFileApiInstructions(JobDetailsBuilder jobDetailsBuilder) {
+        this.jobDetailsBuilder = jobDetailsBuilder;
     }
 
-    JobDetails getJobDetails() {
-        return jobDetailsBuilder.getJobDetails();
-    }
-
-    void parse(String implMethodName, byte[] classBytes) {
-        ClassModel classModel = ClassFile.of().parse(classBytes);
-        MethodModel lambdaMethod = classModel.methods().stream()
-                .filter(method -> method.methodName().stringValue().equals(implMethodName))
-                .findFirst()
-                .orElseThrow(() -> shouldNotHappenException(new IllegalStateException("Could not find lambda method " + implMethodName + " in " + classModel.thisClass().asInternalName())));
-        lambdaMethod.code().ifPresent(codeModel -> codeModel.forEach(this::visit));
+    void visit(CodeModel codeModel) {
+        codeModel.forEach(this::visit);
     }
 
     private void visit(CodeElement codeElement) {
@@ -152,17 +126,5 @@ class JavaClassFileApiJobDetailsFinder {
         if (bytecode >= 59 && bytecode <= 78) return 54 + (bytecode - 59) / 4;
         if (bytecode == 19 || bytecode == 20) return 18;
         return bytecode;
-    }
-
-    private static boolean isLambda(SerializedLambda serializedLambda) {
-        return serializedLambda.getImplMethodName().startsWith("lambda$")
-                || serializedLambda.getImplMethodName().contains("$lambda-")
-                || serializedLambda.getImplMethodName().contains("$lambda$");
-    }
-
-    private static boolean isKotlinMethodReference(SerializedLambda serializedLambda) {
-        return serializedLambda.getCapturedArgCount() == 1
-                && stream(serializedLambda.getCapturedArg(0).getClass().getAnnotations())
-                .anyMatch(annotation -> "kotlin.Metadata".equals(annotation.annotationType().getName()));
     }
 }

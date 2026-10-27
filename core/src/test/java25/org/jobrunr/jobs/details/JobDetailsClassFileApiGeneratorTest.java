@@ -4,15 +4,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ClassFileApiJobDetailsGeneratorTest extends AbstractJobDetailsGeneratorTest {
+class JobDetailsClassFileApiGeneratorTest extends AbstractJobDetailsGeneratorTest {
 
     @Override
     protected JobDetailsGenerator getJobDetailsGenerator() {
-        return new ClassFileApiJobDetailsGenerator();
+        return new JobDetailsClassFileApiGenerator();
     }
 
     @Test
     void factorySelectsTheClassFileApiBackendWhenTheJvmSupportsIt() {
-        assertThat(JobDetailsGeneratorFactory.createDefault()).isInstanceOf(ClassFileApiJobDetailsGenerator.class);
+        assertThat(JobDetailsGeneratorFactory.createDefault()).isInstanceOf(JobDetailsClassFileApiGenerator.class);
     }
 }
