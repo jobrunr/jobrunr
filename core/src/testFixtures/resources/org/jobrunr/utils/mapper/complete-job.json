@@ -1,6 +1,6 @@
 {
   "version": 0,
-  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithEnum(org.jobrunr.stubs.TestService$Task$1)",
+  "jobSignature": "org.jobrunr.stubs.TestService.doWorkWithEnum(org.jobrunr.stubs.TestService$Task)",
   "jobName": "an enqueued job",
   "amountOfRetries": 6,
   "labels": [],

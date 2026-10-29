@@ -40,7 +40,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
     }
 
     @Override
-    public JsonObject adaptToJson(RecurringJob recurringJob) throws Exception {
+    public JsonObject adaptToJson(RecurringJob recurringJob) {
         final JsonObjectBuilder builder = nullSafeJsonObjectBuilder()
                 .add("id", recurringJob.getId())
                 .add("jobName", recurringJob.getJobName())
@@ -61,7 +61,7 @@ public class RecurringJobAdapter implements JsonbAdapter<RecurringJob, JsonObjec
     }
 
     @Override
-    public RecurringJob adaptFromJson(JsonObject jsonObject) throws Exception {
+    public RecurringJob adaptFromJson(JsonObject jsonObject) {
         String createdBy = jsonObject.getString("createdBy", CreatedBy.API.name());
         final RecurringJob recurringJob = new RecurringJob(
                 jsonObject.getString("id"),

@@ -77,10 +77,10 @@ tasks.named('compileJava', JavaCompile) {
     options.release = 8
 }
 tasks.named('compileTestJava', JavaCompile) {
-    options.release = 11
+    options.release = 17
 }
 tasks.named('compileTestFixturesJava', JavaCompile) {
-    options.release = 11
+    options.release = 17
 }
 tasks.named('compileJava17Java', JavaCompile) {
     options.release = 17
@@ -123,7 +123,6 @@ tasks.register('runFrontEndDevelopment', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'org.jobrunr.dashboard.FrontEndDevelopment'
 }
-
 
 dependencies {
     api platform(project(':platform'))
@@ -195,6 +194,10 @@ normalization {
         ignore '**/MANIFEST.MF'
         ignore '**/frontend/**'
     }
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs '--illegal-final-field-mutation=deny'
 }
 
 tasks.register('npmInstall', Exec) {

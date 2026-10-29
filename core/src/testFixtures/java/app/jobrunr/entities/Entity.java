@@ -1,5 +1,8 @@
 package app.jobrunr.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Objects;
 
 public class Entity {
@@ -9,7 +12,8 @@ public class Entity {
         this(null);
     }
 
-    public Entity(String name) {
+    @JsonCreator
+    public Entity(@JsonProperty("name") String name) {
         this.name = name;
     }
 
@@ -19,9 +23,7 @@ public class Entity {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Entity)) return false;
-
-        Entity entity = (Entity) o;
+        if (!(o instanceof Entity entity)) return false;
         return Objects.equals(name, entity.name);
     }
 

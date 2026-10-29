@@ -27,6 +27,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.anEnqueuedJob;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -61,6 +62,7 @@ class DefaultSqlStorageProviderTest {
         when(databaseMetaData.getTables(null, null, "%", null)).thenReturn(resultSet);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         lenient().when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        lenient().when(statement.executeQuery(any())).thenReturn(resultSet);
 
         jobStorageProvider = new DefaultSqlStorageProvider(datasource, new AnsiDialect(), DatabaseOptions.CREATE.CREATE);
         jobStorageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));

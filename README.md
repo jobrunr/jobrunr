@@ -100,7 +100,7 @@ BackgroundJob.scheduleRecurrently("my-recurring-job", Cron.daily(), () -> servic
 
 **Process background tasks inside a web application…**
 
-You can process background tasks in any web application and we have thorough support for [Spring](https://spring.io/) - JobRunr is reliable to process your background jobs within a web application.
+You can process background tasks in any web application and we have thorough support for [Micronaut](https://micronaut.io/), [Quarkus](https://quarkus.io/) and [Spring](https://spring.io/) - JobRunr is reliable to process your background jobs within a web application.
 
 **… or anywhere else**
 
@@ -134,7 +134,9 @@ Configuration
 ------------
 #### Do you like to work Spring based?
 
-Add the [*jobrunr-spring-boot-3-starter*](https://search.maven.org/artifact/org.jobrunr/jobrunr-spring-boot-3-starter) to your dependencies and you're almost ready to go! Just set up your `application.properties`:
+(No? You can still use JobRunr with any other JVM framework, see [our getting started examples](https://www.jobrunr.io/en/documentation/getting-started/).)
+
+Add the [*jobrunr-spring-boot-4-starter*](https://search.maven.org/artifact/org.jobrunr/jobrunr-spring-boot-4-starter) to your dependencies and you're almost ready to go! Just set up your `application.properties`:
 
 ```
 # the job-scheduler is enabled by default

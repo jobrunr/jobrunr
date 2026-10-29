@@ -6,11 +6,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.AbstractJob;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobDetails;
 import org.jobrunr.jobs.context.JobContext;
+import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.jobs.states.JobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
+import org.jobrunr.utils.mapper.jackson.modules.JobStateMixin;
 import org.jobrunr.utils.mapper.jackson3.modules.JobRunrModule;
 import org.jobrunr.utils.mapper.jackson3.modules.JobRunrTimeModule;
 import tools.jackson.databind.DefaultTyping;
@@ -24,8 +28,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Jackson3JsonMapper implements JsonMapper {
 
@@ -44,17 +46,23 @@ public class Jackson3JsonMapper implements JsonMapper {
     }
 
     public Jackson3JsonMapper(tools.jackson.databind.json.JsonMapper.Builder jsonMapperBuilder, BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
-        var typeValidator = typeValidatorBuilder
+        var builder = typeValidatorBuilder
                 .allowIfSubType(JobState.class)
                 .allowIfSubType(AbstractJob.class)
                 .allowIfSubType(JobContext.Metadata.class)
-                .allowIfSubType(CopyOnWriteArrayList.class) // for Job History
-                .allowIfSubType(ConcurrentHashMap.class) // for Job Metadata
+                .allowIfSubType("java.util.concurrent.CopyOnWriteArrayList") // for Job History
+                .allowIfSubType("java.util.concurrent.ConcurrentHashMap") // for Job Metadata
                 .allowIfSubType(Path.class)
-                .build();
+                .allowIfSubType(Number.class);
+
+        extendWithCollectionTypes(builder);
+
+        var typeValidator = builder.build();
 
         this.jsonMapper = jsonMapperBuilder
                 .addMixIn(Job.class, JobMixin.class)
+                .addMixIn(JobDetails.class, JobDetailsMixin.class)
+                .addMixIn(AbstractJobState.class, JobStateMixin.class)
                 .enable(EnumFeature.WRITE_ENUMS_USING_TO_STRING)
                 .enable(EnumFeature.READ_ENUMS_USING_TO_STRING)
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
@@ -95,5 +103,34 @@ public class Jackson3JsonMapper implements JsonMapper {
         } catch (InvalidDefinitionException e) {
             throw JobRunrException.configurationException("Did you register all necessary Jackson Modules?", e);
         }
+    }
+
+    protected void extendWithCollectionTypes(BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        // Support deserialization of a select number of Java Collection types.
+        // For example, this allows to deserialize into an ArrayList if base type is List but value type is ArrayList.
+        typeValidatorBuilder
+                .allowIfSubType("java.util.ArrayList")
+                .allowIfSubType("java.util.HashSet")
+                .allowIfSubType("java.util.HashMap")
+                .allowIfSubType("java.util.LinkedList")
+                .allowIfSubType("java.util.LinkedHashSet")
+                .allowIfSubType("java.util.LinkedHashMap")
+                .allowIfSubType("java.util.TreeSet")
+                .allowIfSubType("java.util.TreeMap")
+                .allowIfSubType("java.util.Arrays$ArrayList")
+                .allowIfSubType("java.util.Collections$SingletonList")
+                .allowIfSubType("java.util.Collections$EmptyList")
+                .allowIfSubType("java.util.Collections$EmptySet")
+                .allowIfSubType("java.util.Collections$EmptyMap")
+                .allowIfSubType("java.util.Collections$UnmodifiableRandomAccessList")
+                .allowIfSubType("java.util.Collections$UnmodifiableList")
+                .allowIfSubType("java.util.Collections$UnmodifiableSet")
+                .allowIfSubType("java.util.Collections$UnmodifiableMap")
+                .allowIfSubType("java.util.ImmutableCollections$List12") // for List.of
+                .allowIfSubType("java.util.ImmutableCollections$ListN")
+                .allowIfSubType("java.util.ImmutableCollections$Set12") // for Set.of
+                .allowIfSubType("java.util.ImmutableCollections$SetN")
+                .allowIfSubType("java.util.ImmutableCollections$Map1") // for Map.of
+                .allowIfSubType("java.util.ImmutableCollections$MapN");
     }
 }

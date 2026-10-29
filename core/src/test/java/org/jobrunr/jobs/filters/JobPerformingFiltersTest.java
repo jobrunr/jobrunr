@@ -62,7 +62,7 @@ class JobPerformingFiltersTest {
     void ifElectStateFilterIsProvidedItIsUsed() {
         // GIVEN
         Job aJobWithACustomElectStateJobFilter = anEnqueuedJob()
-                .withJobDetails(() -> testService.doWorkWithCustomJobFilters())
+                .withJobLambda(() -> testService.doWorkWithCustomJobFilters())
                 .withInitialStateChanges()
                 .build();
         // WHEN
@@ -91,7 +91,7 @@ class JobPerformingFiltersTest {
 
     @Test
     void ifOtherFilterIsProvidedItIsUsed() {
-        Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobDetails(() -> testService.doWorkWithCustomJobFilters()).build();
+        Job aJobWithACustomElectStateJobFilter = anEnqueuedJob().withJobLambda(() -> testService.doWorkWithCustomJobFilters()).build();
         aJobWithACustomElectStateJobFilter.startProcessingOn(backgroundJobServer);
         JobPerformingFilters jobPerformingFilters = jobPerformingFilters(aJobWithACustomElectStateJobFilter);
         jobPerformingFilters.runOnStateAppliedFilters();
@@ -127,7 +127,7 @@ class JobPerformingFiltersTest {
     void ifOtherFilterUsesDependencyInjectionThisWillThrowRuntimeException() {
         JobDefaultFilters jobDefaultFilters = new JobDefaultFilters();
 
-        Job aJobWithoutJobFilters = aJobInProgress().withJobDetails(() -> testService.doWorkWithCustomJobFilterThatNeedsDependencyInjection()).build();
+        Job aJobWithoutJobFilters = aJobInProgress().withJobLambda(() -> testService.doWorkWithCustomJobFilterThatNeedsDependencyInjection()).build();
 
         assertThatThrownBy(() -> jobPerformingFilters(aJobWithoutJobFilters, jobDefaultFilters).runOnJobProcessingFilters())
                 .isInstanceOf(RuntimeException.class)

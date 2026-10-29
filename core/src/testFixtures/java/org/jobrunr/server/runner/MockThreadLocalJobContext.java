@@ -19,6 +19,10 @@ public class MockThreadLocalJobContext implements AutoCloseable {
         ThreadLocalJobContext.setJobContext(jobContext);
     }
 
+    public static JobContext getJobContext() {
+        return ThreadLocalJobContext.getJobContext();
+    }
+
     @Override
     public void close() throws Exception {
         ThreadLocalJobContext.clear();

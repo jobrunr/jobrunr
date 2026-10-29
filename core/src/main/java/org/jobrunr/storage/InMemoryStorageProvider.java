@@ -47,10 +47,7 @@ import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_ID;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_NAME;
 import static org.jobrunr.storage.StorageProviderUtils.Metadata.STATS_OWNER;
 import static org.jobrunr.storage.StorageProviderUtils.returnConcurrentModifiedJobs;
-import static org.jobrunr.utils.reflection.ReflectionUtils.getValueFromFieldOrProperty;
-import static org.jobrunr.utils.reflection.ReflectionUtils.setFieldUsingAutoboxing;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
-import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
     private final Map<UUID, Job> jobQueue = new ConcurrentHashMap<>();
@@ -60,7 +57,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
     private JobMapper jobMapper;
 
     public InMemoryStorageProvider() {
-        this(rateLimit().at1Request().per(SECOND));
+        this(rateLimit().at1RequestPerSecond());
     }
 
     public InMemoryStorageProvider(RateLimiter rateLimiter) {
@@ -370,13 +367,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
     private RecurringJob deepClone(RecurringJob recurringJob) {
         return deepClone(recurringJob, jobMapper::serializeRecurringJob, jobMapper::deserializeRecurringJob);
-
     }
 
     private <T extends AbstractJob> T deepClone(T t, Function<T, String> serializationFunction, Function<String, T> deserializationFunction) {
-        final T result = deserializationFunction.apply(serializationFunction.apply(t));
-        setFieldUsingAutoboxing("locker", result, getValueFromFieldOrProperty(t, "locker"));
-        return result;
+        return deserializationFunction.apply(serializationFunction.apply(t));
     }
 
     private synchronized void saveJob(Job job) {

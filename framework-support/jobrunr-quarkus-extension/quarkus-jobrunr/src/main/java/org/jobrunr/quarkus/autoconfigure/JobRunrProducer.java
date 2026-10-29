@@ -5,6 +5,7 @@ import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -17,6 +18,8 @@ import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
+import java.time.Duration;
+
 import static java.util.Collections.emptyList;
 
 @Singleton
@@ -26,6 +29,19 @@ public class JobRunrProducer {
     @Inject
     JobRunrProducer(JobRunrRuntimeConfiguration jobRunrRuntimeConfiguration) {
         this.jobRunrRuntimeConfiguration = jobRunrRuntimeConfiguration;
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
+    public JobRetentionConfiguration getJobRetentionConfiguration() {
+        Duration deleteSucceededJobsAfter = jobRunrRuntimeConfiguration.jobs().deleteSucceededJobsAfter().isPresent()
+                ? jobRunrRuntimeConfiguration.jobs().deleteSucceededJobsAfter().get()
+                : jobRunrRuntimeConfiguration.backgroundJobServer().deleteSucceededJobsAfter().orElse(JobRetentionConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION);
+        Duration permanentlyDeleteDeletedJobsAfter = jobRunrRuntimeConfiguration.jobs().permanentlyDeleteDeletedJobsAfter().isPresent()
+                ? jobRunrRuntimeConfiguration.jobs().permanentlyDeleteDeletedJobsAfter().get()
+                : jobRunrRuntimeConfiguration.backgroundJobServer().permanentlyDeleteDeletedJobsAfter().orElse(JobRetentionConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION);
+        return new JobRetentionConfiguration(deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter);
     }
 
     @Produces

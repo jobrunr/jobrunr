@@ -56,11 +56,12 @@ public class CarbonIntensityApiStubServer {
         @Override
         public String toString() {
             var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:00:00'Z'");
-            return String.format("    {\n" +
-                    "      \"periodStartAt\": \"%s\",\n" +
-                    "      \"periodEndAt\": \"%s\",\n" +
-                    "      \"rank\": %s\n" +
-                    "    }", formatter.format(start.atZone(ZoneOffset.UTC)), formatter.format(end.atZone(ZoneOffset.UTC)), rank);
+            return String.format("""
+                    {
+                      "periodStartAt": "%s",
+                      "periodEndAt": "%s",
+                      "rank": %s
+                    }""", formatter.format(start.atZone(ZoneOffset.UTC)), formatter.format(end.atZone(ZoneOffset.UTC)), rank);
         }
     }
 
@@ -102,19 +103,20 @@ public class CarbonIntensityApiStubServer {
     private String getIntensityJson() {
         var now = Instant.now();
         var nextForecastAvailableAt = now.plus(24, ChronoUnit.HOURS);
-        return String.format("{\n" +
-                "  \"apiResponse\": {\n" +
-                "    \"code\": \"OK\",\n" +
-                "    \"message\": \"DataProvider ENTSO-E and area Belgium has 24 forecasts.\"\n" +
-                "  },\n" +
-                "  \"dataProvider\": \"ENTSO-E\",\n" +
-                "  \"dataIdentifier\": \"10YBE----------2\",\n" +
-                "  \"displayName\": \"Belgium\",\n" +
-                "  \"timezone\": \"Europe/Brussels\",\n" +
-                "  \"nextForecastAvailableAt\": \"%s\",\n" +
-                "  \"forecastInterval\": \"PT1H\",\n" +
-                "  \"intensityForecast\": %s\n" +
-                "}", nextForecastAvailableAt, getIntensityForecastArrayJson());
+        return String.format("""
+                {
+                  "apiResponse": {
+                    "code": "OK",
+                    "message": "DataProvider ENTSO-E and area Belgium has 24 forecasts."
+                  },
+                  "dataProvider": "ENTSO-E",
+                  "dataIdentifier": "10YBE----------2",
+                  "displayName": "Belgium",
+                  "timezone": "Europe/Brussels",
+                  "nextForecastAvailableAt": "%s",
+                  "forecastInterval": "PT1H",
+                  "intensityForecast": %s
+                }""", nextForecastAvailableAt, getIntensityForecastArrayJson());
     }
 
     public CarbonIntensityApiStubServer start() {

@@ -29,10 +29,10 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.gson.GsonJsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
@@ -46,6 +46,7 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 public class JobRunrAutoConfigurationTest {
 
@@ -58,7 +59,7 @@ public class JobRunrAutoConfigurationTest {
 
     @Test
     void onSpringShutdownInitiatedJobActivatorThrowsJobActivatorShutdownException() {
-        ApplicationContext applicationContextMock = Mockito.mock(ApplicationContext.class);
+        ApplicationContext applicationContextMock = mock(ApplicationContext.class);
         JobActivator jobActivator = new JobRunrAutoConfiguration().jobActivator(applicationContextMock);
 
         doThrow(new BeanCreationNotAllowedException("TestService", "Boem")).when(applicationContextMock).getBean(TestService.class);
@@ -194,6 +195,40 @@ public class JobRunrAutoConfigurationTest {
     }
 
     @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfigurationWithJobPropertiesOverServerProperties() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.jobs.delete-succeeded-jobs-after=PT2H",
+                        "jobrunr.jobs.permanently-delete-deleted-jobs-after=PT4H",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(4));
+                });
+    }
+
+    @Test
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfiguration() {
+        this.contextRunner
+                .withPropertyValues(
+                        "jobrunr.background-job-server.enabled=true",
+                        "jobrunr.background-job-server.delete-succeeded-jobs-after=PT1H",
+                        "jobrunr.background-job-server.permanently-delete-deleted-jobs-after=PT3H")
+                .withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+                    assertThat(context).hasSingleBean(BackgroundJobServer.class);
+                    BackgroundJobServerConfiguration backgroundJobServerConfiguration = context.getBean(BackgroundJobServerConfiguration.class);
+                    assertThat(backgroundJobServerConfiguration)
+                            .hasDeleteSucceededJobsAfter(Duration.ofHours(1))
+                            .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(3));
+                });
+    }
+
+    @Test
     void backgroundJobServerAutoConfigurationTakesIntoAccountName() {
         this.contextRunner
                 .withPropertyValues("jobrunr.background-job-server.enabled=true")
@@ -321,6 +356,9 @@ public class JobRunrAutoConfigurationTest {
     @Test
     void jobRunrHealthIndicatorAutoConfiguration() {
         this.contextRunner.withPropertyValues("jobrunr.background-job-server.enabled=true").withUserConfiguration(InMemoryStorageProvider.class).run((context) -> {
+            ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
+            context.publishEvent(event);
+
             assertThat(context).hasSingleBean(JobRunrHealthIndicator.class);
             assertThat(context.getBean(JobRunrHealthIndicator.class).health().getStatus()).isEqualTo(Status.UP);
         });

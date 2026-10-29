@@ -18,40 +18,40 @@ class JdkTest {
 
     @Test
     void jdk8OpenJdk() {
-        assertThat(buildAndTestOnImage("openjdk:8-jdk-slim", "52.0")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage("eclipse-temurin:8-jdk", "52.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk11OpenJdk() {
-        assertThat(buildAndTestOnImage("openjdk:11-jdk-slim", "55.0")).contains("BUILD SUCCESS");
+        assertThat(buildAndTestOnImage("eclipse-temurin:11-jdk", "55.0")).contains("BUILD SUCCESS");
     }
 
     @Test
     void jdk17OpenJDK() {
-        assertThat(buildAndTestOnImage("openjdk:17-jdk-slim", "61.0"))
+        assertThat(buildAndTestOnImage("eclipse-temurin:17-jdk", "61.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'ScheduledThreadPool' started");
+                .contains("ThreadManager of type 'PlatformThreadPoolJobRunrExecutor' started");
     }
 
     @Test
     void jdk21EclipseTemurin() {
-        assertThat(buildAndTestOnImage("eclipse-temurin:21", "65.0"))
+        assertThat(buildAndTestOnImage("eclipse-temurin:21-jdk", "65.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     @Test
     void jdk21GraalVM() {
         assertThat(buildAndTestOnImage("ghcr.io/graalvm/graalvm-community:21", "65.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     @Test
     void jdk25OpenJDK() {
-        assertThat(buildAndTestOnImage("openjdk:25", "69.0"))
+        assertThat(buildAndTestOnImage("eclipse-temurin:25-jdk", "69.0"))
                 .contains("BUILD SUCCESS")
-                .contains("ThreadManager of type 'VirtualThreadPerTask' started");
+                .contains("ThreadManager of type 'VirtualThreadJobRunrExecutor' started");
     }
 
     private String buildAndTestOnImage(String dockerfile, String javaClassVersion) {

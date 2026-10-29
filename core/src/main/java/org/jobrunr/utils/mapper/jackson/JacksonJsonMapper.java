@@ -12,11 +12,15 @@ import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.Job;
+import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.states.AbstractJobState;
 import org.jobrunr.utils.mapper.JobParameterJsonMapperException;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrModule;
 import org.jobrunr.utils.mapper.jackson.modules.JobRunrTimeModule;
+import org.jobrunr.utils.mapper.jackson.modules.JobStateMixin;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,6 +51,8 @@ public class JacksonJsonMapper implements JsonMapper {
     protected ObjectMapper initObjectMapper(ObjectMapper objectMapper, boolean moduleAutoDiscover) {
         return objectMapper
                 .addMixIn(Job.class, JobMixin.class)
+                .addMixIn(JobDetails.class, JobDetailsMixin.class)
+                .addMixIn(AbstractJobState.class, JobStateMixin.class)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
                 .setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.DEFAULT)

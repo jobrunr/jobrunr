@@ -164,9 +164,7 @@ public class JobUtils {
     }
 
     private static String getJobParameterForSignature(JobParameter jobParameter) {
-        return jobParameter.isDeserializable() && jobParameter.getObject() != null
-                ? jobParameter.getObject().getClass().getName()
-                : jobParameter.getClassName();
+        return jobParameter.getClassName();
     }
 
     private static String getJobClassAndMethodName(JobDetails jobDetails) {

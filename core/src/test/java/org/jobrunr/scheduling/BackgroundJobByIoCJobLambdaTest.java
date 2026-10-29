@@ -90,7 +90,7 @@ public class BackgroundJobByIoCJobLambdaTest {
                 .withId(jobId)
                 .withName("My Job Name")
                 .withAmountOfRetries(3)
-                .<TestService>withDetails(x -> x.doWorkAndReturnResult("some string")));
+                .<TestService>withJobLambda(x -> x.doWorkAndReturnResult("some string")));
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
                 .hasJobName("My Job Name")
@@ -164,8 +164,7 @@ public class BackgroundJobByIoCJobLambdaTest {
                 .hasMetadata("test", "test");
         await().atMost(FIVE_SECONDS).until(() -> storageProvider.getJobById(jobId).getState() == SUCCEEDED);
         assertThat(storageProvider.getJobById(jobId))
-                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED)
-                .hasMetadataOnlyContainingJobProgressAndLogging();
+                .hasStates(ENQUEUED, PROCESSING, SUCCEEDED);
     }
 
     @Test

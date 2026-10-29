@@ -23,12 +23,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static ch.qos.logback.LoggerAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -201,6 +204,36 @@ class DatabaseCreatorTest {
                 .hasDebugMessageContaining("Successfully locked the migrations table.", 1)
                 .hasDebugMessageContaining("The lock has been removed from migrations table.", 1)
                 .hasDebugMessageContaining("No migrations to run.", 1);
+    }
+
+    @Test
+    void staleMigrationsAreNotRunWhenLockIsAcquiredAfterAnotherDatabaseCreatorAlreadyFinished() throws InterruptedException {
+        final JdbcDataSource dataSource = createH2DataSource("jdbc:h2:mem:/test-stale-migrations;DB_CLOSE_DELAY=-1");
+        final DatabaseCreator databaseCreator1 = new DatabaseCreator(dataSource, H2StorageProvider.class);
+        final DatabaseCreator databaseCreator2 = Mockito.spy(new DatabaseCreator(dataSource, H2StorageProvider.class));
+
+        final CountDownLatch creator2TookItsSnapshot = new CountDownLatch(1);
+        final CountDownLatch creator1IsDone = new CountDownLatch(1);
+
+        // pause creator2 between taking its appliedMigrations snapshot and acquiring the lock
+        doAnswer(invocation -> {
+            Object migrations = invocation.callRealMethod();
+            creator2TookItsSnapshot.countDown();
+            var ignored = creator1IsDone.await(30, TimeUnit.SECONDS);
+            return migrations;
+        }).when(databaseCreator2).getMigrations();
+
+        Thread t2 = new Thread(databaseCreator2::runMigrations);
+        t2.start();
+        var ignored = creator2TookItsSnapshot.await(10, TimeUnit.SECONDS);
+
+        // creator1 locks, runs all migrations and removes the lock while creator2 is paused
+        databaseCreator1.runMigrations();
+        creator1IsDone.countDown();
+        t2.join();
+
+        verify(databaseCreator2).runMigrations(argThat(migrations -> !migrations.isEmpty()));
+        verify(databaseCreator2, never()).runMigration(argThat(migration -> !migration.getFileName().startsWith("v000__")));
     }
 
     private JdbcDataSource createH2DataSource(String url) {

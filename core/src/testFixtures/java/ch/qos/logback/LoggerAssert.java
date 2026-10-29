@@ -149,8 +149,13 @@ public class LoggerAssert extends AbstractAssert<LoggerAssert, ListAppender<ILog
     }
 
     public LoggerAssert hasWarningMessageContaining(String message) {
-        return hasWarningMessageContaining(message, 1, emptyMap());
+        return hasWarningMessageContaining(message, 1);
     }
+
+    public LoggerAssert hasWarningMessageContaining(String message, int times) {
+        return hasWarningMessageContaining(message, times, emptyMap());
+    }
+
 
     public LoggerAssert hasWarningMessageContaining(String message, Map<String, String> mdcData) {
         return hasWarningMessageContaining(message, 1, mdcData);

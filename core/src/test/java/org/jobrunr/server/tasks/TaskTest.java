@@ -6,8 +6,9 @@ import org.jobrunr.server.concurrent.UnresolvableConcurrentJobModificationExcept
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedStatic;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.function.Function;
 
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.jobrunr.jobs.JobTestBuilder.aCopyOf;
 import static org.jobrunr.jobs.JobTestBuilder.aJobInProgress;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.InstantMocker.mockTime;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -91,8 +93,10 @@ class TaskTest extends AbstractTaskTest {
     void tasksArePostponedToNextRunIfPollIntervalInSecondsTimeboxIsAboutToPass() {
         reset(storageProvider);
 
-        PeriodicTaskRunInfo periodicTaskRunInfo = zooKeeperStatistics.startRun(backgroundJobServer.getConfiguration());
-        setRunStartTimeInPast(periodicTaskRunInfo, 15);
+        PeriodicTaskRunInfo periodicTaskRunInfo;
+        try (MockedStatic<Instant> ignored = mockTime(now().minusSeconds(15))) {
+            periodicTaskRunInfo = zooKeeperStatistics.startRun(backgroundJobServer.getConfiguration());
+        }
 
         task.run(periodicTaskRunInfo);
 
@@ -110,9 +114,5 @@ class TaskTest extends AbstractTaskTest {
 
         // THEN
         verify(storageProvider, never()).save(anyList());
-    }
-
-    private static void setRunStartTimeInPast(PeriodicTaskRunInfo zooKeeperRunTaskInfo, int secondsInPast) {
-        Whitebox.setInternalState(zooKeeperRunTaskInfo, "runStartTime", now().minusSeconds(secondsInPast));
     }
 }

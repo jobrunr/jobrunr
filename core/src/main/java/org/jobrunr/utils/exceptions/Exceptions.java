@@ -1,11 +1,33 @@
 package org.jobrunr.utils.exceptions;
 
+import org.jobrunr.jobs.exceptions.StepExecutionException;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Exceptions {
+
+    /**
+     * JobRunr uses reflection to run jobs. Any error in jobs is wrapped in {@link InvocationTargetException}, and
+     * step execution failures are wrapped in {@link StepExecutionException}.
+     * Job details shows {@link InvocationTargetException} or {@link StepExecutionException} and its stacktrace on UI
+     * with lots of internal details not related to the job.
+     * It makes it harder for users to read exceptions and leaves less space for the actual errors' stacktraces on UI.
+     */
+    public static Exception unwrapException(Exception e) {
+        Exception unwrapped = e;
+        if (e instanceof InvocationTargetException && e.getCause() instanceof Exception) {
+            unwrapped = (Exception) e.getCause();
+        }
+        if (unwrapped instanceof StepExecutionException && unwrapped.getCause() instanceof Exception) {
+            unwrapped = (Exception) unwrapped.getCause();
+        }
+
+        return unwrapped;
+    }
 
     public static boolean hasCause(Throwable t, Class<? extends Throwable> exceptionClass) {
         if (exceptionClass.isAssignableFrom(t.getClass())) return true;

@@ -27,7 +27,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void doesNotSupportJobIfJobMethodIsNotStatic() {
         Job job = anEnqueuedJob()
-                .<TestService>withJobDetails(ts -> ts.doWorkThatFails())
+                .<TestService>withJobLambda(ts -> ts.doWorkThatFails())
                 .build();
 
         assertThat(backgroundStaticJobWithoutIocRunner.supports(job)).isFalse();
@@ -45,7 +45,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void supportsJobIfJobClassHasPrivateConstructorButStaticJobMethod() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> TestServiceForIoC.doWorkInStaticMethod(UUID.randomUUID()))
+                .withJobLambda(() -> TestServiceForIoC.doWorkInStaticMethod(UUID.randomUUID()))
                 .build();
 
         assertThat(backgroundStaticJobWithoutIocRunner.supports(job)).isTrue();
@@ -54,7 +54,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void runSimpleMethod() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID()))
+                .withJobLambda(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID()))
                 .build();
 
         assertThatCode(() -> backgroundStaticJobWithoutIocRunner.run(job)).doesNotThrowAnyException();
@@ -63,7 +63,7 @@ class BackgroundStaticJobWithoutIocRunnerTest {
     @Test
     void runMethodWithJobContext() {
         Job job = anEnqueuedJob()
-                .withJobDetails(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID(), JobContext.Null))
+                .withJobLambda(() -> StaticTestService.doWorkInStaticMethod(UUID.randomUUID(), JobContext.Null))
                 .build();
 
         assertThatCode(() -> backgroundStaticJobWithoutIocRunner.run(job)).doesNotThrowAnyException();

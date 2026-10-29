@@ -19,6 +19,10 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
                 : null);
     }
 
+    public static BackgroundJobServerConfigurationAssert assertThat(BackgroundJobServerConfigurationReader backgroundJobServerConfiguration) {
+        return new BackgroundJobServerConfigurationAssert(backgroundJobServerConfiguration);
+    }
+
     public BackgroundJobServerConfigurationAssert hasName(String name) {
         Assertions.assertThat(actual.getName()).isEqualTo(name);
         return this;
@@ -67,6 +71,16 @@ public class BackgroundJobServerConfigurationAssert extends AbstractAssert<Backg
 
     public BackgroundJobServerConfigurationAssert hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration duration) {
         Assertions.assertThat(actual.getInterruptJobsAwaitDurationOnStopBackgroundJobServer()).isEqualTo(duration);
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasDeleteSucceededJobsAfter(Duration duration) {
+        Assertions.assertThat(actual.getDeleteSucceededJobsAfter()).isEqualTo(duration);
+        return this;
+    }
+
+    public BackgroundJobServerConfigurationAssert hasPermanentlyDeleteDeletedJobsAfter(Duration duration) {
+        Assertions.assertThat(actual.getPermanentlyDeleteDeletedJobsAfter()).isEqualTo(duration);
         return this;
     }
 }

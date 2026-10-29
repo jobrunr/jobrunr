@@ -9,12 +9,17 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Thread.currentThread;
@@ -114,10 +119,26 @@ public class ReflectionUtils {
     }
 
     public static <T> T newInstanceAndSetFieldValues(Class<T> clazz, Map<String, String> fieldValues) {
-        T t = newInstance(clazz);
-        fieldValues.forEach((key, value) -> findField(clazz, key)
-                .ifPresent(f -> setFieldUsingAutoboxing(f, t, value)));
-        return t;
+        List<Constructor<?>> annotatedConstructors = Arrays.stream(clazz.getDeclaredConstructors())
+                .filter(c -> c.isAnnotationPresent(org.jobrunr.utils.reflection.annotations.Constructor.class))
+                .collect(Collectors.toList());
+
+        if (annotatedConstructors.size() != 1) {
+            throw new RuntimeException(String.format("Class %s must have exactly one constructor annotated with @Constructor. Found: %d", clazz.getName(), annotatedConstructors.size()));
+        }
+
+        @SuppressWarnings("unchecked")
+        Constructor<T> targetConstructor = (Constructor<T>) annotatedConstructors.get(0);
+        Object[] arguments = Arrays.stream(targetConstructor.getParameters())
+                .map(parameter -> autoboxParameter(parameter, fieldValues))
+                .toArray();
+
+        try {
+            targetConstructor.setAccessible(true);
+            return targetConstructor.newInstance(arguments);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to instantiate " + clazz.getName() + " via @Constructor", e);
+        }
     }
 
     public static <T> T newInstance(String className, Object... params) {
@@ -194,6 +215,14 @@ public class ReflectionUtils {
         }
     }
 
+    public static <T> T invokeMethod(Method m, Object o, Object... params) {
+        try {
+            return cast(m.invoke(o, params));
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Field getField(Class<?> clazz, String fieldName) {
         return findField(clazz, fieldName)
                 .orElseThrow(() -> new FieldNotFoundException(clazz, fieldName));
@@ -225,11 +254,6 @@ public class ReflectionUtils {
                 || clazz1.isAssignableFrom(clazz2)
                 || (clazz1.isPrimitive() && PRIMITIVE_TO_TYPE_MAPPING.get(clazz1).equals(clazz2))
                 || (clazz1.isPrimitive() && Boolean.TYPE.equals(clazz1) && Integer.class.equals(clazz2));
-    }
-
-    public static boolean objectContainsFieldOrProperty(Object object, String fieldName) {
-        if (object == null) return false;
-        return objectContainsField(object, fieldName) || objectContainsProperty(object, fieldName);
     }
 
     public static Object getValueFromFieldOrProperty(Object object, String paramName) {
@@ -335,6 +359,19 @@ public class ReflectionUtils {
         return clazz.getConstructor(args);
     }
 
+    private static Object autoboxParameter(Parameter parameter, Map<String, String> fieldValues) {
+        org.jobrunr.utils.reflection.annotations.Field fieldAnnotation = parameter.getAnnotation(org.jobrunr.utils.reflection.annotations.Field.class);
+
+        if (fieldAnnotation == null) {
+            throw new RuntimeException("Missing @Field annotation on parameter in " + parameter.getDeclaringExecutable().getDeclaringClass());
+        }
+
+        String key = fieldAnnotation.value();
+        String rawValue = fieldValues.get(key); // null if key is missing
+
+        return autobox(rawValue, parameter.getType());
+    }
+
     /**
      * Why: fewer warnings and @SuppressWarnings("unchecked")
      */
@@ -351,11 +388,4 @@ public class ReflectionUtils {
         return (T) anObject;
     }
 
-    private static boolean objectContainsField(Object object, String fieldName) {
-        return findField(object.getClass(), fieldName).isPresent();
-    }
-
-    private static boolean objectContainsProperty(Object object, String fieldName) {
-        return findMethod(object.getClass(), "get" + capitalize(fieldName)).isPresent();
-    }
 }

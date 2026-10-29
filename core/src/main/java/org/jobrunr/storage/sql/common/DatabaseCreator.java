@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -106,7 +107,7 @@ public class DatabaseCreator {
         this(dataSource::getConnection, tablePrefix, sqlStorageProviderClass);
     }
 
-    public DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
+    private DatabaseCreator(ConnectionProvider connectionProvider, String tablePrefix, Class<? extends SqlStorageProvider> sqlStorageProviderClass) {
         this.connectionProvider = connectionProvider;
         this.tablePrefixStatementUpdater = getStatementUpdater(tablePrefix, connectionProvider);
         this.databaseMigrationsProvider = new DatabaseMigrationsProvider(sqlStorageProviderClass);
@@ -117,11 +118,7 @@ public class DatabaseCreator {
         Set<String> appliedMigrations = isMigrationsTableMissing()
                 ? Collections.emptySet()
                 : loadAppliedMigrations();
-        List<SqlMigration> migrationsToRun = getMigrations()
-                .filter(migration -> migration.getFileName().endsWith(".sql"))
-                .sorted(comparing(SqlMigration::getFileName))
-                .filter(migration -> !appliedMigrations.contains(migration.getFileName()))
-                .collect(toList());
+        List<SqlMigration> migrationsToRun = getMigrationsToRun(appliedMigrations).collect(toList());
         runMigrations(migrationsToRun);
     }
 
@@ -144,7 +141,13 @@ public class DatabaseCreator {
         try (final Connection conn = getConnection()) {
             List<String> allTableNames = new ArrayList<>();
             String catalog = conn.getCatalog();
-            try (ResultSet tables = conn.getMetaData().getTables(catalog, null, "%", null)) {
+            DatabaseMetaData md = conn.getMetaData();
+
+            String pattern = "%";
+            if (md.storesMixedCaseIdentifiers()) pattern = "%";
+            else if (md.storesUpperCaseIdentifiers()) pattern = "%JOBRUNR%";
+            else if (md.storesLowerCaseIdentifiers()) pattern = "%jobrunr%";
+            try (ResultSet tables = md.getTables(catalog, null, pattern, null)) {
                 while (tables.next()) {
                     if (tablePrefixStatementUpdater.getSchema() != null) {
                         String tableSchema = tables.getString("TABLE_SCHEM");
@@ -167,7 +170,7 @@ public class DatabaseCreator {
         return databaseMigrationsProvider.getMigrations();
     }
 
-    private void runMigrations(List<SqlMigration> migrationsToRun) {
+    protected void runMigrations(List<SqlMigration> migrationsToRun) {
         if (migrationsToRun.isEmpty()) {
             LOGGER.debug("No migrations to run.");
             migrationsTableLocker.waitUntilMigrationsAreDone();
@@ -180,7 +183,9 @@ public class DatabaseCreator {
 
         if (migrationsTableLocker.lockMigrationsTable()) {
             try {
-                migrationsToRun.forEach(this::runMigration);
+                // why: recomputed to prevent time-of-check to time-of-use race
+                Set<String> appliedMigrations = loadAppliedMigrations();
+                getMigrationsToRun(appliedMigrations).forEach(this::runMigration);
             } finally {
                 migrationsTableLocker.removeMigrationsTableLock();
             }
@@ -262,6 +267,13 @@ public class DatabaseCreator {
             LOGGER.debug("Error loading applied migrations", sqlException);
             throw new StorageException(sqlException);
         }
+    }
+
+    private Stream<SqlMigration> getMigrationsToRun(Set<String> appliedMigrations) {
+        return getMigrations()
+                .filter(migration -> migration.getFileName().endsWith(".sql"))
+                .sorted(comparing(SqlMigration::getFileName))
+                .filter(migration -> !appliedMigrations.contains(migration.getFileName()));
     }
 
     private boolean isCreateMigrationsTableMigration(SqlMigration migration) {

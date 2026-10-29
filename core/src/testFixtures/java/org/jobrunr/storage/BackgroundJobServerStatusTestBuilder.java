@@ -1,5 +1,6 @@
 package org.jobrunr.storage;
 
+import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.jmx.JobServerStats;
 
@@ -16,8 +17,8 @@ public class BackgroundJobServerStatusTestBuilder {
     private String name = DEFAULT_SERVER_NAME;
     private int workerPoolSize = 10;
     private Duration pollInterval = BackgroundJobServerConfiguration.DEFAULT_POLL_INTERVAL;
-    private Duration deleteSucceededJobsAfter = BackgroundJobServerConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
-    private Duration permanentlyDeleteDeletedJobsAfter = BackgroundJobServerConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
+    private Duration deleteSucceededJobsAfter = JobRetentionConfiguration.DEFAULT_DELETE_SUCCEEDED_JOBS_DURATION;
+    private Duration permanentlyDeleteDeletedJobsAfter = JobRetentionConfiguration.DEFAULT_PERMANENTLY_DELETE_JOBS_DURATION;
     private Instant firstHeartbeat;
     private Instant lastHeartbeat;
     private boolean running;

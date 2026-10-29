@@ -1,6 +1,8 @@
 package org.jobrunr.storage.navigation;
 
 import org.jobrunr.storage.Page;
+import org.jobrunr.utils.reflection.annotations.Constructor;
+import org.jobrunr.utils.reflection.annotations.Field;
 
 import java.util.List;
 
@@ -19,9 +21,10 @@ public class OffsetBasedPageRequest extends PageRequest {
         this(null, DEFAULT_OFFSET, DEFAULT_LIMIT); // needed for deserialization
     }
 
-    public OffsetBasedPageRequest(String order, long offset, int limit) {
+    @Constructor
+    public OffsetBasedPageRequest(@Field("order") String order, @Field("offset") Long offset, @Field("limit") Integer limit) {
         super(order, limit);
-        this.offset = offset;
+        this.offset = offset != null ? offset : DEFAULT_OFFSET;
     }
 
     public long getOffset() {

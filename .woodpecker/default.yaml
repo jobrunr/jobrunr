@@ -5,7 +5,7 @@ when:
       - pull_request
     branch:
       - master
-      - v8
+      - v9
   - event: manual
 
 
@@ -35,13 +35,17 @@ steps:
         '
     environment:
       GRADLE_RO_DEP_CACHE: /root/.gradle-ci-cache
+      MAVEN_CENTRAL_PROXY_URL:
+        from_secret: MAVEN_CENTRAL_PROXY_URL
+      BUILD_CACHE_URL:
+        from_secret: BUILD_CACHE_URL
       BUILD_CACHE_USER:
         from_secret: BUILD_CACHE_USER
       BUILD_CACHE_PASSWORD:
         from_secret: BUILD_CACHE_PASSWORD
 
   - name: junit-reports
-    image: ghcr.io/wgroeneveld/woodpecker-ascii-junit:main
+    image: ghcr.io/brainbaking/woodpecker-ascii-junit@sha256:78f33e6eac8a3ac6b92c1626528627e187d3d9e14de8d7e18714b8228d9face6
     settings:
       log-level: debug
       path: /tmp/reports/**/*.xml

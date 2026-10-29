@@ -77,7 +77,6 @@ public abstract class AbstractSimpleBackgroundJobServer {
                     .configure()
                     .useJsonMapper(jsonMapper)
                     .useStorageProvider(storageProvider);
-            loadDefaultData(storageProvider);
 
             BackgroundJobServerConfiguration bgServerConfiguration = usingStandardBackgroundJobServerConfiguration();
             if (id != null) {
@@ -92,6 +91,8 @@ public abstract class AbstractSimpleBackgroundJobServer {
             jobRunrConfiguration
                     .useDashboard()
                     .initialize();
+            
+            loadDefaultData(storageProvider);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

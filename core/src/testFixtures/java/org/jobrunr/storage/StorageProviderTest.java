@@ -77,8 +77,6 @@ import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.streams.StreamUtils.batchCollector;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @ExtendWith(MockitoExtension.class)
 public abstract class StorageProviderTest {
@@ -114,15 +112,6 @@ public abstract class StorageProviderTest {
 
     protected abstract StorageProvider getStorageProvider();
 
-    protected ThrowingStorageProvider makeThrowingStorageProvider(StorageProvider storageProvider) {
-        return new ThrowingStorageProvider(storageProvider, "TODO") {
-            @Override
-            protected void makeStorageProviderThrowException(StorageProvider storageProvider) {
-                throw new UnsupportedOperationException("Implement me!");
-            }
-        };
-    }
-
     @Test
     void testAnnounceAndListBackgroundJobServers() {
         final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
@@ -155,6 +144,14 @@ public abstract class StorageProviderTest {
         storageProvider.signalBackgroundJobServerStopped(serverStatus1);
         assertThat(storageProvider.getBackgroundJobServers()).hasSize(1);
         assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus2.getId());
+    }
+
+    @Test
+    protected void testBackgroundServerAnnouncingTwice() {
+        final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
+        storageProvider.announceBackgroundJobServer(serverStatus1);
+        assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
+        assertThatCode(() -> storageProvider.announceBackgroundJobServer(serverStatus1)).doesNotThrowAnyException();
     }
 
     @Test
@@ -365,10 +362,8 @@ public abstract class StorageProviderTest {
         Job enqueuedJob = storageProvider.save(job);
 
         job.startProcessingOn(backgroundJobServer);
-        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
-            assertThatThrownBy(() -> storageProvider.save(enqueuedJob))
-                    .isInstanceOf(StorageException.class);
-        }
+        assertThatThrownBy(() -> storageProvider.save(aCopyOf(job).withVersion(0).build()))
+                .isInstanceOf(StorageException.class);
 
         job.updateProcessing();
         assertThatCode(() -> storageProvider.save(enqueuedJob)).doesNotThrowAnyException();
@@ -453,7 +448,7 @@ public abstract class StorageProviderTest {
         // GIVEN
         Job scheduledJob = aScheduledJob().build();
         Job enqueuedJob1 = aJob().withEnqueuedState(now().minusSeconds(20)).build();
-        Job enqueuedJob2 = aJob().withJobDetails(TestService::tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter).withEnqueuedState(now().minusSeconds(15)).build();
+        Job enqueuedJob2 = aJob().withJobLambda(TestService::tryToDoWorkButDontBecauseOfSomeBusinessRuleDefinedInTheOnStateElectionFilter).withEnqueuedState(now().minusSeconds(15)).build();
         Job enqueuedJob3 = aJob().withEnqueuedState(now().minusSeconds(10)).build();
         Job enqueuedJob4 = aJob().withEnqueuedState(now().minusSeconds(5)).build();
         Job jobInProgress = aJobInProgress().build();
@@ -518,12 +513,12 @@ public abstract class StorageProviderTest {
     @Test
     void testGetDistinctJobSignatures() {
         TestService testService = new TestService();
-        Job job1 = aScheduledJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
-        Job job2 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
-        Job job3 = anEnqueuedJob().withJobDetails(() -> testService.doWork(2)).build();
-        Job job4 = anEnqueuedJob().withJobDetails(() -> testService.doWorkThatTakesLong(5)).build();
-        Job job5 = aJobInProgress().withJobDetails(() -> testService.doWork(2, 5)).build();
-        Job job6 = aSucceededJob().withJobDetails(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job1 = aScheduledJob().withJobLambda(() -> testService.doWork(UUID.randomUUID())).build();
+        Job job2 = anEnqueuedJob().withJobLambda(() -> testService.doWork(2)).build();
+        Job job3 = anEnqueuedJob().withJobLambda(() -> testService.doWork(2)).build();
+        Job job4 = anEnqueuedJob().withJobLambda(() -> testService.doWorkThatTakesLong(5)).build();
+        Job job5 = aJobInProgress().withJobLambda(() -> testService.doWork(2, 5)).build();
+        Job job6 = aSucceededJob().withJobLambda(() -> testService.doWork(UUID.randomUUID())).build();
 
         storageProvider.save(asList(job1, job2, job3, job4, job5, job6));
 
@@ -536,14 +531,14 @@ public abstract class StorageProviderTest {
         assertThat(distinctJobSignaturesForEnqueuedJobs)
                 .hasSize(2)
                 .containsOnly(
-                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)",
+                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(int)",
                         "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)");
 
         Set<String> distinctJobSignaturesForJobsInProgress = storageProvider.getDistinctJobSignatures(PROCESSING);
         assertThat(distinctJobSignaturesForJobsInProgress)
                 .hasSize(1)
                 .containsOnly(
-                        "org.jobrunr.stubs.TestService.doWork(java.lang.Integer, java.lang.Integer)");
+                        "org.jobrunr.stubs.TestService.doWork(int, int)");
 
         Set<String> distinctJobSignaturesForSucceededJobs = storageProvider.getDistinctJobSignatures(SUCCEEDED);
         assertThat(distinctJobSignaturesForSucceededJobs)
@@ -556,7 +551,7 @@ public abstract class StorageProviderTest {
                 .hasSize(3)
                 .containsOnly(
                         "org.jobrunr.stubs.TestService.doWork(java.util.UUID)",
-                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(java.lang.Integer)",
+                        "org.jobrunr.stubs.TestService.doWorkThatTakesLong(int)",
                         "org.jobrunr.stubs.TestService.doWork(java.lang.Integer)");
     }
 
@@ -648,10 +643,8 @@ public abstract class StorageProviderTest {
         final List<Job> savedJobs = storageProvider.save(jobs);
         savedJobs.forEach(job -> job.startProcessingOn(backgroundJobServer));
 
-        try (ThrowingStorageProvider ignored = makeThrowingStorageProvider(storageProvider)) {
-            assertThatThrownBy(() -> storageProvider.save(savedJobs))
-                    .isInstanceOf(StorageException.class);
-        }
+        assertThatThrownBy(() -> storageProvider.save(aCopyOf(jobs.get(0)).withVersion(0).build()))
+                .isInstanceOf(StorageException.class);
 
         savedJobs.forEach(Job::updateProcessing);
         storageProvider.save(savedJobs);
@@ -981,40 +974,6 @@ public abstract class StorageProviderTest {
         @Override
         public void onChange(List<JobRunrMetadata> metadata) {
             this.changes.add(metadata);
-        }
-    }
-
-    public static abstract class ThrowingStorageProvider implements AutoCloseable {
-
-        private final StorageProvider storageProvider;
-        private final String fieldNameForReset;
-        private Object originalState;
-
-        public ThrowingStorageProvider(StorageProvider storageProvider, String fieldNameForReset) {
-            this.storageProvider = storageProvider;
-            this.fieldNameForReset = fieldNameForReset;
-
-            try {
-                saveInternalStorageProviderState(storageProvider);
-                makeStorageProviderThrowException(storageProvider);
-            } catch (Exception e) {
-                throw new RuntimeException("Exception setting up ThrowingStorageProvider", e);
-            }
-        }
-
-        @Override
-        public void close() {
-            resetStorageProviderUsingInternalState(storageProvider);
-        }
-
-        protected void saveInternalStorageProviderState(StorageProvider storageProvider) {
-            this.originalState = getInternalState(storageProvider, fieldNameForReset);
-        }
-
-        protected abstract void makeStorageProviderThrowException(StorageProvider storageProvider) throws Exception;
-
-        protected void resetStorageProviderUsingInternalState(StorageProvider storageProvider) {
-            setInternalState(storageProvider, fieldNameForReset, originalState);
         }
     }
 }

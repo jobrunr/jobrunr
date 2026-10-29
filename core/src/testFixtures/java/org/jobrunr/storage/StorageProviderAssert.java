@@ -22,7 +22,7 @@ public class StorageProviderAssert extends AbstractAssert<StorageProviderAssert,
 
     public StorageProviderAssert hasJobMapper() {
         String jobMapperField = "jobMapper";
-        if (MongoDBStorageProvider.class.equals(actual.getClass())) {
+        if (actual instanceof MongoDBStorageProvider) {
             jobMapperField = "jobDocumentMapper";
         }
 

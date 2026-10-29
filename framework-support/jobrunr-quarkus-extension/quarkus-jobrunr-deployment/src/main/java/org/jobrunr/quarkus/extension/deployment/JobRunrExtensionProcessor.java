@@ -17,7 +17,6 @@ import io.quarkus.deployment.builditem.nativeimage.NativeImageResourceDirectoryB
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedClassBuildItem;
 import io.quarkus.deployment.metrics.MetricsCapabilityBuildItem;
-import io.quarkus.deployment.pkg.steps.NativeBuild;
 import io.quarkus.deployment.pkg.steps.NativeOrNativeSourcesBuild;
 import io.quarkus.deployment.recording.RecorderContext;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -168,7 +167,7 @@ class JobRunrExtensionProcessor {
         return UnremovableBeanBuildItem.beanTypes(DotName.createSimple(JobRequestHandler.class));
     }
 
-    @BuildStep(onlyIf = NativeBuild.class)
+    @BuildStep(onlyIf = NativeOrNativeSourcesBuild.class)
     void registerForReflection(
             BuildProducer<ReflectiveClassBuildItem> reflectiveClassProducer,
             CombinedIndexBuildItem indexBuildItem

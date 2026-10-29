@@ -13,9 +13,9 @@ class PageTest {
     @Test
     void testPaging1() {
         Page<String> page = new Page<>(50, new ArrayList<>(), 15, 3,
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 15, 5),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 10, 5),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 20, 5));
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 15L, 5),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 10L, 5),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 20L, 5));
         assertThat(page.getTotal()).isEqualTo(50);
         assertThat(page.getOffset()).isEqualTo(15);
         assertThat(page.getLimit()).isEqualTo(5);
@@ -28,9 +28,9 @@ class PageTest {
     @Test
     void testPaging2() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 2, 1,
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 2, 2),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0, 2),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 4, 2));
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 2L, 2),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0L, 2),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 4L, 2));
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(2);
         assertThat(page.getLimit()).isEqualTo(2);
@@ -43,7 +43,7 @@ class PageTest {
     @Test
     void testPaging3() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 0, 0,
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0, 20),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0L, 20),
                 null,
                 null);
         assertThat(page.getTotal()).isEqualTo(5);
@@ -58,8 +58,8 @@ class PageTest {
     @Test
     void testPagingStrangeValues1() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 1, 1,
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 1, 4),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0, 4),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 1L, 4),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0L, 4),
                 null);
 
         assertThat(page.getTotal()).isEqualTo(5);
@@ -74,9 +74,9 @@ class PageTest {
     @Test
     void testPagingStrangeValues2() {
         Page<String> page = new Page<>(5, new ArrayList<>(), 1, 1,
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 1, 3),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0, 3),
-                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 3, 3));
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 1L, 3),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 0L, 3),
+                new OffsetBasedPageRequest(FIELD_CREATED_AT + ":ASC", 3L, 3));
         assertThat(page.getTotal()).isEqualTo(5);
         assertThat(page.getOffset()).isEqualTo(1);
         assertThat(page.getLimit()).isEqualTo(3);

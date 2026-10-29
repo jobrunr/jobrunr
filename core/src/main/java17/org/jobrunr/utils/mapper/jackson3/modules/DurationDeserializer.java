@@ -19,7 +19,7 @@ public class DurationDeserializer extends StdDeserializer<Duration> {
     @Override
     public Duration deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
         if (p.currentToken() == JsonToken.VALUE_STRING) {
-            return Duration.parse(p.getText());
+            return Duration.parse(p.getString());
         }
         final BigDecimal durationAsSecAndNanoSec = p.getDecimalValue();
         return DurationUtils.fromBigDecimal(durationAsSecAndNanoSec);

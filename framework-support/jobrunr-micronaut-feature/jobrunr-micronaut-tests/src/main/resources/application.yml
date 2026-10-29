@@ -5,9 +5,16 @@ micronaut:
 jobrunr:
   background-job-server:
     enabled: true
+    poll-interval-in-seconds: 1
   dashboard:
     enabled: true
   job-scheduler:
     enabled: true
   jobs:
     retry-back-off-time-seed: 2
+  database:
+    type: mem
+
+test:
+  service:
+    enabled: false

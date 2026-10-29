@@ -38,9 +38,7 @@ public class JobRunrException extends RuntimeException {
     }
 
     public static JobRunrException shouldNotHappenException(Throwable cause) {
-        if (cause instanceof JobRunrException) return (JobRunrException) cause;
-        if (cause.getCause() instanceof JobRunrException) return (JobRunrException) cause.getCause();
-        return new JobRunrException(SHOULD_NOT_HAPPEN_MESSAGE, cause);
+        return configurationException(SHOULD_NOT_HAPPEN_MESSAGE, cause);
     }
 
     public static JobRunrException configurationException(String message) {

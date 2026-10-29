@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
+import static org.jobrunr.utils.ThreadUtils.assertNoBackgroundJobServerThreadsExist;
 import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +63,8 @@ public abstract class AbstractTaskTest {
     @AfterEach
     void tearDownTaskDependencies() {
         storageProvider.close();
+        backgroundJobServer.stop();
+        assertNoBackgroundJobServerThreadsExist();
     }
 
     @AfterAll

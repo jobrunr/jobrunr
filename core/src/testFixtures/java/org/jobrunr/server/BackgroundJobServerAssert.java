@@ -23,6 +23,11 @@ public class BackgroundJobServerAssert extends AbstractAssert<BackgroundJobServe
         return this;
     }
 
+    public BackgroundJobServerAssert isMaster(Boolean isMaster) {
+        Assertions.assertThat(actual.isMaster()).isEqualTo(isMaster);
+        return this;
+    }
+
     public BackgroundJobServerAssert hasRetryFilter(int defaultNbrOfRetries) {
         List<JobFilter> filters = getInternalState(actual.getJobFilters(), "filters");
         JobFilter retryFilter = filters.stream()

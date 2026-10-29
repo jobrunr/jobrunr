@@ -6,7 +6,5 @@ public interface WorkDistributionStrategy {
 
     int getWorkerCount();
 
-    boolean canOnboardNewWork();
-
     AmountRequest getWorkPageRequest();
 }

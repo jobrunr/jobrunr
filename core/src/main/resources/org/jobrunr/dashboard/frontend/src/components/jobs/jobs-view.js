@@ -8,6 +8,7 @@ import JobsTable from "./jobs-table";
 import {jobStateToHumanReadableName} from "../utils/job-utils";
 import VersionFooter from "../utils/version-footer";
 import {JobRunrProNotice} from "../utils/jobrunr-pro-notice";
+import {JobsFilterPanel} from "./jobs-filter-panel.js";
 
 
 const JobsView = () => {
@@ -51,7 +52,7 @@ const JobsView = () => {
 
     return (
         <main style={{width: '100%', overflowX: "hidden"}}>
-            <Box my={3}>
+            <Box sx={{my: 3}}>
                 <Typography id="title" variant="h4">{jobStateToHumanReadableName(jobState)}</Typography>
             </Box>
             {isLoading
@@ -78,6 +79,8 @@ const JobsView = () => {
                             rel="noreferrer" title="Support the development of JobRunr by getting a Pro license!">JobRunr
                             Pro</a> you would have already found it.</JobRunrProNotice>
                     }
+                    <JobsFilterPanel total={jobPage.total}/>
+                    <div>&nbsp;</div>
                     <Paper>
                         <JobsTable jobPage={jobPage} jobState={jobState}/>
                     </Paper>

@@ -2,7 +2,6 @@ package org.jobrunr.configuration;
 
 import org.jobrunr.configuration.JobRunrConfiguration.JobRunrConfigurationResult;
 import org.jobrunr.jobs.mappers.JobMapper;
-import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.RecurringJobsResult;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.StorageProvider.StorageProviderInfo;
@@ -28,6 +27,7 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.jobrunr.configuration.JobConfiguration.usingStandardJobConfiguration;
 import static org.jobrunr.server.BackgroundJobServerConfiguration.usingStandardBackgroundJobServerConfiguration;
 import static org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration.usingStandardCarbonAwareJobProcessingConfiguration;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,9 +37,6 @@ import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrConfigurationTest {
-
-    @Mock
-    JobActivator jobActivator;
 
     @Mock
     StorageProvider storageProvider;
@@ -76,20 +73,10 @@ class JobRunrConfigurationTest {
     }
 
     @Test
-    void ifJobActivatorIsAddedAfterBackgroundJobServer() {
-        assertThatThrownBy(() -> JobRunr.configure()
-                .useStorageProvider(storageProvider)
-                .useBackgroundJobServer()
-                .useJobActivator(jobActivator)
-        )
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Please configure the JobActivator before the BackgroundJobServer.");
-    }
-
-    @Test
     void backgroundJobServerThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
                 .useBackgroundJobServer()
+                .initialize()
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a BackgroundJobServer. Please see the documentation on how to setup a job StorageProvider.");
@@ -115,6 +102,7 @@ class JobRunrConfigurationTest {
     void dashboardThrowsExceptionIfNoStorageProviderIsAvailable() {
         assertThatThrownBy(() -> JobRunr.configure()
                 .useDashboard()
+                .initialize()
         ).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A StorageProvider is required to use a JobRunrDashboardWebServer. Please see the documentation on how to setup a job StorageProvider.");
     }
@@ -151,11 +139,12 @@ class JobRunrConfigurationTest {
 
     @Test
     void dashboardPortCanBeConfigured() {
-        JobRunrConfiguration configuration = JobRunr.configure()
+        JobRunrConfigurationResult result = JobRunr.configure()
                 .useStorageProvider(storageProvider)
-                .useDashboard(9000);
-        assertThat(configuration.dashboardWebServer).isNotNull();
-        assertThat((int) getInternalState(configuration.dashboardWebServer, "port")).isEqualTo(9000);
+                .useDashboard(9000)
+                .initialize();
+        assertThat(result.getDashboardWebServer()).isNotNull();
+        assertThat((int) getInternalState(result.getDashboardWebServer(), "port")).isEqualTo(9000);
     }
 
     @Test
@@ -221,5 +210,17 @@ class JobRunrConfigurationTest {
                     .isInstanceOf(JsonMapperException.class)
                     .hasMessage("No JsonMapper class is found. Make sure you have either Jackson, Gson or a JsonB compliant library available on your classpath. You may also configure a custom JsonMapper.");
         }
+    }
+
+    @Test
+    void initializeUsingJobRetentionOverridesDefaultJobRetentionConfiguration() {
+        JobRunrConfigurationResult configurationResult = JobRunr.configure()
+                .useStorageProvider(storageProvider)
+                .useJobConfiguration(usingStandardJobConfiguration().andJobRetention(new JobRetentionConfiguration(Duration.ofHours(2), Duration.ofHours(24))))
+                .useBackgroundJobServerIf(true, usingStandardBackgroundJobServerConfiguration(), false)
+                .initialize();
+        assertThat(configurationResult.getBackgroundJobServer().getConfiguration())
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(24));
     }
 }

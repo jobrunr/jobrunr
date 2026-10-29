@@ -108,7 +108,6 @@ import static org.jobrunr.storage.nosql.mongo.MongoUtils.getIdAsUUID;
 import static org.jobrunr.storage.nosql.mongo.MongoUtils.toMicroSeconds;
 import static org.jobrunr.utils.reflection.ReflectionUtils.findMethod;
 import static org.jobrunr.utils.resilience.RateLimiter.Builder.rateLimit;
-import static org.jobrunr.utils.resilience.RateLimiter.SECOND;
 
 public class MongoDBStorageProvider extends AbstractStorageProvider implements NoSqlStorageProvider {
 
@@ -141,23 +140,23 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient) {
-        this(mongoClient, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, rateLimit().at1RequestPerSecond());
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, String dbName) {
-        this(mongoClient, dbName, null, CREATE, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, dbName, null, CREATE, rateLimit().at1RequestPerSecond());
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, String dbName, DatabaseOptions databaseOptions) {
-        this(mongoClient, dbName, null, databaseOptions, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, dbName, null, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, String dbName, String collectionPrefix) {
-        this(mongoClient, dbName, collectionPrefix, CREATE, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, dbName, collectionPrefix, CREATE, rateLimit().at1RequestPerSecond());
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, String dbName, String collectionPrefix, DatabaseOptions databaseOptions) {
-        this(mongoClient, dbName, collectionPrefix, databaseOptions, rateLimit().at1Request().per(SECOND));
+        this(mongoClient, dbName, collectionPrefix, databaseOptions, rateLimit().at1RequestPerSecond());
     }
 
     public MongoDBStorageProvider(MongoClient mongoClient, RateLimiter changeListenerNotificationRateLimit) {
@@ -203,7 +202,8 @@ public class MongoDBStorageProvider extends AbstractStorageProvider implements N
 
     @Override
     public void announceBackgroundJobServer(BackgroundJobServerStatus serverStatus) {
-        InsertOneResult result = this.backgroundJobServerCollection.insertOne(backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus));
+        ReplaceOptions options = new ReplaceOptions().upsert(true);
+        UpdateResult result = this.backgroundJobServerCollection.replaceOne(eq(toMongoId(BackgroundJobServers.FIELD_ID), serverStatus.getId()), backgroundJobServerStatusDocumentMapper.toInsertDocument(serverStatus), options);
         if (!result.wasAcknowledged()) {
             throw new StorageException("Unable to announce BackgroundJobServer.");
         }

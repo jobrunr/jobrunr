@@ -202,6 +202,10 @@ public class BackgroundJobRequest {
 
     /**
      * Creates a new or alters the existing recurring job based on the given id, cron expression and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor. The jobs will be scheduled using the systemDefault timezone
      * <h5>An example:</h5>
      * <pre>{@code
@@ -221,6 +225,10 @@ public class BackgroundJobRequest {
 
     /**
      * Creates a new or alters the existing recurring job based on the given id, cron expression, {@link  ZoneId} and {@link JobRequest}. JobRunr will try to find the JobRequestHandler in
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * the IoC container or else it will try to create the handler by calling the default no-arg constructor.
      * <h5>An example:</h5>
      * <pre>{@code
@@ -258,6 +266,10 @@ public class BackgroundJobRequest {
 
     /**
      * Creates a new or alters the existing recurring job based on the given id, duration and {@link JobRequest}. The first run of this recurring job will happen after the given duration unless your duration is smaller or equal than your backgroundJobServer pollInterval.
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>An example:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -276,12 +288,16 @@ public class BackgroundJobRequest {
 
     /**
      * Creates a new or alters the existing recurring job based on the given {@link RecurringJobBuilder}.
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>An example:</h5>
      * <pre>{@code
      *
      *      BackgroundJob.createRecurrently(aRecurringJob()
      *                                        .withCron("* * 0 * * *")
-     *                                        .withDetails(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
+     *                                        .withJobLambda(() -> service.sendMail(toRequestParam, subjectRequestParam, bodyRequestParam));
      * }</pre>
      *
      * @param recurringJobBuilder the builder defining the recurring job

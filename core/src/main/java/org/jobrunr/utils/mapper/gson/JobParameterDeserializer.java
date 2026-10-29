@@ -9,6 +9,8 @@ import org.jobrunr.jobs.exceptions.JobParameterNotDeserializableException;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
 import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Map;
 
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_NAME;
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
@@ -29,6 +31,17 @@ public class JobParameterDeserializer implements JsonDeserializer<JobParameter> 
     }
 
     private Object deserializeToObject(JsonDeserializationContext context, String type, JsonElement jsonElement) {
-        return context.deserialize(jsonElement, ReflectionUtils.toClass(type));
+        Class<?> clazz = ReflectionUtils.toClass(type);
+        if (Map.class.isAssignableFrom(clazz) && isGeneric(clazz)) {
+            return GsonJsonElementUtils.deserializeElement(jsonElement, (c, j) -> context.deserialize(j, c));
+        }
+        if (Collection.class.isAssignableFrom(clazz) && isGeneric(clazz)) {
+            return GsonJsonElementUtils.deserializeCollectionElement(jsonElement, clazz, (c, j) -> context.deserialize(j, c));
+        }
+        return context.deserialize(jsonElement, clazz);
+    }
+
+    private static boolean isGeneric(Class<?> clazz) {
+        return clazz.getTypeParameters().length != 0;
     }
 }

@@ -37,7 +37,7 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
@@ -51,7 +51,7 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithJobLambdaUsingInterface() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(TestServiceInterface::doWork)
+                .withJobLambda(TestServiceInterface::doWork)
                 .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
@@ -65,7 +65,7 @@ class RecurringJobBuilderTest {
     @Test
     void testDefaultJobWithIoCJobLambda() {
         RecurringJob recurringJob = aRecurringJob()
-                .<TestService>withDetails(TestService::doWork)
+                .<TestService>withJobLambda(TestService::doWork)
                 .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
@@ -103,7 +103,7 @@ class RecurringJobBuilderTest {
         String id = UUID.randomUUID().toString();
         RecurringJob recurringJob = aRecurringJob()
                 .withId(id)
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .withCron(EVERY_5_SECONDS)
                 .build(jobDetailsGenerator);
 
@@ -115,7 +115,7 @@ class RecurringJobBuilderTest {
     @Test
     void testWithJobName() {
         RecurringJob recurringJob = aRecurringJob()
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .withCron(EVERY_5_SECONDS)
                 .withName("My job name")
                 .build(jobDetailsGenerator);
@@ -131,7 +131,7 @@ class RecurringJobBuilderTest {
         RecurringJob recurringJob = aRecurringJob()
                 .withAmountOfRetries(10)
                 .withCron(EVERY_5_SECONDS)
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -145,7 +145,7 @@ class RecurringJobBuilderTest {
         RecurringJob recurringJob = aRecurringJob()
                 .withLabels(List.of("TestLabel", "Email"))
                 .withCron(EVERY_5_SECONDS)
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -160,7 +160,7 @@ class RecurringJobBuilderTest {
                 .isThrownBy(() -> aRecurringJob()
                         .withLabels("TestLabel", "Email", "Automated", "Too many")
                         .withCron(EVERY_5_SECONDS)
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .build(jobDetailsGenerator));
     }
 
@@ -170,7 +170,7 @@ class RecurringJobBuilderTest {
                 .isThrownBy(() -> aRecurringJob()
                         .withLabels("Label longer than 45 characters should throw an exception")
                         .withCron(EVERY_5_SECONDS)
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .build(jobDetailsGenerator));
     }
 
@@ -178,7 +178,7 @@ class RecurringJobBuilderTest {
     void testWithInterval() {
         RecurringJob recurringJob = aRecurringJob()
                 .withInterval(Duration.ofMinutes(1))
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -190,7 +190,7 @@ class RecurringJobBuilderTest {
     void testWithScheduleExpression() {
         RecurringJob recurringJob = aRecurringJob()
                 .withScheduleExpression(CarbonAware.dailyBefore(7))
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -203,7 +203,7 @@ class RecurringJobBuilderTest {
         RecurringJob recurringJob = aRecurringJob()
                 .withZoneId(ZoneId.of("Europe/Brussels"))
                 .withCron(EVERY_5_SECONDS)
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -216,7 +216,7 @@ class RecurringJobBuilderTest {
     void testWithDefaultZoneId() {
         RecurringJob recurringJob = aRecurringJob()
                 .withCron(EVERY_5_SECONDS)
-                .withDetails(() -> testService.doWork())
+                .withJobLambda(() -> testService.doWork())
                 .build(jobDetailsGenerator);
 
         assertThat(recurringJob)
@@ -229,7 +229,7 @@ class RecurringJobBuilderTest {
     void testJobDetailsCanOnlyBeSet1Way() {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .withJobRequest(jobRequest)
                         .withCron(EVERY_5_SECONDS)
                         .build(jobDetailsGenerator));
@@ -237,7 +237,7 @@ class RecurringJobBuilderTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
                         .withJobRequest(jobRequest)
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .withCron(EVERY_5_SECONDS)
                         .build(jobDetailsGenerator));
     }
@@ -252,7 +252,7 @@ class RecurringJobBuilderTest {
 
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> aRecurringJob()
-                        .withDetails(() -> testService.doWork())
+                        .withJobLambda(() -> testService.doWork())
                         .withCron(EVERY_5_SECONDS)
                         .build());
     }

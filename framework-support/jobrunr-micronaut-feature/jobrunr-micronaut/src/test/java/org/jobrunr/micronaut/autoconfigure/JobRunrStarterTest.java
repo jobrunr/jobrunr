@@ -3,7 +3,6 @@ package org.jobrunr.micronaut.autoconfigure;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.storage.StorageProvider;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -13,22 +12,9 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
 @ExtendWith(MockitoExtension.class)
 class JobRunrStarterTest {
-
-    JobRunrStarter jobRunrStarter;
-
-    @Mock
-    JobRunrConfiguration configuration;
-
-    @Mock
-    JobRunrConfiguration.BackgroundJobServerConfiguration backgroundJobServerConfiguration;
-
-    @Mock
-    JobRunrConfiguration.DashboardConfiguration dashboardConfiguration;
 
     @Mock
     StorageProvider storageProvider;
@@ -39,55 +25,42 @@ class JobRunrStarterTest {
     @Mock
     JobRunrDashboardWebServer dashboardWebServer;
 
-    @BeforeEach
-    void setUpJobRunrStarter() {
-        when(configuration.getBackgroundJobServer()).thenReturn(backgroundJobServerConfiguration);
-        when(configuration.getDashboard()).thenReturn(dashboardConfiguration);
-
-        jobRunrStarter = new JobRunrStarter();
-        setInternalState(jobRunrStarter, "configuration", configuration);
-        setInternalState(jobRunrStarter, "storageProvider", storageProvider);
-        setInternalState(jobRunrStarter, "backgroundJobServer", Optional.of(backgroundJobServer));
-        setInternalState(jobRunrStarter, "dashboardWebServer", Optional.of(dashboardWebServer));
-    }
-
     @Test
     void onStartOptionalsAreNotCalledToBootstrapIfNotConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
-        when(dashboardConfiguration.isEnabled()).thenReturn(false);
+        var jobRunrStarter = new JobRunrStarter(storageProvider, Optional.empty(), Optional.empty());
 
         jobRunrStarter.startup(null);
 
         verifyNoInteractions(backgroundJobServer);
         verifyNoInteractions(dashboardWebServer);
+        verifyNoInteractions(storageProvider);
     }
 
     @Test
-    void onStartOptionalsAreNotToBootstrapIfConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
-        when(dashboardConfiguration.isEnabled()).thenReturn(true);
+    void onStartOptionalsAreCalledToBootstrapIfConfigured() {
+        var jobRunrStarter = new JobRunrStarter(storageProvider, Optional.of(backgroundJobServer), Optional.of(dashboardWebServer));
 
         jobRunrStarter.startup(null);
 
         verify(backgroundJobServer).start();
         verify(dashboardWebServer).start();
+        verifyNoInteractions(storageProvider);
     }
 
     @Test
     void onStopOptionalsAreNotCalledToBootstrapIfNotConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(false);
-        when(dashboardConfiguration.isEnabled()).thenReturn(false);
+        var jobRunrStarter = new JobRunrStarter(storageProvider, Optional.empty(), Optional.empty());
 
         jobRunrStarter.shutdown(null);
 
         verifyNoInteractions(backgroundJobServer);
         verifyNoInteractions(dashboardWebServer);
+        verify(storageProvider).close();
     }
 
     @Test
     void onStopOptionalsAreNotToBootstrapIfConfigured() {
-        when(backgroundJobServerConfiguration.isEnabled()).thenReturn(true);
-        when(dashboardConfiguration.isEnabled()).thenReturn(true);
+        var jobRunrStarter = new JobRunrStarter(storageProvider, Optional.of(backgroundJobServer), Optional.of(dashboardWebServer));
 
         jobRunrStarter.shutdown(null);
 

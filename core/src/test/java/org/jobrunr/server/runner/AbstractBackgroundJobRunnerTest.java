@@ -46,7 +46,7 @@ class AbstractBackgroundJobRunnerTest {
 
     @Test
     void invokeJobMethodUpdatesJobContextThreadLocal() throws Exception {
-        final Job job = aJobInProgress().withJobDetails(this::testJobContext).build();
+        final Job job = aJobInProgress().withJobLambda(this::testJobContext).build();
 
         final AbstractBackgroundJobRunner backgroundJobRunner = getJobRunner(BackgroundJobWorker::new);
 
@@ -57,7 +57,7 @@ class AbstractBackgroundJobRunnerTest {
 
     @Test
     void invokeJobMethodAlwaysResetsJobContextThreadLocal() {
-        final Job job = aJobInProgress().withJobDetails(this::throwingJobContext).build();
+        final Job job = aJobInProgress().withJobLambda(this::throwingJobContext).build();
 
         final AbstractBackgroundJobRunner backgroundJobRunner = getJobRunner(BackgroundJobWorker::new);
 

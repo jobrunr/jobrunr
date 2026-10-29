@@ -6,6 +6,7 @@ import io.quarkus.test.component.TestConfigProperty;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import org.assertj.core.api.Assertions;
+import org.jobrunr.quarkus.autoconfigure.JobRunrProducer;
 import org.jobrunr.server.BackgroundJobServer;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
@@ -15,7 +16,8 @@ import java.time.Duration;
 
 import static org.jobrunr.JobRunrAssertions.assertThat;
 
-@QuarkusComponentTest(JobRunrBackgroundJobServerProducer.class) // needed to create all other beans otherwise the extension doesn't pick them up.
+// needed to create all other beans otherwise the extension doesn't pick them up.
+@QuarkusComponentTest({JobRunrProducer.class, JobRunrBackgroundJobServerProducer.class})
 public class JobRunrBackgroundJobServerProducerTest {
 
     @Inject
@@ -123,5 +125,33 @@ public class JobRunrBackgroundJobServerProducerTest {
 
         assertThat(backgroundJobServerConfigurationInstance.get())
                 .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.jobs.delete-succeeded-jobs-after", value = "PT2H")
+    @TestConfigProperty(key = "quarkus.jobrunr.jobs.permanently-delete-deleted-jobs-after", value = "PT4H")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.delete-succeeded-jobs-after", value = "PT1H")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.permanently-delete-deleted-jobs-after", value = "PT3H")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteFilterConfiguredWithJobPropertiesOverServerProperties() {
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(2))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(4));
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.delete-succeeded-jobs-after", value = "PT1H")
+    @TestConfigProperty(key = "quarkus.jobrunr.background-job-server.permanently-delete-deleted-jobs-after", value = "PT3H")
+    void backgroundJobServerAutoConfigurationTakesIntoAccountDeleteConfiguration() {
+        assertThat(backgroundJobServerConfigurationInstance.isResolvable()).isTrue();
+        Assertions.assertThat(backgroundJobServerConfigurationInstance.get()).isInstanceOf(BackgroundJobServerConfiguration.class);
+
+        assertThat(backgroundJobServerConfigurationInstance.get())
+                .hasDeleteSucceededJobsAfter(Duration.ofHours(1))
+                .hasPermanentlyDeleteDeletedJobsAfter(Duration.ofHours(3));
     }
 }

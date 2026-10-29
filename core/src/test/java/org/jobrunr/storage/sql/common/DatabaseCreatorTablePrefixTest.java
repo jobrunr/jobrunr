@@ -125,7 +125,7 @@ class DatabaseCreatorTablePrefixTest {
         assertThatCode(databaseCreator::runMigrations).isInstanceOf(JobRunrException.class);
 
         LoggerAssert.assertThat(loggerDbCreator)
-                .hasWarningMessageContaining("Error running statement: CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_migrations");
+                .hasWarningMessageContaining("Error running statement: CREATE TABLE SOME_SCHEMA.SOME_PREFIX_jobrunr_migrations", 2);
     }
 
     @NotNull

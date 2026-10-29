@@ -105,7 +105,10 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public boolean isNewerThan(Object obj) {
-        return !isOlderThan(obj);
+        if (obj instanceof VersionNumber) {
+            return compareTo((VersionNumber) obj) > 0;
+        }
+        return false;
     }
 
     @Override
@@ -114,7 +117,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     @Override
-    public int compareTo(VersionNumber o) {
+    public int  compareTo(VersionNumber o) {
         int majorVersionComparison = compareVersionNumber(majorVersion, o.majorVersion);
         if (majorVersionComparison != 0) return majorVersionComparison;
 

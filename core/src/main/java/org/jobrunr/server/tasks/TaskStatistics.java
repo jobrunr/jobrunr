@@ -39,6 +39,14 @@ public class TaskStatistics {
         return exceptionCounter > 5;
     }
 
+    public boolean hasManyExceptions() {
+        return exceptionCounter > 3;
+    }
+
+    public boolean hasExceptions() {
+        return exceptionCounter > 1;
+    }
+
     void logRun(long runIndex, boolean runSucceeded, Duration pollInterval, Instant runStartTime, Instant runEndTime) {
         if (runSucceeded && exceptionCounter > 0) {
             --exceptionCounter;

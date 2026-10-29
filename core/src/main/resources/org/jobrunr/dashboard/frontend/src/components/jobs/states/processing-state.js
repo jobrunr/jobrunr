@@ -25,7 +25,8 @@ const Console = styled("div")(() => ({
         userSelect: 'none',
     },
     '& > dl dd': {
-        margin: '-0.2em 0 -0.2em 220px'
+        margin: '-0.2em 0 -0.2em 220px',
+        whiteSpace: 'pre-wrap',
     },
     '& > dl.WARN dd': {
         color: 'orange'
@@ -37,7 +38,7 @@ const Console = styled("div")(() => ({
 
 const ColoredLinearProgress = styled(LinearProgress)(() => ({
     height: '7px',
-    [`& .${linearProgressClasses.barColorPrimary}`]: {
+    [`&.${linearProgressClasses.colorPrimary} > .${linearProgressClasses.bar}`]: {
         backgroundColor: '#78b869'
     }
 }));

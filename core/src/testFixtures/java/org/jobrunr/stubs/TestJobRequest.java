@@ -1,5 +1,7 @@
 package org.jobrunr.stubs;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.jobs.lambdas.JobRequest;
 import org.jobrunr.jobs.lambdas.JobRequestHandler;
@@ -26,7 +28,12 @@ public class TestJobRequest implements JobRequest {
         this(input, mustFail, 0L);
     }
 
-    public TestJobRequest(String input, boolean mustFail, long sleepAfterFinished) {
+    @JsonCreator
+    public TestJobRequest(
+            @JsonProperty("input") String input,
+            @JsonProperty("mustFail") boolean mustFail,
+            @JsonProperty("sleepAfterFinished") long sleepAfterFinished
+    ) {
         this.input = input;
         this.mustFail = mustFail;
         this.sleepAfterFinished = sleepAfterFinished;

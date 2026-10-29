@@ -3,11 +3,11 @@ package org.jobrunr.storage.sql.mysql;
 import org.assertj.core.api.Condition;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.storage.StorageProviderUtils;
 import org.jobrunr.storage.sql.DatabaseCleaner;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import javax.sql.DataSource;
 
@@ -18,9 +18,8 @@ class MySQLTablePrefixStorageProviderTest extends AbstractMySQLStorageProviderTe
 
     @Override
     protected StorageProvider getStorageProvider() {
-        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_");
+        final StorageProvider storageProvider = SqlStorageProviderFactory.using(getDataSource(), "SOME_PREFIX_", StorageProviderUtils.DatabaseOptions.CREATE, rateLimit().withoutLimits());
         storageProvider.setJobMapper(new JobMapper(new JacksonJsonMapper()));
-        Whitebox.setInternalState(storageProvider, "changeListenerNotificationRateLimit", rateLimit().withoutLimits());
         return storageProvider;
     }
 

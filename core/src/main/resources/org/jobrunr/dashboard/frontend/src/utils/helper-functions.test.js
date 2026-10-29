@@ -1,4 +1,4 @@
-import {convertISO8601DurationToSeconds, humanFileSize, parseScheduleExpression} from './helper-functions';
+import {compareInstants, convertISO8601DurationToSeconds, dateAsMilliseconds, formatDuration, humanFileSize, parseScheduleExpression} from './helper-functions';
 
 describe('humanFileSize', () => {
     it('returns bytes correctly for small numbers', () => {
@@ -113,3 +113,58 @@ describe('parseScheduleExpression', () => {
         });
     });
 })
+
+describe('dateAsMilliseconds / comparedPreciseDates', () => {
+    const BASE = Date.UTC(2024, 0, 1, 0, 0, 0);
+    const iso = (offsetMs) => new Date(BASE + offsetMs).toISOString();
+
+    it('parses ISO strings to milliseconds', () => {
+        expect(dateAsMilliseconds(iso(0))).toBe(BASE);
+        expect(dateAsMilliseconds(iso(5000))).toBe(BASE + 5000);
+    });
+
+    it('compareInstants preserves sub-millisecond precision that dateAsMilliseconds loses', () => {
+        const earlier = '2024-01-01T00:00:00.12345666Z';
+        const later = '2024-01-01T00:00:00.123789Z';
+        expect(compareInstants(earlier, later)).toBeLessThan(0);
+        expect(compareInstants(later, earlier)).toBeGreaterThan(0);
+        expect(compareInstants(earlier, earlier)).toBe(0);
+        expect(compareInstants(later, later)).toBe(0);
+    });
+
+    it('compareInstants preserves sorting accuracy where fractional part is missing', () => {
+        let earlier = '2024-01-01T00:00:00Z';
+        let later = '2024-01-01T00:00:00.12345666Z';
+        expect(compareInstants(earlier, later)).toBeLessThan(0);
+        expect(compareInstants(later, earlier)).toBeGreaterThan(0);
+
+        earlier = '2024-01-01T00:00:00.12345666Z';
+        later = '2024-01-01T00:00:01Z';
+        expect(compareInstants(earlier, later)).toBeLessThan(0);
+        expect(compareInstants(later, earlier)).toBeGreaterThan(0);
+
+        earlier = '2024-01-01 00:00:00';
+        later = '2024-01-01T00:00:00.12345666Z';
+        expect(compareInstants(earlier, later)).toBeLessThan(0);
+        expect(compareInstants(later, earlier)).toBeGreaterThan(0);
+    });
+
+    it('compareInstants sorts undefined values to the end', () => {
+        expect(compareInstants(undefined, iso(0))).toBeGreaterThan(0);
+        expect(compareInstants(iso(0), undefined)).toBeLessThan(0);
+    });
+});
+
+describe('formatDuration', () => {
+    it('formats millisecond and second ranges', () => {
+        expect(formatDuration(0, 500)).toBe('500ms');
+        expect(formatDuration(2000, 5000)).toBe('3s');
+        expect(formatDuration(0, 61000)).toBe('1m');
+    });
+
+    it('returns a sub-millisecond placeholder for zero, negative, or invalid spans', () => {
+        expect(formatDuration(0, 0)).toBe('<1 ms');
+        expect(formatDuration(2000, 1000)).toBe('<1 ms');
+        expect(formatDuration(0, null)).toBe('<1 ms');
+    });
+});

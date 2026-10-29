@@ -54,14 +54,14 @@ class RecurringJobTest {
     @Test
     void ifNoIdGivenItUsesJobSignature() {
         TestService testService = new TestService();
-        final RecurringJob recurringJob1 = aDefaultRecurringJob().withoutId().withJobDetails(() -> System.out.println("This is a test")).build();
+        final RecurringJob recurringJob1 = aDefaultRecurringJob().withoutId().withJobLambda(() -> System.out.println("This is a test")).build();
         assertThat(recurringJob1.getId()).isEqualTo("java.lang.System.out.println(java.lang.String)");
 
         IocJobLambda<TestService> iocJobLambda = (x) -> x.doWork(3, 97693);
-        final RecurringJob recurringJob2 = aDefaultRecurringJob().withoutId().withJobDetails(iocJobLambda).build();
-        assertThat(recurringJob2.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork(java.lang.Integer,java.lang.Integer)");
+        final RecurringJob recurringJob2 = aDefaultRecurringJob().withoutId().withJobLambda(iocJobLambda).build();
+        assertThat(recurringJob2.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork(int,int)");
 
-        final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobDetails((JobLambda) testService::doWork).build();
+        final RecurringJob recurringJob3 = aDefaultRecurringJob().withoutId().withJobLambda((JobLambda) testService::doWork).build();
         assertThat(recurringJob3.getId()).isEqualTo("org.jobrunr.stubs.TestService.doWork()");
     }
 
@@ -98,6 +98,26 @@ class RecurringJobTest {
         }
     }
 
+    @Test
+    void testToScheduledJobsForDST() {
+        final RecurringJob recurringJob = aDefaultRecurringJob()
+                .withCronExpression(Cron.minutely())
+                .withZoneId(ZoneId.of("Europe/Brussels"))
+                .build();
+
+
+        List<Job> scheduledJobsBeforeDST = recurringJob.toScheduledJobs(parse("2025-10-26T00:50:52Z"), parse("2025-10-26T00:52:00Z"));
+        assertThatJobs(scheduledJobsBeforeDST)
+                .singleElement()
+                .hasState(SCHEDULED)
+                .hasScheduledAt(parse("2025-10-26T00:51:00Z"));
+
+        List<Job> scheduledJobsDuringDST = recurringJob.toScheduledJobs(parse("2025-10-26T01:00:52Z"), parse("2025-10-26T01:02:00Z"));
+        assertThatJobs(scheduledJobsDuringDST)
+                .singleElement()
+                .hasState(SCHEDULED)
+                .hasScheduledAt(parse("2025-10-26T02:00:00Z"));
+    }
 
     @Test
     void testCreateARecurringCronJobWithCarbonAwareMarginSetsScheduleCorrectly() {
