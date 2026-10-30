@@ -36,7 +36,7 @@ steps:
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
       - echo "$DOCKER_DHI_PASSWORD" | docker login dhi.io -u "$DOCKER_DHI_USERNAME" --password-stdin
-      - docker build -f Dockerfile-test -t container-registry.jobrunr.io/test-container:latest .
+      - docker build -f Dockerfile-test -t container-registry.jobrunr.io/playwright-test-container:latest .
     environment:
       DOCKER_DHI_USERNAME:
         from_secret: DOCKER_DHI_USERNAME
@@ -66,7 +66,7 @@ steps:
         from_secret: BUILD_CACHE_PASSWORD
 
   - name: playwright-test
-    image: container-registry.jobrunr.io/playwright-container:latest
+    image: container-registry.jobrunr.io/playwright-test-container:latest
     commands:
       - |
         bash -lc '
