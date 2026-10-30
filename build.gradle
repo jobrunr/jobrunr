@@ -120,6 +120,8 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         runtimeClasspath {
             ignore '**/MANIFEST.MF'
             ignore '**/frontend/**'
+            ignore '**/quarkus-extension.properties'
+            ignore '**/quarkus-app-test-model.dat'
         }
     }
 
