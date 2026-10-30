@@ -208,7 +208,7 @@ tasks.register('npmInstall', Exec) {
 
     environment 'NPM_PROXY_URL', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
 
-    commandLine 'sh', '-c', 'npm ci'
+    commandLine 'sh', '-c', 'npm config get registry && npm ci --loglevel=http'
     outputs.cacheIf { true }
     outputs.upToDateWhen { false }
 }
