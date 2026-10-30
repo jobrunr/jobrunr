@@ -158,7 +158,6 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         def projectName = project.name
         delete "/tmp/reports/$projectName"
         println "Deleted /tmp/reports/$projectName"
-
     }
 
     tasks.withType(Test) {
