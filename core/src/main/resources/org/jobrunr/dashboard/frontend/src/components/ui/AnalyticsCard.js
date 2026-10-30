@@ -35,7 +35,7 @@ export const AnalyticsCard = ({
                             overflowX: "hidden",
                             textOverflow: "ellipsis",
                             display: "block",
-                            width: "100%",
+                            width: "100%"
                         }}
                         variant="span"
                         id={textId}
