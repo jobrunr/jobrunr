@@ -3,15 +3,7 @@ import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
-export const AnalyticsCard = ({
-                                  title,
-                                  children,
-                                  icon: Icon,
-                                  color = "primary",
-                                  sparkline = undefined,
-                                  textId = undefined,
-                                  subtitle = undefined
-                              }) => {
+export const AnalyticsCard = ({title, children, icon: Icon, color = "primary", sparkline = undefined, textId = undefined, subtitle = undefined}) => {
     return (
         <Card variant="outlined" sx={{minWidth: 215, height: "100%"}}>
             <CardContent sx={{px: 2, pt: (theme) => `${theme.spacing(1.5)} !important`, pb: (theme) => `${theme.spacing(1)} !important`}}>

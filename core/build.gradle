@@ -209,7 +209,7 @@ tasks.register('npmInstall', Exec) {
     environment 'NPM_PROXY_URL', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
 
     commandLine 'sh', '-c', 'npm ci'
-    outputs.cacheIf { true }
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
