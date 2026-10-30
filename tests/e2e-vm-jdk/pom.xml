@@ -13,6 +13,22 @@
 
     <profiles>
         <profile>
+            <id>ci</id>
+            <activation>
+                <property>
+                    <name>env.CI</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <repositories>
+                <repository>
+                    <id>local-maven-proxy</id>
+                    <url>${env.MAVEN_CENTRAL_PROXY_URL}</url>
+                </repository>
+            </repositories>
+        </profile>
+        <profile>
             <id>jdk-1.8</id>
             <activation>
                 <activeByDefault>true</activeByDefault>

@@ -23,7 +23,7 @@ public class SqlStatement {
     }
 
     public static int statementKey(String tablePrefix, String originalSql) {
-        return Objects.hash(elementPrefixer(tablePrefix, originalSql));
+        return Objects.hashCode(elementPrefixer(tablePrefix, originalSql));
     }
 
     public String getOriginalSql() {
@@ -47,7 +47,7 @@ public class SqlStatement {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hashKey);
+        return Objects.hashCode(hashKey);
     }
 
     @VisibleFor("testing")

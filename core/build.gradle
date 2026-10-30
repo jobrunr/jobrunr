@@ -205,8 +205,11 @@ tasks.register('npmInstall', Exec) {
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
-    commandLine 'sh', '-c', 'npm ci'
-    outputs.cacheIf { true }
+
+    environment 'NPM_CONFIG_REGISTRY', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
+
+    commandLine 'sh', '-c', 'npm ci --prefer-offline'
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
