@@ -69,7 +69,7 @@ jar {
     archiveClassifier = ''
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.spring.boot.starter'
-        attributes 'Built-By': 'build.jobrunr.io'
+        attributes 'Built-By': 'ci.jobrunr.io'
         attributes 'Build-Timestamp': rootProject.getBuildTimestamp()
         attributes 'Build-Version': project.version
         attributes 'Implementation-Version': project.version

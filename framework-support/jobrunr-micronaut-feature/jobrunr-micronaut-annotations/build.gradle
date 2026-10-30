@@ -33,7 +33,7 @@ java {
 jar {
     manifest {
         attributes 'Automatic-Module-Name': 'org.jobrunr.micronaut.annotations'
-        attributes 'Built-By': 'build.jobrunr.io'
+        attributes 'Built-By': 'ci.jobrunr.io'
         attributes 'Build-Timestamp': rootProject.getBuildTimestamp()
         attributes 'Build-Version': project.version
         attributes 'Implementation-Version': project.version
