@@ -116,6 +116,15 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.encoding = "UTF-8"
     }
 
+    normalization {
+        runtimeClasspath {
+            ignore '**/MANIFEST.MF'
+            ignore '**/frontend/**'
+            ignore '**/quarkus-extension.properties'
+            ignore '**/quarkus-app-test-model.dat'
+        }
+    }
+
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.enabled = true
         options.errorprone {
@@ -160,10 +169,13 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         println "Deleted /tmp/reports/$projectName"
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         finalizedBy jacocoTestReport
-        reports.junitXml.outputLocation = file("/tmp/reports/$project.name")
-        reports.html.outputLocation = file("/tmp/reports/$project.name")
+
+        reports {
+            junitXml.outputLocation = file("/tmp/reports/${project.name}/${name}/junit")
+            html.outputLocation = file("/tmp/reports/${project.name}/${name}/html")
+        }
 
         useJUnitPlatform()
         testLogging {
@@ -183,7 +195,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacoco {
-        toolVersion = "0.8.15"
+        toolVersion = "0.8.16"
     }
 
     jacocoTestReport {
@@ -200,4 +212,23 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             options.addStringOption('Xdoclint:none', '-quiet')
         }
     }
+}
+
+def getBuildTimestamp() {
+    return providers.environmentVariable('CI_PIPELINE_CREATED')
+            .map { timestamp ->
+                java.time.Instant.ofEpochSecond(timestamp.toLong()).toString()
+            }
+            .getOrElse('unknown')
+}
+
+def getGitBranch() {
+    return providers.exec {
+        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+    }.standardOutput.asText.get().trim()
+}
+
+def getGitCommit() {
+    return providers.environmentVariable('CI_COMMIT_SHA')
+            .getOrElse('unknown')
 }
