@@ -115,7 +115,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.release = 21
         options.encoding = "UTF-8"
     }
-    
+
     normalization {
         runtimeClasspath {
             ignore '**/MANIFEST.MF'
@@ -210,4 +210,23 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
             options.addStringOption('Xdoclint:none', '-quiet')
         }
     }
+}
+
+def getBuildTimestamp() {
+    return providers.environmentVariable('CI_PIPELINE_CREATED')
+            .map { timestamp ->
+                java.time.Instant.ofEpochSecond(timestamp.toLong()).toString()
+            }
+            .getOrElse('unknown')
+}
+
+def getGitBranch() {
+    return providers.exec {
+        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+    }.standardOutput.asText.get().trim()
+}
+
+def getGitCommit() {
+    return providers.environmentVariable('CI_COMMIT_SHA')
+            .getOrElse('unknown')
 }

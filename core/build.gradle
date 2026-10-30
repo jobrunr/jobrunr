@@ -255,7 +255,7 @@ jar {
         attributes 'Automatic-Module-Name': 'org.jobrunr.core'
         attributes 'Multi-Release': 'true'
         attributes 'Built-By': 'ci.jobrunr.io'
-
+        attributes 'Build-Timestamp': rootProject.getBuildTimestamp()
         attributes 'Build-Version': project.version
         attributes 'Implementation-Title': 'JobRunr'
         attributes 'Implementation-Version': project.version
@@ -264,7 +264,8 @@ jar {
         attributes 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})"
         attributes 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
         attributes 'Minimum-ASM-Version': "${asmVersion}"
-        attributes 'Git-Branch': getGitBranch()
+        attributes 'Git-Branch': rootProject.getGitBranch()
+        attributes 'Git-Commit': rootProject.getGitCommit()
     }
 }
 
@@ -329,12 +330,6 @@ signing {
         useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
         sign publishing.publications.mavenJava
     }
-}
-
-def getGitBranch() {
-    return providers.exec {
-        commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-    }.standardOutput.asText.get().trim()
 }
 
 // this task is executed on the release to check that the UI build output folder is present and fresh
