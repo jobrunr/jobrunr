@@ -14,7 +14,13 @@ steps:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - echo "$DOCKER_DHI_PASSWORD" | docker login dhi.io -u "$DOCKER_DHI_USERNAME" --password-stdin
       - docker build -f Dockerfile-build -t container-registry.jobrunr.io/build-container:latest .
+    environment:
+      DOCKER_DHI_USERNAME:
+        from_secret: DOCKER_DHI_USERNAME
+      DOCKER_DHI_PASSWORD:
+        from_secret: DOCKER_DHI_PASSWORD
 
   - name: build-and-upload-to-maven-central
     image: container-registry.jobrunr.io/build-container:latest
