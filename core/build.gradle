@@ -202,7 +202,7 @@ tasks.withType(Test).configureEach {
 
 tasks.register('npmInstall', Exec) {
     doFirst {
-        println ">>> Running npmInstall"
+        println ">>> Running npmInstall ${environment['NPM_CONFIG_REGISTRY']}"
         println ">>> Registry: ${environment['NPM_CONFIG_REGISTRY']}"
     }
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
