@@ -65,13 +65,6 @@ java {
     withSourcesJar()
 }
 
-normalization {
-    runtimeClasspath {
-        ignore '**/MANIFEST.MF'
-        ignore '**/frontend/**'
-    }
-}
-
 jar {
     archiveClassifier = ''
     manifest {

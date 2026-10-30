@@ -94,13 +94,6 @@ java {
     withSourcesJar()
 }
 
-normalization {
-    runtimeClasspath {
-        ignore '**/MANIFEST.MF'
-        ignore '**/frontend/**'
-    }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

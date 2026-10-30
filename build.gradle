@@ -115,6 +115,13 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         options.release = 21
         options.encoding = "UTF-8"
     }
+    
+    normalization {
+        runtimeClasspath {
+            ignore '**/MANIFEST.MF'
+            ignore '**/frontend/**'
+        }
+    }
 
     tasks.withType(JavaCompile).configureEach {
         options.errorprone.enabled = true
@@ -160,10 +167,13 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
         println "Deleted /tmp/reports/$projectName"
     }
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         finalizedBy jacocoTestReport
-        reports.junitXml.outputLocation = file("/tmp/reports/$project.name")
-        reports.html.outputLocation = file("/tmp/reports/$project.name")
+
+        reports {
+            junitXml.outputLocation = file("/tmp/reports/${project.name}/${name}/junit")
+            html.outputLocation = file("/tmp/reports/${project.name}/${name}/html")
+        }
 
         useJUnitPlatform()
         testLogging {
@@ -183,7 +193,7 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     jacoco {
-        toolVersion = "0.8.15"
+        toolVersion = "0.8.16"
     }
 
     jacocoTestReport {
