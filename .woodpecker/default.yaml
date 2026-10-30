@@ -20,7 +20,16 @@ steps:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
-      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+      - docker build -f Dockerfile-build -t container-registry.jobrunr.io/build-container:latest .
+
+  - name: prepare-docker-test-container
+    image: docker
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    commands:
+      - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
+      - docker build -f Dockerfile-test -t container-registry.jobrunr.io/test-container:latest .
 
   - name: build
     image: container-registry.jobrunr.io/build-container:latest
@@ -30,7 +39,27 @@ steps:
       - |
         bash -lc '
           set -e -o pipefail
-          gradle --no-daemon -Djib.console=plain --info clean build \
+          gradle --no-daemon -Djib.console=plain --info clean build -x :tests:e2e-ui:test \
+            | grep -Ev "^(Found locally available resource with matching checksum|Build cache key for|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.|Caching disabled for |[[:space:]]+Caching not enabled\\.)"
+        '
+    environment:
+      GRADLE_RO_DEP_CACHE: /root/.gradle-ci-cache
+      MAVEN_CENTRAL_PROXY_URL:
+        from_secret: MAVEN_CENTRAL_PROXY_URL
+      BUILD_CACHE_URL:
+        from_secret: BUILD_CACHE_URL
+      BUILD_CACHE_USER:
+        from_secret: BUILD_CACHE_USER
+      BUILD_CACHE_PASSWORD:
+        from_secret: BUILD_CACHE_PASSWORD
+
+  - name: playwright-test
+    image: container-registry.jobrunr.io/playwright-container:latest
+    commands:
+      - |
+        bash -lc '
+          set -e -o pipefail
+          gradle --no-daemon -Djib.console=plain --info :tests:e2e-ui:test \
             | grep -Ev "^(Found locally available resource with matching checksum|Build cache key for|BuildToolsApiClasspathEntrySnapshotTransform|ClasspathEntrySnapshotTransform|Resource missing\\.|Caching disabled for |[[:space:]]+Caching not enabled\\.)"
         '
     environment:

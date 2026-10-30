@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+
+FROM dhi.io/eclipse-temurin:27.0.1.0.2-jdk-debian13-dev as java-dist
+FROM maven:3.10-eclipse-temurin-27 AS maven-dist
+FROM gradle:9.8.2-jdk27 AS gradle-dist
+FROM node:26.13-bookworm-slim AS node-dist
+
+# Use the official Playwright browser environment.
+FROM mcr.microsoft.com/playwright:v1.63.0-noble
+
+USER root
+
+# Add the Java runtime/compiler and build tools.
+COPY --from=java-dist /opt/java/openjdk/27/ /opt/java/openjdk/
+COPY --from=maven-dist /usr/share/maven /usr/share/maven
+COPY --from=gradle-dist /opt/gradle /opt/gradle
+COPY --from=node-dist /usr/local/ /usr/local/
+
+ENV JAVA_HOME=/opt/java/openjdk
+ENV MAVEN_HOME=/usr/share/maven
+ENV GRADLE_HOME=/opt/gradle
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
+
+ENV PATH="${JAVA_HOME}/bin:/usr/local/bin:${MAVEN_HOME}/bin:${GRADLE_HOME}/bin:${PATH}"
+
+RUN java -version \
+    && mvn -version \
+    && gradle --version \
+    && node --version \
+    && npm --version
+
+WORKDIR /workspace

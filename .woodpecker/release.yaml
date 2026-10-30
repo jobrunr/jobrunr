@@ -14,7 +14,7 @@ steps:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
-      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+      - docker build -f Dockerfile-build -t container-registry.jobrunr.io/build-container:latest .
 
   - name: build-and-upload-to-maven-central
     image: container-registry.jobrunr.io/build-container:latest
