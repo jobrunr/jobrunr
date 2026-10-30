@@ -206,7 +206,7 @@ tasks.register('npmInstall', Exec) {
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
     outputs.dir('src/main/resources/org/jobrunr/dashboard/frontend/node_modules')
 
-    environment 'NPM_PROXY_URL', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
+    environment 'NPM_CONFIG_REGISTRY', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
 
     commandLine 'sh', '-c', 'npm config get registry && npm ci --loglevel=http'
     outputs.cacheIf { true }
