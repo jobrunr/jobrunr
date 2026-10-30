@@ -201,10 +201,6 @@ tasks.withType(Test).configureEach {
 }
 
 tasks.register('npmInstall', Exec) {
-    doFirst {
-        println ">>> Running npmInstall ${environment['NPM_CONFIG_REGISTRY']}"
-        println ">>> Registry: ${environment['NPM_CONFIG_REGISTRY']}"
-    }
     workingDir = file('src/main/resources/org/jobrunr/dashboard/frontend')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package.json')
     inputs.file('src/main/resources/org/jobrunr/dashboard/frontend/package-lock.json')
@@ -212,9 +208,8 @@ tasks.register('npmInstall', Exec) {
 
     environment 'NPM_CONFIG_REGISTRY', System.getenv('NPM_PROXY_URL') ?: 'https://registry.npmjs.org/'
 
-    commandLine 'sh', '-c', 'npm config get registry && npm ci --loglevel=http'
-    outputs.cacheIf { true }
-    outputs.upToDateWhen { false }
+    commandLine 'sh', '-c', 'npm ci --prefer-offline'
+    outputs.cacheIf { false }
 }
 
 tasks.register('npmRunBuild', Exec) {
