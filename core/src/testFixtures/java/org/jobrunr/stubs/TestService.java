@@ -104,6 +104,10 @@ public class TestService implements TestServiceInterface {
         LOGGER.debug("Doing some work... " + processedJobs);
     }
 
+    public void doWorkWithClass(Class<?> clazz) {
+        LOGGER.debug("Doing some work with class... " + clazz);
+    }
+
     @Job(name = "Doing some hard work for user %1 (customerId: %X{customer.id})")
     public void doWorkWithAnnotation(Integer userId, String userName) {
         LOGGER.debug("Doing some work... " + processedJobs);

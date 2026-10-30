@@ -32,7 +32,7 @@ public class CachingJobDetailsGenerator implements JobDetailsGenerator {
     private final Map<Class<?>, CacheableJobDetails> cache;
 
     public CachingJobDetailsGenerator() {
-        this(new JobDetailsAsmGenerator());
+        this(JobDetailsGeneratorFactory.createDefault());
     }
 
     public CachingJobDetailsGenerator(JobDetailsGenerator delegate) {

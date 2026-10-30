@@ -3,7 +3,6 @@ package org.jobrunr.jobs.details.instructions;
 import org.jobrunr.JobRunrException;
 import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.jobrunr.utils.reflection.ReflectionUtils;
-import org.objectweb.asm.Handle;
 
 import java.util.List;
 
@@ -13,18 +12,16 @@ public class InvokeDynamicInstruction extends AbstractJVMInstruction {
 
     private String name;
     private String descriptor;
-    private Handle bootstrapMethodHandle;
     private Object[] bootstrapMethodArguments;
 
     public InvokeDynamicInstruction(JobDetailsBuilder jobDetailsBuilder) {
         super(jobDetailsBuilder);
     }
 
-    public void load(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+    public void load(String name, String descriptor, Object... bootstrapMethodArguments) {
         jobDetailsBuilder.pushInstructionOnStack(this);
         this.name = name;
         this.descriptor = descriptor;
-        this.bootstrapMethodHandle = bootstrapMethodHandle;
         this.bootstrapMethodArguments = bootstrapMethodArguments;
     }
 
@@ -34,14 +31,6 @@ public class InvokeDynamicInstruction extends AbstractJVMInstruction {
 
     public String getDescriptor() {
         return descriptor;
-    }
-
-    public Handle getBootstrapMethodHandle() {
-        return bootstrapMethodHandle;
-    }
-
-    public Object[] getBootstrapMethodArguments() {
-        return bootstrapMethodArguments;
     }
 
     @Override
