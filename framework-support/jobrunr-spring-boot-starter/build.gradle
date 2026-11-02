@@ -1,0 +1,66 @@
+plugins {
+    id 'maven-publish'
+    id 'signing'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'org.jobrunr'
+            artifactId = 'jobrunr-spring-boot-starter'
+            version = project.version
+
+            pom {
+                name = 'JobRunr Spring Boot Starter (Relocated)'
+                description = 'This artifact has been relocated. Please use jobrunr-spring-boot-3-starter or jobrunr-spring-boot-4-starter instead.'
+                url = 'https://github.com/jobrunr/jobrunr'
+                licenses {
+                    license {
+                        name = 'GNU Lesser General Public License v3.0 or later'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#lgpl-v3-license'
+                    }
+                    license {
+                        name = 'Commercial License'
+                        url = 'https://github.com/jobrunr/jobrunr/blob/master/License.md#commercial-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'rdehuyss'
+                        name = 'Ronald Dehuysser'
+                        email = 'ronald.dehuysser@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jobrunr/jobrunr.git'
+                    developerConnection = 'scm:git@github.com:jobrunr/jobrunr.git'
+                    url = 'https://github.com/jobrunr/jobrunr.git'
+                }
+
+                withXml {
+                    def root = asNode()
+                    def relocation = root.appendNode('distributionManagement')
+                        .appendNode('relocation')
+                    relocation.appendNode('groupId', 'org.jobrunr')
+                    relocation.appendNode('artifactId', 'jobrunr-spring-boot-3-starter')
+                    relocation.appendNode('version', project.version)
+                    relocation.appendNode('message',
+                        'jobrunr-spring-boot-starter has been split into jobrunr-spring-boot-3-starter (Spring Boot 3.x) ' +
+                        'and jobrunr-spring-boot-4-starter (Spring Boot 4.x). Please update your dependency accordingly.')
+                }
+            }
+        }
+    }
+}
+
+signing {
+    String base64Key = System.getenv('SIGNING_KEY')
+    if (base64Key) {
+        useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
+        sign publishing.publications.mavenJava
+    }
+}
+
+sonar {
+    skipProject = true
+}
