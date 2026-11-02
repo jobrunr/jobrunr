@@ -58,7 +58,7 @@ public class JobScheduler extends AbstractJobScheduler {
      * @param jobFilters      list of jobFilters that will be used for every job
      */
     public JobScheduler(StorageProvider storageProvider, List<JobFilter> jobFilters) {
-        this(storageProvider, JobDetailsGeneratorFactory.createDefault(), jobFilters);
+        this(storageProvider, JobDetailsGeneratorFactory.createJobDetailsGenerator(), jobFilters);
     }
 
     public JobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator, List<JobFilter> jobFilters) {

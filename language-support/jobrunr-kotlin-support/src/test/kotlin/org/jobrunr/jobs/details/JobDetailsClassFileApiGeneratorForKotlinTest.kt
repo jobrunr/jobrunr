@@ -21,7 +21,7 @@ class JobDetailsClassFileApiGeneratorForKotlinTest : AbstractJobDetailsGenerator
             .isTrue()
     }
 
-    override fun jobDetailsGenerator(): JobDetailsGenerator = JobDetailsGeneratorFactory.createDefault()
+    override fun jobDetailsGenerator(): JobDetailsGenerator = JobDetailsGeneratorFactory.createJobDetailsGenerator()
 
     @Test
     fun theFactorySelectsTheClassFileApiGenerator() {

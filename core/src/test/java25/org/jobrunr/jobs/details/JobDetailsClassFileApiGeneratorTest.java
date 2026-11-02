@@ -14,7 +14,7 @@ class JobDetailsClassFileApiGeneratorTest extends AbstractJobDetailsGeneratorTes
 
     @Test
     void factorySelectsTheClassFileApiBackendWhenTheJvmSupportsIt() {
-        assertThat(JobDetailsGeneratorFactory.createDefault()).isInstanceOf(JobDetailsClassFileApiGenerator.class);
+        assertThat(JobDetailsGeneratorFactory.createJobDetailsGenerator()).isInstanceOf(JobDetailsClassFileApiGenerator.class);
     }
 
     @Test

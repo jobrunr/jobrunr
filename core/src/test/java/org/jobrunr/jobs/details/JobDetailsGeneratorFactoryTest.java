@@ -11,7 +11,7 @@ class JobDetailsGeneratorFactoryTest {
 
     @Test
     void createDefaultReturnsAWorkingJobDetailsGenerator() {
-        JobDetailsGenerator jobDetailsGenerator = JobDetailsGeneratorFactory.createDefault();
+        JobDetailsGenerator jobDetailsGenerator = JobDetailsGeneratorFactory.createJobDetailsGenerator();
         TestService testService = new TestService();
 
         JobDetails jobDetails = jobDetailsGenerator.toJobDetails((JobLambda) () -> testService.doWork(42));
@@ -26,6 +26,6 @@ class JobDetailsGeneratorFactoryTest {
     void cachingGeneratorDefaultsToTheSameBackendAsTheFactory() {
         assertThat(new CachingJobDetailsGenerator())
                 .extracting("delegate")
-                .isInstanceOf(JobDetailsGeneratorFactory.createDefault().getClass());
+                .isInstanceOf(JobDetailsGeneratorFactory.createJobDetailsGenerator().getClass());
     }
 }
