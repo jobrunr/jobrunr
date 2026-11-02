@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.lang.invoke.SerializedLambda;
 
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.jobs.details.lambdas.JobLambdaUtils.adaptMethodReference;
+import static org.jobrunr.utils.StringUtils.substringAfter;
 
 public abstract class SerializedJobLambda {
 
@@ -42,5 +42,15 @@ public abstract class SerializedJobLambda {
             throw shouldNotHappenException("Could not find the class containing the lambda: " + location);
         }
         return inputStream;
+    }
+
+    private static void adaptMethodReference(SerializedLambda serializedLambda, JobDetailsBuilder jobDetailsBuilder) {
+        if (serializedLambda.getCapturedArgCount() == 1
+                && serializedLambda.getCapturedArg(0) != null
+                && JobLambdaUtils.isKotlinClass(serializedLambda.getCapturedArg(0).getClass())) {
+            jobDetailsBuilder.setClassName(serializedLambda.getCapturedArg(0).getClass().getName());
+            String methodName = serializedLambda.getImplMethodName();
+            jobDetailsBuilder.setMethodName(methodName.contains("$") ? substringAfter(methodName, "$") : methodName);
+        }
     }
 }
