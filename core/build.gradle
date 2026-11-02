@@ -64,6 +64,10 @@ configurations {
     test25Implementation.extendsFrom testImplementation, java25Implementation
     test25CompileOnly.extendsFrom testCompileOnly, java25CompileOnly
     test25RuntimeOnly.extendsFrom testRuntimeOnly, java25RuntimeOnly
+
+    // The Class File API tests must not have ASM available, to ensure that ASM is truly optional.
+    test25CompileClasspath.exclude group: 'org.ow2.asm'
+    test25RuntimeClasspath.exclude group: 'org.ow2.asm'
 }
 
 idea {
