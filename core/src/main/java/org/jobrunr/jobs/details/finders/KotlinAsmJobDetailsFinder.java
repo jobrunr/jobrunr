@@ -3,8 +3,6 @@ package org.jobrunr.jobs.details.finders;
 import org.jobrunr.jobs.details.KotlinJobDetailsBuilder;
 import org.jobrunr.jobs.details.lambdas.KotlinClassBasedLambda;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +10,6 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
-import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 
 public class KotlinAsmJobDetailsFinder extends AbstractAsmJobDetailsFinder {
 
@@ -31,18 +28,6 @@ public class KotlinAsmJobDetailsFinder extends AbstractAsmJobDetailsFinder {
         } else {
             parseKotlinLambdaClass();
         }
-    }
-
-    @Override
-    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        return new AnnotationVisitor(Opcodes.ASM7) {
-            @Override
-            public void visit(String name, Object value) {
-                if ("mv".equals(name)) {
-                    kotlinLambda.setKotlinVersion(cast(value));
-                }
-            }
-        };
     }
 
     @Override

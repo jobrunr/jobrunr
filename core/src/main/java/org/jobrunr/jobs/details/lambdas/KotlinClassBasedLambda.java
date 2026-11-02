@@ -22,7 +22,6 @@ public final class KotlinClassBasedLambda {
     private final JobRunrJob jobRunrJob;
     private final JobDetailsBuilder jobDetailsBuilder;
     private int methodCounter;
-    private KotlinVersion kotlinVersion;
 
     public KotlinClassBasedLambda(JobRunrJob jobRunrJob, JobDetailsBuilder jobDetailsBuilder) {
         this.jobDetailsBuilder = jobDetailsBuilder;
@@ -33,11 +32,7 @@ public final class KotlinClassBasedLambda {
         if (methodName.equals(ACCEPT) || methodName.equals(INVOKE)) {
             methodCounter++;
         }
-        if (KotlinVersion.ONE_FOUR.equals(kotlinVersion)) {
-            return methodName.equals(RUN) || ((methodName.equals(ACCEPT) || methodName.equals(INVOKE)) && methodCounter == 2);
-        } else {
-            return methodName.equals(RUN) || ((methodName.equals(ACCEPT) || methodName.equals(INVOKE)) && methodCounter == 1);
-        }
+        return methodName.equals(RUN) || ((methodName.equals(ACCEPT) || methodName.equals(INVOKE)) && methodCounter == 1);
     }
 
     public InputStream getClassContainingLambdaAsInputStream() {
@@ -58,10 +53,6 @@ public final class KotlinClassBasedLambda {
         jobDetailsBuilder.setMethodName(methodName);
     }
 
-    public void setKotlinVersion(int[] version) {
-        this.kotlinVersion = KotlinVersion.from(version);
-    }
-
     public boolean isMethodReferenceNestedClass(String internalName) {
         return !toFQResource(jobRunrJob.getClass().getName()).equals(internalName);
     }
@@ -69,19 +60,6 @@ public final class KotlinClassBasedLambda {
     public void trimToSingleInstruction() {
         while (jobDetailsBuilder.getInstructions().size() > 1) {
             jobDetailsBuilder.pollFirstInstruction();
-        }
-    }
-
-    enum KotlinVersion {
-        ONE_FOUR,
-        ONE_FIVE,
-        ONE_SIX_OR_HIGHER;
-
-        static KotlinVersion from(int[] version) {
-            if (version[0] == 1 && version[1] == 4) return ONE_FOUR;
-            if (version[0] == 1 && version[1] == 5) return ONE_FIVE;
-            if (version[0] > 1 || version[1] >= 6) return ONE_SIX_OR_HIGHER;
-            throw new UnsupportedOperationException("The Kotlin version " + version[0] + "." + version[1] + " is unsupported");
         }
     }
 }

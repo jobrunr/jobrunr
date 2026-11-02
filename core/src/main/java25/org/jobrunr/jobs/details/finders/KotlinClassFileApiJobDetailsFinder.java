@@ -4,7 +4,6 @@ import org.jobrunr.jobs.details.KotlinJobDetailsBuilder;
 import org.jobrunr.jobs.details.lambdas.KotlinClassBasedLambda;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 
-import java.lang.classfile.AnnotationValue;
 import java.lang.classfile.Attributes;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.MethodModel;
@@ -13,8 +12,6 @@ import java.util.Optional;
 
 
 public class KotlinClassFileApiJobDetailsFinder extends AbstractClassFileApiJobDetailsFinder {
-
-    private static final String KOTLIN_METADATA = "Lkotlin/Metadata;";
 
     private final JobRunrJob jobRunrJob;
     private final KotlinClassBasedLambda kotlinLambda;
@@ -33,7 +30,6 @@ public class KotlinClassFileApiJobDetailsFinder extends AbstractClassFileApiJobD
 
     private void parseKotlinLambdaClass() {
         ClassModel classModel = parseClass(kotlinLambda.getClassContainingLambdaAsInputStream());
-        visitKotlinMetadata(classModel);
         visitMethods(classModel);
         parseNestedClassIfItIsAMethodReference(classModel);
     }
@@ -48,20 +44,9 @@ public class KotlinClassFileApiJobDetailsFinder extends AbstractClassFileApiJobD
         if (nestedClassWithMethodReference.isPresent() && kotlinLambda.isMethodReferenceNestedClass(nestedClassWithMethodReference.get())) {
             String location = "/" + nestedClassWithMethodReference.get() + ".class";
             ClassModel nestedClassModel = parseClass(jobRunrJob.getClass().getResourceAsStream(location));
-            visitKotlinMetadata(nestedClassModel);
             visitMethods(nestedClassModel);
             kotlinLambda.trimToSingleInstruction();
         }
-    }
-
-    private void visitKotlinMetadata(ClassModel classModel) {
-        classModel.findAttribute(Attributes.runtimeVisibleAnnotations()).stream()
-                .flatMap(annotations -> annotations.annotations().stream())
-                .filter(annotation -> KOTLIN_METADATA.equals(annotation.className().stringValue()))
-                .flatMap(annotation -> annotation.elements().stream())
-                .filter(element -> "mv".equals(element.name().stringValue()))
-                .findFirst()
-                .ifPresent(element -> kotlinLambda.setKotlinVersion(intsOf(element.value())));
     }
 
     private void visitMethods(ClassModel classModel) {
@@ -72,9 +57,4 @@ public class KotlinClassFileApiJobDetailsFinder extends AbstractClassFileApiJobD
         }
     }
 
-    private static int[] intsOf(AnnotationValue annotationValue) {
-        return ((AnnotationValue.OfArray) annotationValue).values().stream()
-                .mapToInt(value -> ((AnnotationValue.OfInt) value).intValue())
-                .toArray();
-    }
 }
