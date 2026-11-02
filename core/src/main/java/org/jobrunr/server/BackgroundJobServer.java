@@ -1,5 +1,6 @@
 package org.jobrunr.server;
 
+import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.filters.JobDefaultFilters;
 import org.jobrunr.jobs.filters.JobFilter;
@@ -19,6 +20,7 @@ import org.jobrunr.server.strategy.WorkDistributionStrategy;
 import org.jobrunr.server.tasks.startup.CheckIfAllJobsExistTask;
 import org.jobrunr.server.tasks.startup.CreateClusterIdIfNotExists;
 import org.jobrunr.server.tasks.startup.MigrateFromV5toV6Task;
+import org.jobrunr.server.tasks.startup.SaveCurrentVersionTask;
 import org.jobrunr.server.tasks.startup.StartupTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteDeletedJobsPermanentlyTask;
 import org.jobrunr.server.tasks.zookeeper.DeleteSucceededJobsTask;
@@ -239,7 +241,7 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
     }
 
     public boolean isNotReadyToProcessJobs() {
-        return !(isAnnounced() && hasDataVersion(v("6.0.0")));
+        return !(isAnnounced() && hasDataVersion(JobRunr.VERSION));
     }
 
     @Override
@@ -347,7 +349,8 @@ public class BackgroundJobServer implements BackgroundJobServerMBean {
             startupTasksExecutor.execute(new StartupTask(
                     new CreateClusterIdIfNotExists(this),
                     new CheckIfAllJobsExistTask(this),
-                    new MigrateFromV5toV6Task(this)
+                    new MigrateFromV5toV6Task(this),
+                    new SaveCurrentVersionTask(this) // this task always needs to be last
             ));
         } catch (Exception notImportant) {
             // server is shut down immediately
