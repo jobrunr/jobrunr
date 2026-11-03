@@ -122,9 +122,9 @@ class ClassFileApiInstructions {
      * Maps a {@link Opcode} from java.lang.classfile to the equivalent ASM opcode used by
      * {@link AllJVMInstructions}.
      * <p>
-     * ASM normalises wide and one-byte forms before its visitor sees them
+     * ASM normalizes wide and one-byte forms before its visitor sees them
      * ({@code goto_w}/{@code jsr_w} -> {@code goto}/{@code jsr}, {@code ldc_w}/{@code ldc2_w} -> {@code ldc},
-     * {@code iload_0} .. {@code astore_3} -> {@code iload} .. {@code astore}); java.lang.classfile keeps
+     * {@code iload_0} ... {@code astore_3} -> {@code iload} ... {@code astore}); java.lang.classfile keeps
      * them, so map them back here.
      *
      * @param opcode the java.lang.classfile opcode

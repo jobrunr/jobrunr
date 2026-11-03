@@ -2,9 +2,6 @@ package org.jobrunr.jobs.details.finders;
 
 import org.jobrunr.jobs.details.lambdas.SerializedJobLambda;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.classfile.ClassFile;
 import java.lang.classfile.ClassModel;
 import java.lang.classfile.MethodModel;
 
@@ -18,16 +15,11 @@ public class SerializedLambdaClassFileApiJobDetailsFinder extends AbstractClassF
         super(lambda.createJobDetailsBuilder(params));
         this.lambda = lambda;
         if (lambda.isLambdaBody()) {
-            try (InputStream classContainingLambdaInputStream = lambda.getClassContainingLambdaAsInputStream()) {
-                parse(classContainingLambdaInputStream.readAllBytes());
-            } catch (IOException e) {
-                throw shouldNotHappenException(e);
-            }
+            visitLambdaMethod(parseClass(lambda.getClassContainingLambdaAsInputStream()));
         }
     }
 
-    void parse(byte[] classBytes) {
-        ClassModel classModel = ClassFile.of().parse(classBytes);
+    private void visitLambdaMethod(ClassModel classModel) {
         MethodModel lambdaMethod = classModel.methods().stream()
                 .filter(method -> lambda.matches(method.methodName().stringValue()))
                 .findFirst()
