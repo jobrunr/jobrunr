@@ -15,9 +15,8 @@ import org.jobrunr.stubs.TestService;
 import org.jobrunr.stubs.TestServiceInterface;
 import org.jobrunr.utils.annotations.Because;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.objectweb.asm.util.Textifier;
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
@@ -49,10 +48,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Index.atIndex;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
-import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQResource;
 import static org.jobrunr.stubs.TestService.Task.PROGRAMMING;
 import static org.jobrunr.utils.SleepUtils.sleep;
 import static org.jobrunr.utils.StringUtils.substringAfterLast;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mockStatic;
 
 public abstract class AbstractJobDetailsGeneratorTest {
 
@@ -86,13 +86,24 @@ public abstract class AbstractJobDetailsGeneratorTest {
     }
 
     @Test
-    @Disabled("for debugging")
-    void logByteCode() {
-        String name = AbstractJobDetailsGeneratorTest.class.getName();
-        String location = new File(".").getAbsolutePath() + "/build/classes/java/test/" + toFQResource(name) + ".class";
+    void eachLambdaIsSerializedOnlyOnce() {
+        JobLambda lambda = () -> testService.doWorkWithoutParameters();
+        IocJobLambda<TestService> iocLambda = TestService::doWorkWithoutParameters;
+        JobLambdaFromStream<Integer> streamLambda = item -> testService.doWork(item);
+        IocJobLambdaFromStream<TestService, Integer> iocStreamLambda = (service, item) -> service.doWork(item);
 
-        //String location = "/Users/rdehuyss/Projects/Jobrunr/jobrunr/language-support/jobrunr-kotlin-21-support/build/classes/kotlin/test/org/jobrunr/scheduling/JobSchedulerTest.class";
-        assertThatCode(() -> Textifier.main(new String[]{location})).doesNotThrowAnyException();
+        try (MockedStatic<SerializedLambdaConverter> converter = mockStatic(SerializedLambdaConverter.class, CALLS_REAL_METHODS)) {
+            assertThat(jobDetailsGenerator.toJobDetails(lambda)).hasMethodName("doWorkWithoutParameters").hasNoArgs();
+            assertThat(jobDetailsGenerator.toJobDetails(iocLambda)).hasMethodName("doWorkWithoutParameters").hasNoArgs();
+            assertThat(jobDetailsGenerator.toJobDetails(42, streamLambda)).hasMethodName("doWork").hasArgs(42);
+            assertThat(jobDetailsGenerator.toJobDetails(42, iocStreamLambda)).hasMethodName("doWork").hasArgs(42);
+
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(lambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(iocLambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(streamLambda));
+            converter.verify(() -> SerializedLambdaConverter.toSerializedLambda(iocStreamLambda));
+            converter.verifyNoMoreInteractions();
+        }
     }
 
     @Test
@@ -215,11 +226,7 @@ public abstract class AbstractJobDetailsGeneratorTest {
             System.out.println("Dit is een test");
             return true;
         };
-        JobLambda job = () -> {
-            if (supplier.get()) {
-                System.out.println("In nested lambda");
-            }
-        };
+        JobLambda job = () -> System.out.println(supplier.get());
         assertThatThrownBy(() -> toJobDetails(job))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("You are passing another (nested) Java 8 lambda to JobRunr - this is not supported. Try to convert your lambda to a class or a method.");
@@ -233,6 +240,16 @@ public abstract class AbstractJobDetailsGeneratorTest {
                 .hasClass(TestService.class)
                 .hasMethodName("doWork")
                 .hasArgs(5);
+    }
+
+    @Test
+    void testJobLambdaCallInstanceMethod_ICONST_M1() {
+        JobLambda job = () -> testService.doWork(-1);
+        JobDetails jobDetails = toJobDetails(job);
+        assertThat(jobDetails)
+                .hasClass(TestService.class)
+                .hasMethodName("doWork")
+                .hasArgs(-1);
     }
 
     @Test
@@ -290,10 +307,9 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a + b);
 
-        assertThatCode(() -> toJobDetails(job))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("You are summing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.SUM);
     }
 
     @Test
@@ -302,10 +318,9 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a - b);
 
-        assertThatCode(() -> toJobDetails(job))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("You are subtracting two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.SUBTRACTION);
     }
 
     @Test
@@ -314,10 +329,9 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a * b);
 
-        assertThatCode(() -> toJobDetails(job))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("You are multiplying two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.MULTIPLICATION);
     }
 
     @Test
@@ -326,10 +340,98 @@ public abstract class AbstractJobDetailsGeneratorTest {
         int b = 3;
         JobLambda job = () -> testService.doWork(a / b);
 
-        assertThatCode(() -> toJobDetails(job))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseInstanceOf(UnsupportedOperationException.class)
-                .hasRootCauseMessage("You are dividing two numbers while enqueueing/scheduling jobs - for performance reasons it is better to do the calculation outside of the job lambda");
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.DIVISION);
+    }
+
+    @Test
+    void testJobLambdaWithRemainder() {
+        int a = 6;
+        int b = 3;
+        JobLambda job = () -> testService.doWork(a % b);
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.REMAINDER);
+    }
+
+    @Test
+    void testJobLambdaWithAClassLiteralAsParameterIsNotSupported() {
+        assertThatThrownBy(() -> toJobDetails(() -> testService.doWorkWithClass(String.class)))
+                .isInstanceOf(JobRunrException.class)
+                .hasRootCauseMessage("The found parameter types do not match the parameters.");
+    }
+
+    @Test
+    void testJobLambdaWithIncrementInstructionIsRejectedWithNiceException() {
+        JobLambda job = () -> {
+            int i = 0;
+            i += 5;
+            testService.doWork(i);
+        };
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.INCREMENT);
+    }
+
+    @Test
+    void testJobLambdaWithIfElseIsRejectedWithNiceException() {
+        int threshold = 1;
+        JobLambda job = () -> {
+            if (threshold > 0) {
+                testService.doWork(1);
+            } else {
+                testService.doWork(2);
+            }
+        };
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.JUMP);
+    }
+
+    @Test
+    void testJobLambdaWithTernaryIsRejectedWithNiceException() {
+        int threshold = 1;
+        JobLambda job = () -> testService.doWork(threshold > 0 ? 1 : 2);
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.JUMP);
+    }
+
+    @Test
+    void testJobLambdaWithTableSwitchIsRejectedWithNiceException() {
+        int value = 1;
+        JobLambda job = () -> {
+            switch (value) {
+                case 1 -> testService.doWork(1);
+                case 2 -> testService.doWork(2);
+                default -> testService.doWork(3);
+            }
+        };
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.SWITCH);
+    }
+
+    @Test
+    void testJobLambdaWithStringSwitchIsRejectedWithNiceException() {
+        String value = "1";
+        JobLambda job = () -> {
+            switch (value) {
+                case "1" -> testService.doWork(1);
+                case "2" -> testService.doWork(2);
+                default -> testService.doWork(3);
+            }
+        };
+
+        assertThatThrownBy(() -> toJobDetails(job))
+                .isInstanceOf(UnsupportedLambdaException.class)
+                .hasMessage(UnsupportedLambdaException.SWITCH);
     }
 
     @Test
@@ -1238,6 +1340,14 @@ public abstract class AbstractJobDetailsGeneratorTest {
 
     public void doWorkWithUUID(UUID uuid) {
         System.out.println("Doing some work... " + uuid);
+    }
+
+    public static JobLambda javaLambdaFor(Runnable service) {
+        return () -> service.run();
+    }
+
+    public static JobLambda javaMethodReferenceFor(Runnable service) {
+        return service::run;
     }
 
     public static class TestUtils {

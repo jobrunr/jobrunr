@@ -11,9 +11,20 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.makeAccessible;
 
 public class SerializedLambdaConverter {
 
-    private SerializedLambdaConverter() {
+    private static final ClassValue<Method> WRITE_REPLACE_METHOD_CACHE = new ClassValue<Method>() {
+        @Override
+        protected Method computeValue(Class<?> type) {
+            try {
+                Method method = type.getDeclaredMethod("writeReplace");
+                makeAccessible(method);
+                return method;
+            } catch (Exception e) {
+                throw shouldNotHappenException(e);
+            }
+        }
+    };
 
-    }
+    private SerializedLambdaConverter() {}
 
     public static <T> SerializedLambda toSerializedLambda(T value) {
         if (!value.getClass().isSynthetic()) {
@@ -25,11 +36,10 @@ public class SerializedLambdaConverter {
         }
 
         try {
-            Method writeReplaceMethod = value.getClass().getDeclaredMethod("writeReplace");
-            makeAccessible(writeReplaceMethod);
+            Method writeReplaceMethod = WRITE_REPLACE_METHOD_CACHE.get(value.getClass());
             return (SerializedLambda) writeReplaceMethod.invoke(value);
-        } catch (Exception shouldNotHappen) {
-            throw shouldNotHappenException(shouldNotHappen);
+        } catch (Exception e) {
+            throw shouldNotHappenException(e);
         }
     }
 }

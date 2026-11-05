@@ -103,6 +103,10 @@ yarn-error.log*
 dependency-check-bin
 dependency-check-reports
 /renovate.js
+docs/*
 
 .pi
 skills-lock.json
+
+# local agent context (per-machine, not shared)
+AGENTS.md

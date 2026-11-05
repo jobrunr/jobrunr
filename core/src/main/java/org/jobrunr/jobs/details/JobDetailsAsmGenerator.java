@@ -1,58 +1,53 @@
 package org.jobrunr.jobs.details;
 
 import org.jobrunr.jobs.JobDetails;
+import org.jobrunr.jobs.details.finders.KotlinAsmJobDetailsFinder;
+import org.jobrunr.jobs.details.finders.SerializedLambdaAsmJobDetailsFinder;
 import org.jobrunr.jobs.lambdas.IocJobLambda;
 import org.jobrunr.jobs.lambdas.IocJobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.jobs.lambdas.JobLambdaFromStream;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 
-import java.lang.annotation.Annotation;
-
-import static java.util.Arrays.stream;
-import static org.jobrunr.jobs.details.SerializedLambdaConverter.toSerializedLambda;
+import static org.jobrunr.jobs.details.lambdas.JobLambdaUtils.isKotlinClassBasedLambda;
+import static org.jobrunr.jobs.details.lambdas.JobLambdaUtils.serializedLambda;
 
 public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     @Override
     public JobDetails toJobDetails(JobLambda lambda) {
-        if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda).getJobDetails();
-        } else {
-            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
-        }
+        return isKotlinClassBasedLambda(lambda)
+                ? kotlinJobDetails(lambda)
+                : serializedLambdaJobDetails(lambda);
     }
 
     @Override
-    public JobDetails toJobDetails(IocJobLambda lambda) {
-        if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda, new Object()).getJobDetails();
-        } else {
-            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda)).getJobDetails();
-        }
+    public JobDetails toJobDetails(IocJobLambda<?> lambda) {
+        return isKotlinClassBasedLambda(lambda)
+                ? kotlinJobDetails(lambda, (Object) null)
+                : serializedLambdaJobDetails(lambda);
     }
 
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
-        if (isKotlinLambda(lambda)) {
-            return new KotlinJobDetailsFinder(lambda, itemFromStream).getJobDetails();
-        } else {
-            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), itemFromStream).getJobDetails();
-        }
+        return isKotlinClassBasedLambda(lambda)
+                ? kotlinJobDetails(lambda, itemFromStream)
+                : serializedLambdaJobDetails(lambda, itemFromStream);
     }
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        if (isKotlinLambda(lambda)) {
-            // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
-            return new KotlinJobDetailsFinder(lambda, new Object(), itemFromStream).getJobDetails();
-        } else {
-            // why null: it represents the item injected when we run the IocJobLambdaFromStream function
-            return new JavaJobDetailsFinder(lambda, toSerializedLambda(lambda), null, itemFromStream).getJobDetails();
-        }
+        // why null: it represents the item injected when we run the IocJobLambdaFromStream function
+        return isKotlinClassBasedLambda(lambda)
+                ? kotlinJobDetails(lambda, null, itemFromStream)
+                : serializedLambdaJobDetails(lambda, null, itemFromStream);
     }
 
-    private <T extends JobRunrJob> boolean isKotlinLambda(T lambda) {
-        return stream(lambda.getClass().getAnnotations()).map(Annotation::annotationType).anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+    private JobDetails kotlinJobDetails(JobRunrJob lambda, Object... params) {
+        return new KotlinAsmJobDetailsFinder(lambda, params).getJobDetails();
+    }
+
+    private JobDetails serializedLambdaJobDetails(JobRunrJob lambda, Object... params) {
+        return new SerializedLambdaAsmJobDetailsFinder(serializedLambda(lambda), params).getJobDetails();
     }
 }
