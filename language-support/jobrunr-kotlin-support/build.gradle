@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id 'io.github.ben-manes.versions' version '0.64.0'
+    id 'io.github.ben-manes.versions' version '0.66.0'
     id 'java-library'
     id 'maven-publish'
     id 'signing'
@@ -92,13 +92,6 @@ check.dependsOn testWithClassLambdas
 java {
     withJavadocJar()
     withSourcesJar()
-}
-
-normalization {
-    runtimeClasspath {
-        ignore '**/MANIFEST.MF'
-        ignore '**/frontend/**'
-    }
 }
 
 publishing {

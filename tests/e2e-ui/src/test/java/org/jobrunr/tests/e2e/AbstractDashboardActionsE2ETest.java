@@ -37,9 +37,9 @@ public abstract class AbstractDashboardActionsE2ETest extends AbstractPlaywright
 
         assertThat(jobsTablePagination()).containsText("1–20 of 33");
         assertThat(jobsTablePaginationPrevButton()).isDisabled();
-        assertThat(jobsTablePaginationPrevButton()).hasAccessibleDescription("Go to previous page");
+        assertThat(jobsTablePaginationPrevButton()).hasAccessibleName("Go to previous page");
         assertThat(jobsTablePaginationNextButton()).isEnabled();
-        assertThat(jobsTablePaginationNextButton()).hasAccessibleDescription("Go to next page");
+        assertThat(jobsTablePaginationNextButton()).hasAccessibleName("Go to next page");
     }
 
     @Test

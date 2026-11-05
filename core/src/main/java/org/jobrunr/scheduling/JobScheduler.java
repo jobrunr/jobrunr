@@ -365,6 +365,10 @@ public class JobScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression) and lambda. The jobs will be scheduled using the systemDefault timezone
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -389,6 +393,10 @@ public class JobScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression) and lambda. The IoC container will be used to resolve {@code MyService}. The jobs will be scheduled using the systemDefault timezone
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", Cron.daily()),  x -> x.doWork();
@@ -411,6 +419,10 @@ public class JobScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression), {@code ZoneId} and lambda.
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      MyService service = new MyService();
@@ -437,6 +449,10 @@ public class JobScheduler extends AbstractJobScheduler {
 
     /**
      * Creates a new or alters the existing {@link RecurringJob} based on the given id, cron expression (or any string representation of a schedule expression), {@code ZoneId} and lambda. The IoC container will be used to resolve {@code MyService}.
+      * <p>
+      * Altering an existing recurring job updates its persisted definition. A running BackgroundJobServer schedules the next runs ahead of time;
+      * adopting a changed schedule for those already-scheduled runs is a JobRunr Pro feature. In JobRunr OSS, register the recurring job under a new
+      * id when the new schedule must take effect immediately.
      * <h5>Examples:</h5>
      * <pre>{@code
      *      jobScheduler.<MyService>scheduleRecurrently("my-recurring-job", Cron.daily(), ZoneId.of("Europe/Brussels"), x -> x.doWork());
