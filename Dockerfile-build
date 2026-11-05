@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1
+
+# Keep tool versions aligned with the existing build image.
+FROM maven:3.10-eclipse-temurin-27 AS maven-dist
+FROM gradle:9.8.2-jdk27 AS gradle-dist
+FROM node:26.13-bookworm-slim AS node-dist
+
+# Hardened Java build environment.
+FROM dhi.io/eclipse-temurin:27.0.1.0.2-jdk-debian13-dev
+
+USER root
+
+# Build and CI utilities. Keep Docker CLI only if CI needs it.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libatomic1 \
+        bash \
+        ca-certificates \
+        curl \
+        git \
+        docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Node.js and npm, without installing them through NVM.
+COPY --from=node-dist /usr/local/ /usr/local/
+
+# Maven and Gradle distributions.
+COPY --from=maven-dist /usr/share/maven /usr/share/maven
+COPY --from=gradle-dist /opt/gradle /opt/gradle
+
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
+ENV MAVEN_HOME=/usr/share/maven
+ENV GRADLE_HOME=/opt/gradle
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+ENV PATH="/usr/local/bin:${MAVEN_HOME}/bin:${GRADLE_HOME}/bin:${PATH}"
+
+# Fail early if the toolchain changes unexpectedly.
+RUN java -version \
+    && mvn -version \
+    && gradle --version \
+    && node --version \
+    && npm --version \
+    && git --version

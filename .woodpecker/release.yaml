@@ -14,14 +14,19 @@ steps:
       - /var/run/docker.sock:/var/run/docker.sock
     commands:
       - echo "Running on ${CI_SYSTEM_NAME:-<not set>}"
-      - docker build -f BuildDockerfile -t container-registry.jobrunr.io/build-container:latest .
+      - echo "$DOCKER_DHI_PASSWORD" | docker login dhi.io -u "$DOCKER_DHI_USERNAME" --password-stdin
+      - docker build -f Dockerfile-build -t container-registry.jobrunr.io/build-container:latest .
+    environment:
+      DOCKER_DHI_USERNAME:
+        from_secret: DOCKER_DHI_USERNAME
+      DOCKER_DHI_PASSWORD:
+        from_secret: DOCKER_DHI_PASSWORD
 
   - name: build-and-upload-to-maven-central
     image: container-registry.jobrunr.io/build-container:latest
     commands:
       - rm -f *.hprof
       - rm -rf /tmp/reports/*
-      - find /woodpecker/jobrunr/src/.gradle -name "*.lock" -type f -delete
       - |
         bash -lc '
           set -e -o pipefail
@@ -31,6 +36,8 @@ steps:
     environment:
       MAVEN_CENTRAL_PROXY_URL:
         from_secret: MAVEN_CENTRAL_PROXY_URL
+      NPM_PROXY_URL:
+        from_secret: NPM_PROXY_URL
       BUILD_CACHE_URL:
         from_secret: BUILD_CACHE_URL
       BUILD_CACHE_USER:
