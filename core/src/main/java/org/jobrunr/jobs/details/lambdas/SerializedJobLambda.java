@@ -5,6 +5,7 @@ import org.jobrunr.jobs.details.JobDetailsBuilder;
 import org.jobrunr.jobs.lambdas.JobRunrJob;
 
 import java.io.InputStream;
+import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
@@ -20,20 +21,21 @@ public class SerializedJobLambda {
         this.serializedLambda = serializedLambda;
     }
 
-    public boolean isLambdaExpression() {
+    public boolean isFunctionalExpression() {
         String methodName = serializedLambda.getImplMethodName();
         return methodName.startsWith("lambda$")
-                || methodName.contains("$lambda-")
-                || methodName.contains("$lambda$");
+                || methodName.contains("$lambda-") // for Kotlin
+                || methodName.contains("$lambda$")
+                || (serializedLambda.getImplMethodKind() == MethodHandleInfo.REF_invokeStatic && methodName.contains("$")); // for Kotlin 2.4 with bridge method
     }
 
     public boolean matches(String methodName) {
-        return isLambdaExpression() && methodName.equals(serializedLambda.getImplMethodName());
+        return isFunctionalExpression() && methodName.equals(serializedLambda.getImplMethodName());
     }
 
     public JobDetailsBuilder createJobDetailsBuilder(Object... params) {
         JobDetailsBuilder jobDetailsBuilder = new JavaJobDetailsBuilder(serializedLambda, params);
-        if (!isLambdaExpression()) {
+        if (!isFunctionalExpression()) {
             // Kotlin receivers need adaptation even when the reference originates in Java.
             adaptMethodReference(serializedLambda, jobDetailsBuilder);
         }
