@@ -45,8 +45,8 @@ abstract class AbstractJobDetailsGeneratorForKotlinTest {
 
         if (!JobLambdaUtils.isKotlinClassBasedLambda(lambda)) {
             val resolvedLambda = JobLambdaUtils.serializedLambda(lambda)
-            assertThat(resolvedLambda).isInstanceOf(KotlinSerializedLambda::class.java)
-            assertThat(resolvedLambda.isLambdaBody()).isTrue()
+            assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda::class.java)
+            assertThat(resolvedLambda.isLambdaExpression()).isTrue()
         }
         assertThat(jobDetailsGenerator().toJobDetails(lambda))
             .hasClass(TestService::class.java)
@@ -60,8 +60,8 @@ abstract class AbstractJobDetailsGeneratorForKotlinTest {
         val lambda = AbstractJobDetailsGeneratorTest.javaLambdaFor(service)
         val resolvedLambda = JobLambdaUtils.serializedLambda(lambda)
 
-        assertThat(resolvedLambda).isInstanceOf(JavaSerializedLambda::class.java)
-        assertThat(resolvedLambda.isLambdaBody()).isTrue()
+        assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda::class.java)
+        assertThat(resolvedLambda.isLambdaExpression()).isTrue()
         assertThat(jobDetailsGenerator().toJobDetails(lambda))
             .hasClass(KotlinService::class.java)
             .hasMethodName("run")
@@ -73,8 +73,8 @@ abstract class AbstractJobDetailsGeneratorForKotlinTest {
         val lambda = AbstractJobDetailsGeneratorTest.javaMethodReferenceFor(KotlinService())
         val resolvedLambda = JobLambdaUtils.serializedLambda(lambda)
 
-        assertThat(resolvedLambda).isInstanceOf(JavaSerializedLambda::class.java)
-        assertThat(resolvedLambda.isLambdaBody()).isFalse()
+        assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda::class.java)
+        assertThat(resolvedLambda.isLambdaExpression()).isFalse()
         assertThat(jobDetailsGenerator().toJobDetails(lambda))
             .hasClass(KotlinService::class.java)
             .hasMethodName("run")
@@ -98,8 +98,8 @@ abstract class AbstractJobDetailsGeneratorForKotlinTest {
 
         if (!JobLambdaUtils.isKotlinClassBasedLambda(lambda)) {
             val resolvedLambda = JobLambdaUtils.serializedLambda(lambda)
-            assertThat(resolvedLambda).isInstanceOf(KotlinSerializedLambda::class.java)
-            assertThat(resolvedLambda.isLambdaBody()).isFalse()
+            assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda::class.java)
+            assertThat(resolvedLambda.isLambdaExpression()).isFalse()
         }
         assertThat(jobDetailsGenerator().toJobDetails(lambda))
             .hasClass(TestService::class.java)

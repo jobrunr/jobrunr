@@ -14,7 +14,7 @@ public class SerializedLambdaAsmJobDetailsFinder extends AbstractAsmJobDetailsFi
     public SerializedLambdaAsmJobDetailsFinder(SerializedJobLambda lambda, Object... params) {
         super(lambda.createJobDetailsBuilder(params));
         this.lambda = lambda;
-        if (lambda.isLambdaBody()) {
+        if (lambda.isLambdaExpression()) {
             try (InputStream classContainingLambdaInputStream = lambda.getClassContainingLambdaAsInputStream()) {
                 parse(classContainingLambdaInputStream);
             } catch (IOException e) {

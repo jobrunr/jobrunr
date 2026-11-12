@@ -10,25 +10,30 @@ import java.lang.invoke.SerializedLambda;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
 import static org.jobrunr.utils.StringUtils.substringAfter;
 
-public abstract class SerializedJobLambda {
+public class SerializedJobLambda {
 
-    protected final SerializedLambda serializedLambda;
     private final JobRunrJob jobRunrJob;
+    protected final SerializedLambda serializedLambda;
 
     protected SerializedJobLambda(JobRunrJob jobRunrJob, SerializedLambda serializedLambda) {
         this.jobRunrJob = jobRunrJob;
         this.serializedLambda = serializedLambda;
     }
 
-    public abstract boolean isLambdaBody();
+    public boolean isLambdaExpression() {
+        String methodName = serializedLambda.getImplMethodName();
+        return methodName.startsWith("lambda$")
+                || methodName.contains("$lambda-")
+                || methodName.contains("$lambda$");
+    }
 
     public boolean matches(String methodName) {
-        return isLambdaBody() && methodName.equals(serializedLambda.getImplMethodName());
+        return isLambdaExpression() && methodName.equals(serializedLambda.getImplMethodName());
     }
 
     public JobDetailsBuilder createJobDetailsBuilder(Object... params) {
         JobDetailsBuilder jobDetailsBuilder = new JavaJobDetailsBuilder(serializedLambda, params);
-        if (!isLambdaBody()) {
+        if (!isLambdaExpression()) {
             // Kotlin receivers need adaptation even when the reference originates in Java.
             adaptMethodReference(serializedLambda, jobDetailsBuilder);
         }

@@ -16,8 +16,8 @@ class JobLambdaUtilsTest {
         SerializedJobLambda resolvedLambda = serializedLambda(jobLambda);
 
         assertThat(isKotlinClassBasedLambda(jobLambda)).isFalse();
-        assertThat(resolvedLambda).isInstanceOf(JavaSerializedLambda.class);
-        assertThat(resolvedLambda.isLambdaBody()).isTrue();
+        assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda.class);
+        assertThat(resolvedLambda.isLambdaExpression()).isTrue();
         assertThat(resolvedLambda.matches(resolvedLambda.serializedLambda.getImplMethodName())).isTrue();
         assertThat(resolvedLambda.matches("someOtherMethod")).isFalse();
     }
@@ -28,8 +28,8 @@ class JobLambdaUtilsTest {
         JobLambda jobLambda = testService::doWork;
         SerializedJobLambda resolvedLambda = serializedLambda(jobLambda);
 
-        assertThat(resolvedLambda).isInstanceOf(JavaSerializedLambda.class);
-        assertThat(resolvedLambda.isLambdaBody()).isFalse();
+        assertThat(resolvedLambda).isInstanceOf(SerializedJobLambda.class);
+        assertThat(resolvedLambda.isLambdaExpression()).isFalse();
         assertThat(resolvedLambda.matches("doWork")).isFalse();
     }
 }

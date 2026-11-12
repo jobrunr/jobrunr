@@ -14,7 +14,7 @@ public class SerializedLambdaClassFileApiJobDetailsFinder extends AbstractClassF
     public SerializedLambdaClassFileApiJobDetailsFinder(SerializedJobLambda lambda, Object... params) {
         super(lambda.createJobDetailsBuilder(params));
         this.lambda = lambda;
-        if (lambda.isLambdaBody()) {
+        if (lambda.isLambdaExpression()) {
             visitLambdaMethod(parseClass(lambda.getClassContainingLambdaAsInputStream()));
         }
     }
