@@ -37,7 +37,7 @@ public class KotlinAsmJobDetailsFinder extends AbstractAsmJobDetailsFinder {
 
     @Override
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
-        if (access == 0x1018 || access == 0x1000) {
+        if (KotlinClassBasedLambda.isMethodReferenceNestedClassCandidate(access)) {
             this.nestedKotlinClassWithMethodReference = name;
         }
     }

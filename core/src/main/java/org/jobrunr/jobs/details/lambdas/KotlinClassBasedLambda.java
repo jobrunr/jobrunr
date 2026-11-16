@@ -53,6 +53,13 @@ public final class KotlinClassBasedLambda {
         jobDetailsBuilder.setMethodName(methodName);
     }
 
+    /**
+     * Whether an InnerClasses entry with the given access flags may be the class holding a Kotlin method reference.
+     */
+    public static boolean isMethodReferenceNestedClassCandidate(int accessFlags) {
+        return accessFlags == 0x1018 || accessFlags == 0x1000;
+    }
+
     public boolean isMethodReferenceNestedClass(String internalName) {
         return !toFQResource(jobRunrJob.getClass().getName()).equals(internalName);
     }

@@ -37,9 +37,9 @@ public class KotlinClassFileApiJobDetailsFinder extends AbstractClassFileApiJobD
     private void parseNestedClassIfItIsAMethodReference(ClassModel classModel) {
         Optional<String> nestedClassWithMethodReference = classModel.findAttribute(Attributes.innerClasses()).stream()
                 .flatMap(innerClasses -> innerClasses.classes().stream())
-                .filter(innerClass -> innerClass.flagsMask() == 0x1018 || innerClass.flagsMask() == 0x1000)
+                .filter(innerClass -> KotlinClassBasedLambda.isMethodReferenceNestedClassCandidate(innerClass.flagsMask()))
                 .map(innerClass -> innerClass.innerClass().asInternalName())
-                .findFirst();
+                .reduce((_, last) -> last);
 
         if (nestedClassWithMethodReference.isPresent() && kotlinLambda.isMethodReferenceNestedClass(nestedClassWithMethodReference.get())) {
             String location = "/" + nestedClassWithMethodReference.get() + ".class";
