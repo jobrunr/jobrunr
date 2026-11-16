@@ -32,4 +32,19 @@ class JobLambdaUtilsTest {
         assertThat(resolvedLambda.isFunctionalExpression()).isFalse();
         assertThat(resolvedLambda.matches("doWork")).isFalse();
     }
+
+    @Test
+    void staticMethodReferenceWithDollarInNameIsNotAFunctionalExpression() {
+        JobLambda packagePrivate = JobLambdaUtilsTest::do$Work;
+        JobLambda privateLikeAKotlinBridge = JobLambdaUtilsTest::do$PrivateWork;
+
+        assertThat(serializedLambda(packagePrivate).isFunctionalExpression()).isFalse();
+        assertThat(serializedLambda(privateLikeAKotlinBridge).isFunctionalExpression()).isFalse();
+    }
+
+    static void do$Work() {
+    }
+
+    private static void do$PrivateWork() {
+    }
 }

@@ -10,6 +10,15 @@ import static org.jobrunr.jobs.details.SerializedLambdaConverter.toSerializedLam
 
 public final class JobLambdaUtils {
 
+    private static final ClassValue<Boolean> IS_KOTLIN_CLASS_CACHE = new ClassValue<Boolean>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+            return stream(type.getDeclaredAnnotations())
+                    .map(Annotation::annotationType)
+                    .anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+        }
+    };
+
     private JobLambdaUtils() {
     }
 
@@ -18,9 +27,7 @@ public final class JobLambdaUtils {
     }
 
     static boolean isKotlinClass(Class<?> type) {
-        return stream(type.getDeclaredAnnotations())
-                .map(Annotation::annotationType)
-                .anyMatch(annotationType -> annotationType.getName().equals("kotlin.Metadata"));
+        return IS_KOTLIN_CLASS_CACHE.get(type);
     }
 
     public static SerializedJobLambda serializedLambda(JobRunrJob jobRunrJob) {

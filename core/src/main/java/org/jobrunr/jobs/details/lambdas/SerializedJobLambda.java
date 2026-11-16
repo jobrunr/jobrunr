@@ -7,26 +7,49 @@ import org.jobrunr.jobs.lambdas.JobRunrJob;
 import java.io.InputStream;
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.Modifier;
 
+import static java.util.Arrays.stream;
 import static org.jobrunr.JobRunrException.shouldNotHappenException;
+import static org.jobrunr.jobs.details.JobDetailsGeneratorUtils.toFQClassName;
 import static org.jobrunr.utils.StringUtils.substringAfter;
 
 public class SerializedJobLambda {
 
     private final JobRunrJob jobRunrJob;
     protected final SerializedLambda serializedLambda;
+    private final boolean functionalExpression;
 
     protected SerializedJobLambda(JobRunrJob jobRunrJob, SerializedLambda serializedLambda) {
         this.jobRunrJob = jobRunrJob;
         this.serializedLambda = serializedLambda;
+        this.functionalExpression = isLambdaExpression() || isKotlinMethodReferenceBridge();
     }
 
     public boolean isFunctionalExpression() {
+        return functionalExpression;
+    }
+
+    private boolean isLambdaExpression() {
         String methodName = serializedLambda.getImplMethodName();
         return methodName.startsWith("lambda$")
                 || methodName.contains("$lambda-") // for Kotlin
-                || methodName.contains("$lambda$")
-                || (serializedLambda.getImplMethodKind() == MethodHandleInfo.REF_invokeStatic && methodName.contains("$")); // for Kotlin 2.4 with bridge method
+                || methodName.contains("$lambda$");
+    }
+
+    // Kotlin 2.4 compiles a method reference to a private static bridge method, e.g. enclosingMethod$doWork
+    private boolean isKotlinMethodReferenceBridge() {
+        String methodName = serializedLambda.getImplMethodName();
+        if (serializedLambda.getImplMethodKind() != MethodHandleInfo.REF_invokeStatic || !methodName.contains("$")) {
+            return false;
+        }
+        try {
+            Class<?> implClass = Class.forName(toFQClassName(serializedLambda.getImplClass()), false, jobRunrJob.getClass().getClassLoader());
+            return JobLambdaUtils.isKotlinClass(implClass)
+                    && stream(implClass.getDeclaredMethods()).anyMatch(method -> method.getName().equals(methodName) && Modifier.isPrivate(method.getModifiers()));
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     public boolean matches(String methodName) {
