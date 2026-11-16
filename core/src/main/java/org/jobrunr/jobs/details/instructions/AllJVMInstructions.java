@@ -17,7 +17,7 @@ import static org.jobrunr.utils.reflection.ReflectionUtils.cast;
 /**
  * AllJVMInstructions contains the instructions supported by JobRunr and also all unsupported instructions.
  * <p>
- * <note>Although this class references {@link Opcodes} from ASM, all Opcodes are inlined during compilation.
+ * Note: Although this class references {@link Opcodes} from ASM, all Opcodes are inlined during compilation.
  * This means that when on Java 25, one does not need to have ASM on the classpath as the Java Class File API is then used.</note>
  */
 public class AllJVMInstructions {

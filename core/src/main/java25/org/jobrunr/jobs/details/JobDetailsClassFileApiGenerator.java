@@ -17,31 +17,35 @@ public class JobDetailsClassFileApiGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(JobLambda lambda) {
         return isKotlinClassBasedLambda(lambda)
-                ? new KotlinClassFileApiJobDetailsFinder(lambda).getJobDetails()
+                ? kotlinJobDetails(lambda)
                 : serializedLambdaJobDetails(lambda);
     }
 
     @Override
     public JobDetails toJobDetails(IocJobLambda<?> lambda) {
         return isKotlinClassBasedLambda(lambda)
-                ? new KotlinClassFileApiJobDetailsFinder(lambda, new Object()).getJobDetails()
+                ? kotlinJobDetails(lambda, new Object())
                 : serializedLambdaJobDetails(lambda);
     }
 
     @Override
     public <T> JobDetails toJobDetails(T itemFromStream, JobLambdaFromStream<T> lambda) {
         return isKotlinClassBasedLambda(lambda)
-                ? new KotlinClassFileApiJobDetailsFinder(lambda, itemFromStream).getJobDetails()
+                ? kotlinJobDetails(lambda, itemFromStream)
                 : serializedLambdaJobDetails(lambda, itemFromStream);
     }
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
-        // why null: it represents the item injected when we run the IocJobLambdaFromStream function
         return isKotlinClassBasedLambda(lambda)
-                ? new KotlinClassFileApiJobDetailsFinder(lambda, new Object(), itemFromStream).getJobDetails()
+                // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
+                ? kotlinJobDetails(lambda, new Object(), itemFromStream)
+                // why null: it represents the item injected when we run the IocJobLambdaFromStream function
                 : serializedLambdaJobDetails(lambda, null, itemFromStream);
+    }
+
+    private JobDetails kotlinJobDetails(JobRunrJob lambda, Object... params) {
+        return new KotlinClassFileApiJobDetailsFinder(lambda, params).getJobDetails();
     }
 
     private JobDetails serializedLambdaJobDetails(JobRunrJob lambda, Object... params) {

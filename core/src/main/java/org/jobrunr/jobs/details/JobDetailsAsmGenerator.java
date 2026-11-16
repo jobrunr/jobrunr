@@ -24,7 +24,7 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
     @Override
     public JobDetails toJobDetails(IocJobLambda<?> lambda) {
         return isKotlinClassBasedLambda(lambda)
-                ? kotlinJobDetails(lambda, (Object) null)
+                ? kotlinJobDetails(lambda, new Object())
                 : serializedLambdaJobDetails(lambda);
     }
 
@@ -37,9 +37,10 @@ public class JobDetailsAsmGenerator implements JobDetailsGenerator {
 
     @Override
     public <S, T> JobDetails toJobDetails(T itemFromStream, IocJobLambdaFromStream<S, T> lambda) {
-        // why null: it represents the item injected when we run the IocJobLambdaFromStream function
         return isKotlinClassBasedLambda(lambda)
-                ? kotlinJobDetails(lambda, null, itemFromStream)
+                // why new Object(): it represents the item injected when we run the IocJobLambdaFromStream function
+                ? kotlinJobDetails(lambda, new Object(), itemFromStream)
+                // why null: it represents the item injected when we run the IocJobLambdaFromStream function
                 : serializedLambdaJobDetails(lambda, null, itemFromStream);
     }
 
