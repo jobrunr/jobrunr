@@ -9,12 +9,7 @@ import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import {SevereJobRunrExceptionProblemNotification} from "./severe-jobrunr-exception-problem";
 import {CPUAllocationIrregularityProblemNotification} from "./cpu-allocation-irregularity-problem";
-import {
-    getNewVersionProblem,
-    LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY,
-    LATEST_DISMISSED_VERSION_STORAGE_KEY,
-    NewJobRunrVersionAvailableNotification
-} from "./new-jobrunr-version-available";
+import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY, NewJobRunrVersionAvailableNotification} from "./new-jobrunr-version-available";
 import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
@@ -22,6 +17,11 @@ import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
+import {
+    getNewBetaVersionProblem,
+    LATEST_DISMISSED_BETA_VERSION_STORAGE_KEY,
+    NewJobRunrBetaVersionAvailableNotification
+} from "./new-jobrunr-beta-version-available.js";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
 
@@ -85,7 +85,7 @@ const problemTypeOrder = {
     "api-notification": {order: 0, severity: "info"}, "severe-jobrunr-exception": {order: 1, severity: "error"},
     "jobs-not-found": {order: 2, severity: "warning"}, "cpu-allocation-irregularity": {order: 3, severity: "warning"},
     "poll-interval-in-seconds-is-too-small": {order: 4, severity: "warning"}, "carbon-intensity-api-error": {order: 5, severity: "warning"},
-    "new-jobrunr-version": {order: 6, severity: "info"}
+    "new-jobrunr-version": {order: 6, severity: "info"}, "new-jobrunr-beta-version": {order: 7, severity: "info"}
 };
 const getProblemOrder = (type) => problemTypeOrder[type]?.order ?? 99;
 const problemCompareFn = (a, b) => {
@@ -107,6 +107,7 @@ const getProblemId = (problem) => {
         case "carbon-intensity-api-error":
             return `${problem.type};${problem.createdAt}`;
         case 'new-jobrunr-version':
+        case 'new-jobrunr-beta-version':
             return `${problem.type};${problem.latestVersion}`;
         default:
             return `unknown;${Math.random().toString(36).substring(2, 10)}`;
@@ -182,8 +183,8 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 if (newVersionProblem) problems.push(newVersionProblem);
             }
 
-            if (latestNonStableVersion && isNotDismissed(LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY, latestNonStableVersion)) {
-                const newVersionProblem = getNewVersionProblem(currentVersion, latestNonStableVersion);
+            if (latestNonStableVersion && isNotDismissed(LATEST_DISMISSED_BETA_VERSION_STORAGE_KEY, latestNonStableVersion)) {
+                const newVersionProblem = getNewBetaVersionProblem(currentVersion, latestNonStableVersion);
                 if (newVersionProblem) problems.push(newVersionProblem);
             }
 
@@ -258,6 +259,12 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 />
             case 'new-jobrunr-version':
                 return <NewJobRunrVersionAvailableNotification
+                    problem={problem}
+                    onReadStatusToggled={handleReadStatusToggled}
+                    onDismiss={resetLatestVersion}
+                />
+            case 'new-jobrunr-beta-version':
+                return <NewJobRunrBetaVersionAvailableNotification
                     problem={problem}
                     onReadStatusToggled={handleReadStatusToggled}
                     onDismiss={resetLatestVersion}

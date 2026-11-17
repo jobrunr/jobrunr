@@ -1,28 +1,7 @@
 import {DismissibleNotification} from "./dismissible-notification";
+import {versionIsNewerThanOther} from "./new-jobrunr-version-utils.js";
 
 export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
-export const LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY = "latestBetaDismissedVersion";
-
-const getVersionParts = (version) => {
-    const splitVersion = version?.split("-");
-    return {version: splitVersion?.[0], qualifier: splitVersion?.[1]}
-}
-
-const versionIsNewerThanOther = (version, otherVersion) => {
-    const versionParts = getVersionParts(version);
-    const otherVersionParts = getVersionParts(otherVersion);
-
-    if (!versionParts.version && !otherVersionParts.version) return false;
-    if (!otherVersionParts.version) return true;
-    if (!versionParts.version) return false;
-
-    if (versionParts.version.localeCompare(otherVersionParts.version, "en", {numeric: true, sensitivity: "base"}) > 0) return true;
-
-    if (!versionParts.qualifier && !otherVersionParts.qualifier) return false;
-    if (!versionParts.qualifier) return true;
-    if (!otherVersionParts.qualifier) return false;
-    return versionParts.qualifier.localeCompare(otherVersionParts.qualifier, "en", {sensitivity: "base"}) > 0;
-}
 
 export const getNewVersionProblem = (currentVersion, latestVersion) => {
     if (!latestVersion) return;
@@ -31,30 +10,22 @@ export const getNewVersionProblem = (currentVersion, latestVersion) => {
 
 export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion, latestVersion, read}, onDismiss, ...rest}) => {
     const handleDismiss = () => {
-        if (isStable) localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
-        else localStorage.setItem(LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
+        localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
         onDismiss();
     }
-
-    const isStable = !latestVersion.includes("-");
 
     return (
         <DismissibleNotification
             severity="info"
-            title={`New JobRunr ${isStable ? "Version" : "Beta"} Available`}
+            title={`New JobRunr Version Available`}
             onDismiss={handleDismiss}
             read={read}
             containerId="jobrunr-version-available"
             {...rest}
         >
-            {isStable
-                ? <p>JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
-                    performance improvements and new features.
-                    Full release note available <a target="_blank" href="https://github.com/jobrunr/jobrunr/releases">on GitHub</a>.</p>
-                : <p>JobRunr version {latestVersion} is live!
-                    Try it out and share your thoughts by starting a <a target="_blank" href="https://github.com/jobrunr/jobrunr/discussions">
-                        discussion on GitHub</a>. Thanks for your contribution!</p>
-            }
+            <p>JobRunr version {latestVersion} is available. Please upgrade JobRunr as it brings bugfixes,
+                performance improvements and new features.
+                Full release note available <a target="_blank" href="https://github.com/jobrunr/jobrunr/releases">on GitHub</a>.</p>
             Current version: {currentVersion ?? "UNKNOWN"}
         </DismissibleNotification>
     );
