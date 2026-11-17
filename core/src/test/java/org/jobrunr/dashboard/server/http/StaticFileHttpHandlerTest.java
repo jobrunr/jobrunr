@@ -79,6 +79,36 @@ class StaticFileHttpHandlerTest {
         verify(httpExchange).sendResponseHeaders(404, -1L);
     }
 
+    @Test
+    void doesNotServeFilesOutsideRootDirUsingStaticPathSegment() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/static/../../../logback-test.xml"));
+
+        staticFileHttpHandler.handle(httpExchange);
+
+        verify(httpExchange).sendResponseHeaders(404, -1L);
+        assertThat(outputStream.toString()).isEmpty();
+    }
+
+    @Test
+    void doesNotServeFilesOutsideRootDirUsingAllowedExtension() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/../../container-license-acceptance.txt"));
+
+        staticFileHttpHandler.handle(httpExchange);
+
+        verify(httpExchange).sendResponseHeaders(404, -1L);
+        assertThat(outputStream.toString()).isEmpty();
+    }
+
+    @Test
+    void doesNotServeFilesOutsideRootDirUsingEncodedDots() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/static/%2e%2e/%2e%2e/%2e%2e/logback-test.xml"));
+
+        staticFileHttpHandler.handle(httpExchange);
+
+        verify(httpExchange).sendResponseHeaders(404, -1L);
+        assertThat(outputStream.toString()).isEmpty();
+    }
+
     private String getResourceContent(String resourcePath) throws IOException {
         URL resource = this.getClass().getClassLoader().getResource(resourcePath);
         if (resource == null) return null;
