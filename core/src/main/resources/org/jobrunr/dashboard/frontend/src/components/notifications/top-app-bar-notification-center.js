@@ -131,6 +131,10 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         setLatestVersion(undefined);
     }, []);
 
+    const resetLatestNonStableVersion = useCallback(() => {
+        setLatestNonStableVersion(undefined);
+    }, []);
+
     const resetApiNotification = useCallback(() => {
         setApiNotification(undefined);
     }, []);
@@ -194,7 +198,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
             return problems.map(problem => ({...problem, id: getProblemId(problem)})).sort(problemCompareFn);
         },
-        [clusterProblems, latestVersion, currentVersion, apiNotification]
+        [clusterProblems, latestVersion, latestNonStableVersion, currentVersion, apiNotification]
     );
 
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
@@ -267,7 +271,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 return <NewJobRunrBetaVersionAvailableNotification
                     problem={problem}
                     onReadStatusToggled={handleReadStatusToggled}
-                    onDismiss={resetLatestVersion}
+                    onDismiss={resetLatestNonStableVersion}
                 />
             default:
                 return <Notification title="Unknown" onReadStatusToggled={handleReadStatusToggled} read={problem.read}>
