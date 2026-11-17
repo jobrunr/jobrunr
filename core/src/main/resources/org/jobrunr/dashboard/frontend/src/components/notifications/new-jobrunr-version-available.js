@@ -1,6 +1,7 @@
 import {DismissibleNotification} from "./dismissible-notification";
 
 export const LATEST_DISMISSED_VERSION_STORAGE_KEY = "latestDismissedVersion";
+export const LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY = "latestBetaDismissedVersion";
 
 const getVersionParts = (version) => {
     const splitVersion = version?.split("-");
@@ -30,7 +31,8 @@ export const getNewVersionProblem = (currentVersion, latestVersion) => {
 
 export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion, latestVersion, read}, onDismiss, ...rest}) => {
     const handleDismiss = () => {
-        localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
+        if (isStable) localStorage.setItem(LATEST_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
+        else localStorage.setItem(LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY, latestVersion);
         onDismiss();
     }
 
@@ -39,7 +41,7 @@ export const NewJobRunrVersionAvailableNotification = ({problem: {currentVersion
     return (
         <DismissibleNotification
             severity="info"
-            title="New JobRunr Version Available"
+            title={`New JobRunr ${isStable ? "Version" : "Beta"} Available`}
             onDismiss={handleDismiss}
             read={read}
             containerId="jobrunr-version-available"

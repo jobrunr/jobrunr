@@ -9,7 +9,12 @@ import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import {SevereJobRunrExceptionProblemNotification} from "./severe-jobrunr-exception-problem";
 import {CPUAllocationIrregularityProblemNotification} from "./cpu-allocation-irregularity-problem";
-import {getNewVersionProblem, LATEST_DISMISSED_VERSION_STORAGE_KEY, NewJobRunrVersionAvailableNotification} from "./new-jobrunr-version-available";
+import {
+    getNewVersionProblem,
+    LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY,
+    LATEST_DISMISSED_VERSION_STORAGE_KEY,
+    NewJobRunrVersionAvailableNotification
+} from "./new-jobrunr-version-available";
 import {JobNotFoundProblemNotification} from "./job-not-found-problem";
 import {Notification} from "./notification";
 import {PollIntervalInSecondsIsTooSmallProblemNotification} from "./poll-interval-timebox-is-too-small-problem";
@@ -77,10 +82,12 @@ const useReadNotifications = () => {
 }
 
 const problemTypeOrder = {
-    "api-notification": 0, "severe-jobrunr-exception": 1, "jobs-not-found": 2, "cpu-allocation-irregularity": 3,
-    "poll-interval-in-seconds-is-too-small": 4, "carbon-intensity-api-error": 5, "new-jobrunr-version": 6
+    "api-notification": {order: 0, severity: "info"}, "severe-jobrunr-exception": {order: 1, severity: "error"},
+    "jobs-not-found": {order: 2, severity: "warning"}, "cpu-allocation-irregularity": {order: 3, severity: "warning"},
+    "poll-interval-in-seconds-is-too-small": {order: 4, severity: "warning"}, "carbon-intensity-api-error": {order: 5, severity: "warning"},
+    "new-jobrunr-version": {order: 6, severity: "info"}
 };
-const getProblemOrder = (type) => problemTypeOrder[type] ?? 99;
+const getProblemOrder = (type) => problemTypeOrder[type]?.order ?? 99;
 const problemCompareFn = (a, b) => {
     return getProblemOrder(a.type) - getProblemOrder(b.type);
 }
@@ -112,6 +119,7 @@ const isNotDismissed = (key, value) => !localStorage.getItem(key)?.endsWith(valu
 export const TopAppBarNotificationCenter = React.memo(() => {
     const [clusterProblems, setClusterProblems] = useState([]);
     const [latestVersion, setLatestVersion] = useState();
+    const [latestNonStableVersion, setLatestNonStableVersion] = useState();
     const [apiNotification, setApiNotification] = useState();
     const {version: currentVersion} = useContext(JobRunrInfoContext);
     const [isOpen, setIsOpen] = useState(false);
@@ -141,6 +149,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         ]).then(([clusterProblems, latestVersion, apiNotification]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
+            setLatestNonStableVersion(latestVersion?.["latestNonStableVersion"]);
             setApiNotification(apiNotification);
         }).catch(error => console.error(error));
     }, [])
@@ -173,6 +182,11 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 if (newVersionProblem) problems.push(newVersionProblem);
             }
 
+            if (latestNonStableVersion && isNotDismissed(LATEST_BETA_DISMISSED_VERSION_STORAGE_KEY, latestNonStableVersion)) {
+                const newVersionProblem = getNewVersionProblem(currentVersion, latestNonStableVersion);
+                if (newVersionProblem) problems.push(newVersionProblem);
+            }
+
             if (apiNotification && isNotDismissed(LATEST_DISMISSED_API_NOTIFICATION, apiNotification["id"])) {
                 problems.push(getApiNotificationProblem(apiNotification));
             }
@@ -195,6 +209,16 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
     const handleMarkAllAsRead = () => {
         markAllRead(problemsWithReadStatus.map(p => p.id));
+    }
+
+    const getHighestNotificationSeverity = () => {
+        const severities = new Set(problems.map(p => p.severity ?? problemTypeOrder[p.type]?.severity ?? "info"));
+        if (severities.has("error")) {
+            return "error";
+        } else if (severities.has("warning")) {
+            return "warning";
+        }
+        return "info";
     }
 
     const mapToNotificationElement = (problem) => {
@@ -258,7 +282,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 aria-expanded={isOpen}
                 aria-controls="notifications-center-dialog"
             >
-                <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
+                <Badge badgeContent={amountOfUnreadNotifications} max={99} color={getHighestNotificationSeverity()} sx={{fontSize: "10px"}}>
                     <Notifications/>
                 </Badge>
             </IconButton>
