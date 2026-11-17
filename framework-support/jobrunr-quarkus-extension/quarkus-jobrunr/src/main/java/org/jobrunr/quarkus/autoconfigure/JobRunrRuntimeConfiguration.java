@@ -4,6 +4,7 @@ import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 
 import java.time.Duration;
@@ -113,7 +114,7 @@ public interface JobRunrRuntimeConfiguration {
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.
          */
-        Optional<String> jobDetailsGenerator();
+        Optional<Class<? extends JobDetailsGenerator>> jobDetailsGenerator();
     }
 
     interface BackgroundJobServerConfiguration {

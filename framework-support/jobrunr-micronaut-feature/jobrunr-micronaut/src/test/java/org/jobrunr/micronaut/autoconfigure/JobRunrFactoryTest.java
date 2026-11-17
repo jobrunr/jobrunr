@@ -3,9 +3,13 @@ package org.jobrunr.micronaut.autoconfigure;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.BackgroundJobServer;
@@ -49,6 +53,18 @@ class JobRunrFactoryTest {
         assertThat(context)
                 .hasSingleBean(StorageProvider.class)
                 .doesNotHaveBean(JobScheduler.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.job-scheduler.job-details-generator", value = "org.jobrunr.micronaut.autoconfigure.JobRunrFactoryTest$FromPropertiesJobDetailsGenerator")
+    void jobDetailsGeneratorCanBeConfiguredViaProperties() {
+        assertThat(context.getBean(JobScheduler.class)).extracting("jobDetailsGenerator").isInstanceOf(FromPropertiesJobDetailsGenerator.class);
+    }
+
+    @Test
+    @Property(name = "jobrunr.test.custom-job-details-generator", value = "true")
+    void jobDetailsGeneratorCanBeOverridden() {
+        assertThat(context.getBean(JobScheduler.class)).extracting("jobDetailsGenerator").isInstanceOf(CustomJobDetailsGenerator.class);
     }
 
     @Test
@@ -187,5 +203,17 @@ class JobRunrFactoryTest {
                 .hasOrphanedJobRequestSize(2)
                 .hasSucceededJobRequestSize(3)
                 .hasInterruptJobsAwaitDurationOnStopBackgroundJobServer(Duration.ofSeconds(20));
+    }
+
+    @Singleton
+    @Requires(property = "jobrunr.test.custom-job-details-generator", value = "true")
+    JobDetailsGenerator customJobDetailsGenerator() {
+        return new CustomJobDetailsGenerator();
+    }
+
+    static class FromPropertiesJobDetailsGenerator extends CachingJobDetailsGenerator {
+    }
+
+    static class CustomJobDetailsGenerator extends CachingJobDetailsGenerator {
     }
 }

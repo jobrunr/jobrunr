@@ -1,6 +1,7 @@
 package org.jobrunr.spring.autoconfigure;
 
 import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.server.configuration.BackgroundJobServerThreadType;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -234,7 +235,7 @@ public class JobRunrProperties {
          * Defines the JobDetailsGenerator to use. This should be the fully qualified classname of the
          * JobDetailsGenerator, and it should have a default no-argument constructor.
          */
-        private String jobDetailsGenerator = CachingJobDetailsGenerator.class.getName();
+        private Class<? extends JobDetailsGenerator> jobDetailsGenerator = CachingJobDetailsGenerator.class;
 
         public boolean isEnabled() {
             return enabled;
@@ -244,11 +245,11 @@ public class JobRunrProperties {
             this.enabled = enabled;
         }
 
-        public String getJobDetailsGenerator() {
+        public Class<? extends JobDetailsGenerator> getJobDetailsGenerator() {
             return jobDetailsGenerator;
         }
 
-        public void setJobDetailsGenerator(String jobDetailsGenerator) {
+        public void setJobDetailsGenerator(Class<? extends JobDetailsGenerator> jobDetailsGenerator) {
             this.jobDetailsGenerator = jobDetailsGenerator;
         }
     }
