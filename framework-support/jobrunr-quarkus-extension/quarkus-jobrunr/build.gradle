@@ -29,7 +29,7 @@ dependencies {
     compileOnly 'io.quarkus:quarkus-smallrye-health'
     compileOnly 'com.fasterxml.jackson.core:jackson-databind'
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    compileOnly 'org.eclipse:yasson'
+    compileOnly 'org.eclipse.yasson:yasson'
     compileOnly 'org.mongodb:mongodb-driver-sync'
     compileOnly 'org.graalvm.sdk:graal-sdk'
     compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
@@ -37,7 +37,7 @@ dependencies {
 
     testImplementation testFixtures(project(":core"))
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-    testImplementation 'org.eclipse:yasson'
+    testImplementation 'org.eclipse.yasson:yasson'
     testImplementation 'org.mongodb:mongodb-driver-sync'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-component'
