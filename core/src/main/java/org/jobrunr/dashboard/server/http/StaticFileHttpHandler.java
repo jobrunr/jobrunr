@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +49,7 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
             requestPath = sanitizeRequestUri(requestPath);
 
             final String toServe = requestPath.substring((contextPath + "/").length());
-            final URL resource = this.getClass().getClassLoader().getResource(rootDir + toServe);
+            final URL resource = isPathTraversal(toServe) ? null : this.getClass().getClassLoader().getResource(rootDir + toServe);
             if (resource != null) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
                 if (toServe.endsWith(".html")) {
@@ -97,6 +99,16 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
         try (InputStream inputStream = resource.openStream(); OutputStream outputStream = httpExchange.getResponseBody()) {
             IOUtils.copyStream(inputStream, outputStream);
         }
+    }
+
+    private static boolean isPathTraversal(String pathAsString) {
+        Path path = Paths.get(pathAsString);
+        for (Path segment : path) {
+            if (segment.toString().equals("..")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isStaticFile(String path) {

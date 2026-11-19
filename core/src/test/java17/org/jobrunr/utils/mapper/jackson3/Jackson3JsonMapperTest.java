@@ -35,4 +35,18 @@ class Jackson3JsonMapperTest extends AbstractJsonMapperTest {
         assertThat(entities).isEqualTo(deserializedEntities);
     }
 
+    @Test
+    void canDeserializePayloadWithImmutableSubList() {
+        var values = List.of("first", "second").subList(0, 1);
+        var payload = new ListPayload(values);
+
+        var payloadAsJsonString = jsonMapper.serialize(payload);
+        var deserializedPayload = jsonMapper.deserialize(payloadAsJsonString, ListPayload.class);
+
+        assertThat(payload).isEqualTo(deserializedPayload);
+    }
+
+    public record ListPayload(List<String> values) {
+    }
+
 }

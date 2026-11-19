@@ -128,6 +128,7 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .allowIfSubType("java.util.Collections$UnmodifiableMap")
                 .allowIfSubType("java.util.ImmutableCollections$List12") // for List.of
                 .allowIfSubType("java.util.ImmutableCollections$ListN")
+                .allowIfSubType("java.util.ImmutableCollections$SubList")
                 .allowIfSubType("java.util.ImmutableCollections$Set12") // for Set.of
                 .allowIfSubType("java.util.ImmutableCollections$SetN")
                 .allowIfSubType("java.util.ImmutableCollections$Map1") // for Map.of

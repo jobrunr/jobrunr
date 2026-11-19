@@ -17,6 +17,11 @@ import {getApiNotificationProblem, JobRunrApiNotification, LATEST_DISMISSED_API_
 import {JobRunrInfoContext} from "../../contexts/JobRunrInfoContext";
 import {subDaysToDate} from "../../utils/helper-functions";
 import {CarbonIntensityApiErrorProblem} from "./carbon-intensity-api-error-problem";
+import {
+    getNewBetaVersionProblem,
+    LATEST_DISMISSED_BETA_VERSION_STORAGE_KEY,
+    NewJobRunrBetaVersionAvailableNotification
+} from "./new-jobrunr-beta-version-available.js";
 
 const READ_NOTIFICATIONS_STORAGE_KEY = "readNotifications";
 
@@ -77,10 +82,12 @@ const useReadNotifications = () => {
 }
 
 const problemTypeOrder = {
-    "api-notification": 0, "severe-jobrunr-exception": 1, "jobs-not-found": 2, "cpu-allocation-irregularity": 3,
-    "poll-interval-in-seconds-is-too-small": 4, "carbon-intensity-api-error": 5, "new-jobrunr-version": 6
+    "api-notification": {order: 0, severity: "info"}, "severe-jobrunr-exception": {order: 1, severity: "error"},
+    "jobs-not-found": {order: 2, severity: "warning"}, "cpu-allocation-irregularity": {order: 3, severity: "warning"},
+    "poll-interval-in-seconds-is-too-small": {order: 4, severity: "warning"}, "carbon-intensity-api-error": {order: 5, severity: "warning"},
+    "new-jobrunr-version": {order: 6, severity: "info"}, "new-jobrunr-beta-version": {order: 7, severity: "info"}
 };
-const getProblemOrder = (type) => problemTypeOrder[type] ?? 99;
+const getProblemOrder = (type) => problemTypeOrder[type]?.order ?? 99;
 const problemCompareFn = (a, b) => {
     return getProblemOrder(a.type) - getProblemOrder(b.type);
 }
@@ -100,6 +107,7 @@ const getProblemId = (problem) => {
         case "carbon-intensity-api-error":
             return `${problem.type};${problem.createdAt}`;
         case 'new-jobrunr-version':
+        case 'new-jobrunr-beta-version':
             return `${problem.type};${problem.latestVersion}`;
         default:
             return `unknown;${Math.random().toString(36).substring(2, 10)}`;
@@ -112,6 +120,7 @@ const isNotDismissed = (key, value) => !localStorage.getItem(key)?.endsWith(valu
 export const TopAppBarNotificationCenter = React.memo(() => {
     const [clusterProblems, setClusterProblems] = useState([]);
     const [latestVersion, setLatestVersion] = useState();
+    const [latestNonStableVersion, setLatestNonStableVersion] = useState();
     const [apiNotification, setApiNotification] = useState();
     const {version: currentVersion} = useContext(JobRunrInfoContext);
     const [isOpen, setIsOpen] = useState(false);
@@ -120,6 +129,10 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
     const resetLatestVersion = useCallback(() => {
         setLatestVersion(undefined);
+    }, []);
+
+    const resetLatestNonStableVersion = useCallback(() => {
+        setLatestNonStableVersion(undefined);
     }, []);
 
     const resetApiNotification = useCallback(() => {
@@ -141,6 +154,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
         ]).then(([clusterProblems, latestVersion, apiNotification]) => {
             setClusterProblems(clusterProblems);
             setLatestVersion(latestVersion?.["latestVersion"]);
+            setLatestNonStableVersion(latestVersion?.["latestNonStableVersion"]);
             setApiNotification(apiNotification);
         }).catch(error => console.error(error));
     }, [])
@@ -173,13 +187,18 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 if (newVersionProblem) problems.push(newVersionProblem);
             }
 
+            if (latestNonStableVersion && isNotDismissed(LATEST_DISMISSED_BETA_VERSION_STORAGE_KEY, latestNonStableVersion)) {
+                const newVersionProblem = getNewBetaVersionProblem(currentVersion, latestNonStableVersion);
+                if (newVersionProblem) problems.push(newVersionProblem);
+            }
+
             if (apiNotification && isNotDismissed(LATEST_DISMISSED_API_NOTIFICATION, apiNotification["id"])) {
                 problems.push(getApiNotificationProblem(apiNotification));
             }
 
             return problems.map(problem => ({...problem, id: getProblemId(problem)})).sort(problemCompareFn);
         },
-        [clusterProblems, latestVersion, currentVersion, apiNotification]
+        [clusterProblems, latestVersion, latestNonStableVersion, currentVersion, apiNotification]
     );
 
     const problemsWithReadStatus = problems.map(p => ({...p, read: isRead(p.id)}));
@@ -195,6 +214,16 @@ export const TopAppBarNotificationCenter = React.memo(() => {
 
     const handleMarkAllAsRead = () => {
         markAllRead(problemsWithReadStatus.map(p => p.id));
+    }
+
+    const getHighestNotificationSeverity = () => {
+        const severities = new Set(problems.map(p => p.severity ?? problemTypeOrder[p.type]?.severity ?? "info"));
+        if (severities.has("error")) {
+            return "error";
+        } else if (severities.has("warning")) {
+            return "warning";
+        }
+        return "info";
     }
 
     const mapToNotificationElement = (problem) => {
@@ -238,6 +267,12 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                     onReadStatusToggled={handleReadStatusToggled}
                     onDismiss={resetLatestVersion}
                 />
+            case 'new-jobrunr-beta-version':
+                return <NewJobRunrBetaVersionAvailableNotification
+                    problem={problem}
+                    onReadStatusToggled={handleReadStatusToggled}
+                    onDismiss={resetLatestNonStableVersion}
+                />
             default:
                 return <Notification title="Unknown" onReadStatusToggled={handleReadStatusToggled} read={problem.read}>
                     Received an unexpected notification of type: '{problem.type}'.
@@ -258,7 +293,7 @@ export const TopAppBarNotificationCenter = React.memo(() => {
                 aria-expanded={isOpen}
                 aria-controls="notifications-center-dialog"
             >
-                <Badge badgeContent={amountOfUnreadNotifications} max={99} color="secondary" sx={{fontSize: "10px"}}>
+                <Badge badgeContent={amountOfUnreadNotifications} max={99} color={getHighestNotificationSeverity()} sx={{fontSize: "10px"}}>
                     <Notifications/>
                 </Badge>
             </IconButton>
