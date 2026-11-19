@@ -8,8 +8,6 @@ public class DurationUtils {
     private DurationUtils() {}
 
     public static BigDecimal toBigDecimal(Duration duration) {
-        int nanos = duration.getNano();
-        if (nanos == 0) return BigDecimal.valueOf(duration.getSeconds());
         return BigDecimal.valueOf(duration.getSeconds())
                 .add(BigDecimal.valueOf(duration.getNano(), 9));
     }

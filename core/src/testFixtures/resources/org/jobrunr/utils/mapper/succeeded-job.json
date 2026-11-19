@@ -35,7 +35,7 @@
       "@class": "org.jobrunr.jobs.states.SucceededState",
       "state": "SUCCEEDED",
       "createdAt": "${json-unit.ignore}",
-      "latencyDuration": 230,
+      "latencyDuration": 230.000000000,
       "processDuration": 10.000007345
     }
   ],
