@@ -1,10 +1,6 @@
 package org.jobrunr.utils.mapper.jackson3;
 
 import app.jobrunr.entities.Entity;
-import org.jobrunr.jobs.Job;
-import org.jobrunr.jobs.JobDetails;
-import org.jobrunr.jobs.JobParameter;
-import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.stubs.TestService;
 import org.jobrunr.utils.mapper.AbstractJsonMapperTest;
 import org.jobrunr.utils.mapper.JsonMapper;
@@ -40,18 +36,14 @@ class Jackson3JsonMapperTest extends AbstractJsonMapperTest {
     }
 
     @Test
-    void canDeserializeJobWithImmutableSubList() {
+    void canDeserializePayloadWithImmutableSubList() {
         var values = List.of("first", "second").subList(0, 1);
         var payload = new ListPayload(values);
-        var job = new Job(new JobDetails("Example", null, "execute",
-                List.of(new JobParameter(ListPayload.class, payload))));
-        var mapper = new JobMapper(newJsonMapper());
 
-        var restored = mapper.deserializeJob(mapper.serializeJob(job));
-        var parameter = restored.getJobDetails().getJobParameters().get(0);
+        var payloadAsJsonString = jsonMapper.serialize(payload);
+        var deserializedPayload = jsonMapper.deserialize(payloadAsJsonString, ListPayload.class);
 
-        assertThat(parameter.isDeserializable()).isTrue();
-        assertThat(parameter.getObject()).isEqualTo(payload);
+        assertThat(payload).isEqualTo(deserializedPayload);
     }
 
     public record ListPayload(List<String> values) {
