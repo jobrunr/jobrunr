@@ -4,6 +4,7 @@ import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.junit.jupiter.api.Test;
@@ -36,5 +37,15 @@ class JobRunrProducerTest {
 
         assertThat(jobRequestSchedulerInstance.isResolvable()).isTrue();
         assertThat(jobRequestSchedulerInstance.get()).isNull();
+    }
+
+    @Test
+    @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.enabled", value = "true")
+    @TestConfigProperty(key = "quarkus.jobrunr.job-scheduler.job-details-generator", value = "org.jobrunr.quarkus.autoconfigure.JobRunrProducerTest$FromPropertiesJobDetailsGenerator")
+    void jobDetailsGeneratorCanBeConfiguredViaProperties() {
+        assertThat(jobSchedulerInstance.get()).extracting("jobDetailsGenerator").isInstanceOf(FromPropertiesJobDetailsGenerator.class);
+    }
+
+    static class FromPropertiesJobDetailsGenerator extends CachingJobDetailsGenerator {
     }
 }

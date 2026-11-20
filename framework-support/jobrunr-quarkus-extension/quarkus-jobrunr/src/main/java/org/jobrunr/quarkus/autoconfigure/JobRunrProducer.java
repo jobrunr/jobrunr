@@ -47,10 +47,20 @@ public class JobRunrProducer {
     @Produces
     @DefaultBean
     @Singleton
+    public JobDetailsGenerator jobDetailsGenerator() {
+        final Class<? extends JobDetailsGenerator> jobDetailsGenerator = jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class);
+        if (CachingJobDetailsGenerator.class.equals(jobDetailsGenerator)) {
+            return new CachingJobDetailsGenerator();
+        }
+        return ReflectionUtils.newInstance(jobDetailsGenerator);
+    }
+
+    @Produces
+    @DefaultBean
+    @Singleton
     @LookupIfProperty(name = "quarkus.jobrunr.job-scheduler.enabled", stringValue = "true", lookupIfMissing = true)
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
+    public JobScheduler jobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator) {
         if (jobRunrRuntimeConfiguration.jobScheduler().enabled()) {
-            final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(jobRunrRuntimeConfiguration.jobScheduler().jobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
             return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
         }
         return null;

@@ -3,6 +3,7 @@ package org.jobrunr.spring.autoconfigure;
 import org.jobrunr.configuration.JobRetentionConfiguration;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
 import org.jobrunr.dashboard.JobRunrDashboardWebServerConfiguration;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
 import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.jobs.filters.RetryFilter;
 import org.jobrunr.jobs.mappers.JobMapper;
@@ -81,8 +82,18 @@ public class JobRunrAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public JobScheduler jobScheduler(StorageProvider storageProvider, JobRunrProperties properties) {
-        final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(properties.getJobScheduler().getJobDetailsGenerator());
+    public JobDetailsGenerator jobDetailsGenerator(JobRunrProperties properties) {
+        final Class<? extends JobDetailsGenerator> jobDetailsGenerator = properties.getJobScheduler().getJobDetailsGenerator();
+        if (jobDetailsGenerator == null || CachingJobDetailsGenerator.class.equals(jobDetailsGenerator)) {
+            return new CachingJobDetailsGenerator();
+        }
+        return ReflectionUtils.newInstance(jobDetailsGenerator);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "jobrunr.job-scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public JobScheduler jobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator) {
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 

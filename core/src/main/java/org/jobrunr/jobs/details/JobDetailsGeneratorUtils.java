@@ -53,6 +53,7 @@ public class JobDetailsGeneratorUtils {
         try {
             Class<?> clazz = loadClass(fqClassName);
             Constructor<?> constructor = clazz.getDeclaredConstructor(paramTypes);
+            constructor.setAccessible(true);
             return constructor.newInstance(parameters);
         } catch (Exception e) {
             throw shouldNotHappenException(e);

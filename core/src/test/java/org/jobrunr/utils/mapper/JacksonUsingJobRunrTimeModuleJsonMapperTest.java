@@ -90,7 +90,7 @@ public class JacksonUsingJobRunrTimeModuleJsonMapperTest extends AbstractJsonMap
 
         @Override
         public int hashCode() {
-            return Objects.hash(value);
+            return Objects.hashCode(value);
         }
     }
 
