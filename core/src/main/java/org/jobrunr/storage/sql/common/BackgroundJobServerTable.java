@@ -86,7 +86,7 @@ public class BackgroundJobServerTable extends Sql<BackgroundJobServerStatus> {
                     .with(FIELD_SYSTEM_CPU_LOAD, serverStatus.getSystemCpuLoad())
                     .with(FIELD_PROCESS_FREE_MEMORY, serverStatus.getProcessFreeMemory())
                     .with(FIELD_PROCESS_ALLOCATED_MEMORY, serverStatus.getProcessAllocatedMemory())
-                    .with(FIELD_PROCESS_CPU_LOAD, serverStatus.getSystemCpuLoad())
+                    .with(FIELD_PROCESS_CPU_LOAD, serverStatus.getProcessCpuLoad())
                     .update("jobrunr_backgroundjobservers SET lastHeartbeat = :lastHeartbeat, systemFreeMemory = :systemFreeMemory, systemCpuLoad = :systemCpuLoad, processFreeMemory = :processFreeMemory, processAllocatedMemory = :processAllocatedMemory, processCpuLoad = :processCpuLoad where id = :id");
         } catch (ConcurrentSqlModificationException e) {
             throw new ServerTimedOutException(serverStatus, new StorageException("Background Job Server with id " + serverStatus.getId() + " is not found"));
