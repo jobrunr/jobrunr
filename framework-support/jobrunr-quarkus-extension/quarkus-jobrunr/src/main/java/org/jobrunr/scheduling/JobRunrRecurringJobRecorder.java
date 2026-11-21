@@ -53,7 +53,7 @@ public class JobRunrRecurringJobRecorder {
             JobDetails jobDetails = new JobDetails(className, null, methodName, parameterList);
             jobDetails.setCacheable(true);
             Schedule schedule = ScheduleExpressionType.createScheduleFromString(scheduleExpression);
-            RecurringJob recurringJob = new RecurringJob(id, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
+            RecurringJob recurringJob = new RecurringJob(jobId, jobDetails, schedule, getZoneId(zoneId), ANNOTATION);
             scheduler.scheduleRecurrently(recurringJob);
         }
     }
