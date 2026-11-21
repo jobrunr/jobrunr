@@ -12,9 +12,7 @@ public class DurationUtils {
     }
 
     public static Duration fromBigDecimal(BigDecimal bigDecimal) {
-        return Duration.ofSeconds(
-                bigDecimal.longValue(),
-                bigDecimal.remainder(BigDecimal.ONE).movePointRight(bigDecimal.scale()).abs().longValue());
+        return Duration.ofNanos(bigDecimal.movePointRight(9).longValue());
     }
 
     public static Duration min(Duration a, Duration b) {
