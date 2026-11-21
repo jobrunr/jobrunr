@@ -95,6 +95,7 @@ public class Exceptions {
                 return supplier.get();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                throw new IllegalStateException("Thread was interrupted while retrying", e);
             } catch (RuntimeException e) {
                 E exception = (E) e;
                 if (!retry.apply(exception)) throw e;
@@ -125,6 +126,7 @@ public class Exceptions {
                 return;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                throw new IllegalStateException("Thread was interrupted while retrying", e);
             } catch (RuntimeException e) {
                 E exception = (E) e;
                 if (!retry.apply(exception)) throw e;
