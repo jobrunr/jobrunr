@@ -4,7 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.UUID;
@@ -55,6 +58,18 @@ class UUIDv7FactoryTest {
         endLatch.await();
         LOGGER.info("{} UUIDs generated / {} in {}", uuidMap.size(), collisionCount.get(), Duration.ofNanos(System.nanoTime() - startNanos));
         assertThat(collisionCount.get()).isZero();
+    }
+
+    @Test
+    void incrementPlusNCreatesDistinctMonotonicUuidsWithinTheSameMillisecond() {
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
+        UUIDv7Factory factory = UUIDv7Factory.builder().withIncrementPlusN().withClock(fixedClock).build();
+
+        UUID first = factory.create();
+        UUID second = factory.create();
+
+        assertThat(second).isNotEqualTo(first);
+        assertThat(second).isGreaterThan(first);
     }
 
     private void evictOldestEntries(NavigableMap<UUID, Long> uuidMap, int amountToKeep, CountDownLatch endLatch) {

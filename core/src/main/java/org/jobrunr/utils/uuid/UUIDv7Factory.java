@@ -109,7 +109,7 @@ public final class UUIDv7Factory {
 
         protected static final Clock DEFAULT_CLOCK = Clock.systemUTC();
         protected Clock clock;
-        protected Random random;
+        protected Random random = new Random();
         private Integer incrementType = INCREMENT_TYPE_DEFAULT;
         private Long incrementMax;
 
