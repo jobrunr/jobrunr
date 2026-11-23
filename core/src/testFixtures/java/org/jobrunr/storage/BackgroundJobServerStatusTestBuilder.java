@@ -22,6 +22,8 @@ public class BackgroundJobServerStatusTestBuilder {
     private Instant firstHeartbeat;
     private Instant lastHeartbeat;
     private boolean running;
+    private Double systemCpuLoad;
+    private Double processCpuLoad;
 
     private BackgroundJobServerStatusTestBuilder() {
 
@@ -44,7 +46,9 @@ public class BackgroundJobServerStatusTestBuilder {
                 .withPollIntervalInSeconds(status.getPollIntervalInSeconds())
                 .withRunning(status.isRunning())
                 .withFirstHeartbeat(status.getFirstHeartbeat())
-                .withLastHeartbeat(status.getLastHeartbeat());
+                .withLastHeartbeat(status.getLastHeartbeat())
+                .withSystemCpuLoad(status.getSystemCpuLoad())
+                .withProcessCpuLoad(status.getProcessCpuLoad());
     }
 
     public BackgroundJobServerStatusTestBuilder withId() {
@@ -100,10 +104,22 @@ public class BackgroundJobServerStatusTestBuilder {
         return this;
     }
 
+    public BackgroundJobServerStatusTestBuilder withSystemCpuLoad(Double systemCpuLoad) {
+        this.systemCpuLoad = systemCpuLoad;
+        return this;
+    }
+
+    public BackgroundJobServerStatusTestBuilder withProcessCpuLoad(Double processCpuLoad) {
+        this.processCpuLoad = processCpuLoad;
+        return this;
+    }
+
     public BackgroundJobServerStatus build() {
         return new BackgroundJobServerStatus(id, name, workerPoolSize, (int) pollInterval.getSeconds(),
                 deleteSucceededJobsAfter, permanentlyDeleteDeletedJobsAfter, firstHeartbeat, lastHeartbeat, running,
-                jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(), jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
-                jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(), jobServerStats.getProcessCpuLoad());
+                jobServerStats.getSystemTotalMemory(), jobServerStats.getSystemFreeMemory(),
+                systemCpuLoad != null ? systemCpuLoad : jobServerStats.getSystemCpuLoad(), jobServerStats.getProcessMaxMemory(),
+                jobServerStats.getProcessFreeMemory(), jobServerStats.getProcessAllocatedMemory(),
+                processCpuLoad != null ? processCpuLoad : jobServerStats.getProcessCpuLoad());
     }
 }

@@ -40,12 +40,10 @@ import java.util.stream.IntStream;
 import static java.time.Duration.ofHours;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MICROS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatCode;
@@ -122,22 +120,23 @@ public abstract class StorageProviderTest {
         storageProvider.announceBackgroundJobServer(serverStatus2);
         sleep(100);
 
-        storageProvider.signalBackgroundJobServerAlive(aBackgroundJobServerStatusBasedOn(serverStatus2).withLastHeartbeat(now()).build());
-        sleep(10);
-        storageProvider.signalBackgroundJobServerAlive(aBackgroundJobServerStatusBasedOn(serverStatus1).withLastHeartbeat(now()).build());
-
-        final List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
+        List<BackgroundJobServerStatus> backgroundJobServers = storageProvider.getBackgroundJobServers();
 
         assertThat(backgroundJobServers).hasSize(2);
-        //why: sqlite has no microseconds precision for timestamps
-        assertThat(backgroundJobServers.get(0)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus1);
-        assertThat(backgroundJobServers.get(1)).usingRecursiveComparison().comparingOnlyFields("id", "workerPoolSize", "pollIntervalInSeconds", "running").isEqualTo(serverStatus2);
-        assertThat(backgroundJobServers.get(0).getFirstHeartbeat()).isCloseTo(serverStatus1.getFirstHeartbeat(), within(1000, MICROS));
-        assertThat(backgroundJobServers.get(0).getLastHeartbeat()).isAfter(backgroundJobServers.get(0).getFirstHeartbeat());
-        assertThat(backgroundJobServers.get(1).getFirstHeartbeat()).isCloseTo(serverStatus2.getFirstHeartbeat(), within(1000, MICROS));
-        assertThat(backgroundJobServers.get(1).getLastHeartbeat()).isAfter(backgroundJobServers.get(1).getFirstHeartbeat());
-        assertThat(backgroundJobServers).extracting("id").containsExactly(serverStatus1.getId(), serverStatus2.getId());
-        assertThat(backgroundJobServers).extracting("name").containsExactly(serverStatus1.getName(), serverStatus2.getName());
+        assertThat(backgroundJobServers.get(0)).isRepresentatifOf(serverStatus1);
+        assertThat(backgroundJobServers.get(1)).isRepresentatifOf(serverStatus2);
+
+        var signaledServer2 = aBackgroundJobServerStatusBasedOn(serverStatus2).withProcessCpuLoad(0.25).withSystemCpuLoad(0.75).withLastHeartbeat(now()).build();
+        storageProvider.signalBackgroundJobServerAlive(signaledServer2);
+        sleep(10);
+        var signaledServer1 = aBackgroundJobServerStatusBasedOn(serverStatus1).withLastHeartbeat(now()).build();
+        storageProvider.signalBackgroundJobServerAlive(signaledServer1);
+
+        backgroundJobServers = storageProvider.getBackgroundJobServers();
+
+        assertThat(backgroundJobServers).hasSize(2);
+        assertThat(backgroundJobServers.get(0)).isRepresentatifOf(signaledServer1);
+        assertThat(backgroundJobServers.get(1)).isRepresentatifOf(signaledServer2);
 
         assertThat(storageProvider.getLongestRunningBackgroundJobServerId()).isEqualTo(serverStatus1.getId());
 
