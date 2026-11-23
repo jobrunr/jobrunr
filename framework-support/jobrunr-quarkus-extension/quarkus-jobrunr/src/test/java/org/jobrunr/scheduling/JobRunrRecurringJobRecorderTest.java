@@ -171,6 +171,19 @@ class JobRunrRecurringJobRecorderTest {
     }
 
     @Test
+    void scheduleResolvesTheRecurringJobIdPlaceholder() {
+        when(config.getOptionalValue("my-job.id", String.class)).thenReturn(Optional.of("resolved-id"));
+
+        final JobDetails jobDetails = defaultJobDetails().build();
+
+        jobRunrRecurringJobRecorder.schedule(beanContainer, "${my-job.id}", "*/15 * * * *", null, null,
+                jobDetails.getClassName(), jobDetails.getMethodName(), jobDetails.getJobParameters());
+
+        verify(jobScheduler).scheduleRecurrently(recurringJobArgumentCaptor.capture());
+        assertThat(recurringJobArgumentCaptor.getValue()).hasId("resolved-id");
+    }
+
+    @Test
     void scheduleSchedulesRecurringCronJobWithJobRunrAndResolvesPlaceholders() {
         when(config.getOptionalValue("my-cron-job.cron-expression", String.class)).thenReturn(Optional.of("*/15 * * * *"));
 
