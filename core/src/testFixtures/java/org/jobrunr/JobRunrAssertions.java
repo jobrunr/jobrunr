@@ -27,11 +27,13 @@ import org.jobrunr.server.BackgroundJobServerAssert;
 import org.jobrunr.server.BackgroundJobServerConfiguration;
 import org.jobrunr.server.BackgroundJobServerConfigurationAssert;
 import org.jobrunr.server.BackgroundJobServerConfigurationReader;
+import org.jobrunr.server.BackgroundJobServerStatusAssert;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfiguration;
 import org.jobrunr.server.carbonaware.CarbonAwareJobProcessingConfigurationReader;
 import org.jobrunr.server.carbonaware.CarbonIntensityForecast;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutor;
 import org.jobrunr.server.threadpool.PlatformThreadPoolJobRunrExecutorAssert;
+import org.jobrunr.storage.BackgroundJobServerStatus;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.JobRunrMetadataAssert;
@@ -90,6 +92,10 @@ public class JobRunrAssertions extends Assertions {
 
     public static BackgroundJobServerAssert assertThat(BackgroundJobServer backgroundJobServer) {
         return BackgroundJobServerAssert.assertThat(backgroundJobServer);
+    }
+
+    public static BackgroundJobServerStatusAssert assertThat(BackgroundJobServerStatus backgroundJobServerStatus) {
+        return BackgroundJobServerStatusAssert.assertThat(backgroundJobServerStatus);
     }
 
     public static PlatformThreadPoolJobRunrExecutorAssert assertThat(PlatformThreadPoolJobRunrExecutor platformThreadPoolJobRunrExecutor) {
