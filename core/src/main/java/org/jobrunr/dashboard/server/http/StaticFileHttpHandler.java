@@ -11,9 +11,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -49,7 +49,8 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
             requestPath = sanitizeRequestUri(requestPath);
 
             final String toServe = requestPath.substring((contextPath + "/").length());
-            final URL resource = isPathTraversal(toServe) ? null : this.getClass().getClassLoader().getResource(rootDir + toServe);
+            final String resourceName = resolveResourceNameWithinRoot(toServe);
+            final URL resource = resourceName == null ? null : this.getClass().getClassLoader().getResource(resourceName);
             if (resource != null) {
                 httpExchange.getResponseHeaders().add(ContentType._HEADER_NAME, ContentType.from(toServe));
                 if (toServe.endsWith(".html")) {
@@ -101,14 +102,28 @@ public class StaticFileHttpHandler extends AbstractHttpExchangeHandler {
         }
     }
 
-    private static boolean isPathTraversal(String pathAsString) {
-        Path path = Paths.get(pathAsString);
-        for (Path segment : path) {
-            if (segment.toString().equals("..")) {
-                return true;
+    private String resolveResourceNameWithinRoot(String toServe) {
+        String normalizedRoot = normalize(rootDir);
+        String normalizedResource = normalize(rootDir + toServe);
+        if (normalizedResource == null) return null;
+        if (normalizedResource.equals(normalizedRoot) || normalizedResource.startsWith(normalizedRoot + "/")) {
+            return normalizedResource;
+        }
+        return null;
+    }
+
+    private static String normalize(String resourcePath) {
+        Deque<String> segments = new ArrayDeque<>();
+        for (String segment : resourcePath.split("/")) {
+            if (segment.isEmpty() || segment.equals(".")) continue;
+            if (segment.equals("..")) {
+                if (segments.isEmpty()) return null;
+                segments.removeLast();
+            } else {
+                segments.addLast(segment);
             }
         }
-        return false;
+        return String.join("/", segments);
     }
 
     private boolean isStaticFile(String path) {

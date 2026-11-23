@@ -80,6 +80,16 @@ class StaticFileHttpHandlerTest {
     }
 
     @Test
+    void servesRequestedFileWhenDotDotStaysInsideRootDir() throws IOException {
+        when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/sub/../test.html"));
+
+        staticFileHttpHandler.handle(httpExchange);
+
+        verify(httpExchange).sendResponseHeaders(200, 0);
+        assertThat(outputStream.toString()).isEqualTo(getResourceContent("dashboard/test/test.html"));
+    }
+
+    @Test
     void doesNotServeFilesOutsideRootDirUsingStaticPathSegment() throws IOException {
         when(httpExchange.getRequestURI()).thenReturn(URI.create("/dashboard/static/../../../logback-test.xml"));
 
