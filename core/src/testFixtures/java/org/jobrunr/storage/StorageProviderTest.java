@@ -147,6 +147,22 @@ public abstract class StorageProviderTest {
     }
 
     @Test
+    void testSignalBackgroundJobServerAliveKeepsProcessCpuLoadDistinctFromSystemCpuLoad() {
+        final BackgroundJobServerStatus serverStatus = aDefaultBackgroundJobServerStatus()
+                .withIsStarted()
+                .withSystemCpuLoad(0.75)
+                .withProcessCpuLoad(0.25)
+                .build();
+        storageProvider.announceBackgroundJobServer(serverStatus);
+
+        storageProvider.signalBackgroundJobServerAlive(aBackgroundJobServerStatusBasedOn(serverStatus).withLastHeartbeat(now()).build());
+
+        final BackgroundJobServerStatus stored = storageProvider.getBackgroundJobServers().get(0);
+        assertThat(stored.getSystemCpuLoad()).isCloseTo(0.75, within(1e-9));
+        assertThat(stored.getProcessCpuLoad()).isCloseTo(0.25, within(1e-9));
+    }
+
+    @Test
     protected void testBackgroundServerAnnouncingTwice() {
         final BackgroundJobServerStatus serverStatus1 = aDefaultBackgroundJobServerStatus().withName("server-A").withIsStarted().build();
         storageProvider.announceBackgroundJobServer(serverStatus1);
