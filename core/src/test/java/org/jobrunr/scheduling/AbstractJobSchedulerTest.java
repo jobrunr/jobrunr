@@ -24,9 +24,11 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.chrono.HijrahDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.jobrunr.JobRunrAssertions.assertThatJobs;
 import static org.jobrunr.jobs.RecurringJobTestBuilder.aDefaultRecurringJob;
 import static org.jobrunr.storage.Paging.AmountBasedList.ascOnCreatedAt;
@@ -69,6 +71,26 @@ class AbstractJobSchedulerTest {
         jobScheduler.schedule(null, CarbonAwarePeriod.before(Instant.now().plus(4, ChronoUnit.HOURS)), JobDetailsTestBuilder.defaultJobDetails().build());
 
         assertThatJobs(storageProvider.getJobList(StateName.AWAITING, ascOnCreatedAt(10))).hasSize(1);
+    }
+
+    @Test
+    void scheduleWithScheduleAtInTheFutureSavesJobInScheduledState() {
+        AbstractJobScheduler jobScheduler = jobScheduler();
+
+        jobScheduler.schedule(null, Instant.now().plus(4, ChronoUnit.HOURS), JobDetailsTestBuilder.defaultJobDetails().build());
+
+        assertThatJobs(storageProvider.getJobList(StateName.SCHEDULED, ascOnCreatedAt(10))).hasSize(1);
+    }
+
+    @Test
+    void scheduleWithScheduleAtInThePastSavesJobInScheduledAndEnqueuedState() {
+        AbstractJobScheduler jobScheduler = jobScheduler();
+
+        jobScheduler.schedule(null, Instant.now().minus(4, ChronoUnit.HOURS), JobDetailsTestBuilder.defaultJobDetails().build());
+
+        List<Job> enqueuedJobs = storageProvider.getJobList(StateName.ENQUEUED, ascOnCreatedAt(10));
+        assertThatJobs(enqueuedJobs).hasSize(1);
+        assertThat(enqueuedJobs.get(0)).hasStates(StateName.SCHEDULED, StateName.ENQUEUED);
     }
 
     @Test

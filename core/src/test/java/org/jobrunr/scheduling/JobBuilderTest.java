@@ -141,6 +141,26 @@ class JobBuilderTest {
     }
 
     @Test
+    void testWithScheduleInThePast() {
+        Job job = aJob()
+                .scheduleIn(Duration.ofMinutes(-1))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .build(jobDetailsGenerator);
+
+        assertThat(job).hasStates(StateName.SCHEDULED, StateName.ENQUEUED);
+    }
+
+    @Test
+    void testWithScheduleAtInThePast() {
+        Job job = aJob()
+                .scheduleAt(Instant.now().minusSeconds(60))
+                .withJobLambda(() -> testService.doWorkWithUUID(UUID.randomUUID()))
+                .build(jobDetailsGenerator);
+
+        assertThat(job).hasStates(StateName.SCHEDULED, StateName.ENQUEUED);
+    }
+
+    @Test
     void testWithScheduleCarbonAware() {
         Instant deadline = now().plus(10, DAYS);
         Job job = aJob()

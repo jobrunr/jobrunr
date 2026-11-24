@@ -12,6 +12,7 @@ import org.jobrunr.jobs.states.CarbonAwareAwaitingState;
 import org.jobrunr.jobs.states.EnqueuedState;
 import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
+import org.jobrunr.utils.InstantUtils;
 import org.jobrunr.utils.JobUtils;
 
 import java.time.Instant;
@@ -261,7 +262,11 @@ public class JobBuilder {
             throw new IllegalStateException("You are combining the JobBuilder with the Job annotation which is not allowed. You can only use one of them.");
         }
 
-        Job job = new Job(jobId, jobDetails, getState());
+        AbstractJobState state = getState();
+        Job job = new Job(jobId, jobDetails, state);
+        if (state instanceof ScheduledState && InstantUtils.isInstantBeforeOrEqualTo(((ScheduledState) state).getScheduledAt(), Instant.now())) {
+            job.enqueue();
+        }
         setJobName(job);
         setAmountOfRetries(job);
         setLabels(job);
