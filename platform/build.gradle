@@ -17,7 +17,7 @@ dependencies {
         api 'tools.jackson.core:jackson-databind:3.2.4'
         api 'tools.jackson.module:jackson-module-kotlin:3.2.4'
         api 'com.google.code.gson:gson:2.14.0'
-        api 'org.eclipse:yasson:3.0.5'
+        api 'org.eclipse.yasson:yasson:3.1.0-M2'
         api 'io.micrometer:micrometer-core:1.17.2'
         api 'io.insert-koin:koin-core:4.2.2'
         api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0'
