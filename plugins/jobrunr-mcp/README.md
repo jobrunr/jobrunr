@@ -2,7 +2,7 @@
 
 Connects a running JobRunr instance to the JobRunr MCP server at https://mcp.jobrunr.io so AI agents can inspect and
 operate your jobs. The first beta, `org.jobrunr:jobrunr-mcp:1.0.0-beta.0`, is on Maven Central. The security changes
-described here are source changes until a newer version is released.
+described here target `1.0.0-beta.1`, which has not been published yet.
 
 The connector long-polls the MCP server over HTTPS. The connection is outbound only, so no inbound port has to be
 opened. A plain HTTP hub URL is accepted only for a loopback address, such as `http://localhost:18080`, for local
@@ -40,8 +40,8 @@ token is configured. Keep the connector token in a secret store or environment v
 
 `jobrunr-mcp` is **not** released together with JobRunr core. It has its own version line and is published by hand, so
 the tag-triggered pipeline in `.woodpecker/release.yaml` skips it: the publish tasks only run when
-`-PmcpVersion=<version>` is passed. `1.0.0-beta.0` is already published and cannot be replaced; use a new version for
-the next release.
+`-PmcpVersion=<version>` is passed. `1.0.0-beta.0` is already published and cannot be replaced. The next planned
+release is `1.0.0-beta.1`; local builds without `-PmcpVersion` use `1.0.0-beta.1-SNAPSHOT`.
 
 Releases are uploaded manually through the [Central Portal](https://central.sonatype.com/publishing), so the only
 secrets you need locally are the signing ones:

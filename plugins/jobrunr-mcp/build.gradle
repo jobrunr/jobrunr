@@ -6,7 +6,7 @@ plugins {
 
 // jobrunr-mcp is released on its own cadence, not together with JobRunr core.
 // Override with -PmcpVersion=... when cutting a release; the default is only used for local builds.
-version = project.findProperty('mcpVersion') ?: '1.0.0-beta.0-SNAPSHOT'
+version = project.findProperty('mcpVersion') ?: '1.0.0-beta.1-SNAPSHOT'
 
 // Oldest JobRunr core this connector compiles against. It is what ends up in the published pom,
 // so users stay on their own JobRunr version instead of being dragged to the one we built with.
