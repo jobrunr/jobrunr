@@ -188,7 +188,9 @@ dependencies {
 }
 
 tasks.withType(Test).configureEach {
-    jvmArgs '--illegal-final-field-mutation=deny'
+    if (JavaVersion.current().majorVersion.toInteger() >= 26) {
+        jvmArgs '--illegal-final-field-mutation=deny'
+    }
 }
 
 tasks.register('npmInstall', Exec) {

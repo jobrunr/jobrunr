@@ -39,7 +39,12 @@ public class CpuAllocationIrregularityProblemHandler implements MetadataChangeLi
             if (!metadataList.isEmpty()) {
                 problems.addProblem(new CpuAllocationIrregularityProblem(metadataList));
                 problems.removeProblemsOfType(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE);
-                storageProvider.deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
+            } else if (this.serversWithLongGCCyclesMetadataList != null && !this.serversWithLongGCCyclesMetadataList.isEmpty()) {
+                List<JobRunrMetadata> pollIntervalWarnings = storageProvider.getMetadata(
+                        PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
+                if (!pollIntervalWarnings.isEmpty()) {
+                    problems.addProblem(new PollIntervalInSecondsTimeBoxIsTooSmallProblem(pollIntervalWarnings));
+                }
             }
             this.serversWithLongGCCyclesMetadataList = metadataList;
         }

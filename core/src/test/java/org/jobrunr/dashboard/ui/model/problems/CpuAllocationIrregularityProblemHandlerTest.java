@@ -22,6 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CpuAllocationIrregularityProblemHandlerTest {
@@ -63,7 +64,7 @@ class CpuAllocationIrregularityProblemHandlerTest {
                 .hasFieldOrPropertyWithValue("cpuAllocationIrregularityMetadataSet", asList(jobRunrMetadata));
 
         verify(problems).removeProblemsOfType(PollIntervalInSecondsTimeBoxIsTooSmallProblem.PROBLEM_TYPE);
-        verify(storageProvider).deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
+        verify(storageProvider, never()).deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
     }
 
     @Test
@@ -75,6 +76,24 @@ class CpuAllocationIrregularityProblemHandlerTest {
         cpuAllocationIrregularityProblemHandler.onChange(emptyList());
         verify(problems).removeProblemsOfType(CpuAllocationIrregularityProblem.PROBLEM_TYPE);
         verify(problems, never()).addProblem(any());
+    }
+
+    @Test
+    void pollIntervalWarningReappearsWhenCpuIrregularityClearsWithoutDeletingMetadata() {
+        JobRunrMetadata cpuWarning = new JobRunrMetadata(
+                CpuAllocationIrregularityNotification.class.getSimpleName(), "server-1", "23");
+        JobRunrMetadata pollWarning = new JobRunrMetadata(
+                PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName(), "server-1", "5");
+        when(storageProvider.getMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName()))
+                .thenReturn(asList(pollWarning));
+        cpuAllocationIrregularityProblemHandler.onChange(asList(cpuWarning));
+        reset(problems);
+
+        cpuAllocationIrregularityProblemHandler.onChange(emptyList());
+
+        verify(problems).addProblem(problemArgumentCaptor.capture());
+        assertThat(problemArgumentCaptor.getValue()).isInstanceOf(PollIntervalInSecondsTimeBoxIsTooSmallProblem.class);
+        verify(storageProvider, never()).deleteMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName());
     }
 
     @Test

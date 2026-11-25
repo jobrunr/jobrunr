@@ -5,7 +5,10 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.jobrunr.jobs.Job;
 import org.jobrunr.jobs.mappers.JobMapper;
+import org.jobrunr.server.dashboard.CpuAllocationIrregularityNotification;
+import org.jobrunr.server.dashboard.PollIntervalInSecondsTimeBoxIsTooSmallNotification;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -18,20 +21,26 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jobrunr.JobRunrAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.jobs.JobTestBuilder.aFailedJobWithRetries;
 import static org.jobrunr.jobs.states.StateName.ENQUEUED;
 import static org.jobrunr.jobs.states.StateName.FAILED;
 
 class JobRunrMcpConnectorTest {
 
+    private static final String REQUEST_ID = "11111111111111111111111111111111";
+
     private final BlockingQueue<String> requestsForConnector = new LinkedBlockingQueue<>();
     private final BlockingQueue<String> resultsFromConnector = new LinkedBlockingQueue<>();
+    private final AtomicInteger resultAttempts = new AtomicInteger();
     private volatile Headers pollHeaders;
+    private volatile boolean failFirstResult;
     private StorageProvider storageProvider;
     private HttpServer hub;
     private JobRunrMcpConnector connector;
@@ -50,7 +59,7 @@ class JobRunrMcpConnectorTest {
 
     @AfterEach
     void stopHub() {
-        connector.stop();
+        if (connector != null) connector.stop();
         hub.stop(0);
     }
 
@@ -59,9 +68,9 @@ class JobRunrMcpConnectorTest {
         Job job = storageProvider.save(aFailedJobWithRetries().build());
         startConnector("jrc_read_token");
 
-        requestsForConnector.add("r1 GET /api/jobs/" + job.getId());
+        requestsForConnector.add(REQUEST_ID + " GET /api/jobs/" + job.getId());
 
-        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith("r1 200 {").contains(job.getId().toString());
+        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith(REQUEST_ID + " 200 {").contains(job.getId().toString());
         assertThat(pollHeaders.getFirst("Authorization")).isEqualTo("Bearer jrc_read_token");
         assertThat(pollHeaders.getFirst("X-JobRunr-Redaction")).isEqualTo("false");
     }
@@ -71,9 +80,9 @@ class JobRunrMcpConnectorTest {
         Job job = storageProvider.save(aFailedJobWithRetries().build());
         startConnector("jrc_read_token");
 
-        requestsForConnector.add("r1 POST /api/jobs/" + job.getId() + "/requeue");
+        requestsForConnector.add(REQUEST_ID + " POST /api/jobs/" + job.getId() + "/requeue");
 
-        assertThat(resultsFromConnector.poll(5, SECONDS)).isEqualTo("r1 403 {\"error\":\"This connector token does not allow POST /api/jobs/" + job.getId() + "/requeue\"}");
+        assertThat(resultsFromConnector.poll(5, SECONDS)).isEqualTo(REQUEST_ID + " 403 {\"error\":\"This connector token does not allow POST /api/jobs/" + job.getId() + "/requeue\"}");
         assertThat(storageProvider.getJobById(job.getId())).hasState(FAILED);
     }
 
@@ -82,10 +91,56 @@ class JobRunrMcpConnectorTest {
         Job job = storageProvider.save(aFailedJobWithRetries().build());
         startConnector("jrc_operate_token");
 
-        requestsForConnector.add("r1 POST /api/jobs/" + job.getId() + "/requeue");
+        requestsForConnector.add(REQUEST_ID + " POST /api/jobs/" + job.getId() + "/requeue");
 
-        assertThat(resultsFromConnector.poll(5, SECONDS)).isEqualTo("r1 204 ");
+        assertThat(resultsFromConnector.poll(5, SECONDS)).isEqualTo(REQUEST_ID + " 204 ");
         assertThat(storageProvider.getJobById(job.getId())).hasState(ENQUEUED);
+    }
+
+    @Test
+    void readTokenCannotGetArbitraryMetadata() throws InterruptedException {
+        storageProvider.saveMetadata(new JobRunrMetadata("credentials", "app", "{\"password\":\"SENTINEL\"}"));
+        startConnector("jrc_read_token");
+
+        requestsForConnector.add(REQUEST_ID + " GET /api/metadata/credentials/app?format=jsonValue");
+
+        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith(REQUEST_ID + " 403 ");
+    }
+
+    @Test
+    void readingProblemsDoesNotDeleteStoredPollIntervalWarning() throws InterruptedException {
+        storageProvider.saveMetadata(new JobRunrMetadata(
+                CpuAllocationIrregularityNotification.class.getSimpleName(), "server-1", "23"));
+        storageProvider.saveMetadata(new JobRunrMetadata(
+                PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName(), "server-1", "5"));
+        startConnector("jrc_read_token");
+
+        requestsForConnector.add(REQUEST_ID + " GET /api/problems");
+
+        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith(REQUEST_ID + " 200 ");
+        assertThat(storageProvider.getMetadata(PollIntervalInSecondsTimeBoxIsTooSmallNotification.class.getSimpleName())).hasSize(1);
+    }
+
+    @Test
+    void retriesTransientResultRejectionWithTheSameRequestId() throws InterruptedException {
+        failFirstResult = true;
+        startConnector("jrc_read_token");
+        requestsForConnector.add(REQUEST_ID + " GET /api/version");
+
+        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith(REQUEST_ID + " 200 ");
+        assertThat(resultsFromConnector.poll(5, SECONDS)).startsWith(REQUEST_ID + " 200 ");
+        assertThat(resultAttempts.get()).isEqualTo(2);
+    }
+
+    @Test
+    void rejectsPlaintextRemoteHubUrls() {
+        assertThatThrownBy(() -> new JobRunrMcpConnector(
+                "jrc_read_token", "http://example.invalid", storageProvider, new JacksonJsonMapper()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("HTTPS");
+        assertThat(new JobRunrMcpConnector(
+                "jrc_read_token", "http://[::1]:18080", storageProvider, new JacksonJsonMapper()))
+                .isNotNull();
     }
 
     private void startConnector(String token) {
@@ -107,7 +162,8 @@ class JobRunrMcpConnectorTest {
         String requestId = exchange.getRequestURI().getPath().substring("/connector/results/".length());
         String body = new String(exchange.getRequestBody().readAllBytes(), UTF_8);
         resultsFromConnector.add(requestId + " " + exchange.getRequestHeaders().getFirst("X-JobRunr-Status") + " " + body);
-        respond(exchange, 204, "");
+        int attempt = resultAttempts.incrementAndGet();
+        respond(exchange, failFirstResult && attempt == 1 ? 503 : 204, "");
     }
 
     private static void respond(HttpExchange exchange, int status, String body) throws IOException {

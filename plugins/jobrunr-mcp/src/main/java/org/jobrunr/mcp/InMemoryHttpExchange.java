@@ -18,10 +18,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 class InMemoryHttpExchange extends HttpExchange {
 
+    static final int MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
+
     private final String requestMethod;
     private final URI requestUri;
     private final Headers responseHeaders = new Headers();
-    private final ByteArrayOutputStream responseBody = new ByteArrayOutputStream();
+    private final LimitedOutput responseBody = new LimitedOutput();
     private int responseCode;
 
     InMemoryHttpExchange(String requestMethod, String requestUri) {
@@ -31,6 +33,10 @@ class InMemoryHttpExchange extends HttpExchange {
 
     String getResponseBodyAsString() {
         return responseBody.toString(UTF_8);
+    }
+
+    boolean responseExceededLimit() {
+        return responseBody.exceeded;
     }
 
     @Override
@@ -116,5 +122,34 @@ class InMemoryHttpExchange extends HttpExchange {
     @Override
     public HttpPrincipal getPrincipal() {
         return null;
+    }
+
+    private static final class LimitedOutput extends ByteArrayOutputStream {
+        private boolean exceeded;
+
+        @Override
+        public synchronized void write(int value) {
+            ensureCapacityFor(1);
+            super.write(value);
+        }
+
+        @Override
+        public synchronized void write(byte[] bytes, int offset, int length) {
+            ensureCapacityFor(length);
+            super.write(bytes, offset, length);
+        }
+
+        private void ensureCapacityFor(int additionalBytes) {
+            if (additionalBytes < 0 || additionalBytes > MAX_RESPONSE_BYTES - size()) {
+                exceeded = true;
+                throw new ResponseLimitExceededException();
+            }
+        }
+    }
+
+    static final class ResponseLimitExceededException extends RuntimeException {
+        ResponseLimitExceededException() {
+            super("Dashboard response exceeded the MCP connector limit");
+        }
     }
 }
