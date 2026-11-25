@@ -21,7 +21,7 @@ class DashboardRequestPolicyTest {
                 "/api/jobs?state=FAILED&offset=0&limit=1",
                 "/api/jobs?state=SUCCEEDED&offset=100&limit=100&order=updatedAt:DESC",
                 "/api/recurring-jobs?offset=0&limit=1",
-                "/api/recurring-jobs?offset=2147483647&limit=200");
+                "/api/recurring-jobs?offset=10000&limit=200");
 
         for (String path : currentRoutes) {
             assertThat(DashboardRequestPolicy.isAllowed("GET", path, false)).as(path).isTrue();
@@ -37,10 +37,12 @@ class DashboardRequestPolicyTest {
                 "/api/jobs/../api/version",
                 "/api/jobs/%2F",
                 "/api/jobs?state=FAILED&offset=0&limit=101",
+                "/api/jobs?state=FAILED&offset=10001&limit=1",
                 "/api/jobs?state=FAILED&offset=2147483648&limit=1",
                 "/api/jobs?state=FAILED&offset=0&limit=1&extra=1",
                 "/api/jobs?state=FAILED&offset=0&limit=1%26extra=1",
                 "/api/recurring-jobs?offset=0&limit=201",
+                "/api/recurring-jobs?offset=10001&limit=1",
                 "/api/recurring-jobs",
                 "https://example.invalid/api/version",
                 "/api/version\nPOST /api/jobs/" + JOB_ID + "/requeue");

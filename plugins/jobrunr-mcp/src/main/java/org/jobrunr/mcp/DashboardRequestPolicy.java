@@ -14,6 +14,7 @@ final class DashboardRequestPolicy {
     private static final String PROBLEM_TYPE = "[a-z0-9-]{1,64}";
     private static final String STATE = "AWAITING|SCHEDULED|ENQUEUED|PROCESSING|FAILED|SUCCEEDED|DELETED";
     private static final int MAX_PATH_LENGTH = 512;
+    private static final int MAX_OFFSET = 10_000;
 
     private static final Pattern JOB_DETAIL = Pattern.compile("/api/jobs/" + UUID);
     private static final Pattern JOB_PAGE = Pattern.compile(
@@ -50,7 +51,7 @@ final class DashboardRequestPolicy {
 
     private static boolean pageBounds(String offset, String limit, int maxLimit) {
         try {
-            return Long.parseLong(offset) <= Integer.MAX_VALUE
+            return Long.parseLong(offset) <= MAX_OFFSET
                     && Integer.parseInt(limit) >= 1
                     && Integer.parseInt(limit) <= maxLimit;
         } catch (NumberFormatException ignored) {
