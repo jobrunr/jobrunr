@@ -108,6 +108,18 @@ class JobRunrMcpConnectorTest {
     }
 
     @Test
+    void clusterMetadataNeededByHubIsReadable() throws InterruptedException {
+        storageProvider.saveMetadata(new JobRunrMetadata("id", "cluster", "cluster-test"));
+        startConnector("jrc_read_token");
+
+        requestsForConnector.add(REQUEST_ID + " GET /api/metadata/id/cluster");
+
+        assertThat(resultsFromConnector.poll(5, SECONDS))
+                .startsWith(REQUEST_ID + " 200 ")
+                .contains("\"value\":\"cluster-test\"");
+    }
+
+    @Test
     void readingProblemsDoesNotDeleteStoredPollIntervalWarning() throws InterruptedException {
         storageProvider.saveMetadata(new JobRunrMetadata(
                 CpuAllocationIrregularityNotification.class.getSimpleName(), "server-1", "23"));
