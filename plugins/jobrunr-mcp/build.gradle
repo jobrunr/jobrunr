@@ -4,6 +4,14 @@ plugins {
     id 'signing'
 }
 
+// jobrunr-mcp is released on its own cadence, not together with JobRunr core.
+// Override with -PmcpVersion=... when cutting a release; the default is only used for local builds.
+version = project.findProperty('mcpVersion') ?: '1.0.0-beta.0-SNAPSHOT'
+
+// Oldest JobRunr core this connector compiles against. It is what ends up in the published pom,
+// so users stay on their own JobRunr version instead of being dragged to the one we built with.
+ext.minimumJobRunrVersion = '8.5.0'
+
 compileJava {
     options.release = 17
 }
@@ -36,7 +44,19 @@ jar {
     }
 }
 
+def centralBundleDir = layout.buildDirectory.dir('central-bundle')
+def centralBundleRepoDir = centralBundleDir.map { it.dir('repository') }
+
 publishing {
+    repositories {
+        // Not a real remote: publishing here lays the artifacts out the way Maven Central expects,
+        // including the .md5/.sha1 checksums that publishToMavenLocal does not write.
+        maven {
+            name = 'centralBundle'
+            url = centralBundleRepoDir
+        }
+    }
+
     publications {
         mavenJava(MavenPublication) {
             groupId = 'org.jobrunr'
@@ -72,7 +92,16 @@ publishing {
                 }
 
                 withXml {
-                    asNode().remove(asNode().dependencyManagement)
+                    def pomNode = asNode()
+                    pomNode.remove(pomNode.dependencyManagement)
+                    // components.java would pin org.jobrunr:jobrunr to the version we built against.
+                    // Publish the minimum supported version instead so Maven/Gradle keeps the user's own.
+                    def coreDependencies = pomNode.dependencies.'*'
+                            .findAll { it.groupId.text() == 'org.jobrunr' && it.artifactId.text() == 'jobrunr' }
+                    if (coreDependencies.isEmpty()) {
+                        throw new GradleException('Expected a dependency on org.jobrunr:jobrunr in the jobrunr-mcp pom but found none.')
+                    }
+                    coreDependencies.each { it.version[0].setValue(minimumJobRunrVersion) }
                 }
             }
         }
@@ -84,6 +113,52 @@ signing {
     if (base64Key) {
         useInMemoryPgpKeys(new String(Base64.decoder.decode(base64Key)), System.getenv('SIGNING_PASSWORD'))
         sign publishing.publications.mavenJava
+    }
+}
+
+// Gradle module metadata would record org.jobrunr:jobrunr and org.jobrunr:jobrunr-bom at the version
+// we built against, and Gradle consumers prefer it over the pom. Since jobrunr-mcp is versioned
+// independently those coordinates do not exist, so publish the pom only.
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
+
+// The tag-triggered release pipeline runs publishToSonatype for the whole build. jobrunr-mcp has its
+// own version, so it must not ride along on a JobRunr release: only publish it when a version was
+// passed explicitly. publishToMavenLocal is unaffected.
+tasks.withType(PublishToMavenRepository).configureEach {
+    onlyIf {
+        def release = project.hasProperty('mcpVersion')
+        if (!release) logger.lifecycle("Skipping ${path}: jobrunr-mcp is released separately, pass -PmcpVersion=<version> to publish it.")
+        release
+    }
+
+    // Releasing is a manual step, so fail loudly rather than uploading artifacts Maven Central will reject.
+    doFirst {
+        if (!System.getenv('SIGNING_KEY')) {
+            throw new GradleException('SIGNING_KEY (and SIGNING_PASSWORD) must be set to publish jobrunr-mcp: Maven Central rejects unsigned artifacts.')
+        }
+    }
+}
+
+// Builds the archive to upload by hand at https://central.sonatype.com/publishing. Only the files for
+// the version being released are included: maven-metadata.xml lives a level up and must stay out.
+tasks.register('centralBundle', Zip) {
+    group = 'publishing'
+    description = 'Builds the signed archive to upload manually to Maven Central.'
+
+    dependsOn tasks.withType(PublishToMavenRepository).matching { it.name.endsWith('ToCentralBundleRepository') }
+
+    def artifactPath = "org/jobrunr/jobrunr-mcp/${version}"
+    from(centralBundleRepoDir.map { it.dir(artifactPath) }) {
+        into artifactPath
+    }
+
+    destinationDirectory = centralBundleDir
+    archiveFileName = "jobrunr-mcp-${version}-bundle.zip"
+
+    doLast {
+        logger.lifecycle("Upload ${archiveFile.get().asFile} at https://central.sonatype.com/publishing")
     }
 }
 
