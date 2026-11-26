@@ -15,6 +15,7 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.utils.mapper.JsonMapper;
 import org.jobrunr.utils.mapper.jackson.JacksonJsonMapper;
+import org.jobrunr.utils.mapper.jackson3.Jackson3JsonMapper;
 import org.jobrunr.utils.mapper.jsonb.JsonbJsonMapper;
 import org.jobrunr.utils.reflection.ReflectionUtils;
 
@@ -85,7 +86,7 @@ public class JobRunrProducer {
 
     }
 
-    public static class JobRunrJacksonJsonMapperProducer {
+    public static class JobRunrJackson2JsonMapperProducer {
         @Produces
         @DefaultBean
         @Singleton
@@ -95,7 +96,17 @@ public class JobRunrProducer {
 
     }
 
-    public static class JobRunrKotlinxSerializataionJsonMapperProducer {
+    public static class JobRunrJackson3JsonMapperProducer {
+        @Produces
+        @DefaultBean
+        @Singleton
+        public JsonMapper jobRunrJsonMapper() {
+            return new Jackson3JsonMapper();
+        }
+
+    }
+
+    public static class JobRunrKotlinxSerializationJsonMapperProducer {
         @Produces
         @DefaultBean
         @Singleton
