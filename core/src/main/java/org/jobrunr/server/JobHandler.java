@@ -37,24 +37,27 @@ public abstract class JobHandler implements Runnable {
             runInfo.markRunAsSucceeded();
         } catch (Exception e) {
             taskStatistics.handleException(e);
+            boolean isStorageException = e instanceof StorageException;
             if (taskStatistics.hasTooManyExceptions()) {
-                if (e instanceof StorageException) {
+                if (isStorageException) {
                     LOGGER.error("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/", e);
                 } else {
                     LOGGER.error("FATAL - JobRunr encountered too many processing exceptions. Shutting down.", shouldNotHappenException(e));
                 }
                 backgroundJobServer.stop();
-            } else if (e instanceof StorageException) {
-                if (taskStatistics.hasManyExceptions()) {
-                    LOGGER.warn("JobRunr encountered many exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
-                } else if (taskStatistics.hasExceptions()) {
-                    LOGGER.info("JobRunr encountered continued exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
-                } else {
-                    LOGGER.debug("JobRunr encountered an exception related to your StorageProvider.", e);
-                }
+            } else if (isStorageException && taskStatistics.hasManyExceptions()) {
+                LOGGER.warn("JobRunr encountered many exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
+            } else if (isStorageException && taskStatistics.hasExceptions()) {
+                LOGGER.info("JobRunr encountered continued exceptions related to your StorageProvider. If exceptions continue, processing will stop.", e);
+            } else if (isStorageException) {
+                LOGGER.debug("JobRunr encountered an exception related to your StorageProvider.", e);
             } else {
                 LOGGER.warn(JobRunrException.SHOULD_NOT_HAPPEN_MESSAGE + " - Processing will continue.", e);
             }
+        } catch (Throwable t) {
+            LOGGER.error("FATAL - JobRunr encountered an unrecoverable {}. Shutting down.", t.getClass().getSimpleName(), t);
+            backgroundJobServer.stop();
+            throw t;
         }
     }
 

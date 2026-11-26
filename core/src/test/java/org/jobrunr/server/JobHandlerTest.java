@@ -24,6 +24,7 @@ import java.sql.SQLTransientConnectionException;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.jobrunr.JobRunrAssertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -128,9 +129,20 @@ class JobHandlerTest {
         assertThat(logger).hasErrorMessage("FATAL - JobRunr encountered too many storage exceptions. Shutting down. Did you know JobRunr Pro has built-in database fault tolerance? Check out https://www.jobrunr.io/en/documentation/pro/database-fault-tolerance/");
     }
 
-    private Task mockTaskThatThrows(Exception e) {
+    @Test
+    void throwablesLikeOutOfMemoryErrorsStopBackgroundJobServer() {
+        Task mockedTask = mockTaskThatThrows(new OutOfMemoryError("Java heap space"));
+        JobHandler jobHandler = createJobHandlerWithTask(mockedTask);
+
+        assertThatThrownBy(jobHandler::run).isInstanceOf(OutOfMemoryError.class);
+
+        verify(backgroundJobServer).stop();
+        assertThat(logger).hasErrorMessage("FATAL - JobRunr encountered an unrecoverable OutOfMemoryError. Shutting down.");
+    }
+
+    private Task mockTaskThatThrows(Throwable t) {
         Task mockedTask = mock(Task.class);
-        doThrow(e)
+        doThrow(t)
                 .when(mockedTask).run(Mockito.any());
         return mockedTask;
     }
