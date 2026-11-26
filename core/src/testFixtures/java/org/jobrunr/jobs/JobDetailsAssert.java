@@ -101,6 +101,11 @@ public class JobDetailsAssert extends AbstractAssert<JobDetailsAssert, JobDetail
         return this;
     }
 
+    public JobDetailsAssert isDeserializable() {
+        Assertions.assertThat(actual.getJobParameters().stream().filter(JobParameter::isNotDeserializable)).isEmpty();
+        return this;
+    }
+
     public JobDetailsAssert hasNotDeserializableExceptionEqualTo(JobParameterNotDeserializableException exception) {
         var actualException = actual.getJobParameters().stream().filter(JobParameter::isNotDeserializable).map(JobParameter::getException).findAny();
         Assertions.assertThat(actualException).isPresent();

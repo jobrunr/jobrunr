@@ -168,6 +168,36 @@ public abstract class AbstractJsonMapperTest {
     }
 
     @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/1642")
+    void testSerializeAndDeserializeEnqueuedJobWithDurationJobParameter() {
+        Job job = anEnqueuedJob()
+                .withJobLambda(() -> testService.doWork(Duration.ofMillis(1500)))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob.getJobDetails())
+                .isDeserializable()
+                .hasArgs(Duration.ofMillis(1500));
+    }
+
+    @Test
+    @Because("https://github.com/jobrunr/jobrunr/issues/1642")
+    void testSerializeAndDeserializeEnqueuedJobWithNegativeDurationJobParameter() {
+        Job job = anEnqueuedJob()
+                .withJobLambda(() -> testService.doWork(Duration.ofMillis(-1500)))
+                .build();
+
+        final String jobAsString = jsonMapper.serialize(job);
+
+        final Job actualJob = jsonMapper.deserialize(jobAsString, Job.class);
+        assertThat(actualJob.getJobDetails())
+                .isDeserializable()
+                .hasArgs(Duration.ofMillis(-1500));
+    }
+
+    @Test
     void testSerializeAndDeserializeEnqueuedJobWithPathJobParameter() {
         Job job = anEnqueuedJob()
                 .withJobLambda(() -> testService.doWorkWithPath(Paths.get("/tmp", "jobrunr", "file.xml")))

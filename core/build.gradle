@@ -136,7 +136,7 @@ dependencies {
     compileOnly 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     compileOnly 'tools.jackson.core:jackson-databind'
     compileOnly 'com.google.code.gson:gson'
-    compileOnly 'org.eclipse:yasson'
+    compileOnly 'org.eclipse.yasson:yasson'
     compileOnly 'io.micrometer:micrometer-core'
 
     java17CompileOnly 'tools.jackson.core:jackson-databind'
@@ -149,7 +149,7 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     testImplementation 'com.google.code.gson:gson'
-    testImplementation 'org.eclipse:yasson'
+    testImplementation 'org.eclipse.yasson:yasson'
     testImplementation 'io.micrometer:micrometer-core'
     testImplementation 'org.testcontainers:testcontainers'
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'

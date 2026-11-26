@@ -31,7 +31,7 @@ public class Sql<T> {
     protected Dialect dialect;
     private String tablePrefix;
 
-    private static final Map<Integer, SqlStatement> parsedStatementCache = new ConcurrentHashMap<>();
+    private static final Map<String, SqlStatement> parsedStatementCache = new ConcurrentHashMap<>();
     private String tableName;
     private Connection connection;
 

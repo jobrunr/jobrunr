@@ -16,10 +16,10 @@ import org.jobrunr.utils.mapper.jackson.modules.JobDetailsMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobMixin;
 import org.jobrunr.utils.mapper.jackson.modules.JobStateMixin;
 import org.jobrunr.utils.mapper.jackson3.modules.JobRunrModule;
-import org.jobrunr.utils.mapper.jackson3.modules.JobRunrTimeModule;
 import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.cfg.EnumFeature;
 import tools.jackson.databind.exc.InvalidDefinitionException;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -77,7 +77,8 @@ public class Jackson3JsonMapper implements JsonMapper {
                 .disable(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS)
                 .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
                 .enable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS)
-                .addModules(new JobRunrModule(), new JobRunrTimeModule())
+                .enable(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+                .addModules(new JobRunrModule())
                 .activateDefaultTypingAsProperty(typeValidator, DefaultTyping.OBJECT_AND_NON_CONCRETE, "@class")
                 .build();
     }

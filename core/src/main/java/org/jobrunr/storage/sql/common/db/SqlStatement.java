@@ -22,8 +22,8 @@ public class SqlStatement {
         this.hashKey = elementPrefixer(tablePrefix, originalSql);
     }
 
-    public static int statementKey(String tablePrefix, String originalSql) {
-        return Objects.hashCode(elementPrefixer(tablePrefix, originalSql));
+    public static String statementKey(String tablePrefix, String originalSql) {
+        return elementPrefixer(tablePrefix, originalSql);
     }
 
     public String getOriginalSql() {
