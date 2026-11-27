@@ -1,14 +1,6 @@
 plugins {
     id 'java-library'
-    alias(libs.plugins.quarkus)
-}
-
-compileJava {
-    options.release = 17
-}
-
-compileTestJava {
-    options.release = 17
+    id 'io.quarkus' version '4.0.1'
 }
 
 dependencies {

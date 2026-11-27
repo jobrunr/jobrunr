@@ -31,7 +31,8 @@ public abstract class ServerSentEventHandler extends AbstractHttpExchangeHandler
     public void handle(HttpExchange httpExchange) throws IOException {
         sseExchanges.removeIf(SseExchange::isClosed);
         if (sseExchanges.size() > 40) {
-            httpExchange.sendResponseHeaders(417, 0);
+            httpExchange.sendResponseHeaders(417, -1);
+            httpExchange.close();
             return;
         }
         sseExchanges.add(createSseExchange(httpExchange));

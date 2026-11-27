@@ -233,12 +233,15 @@ class JobRunrExtensionProcessor {
     }
 
     private Class<?> jsonMapper(Capabilities capabilities) {
+        // why not use JsonMapperFactory? because native build seem to disregard conditions
         // Unfortunately, there is no Capability.KOTLIN_SERIALIZATION.
         if (isKotlinxSerializationAndJobRunrKotlinSupportPresent()) {
-            return JobRunrProducer.JobRunrKotlinxSerializataionJsonMapperProducer.class;
+            return JobRunrProducer.JobRunrKotlinxSerializationJsonMapperProducer.class;
         }
         if (capabilities.isPresent(Capability.JACKSON)) {
-            return JobRunrProducer.JobRunrJacksonJsonMapperProducer.class;
+            return classExists("tools.jackson.databind.ObjectMapper")
+                    ? JobRunrProducer.JobRunrJackson3JsonMapperProducer.class
+                    : JobRunrProducer.JobRunrJackson2JsonMapperProducer.class;
         }
         if (capabilities.isPresent(Capability.JSONB)) {
             return JobRunrProducer.JobRunrJsonBJsonMapperProducer.class;

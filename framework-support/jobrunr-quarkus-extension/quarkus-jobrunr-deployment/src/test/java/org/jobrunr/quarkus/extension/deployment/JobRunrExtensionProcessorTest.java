@@ -147,7 +147,7 @@ class JobRunrExtensionProcessorTest {
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrProducer.JobRunrKotlinxSerializataionJsonMapperProducer.class.getName());
+                .contains(JobRunrProducer.JobRunrKotlinxSerializationJsonMapperProducer.class.getName());
     }
 
     @Test
@@ -166,7 +166,7 @@ class JobRunrExtensionProcessorTest {
         final AdditionalBeanBuildItem additionalBeanBuildItem = jobRunrExtensionProcessor.produce(capabilities, jobRunrBuildTimeConfiguration);
 
         assertThat(additionalBeanBuildItem.getBeanClasses())
-                .contains(JobRunrProducer.JobRunrJacksonJsonMapperProducer.class.getName());
+                .contains(JobRunrProducer.JobRunrJackson2JsonMapperProducer.class.getName());
     }
 
     @Test
