@@ -1,12 +1,12 @@
 plugins {
     id 'java-library'
-    id 'io.micronaut.library' version '5.0.2'
+    alias(libs.plugins.micronaut.library)
     id 'maven-publish'
     id 'signing'
 }
 
 micronaut {
-    version '5.2.3'
+    version libs.versions.micronautPlatform.get()
 }
 
 compileJava {
@@ -18,7 +18,6 @@ compileTestJava {
 }
 
 dependencies {
-    api platform(project(':platform'))
     api project(':core')
 
     implementation 'io.micronaut.validation:micronaut-validation'
@@ -99,7 +98,10 @@ publishing {
 
                 withXml {
                     def pomNode = asNode()
-                    pomNode.remove(pomNode.dependencyManagement)
+                    def dependencyManagement = pomNode.dependencyManagement
+                    if (dependencyManagement) {
+                        pomNode.remove(dependencyManagement)
+                    }
                     pomNode.dependencies.'*'.findAll() {
                         it.optional.text() == 'true'
                     }.each() {

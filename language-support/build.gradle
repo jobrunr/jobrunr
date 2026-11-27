@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api project(':core')
 
-    testImplementation 'org.assertj:assertj-core'
+    testImplementation libs.assertj.core
 }
 
 tasks.withType(Test).configureEach {

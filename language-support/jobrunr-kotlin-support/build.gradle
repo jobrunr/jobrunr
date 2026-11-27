@@ -2,28 +2,28 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id 'io.github.ben-manes.versions' version '0.66.0'
+    alias(libs.plugins.ben.manes.versions)
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.jetbrains.kotlin.jvm' version '2.2.21'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.21'
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
     api project(':core')
-    compileOnly 'io.insert-koin:koin-core'
-    compileOnly 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+    compileOnly libs.koin.core
+    compileOnly libs.kotlinx.serialization.json
     compileOnly 'org.jetbrains.kotlin:kotlin-reflect'
 
     testImplementation project(':core')
     testImplementation testFixtures(project(":core"))
 
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    testImplementation libs.jackson.databind
+    testImplementation libs.jackson.datatype.jsr310
+    testImplementation libs.jackson.module.kotlin
 
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-serialization-json'
+    testImplementation libs.kotlinx.serialization.json
 }
 
 dependencyUpdates {
@@ -137,7 +137,10 @@ publishing {
 
                 withXml {
                     def pomNode = asNode()
-                    pomNode.remove(pomNode.dependencyManagement)
+                    def dependencyManagement = pomNode.dependencyManagement
+                    if (dependencyManagement) {
+                        pomNode.remove(dependencyManagement)
+                    }
                     pomNode.dependencies.'*'.each() {
                         if (it.optional.text() == 'true') {
                             it.parent().remove(it)

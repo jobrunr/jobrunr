@@ -1,13 +1,11 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
-import java.text.SimpleDateFormat
-
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'org.springframework.boot' version '3.5.16' apply false
-    id 'io.spring.dependency-management' version '1.1.7'
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.spring.dependency.management)
 }
 
 compileJava {
@@ -125,7 +123,10 @@ publishing {
 
                 withXml {
                     def pomNode = asNode()
-                    pomNode.remove(pomNode.dependencyManagement)
+                    def dependencyManagement = pomNode.dependencyManagement
+                    if (dependencyManagement) {
+                        pomNode.remove(dependencyManagement)
+                    }
                     pomNode.dependencies.'*'.each() {
                         if (it.optional.text() == 'true') {
                             it.parent().remove(it)
