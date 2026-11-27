@@ -53,7 +53,7 @@ public class ServerZooKeeper implements Runnable {
             } else {
                 signalBackgroundJobServerAliveAndDoZooKeeping();
             }
-        } catch (Exception shouldNotHappen) {
+        } catch (Throwable shouldNotHappen) {
             LOGGER.error("An unrecoverable error occurred. Shutting down {}...", backgroundJobServer, shouldNotHappen);
             if (masterId == null) backgroundJobServer.setIsMaster(null);
             new Thread(this::stopServer).start();

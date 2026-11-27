@@ -224,6 +224,20 @@ class ServerZooKeeperTest {
     }
 
     @Test
+    void serverIsShutdownIfServerZooKeeperEncountersAnUnrecoverableError() {
+        Mockito.doThrow(new OutOfMemoryError("Java heap space")).when(storageProvider).signalBackgroundJobServerAlive(any());
+
+        final ServerZooKeeper serverZooKeeper = getServerZooKeeper();
+        ListAppender<ILoggingEvent> zookeeperLogger = LoggerAssert.initFor(serverZooKeeper);
+
+        backgroundJobServer.start();
+
+        await().atMost(FIVE_SECONDS).untilAsserted(() -> assertThat(backgroundJobServer.isStopped()).isTrue());
+        assertThat(Whitebox.<Object>getInternalState(backgroundJobServer, "zookeeperThreadPool")).isNull();
+        assertThat(zookeeperLogger).hasErrorMessageContaining("An unrecoverable error occurred. Shutting down");
+    }
+
+    @Test
     void backgroundJobServerSignalsItIsStoppedWhenItIsStopped() {
         backgroundJobServer.start();
         await().untilAsserted(() -> verify(storageProvider).announceBackgroundJobServer(any()));
