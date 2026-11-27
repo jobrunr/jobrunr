@@ -4,10 +4,12 @@ import org.jobrunr.server.JobActivatorShutdownException;
 import org.jobrunr.storage.StorageException;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class ExceptionsTest {
 
@@ -41,6 +43,31 @@ class ExceptionsTest {
         assertThatCode(() -> Exceptions.retryOnException(() -> "my string from supplier", 5)).doesNotThrowAnyException();
         assertThatCode(() -> Exceptions.retryOnException(SupplierForStorageException.AlwaysThrows(), 5)).isInstanceOf(StorageException.class);
         assertThatCode(() -> Exceptions.retryOnException(SupplierForStorageException.ThrowsAfterAttempt(4), 5)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void retryOnExceptionForSupplierDoesNotSpinOnAnInterruptedThread() {
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            Supplier<String> supplier = () -> "never reached";
+            Thread.currentThread().interrupt();
+            try {
+                assertThatCode(() -> Exceptions.retryOnException(supplier, 5)).isInstanceOf(IllegalStateException.class);
+            } finally {
+                Thread.interrupted(); // clear the flag so the test thread is not left interrupted
+            }
+        });
+    }
+
+    @Test
+    void retryOnExceptionForRunnableDoesNotSpinOnAnInterruptedThread() {
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            Thread.currentThread().interrupt();
+            try {
+                assertThatCode(() -> Exceptions.retryOnException(() -> {}, 5)).isInstanceOf(IllegalStateException.class);
+            } finally {
+                Thread.interrupted();
+            }
+        });
     }
 
     private static class RunnableForStorageException implements Runnable {
