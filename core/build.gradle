@@ -1,3 +1,5 @@
+import org.gradle.internal.jvm.Jvm
+
 plugins {
     id 'java-library'
     id 'java-test-fixtures'
@@ -352,4 +354,18 @@ tasks.register('uiBuildOutputVerification') {
 
         println "✓ UI build output validated"
     }
+}
+
+tasks.register('validateJar', Exec) {
+    def jarFile = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    inputs.file(jarFile)
+
+    doFirst {
+        def jarBin = Jvm.current().getExecutable('jar')
+        commandLine jarBin.absolutePath, '--validate', '--file', jarFile.get().asFile.absolutePath
+    }
+}
+
+tasks.named('check') {
+    dependsOn 'validateJar'
 }
