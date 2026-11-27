@@ -61,6 +61,21 @@ class JobRunrSseHandlerTest {
         assertThat(schedulerAfterClosingSseHandler.isShutdown()).isTrue();
     }
 
+    @Test
+    void whenConnectionLimitIsExceededTheExchangeIsRejectedWithoutBodyAndClosed() throws IOException {
+        for (int i = 0; i <= 40; i++) {
+            final HttpExchange httpExchange = createHttpExchangeMock();
+            when(httpExchange.getRequestURI()).thenReturn(URI.create("/sse/jobstats"));
+            jobRunrSseHandler.handle(httpExchange);
+        }
+
+        final HttpExchange rejectedExchange = mock(HttpExchange.class);
+        jobRunrSseHandler.handle(rejectedExchange);
+
+        verify(rejectedExchange).sendResponseHeaders(417, -1);
+        verify(rejectedExchange).close();
+    }
+
     private HttpExchange createHttpExchangeMock() {
         final HttpExchange httpExchange = mock(HttpExchange.class);
         when(httpExchange.getResponseBody()).thenReturn(new ByteArrayOutputStream());
