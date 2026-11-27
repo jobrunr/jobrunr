@@ -6,7 +6,6 @@ import org.jobrunr.utils.mapper.JsonMapper;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 public class HttpResponse {
@@ -29,7 +28,7 @@ public class HttpResponse {
     }
 
     public HttpResponse error(Throwable t) {
-        data(500, ContentType.TEXT_PLAIN, stream -> t.printStackTrace(new PrintStream(stream)));
+        data(500, ContentType.TEXT_PLAIN, stream -> stream.write("An internal server error occurred. Please check the server logs for details.".getBytes(StandardCharsets.UTF_8)));
         return this;
     }
 

@@ -9,12 +9,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
@@ -25,8 +23,8 @@ class HttpResponseTest {
     private HttpExchange httpExchange;
     @Mock
     private Headers headers;
-    @Mock
-    private OutputStream outputStream;
+
+    private ByteArrayOutputStream outputStream;
 
     @Mock
     private JsonMapper jsonMapper;
@@ -36,16 +34,26 @@ class HttpResponseTest {
     @BeforeEach
     void setUpHttpResponse() {
         lenient().when(httpExchange.getResponseHeaders()).thenReturn(headers);
+        outputStream = new ByteArrayOutputStream();
         lenient().when(httpExchange.getResponseBody()).thenReturn(outputStream);
         httpResponse = new HttpResponse(httpExchange, jsonMapper);
     }
 
     @Test
-    void testError() throws IOException {
-        httpResponse.error(new Exception());
+    void errorRespondsWith500() throws IOException {
+        httpResponse.error(new Exception("boom"));
 
         verify(httpExchange).sendResponseHeaders(500, 0);
-        verify(outputStream, atLeastOnce()).write(any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void errorDoesNotLeakTheStackTraceInTheResponseBody() {
+        httpResponse.error(new IllegalStateException("sensitive internal detail"));
+
+        assertThat(outputStream.toString())
+                .doesNotContain("sensitive internal detail")
+                .doesNotContain("IllegalStateException")
+                .doesNotContain("org.jobrunr");
     }
 
 }

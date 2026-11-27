@@ -8,12 +8,16 @@ import org.jobrunr.dashboard.server.http.handlers.HttpRequestHandlers;
 import org.jobrunr.dashboard.server.http.handlers.HttpRequestMethodHandlers;
 import org.jobrunr.dashboard.server.http.url.MatchUrl;
 import org.jobrunr.utils.mapper.JsonMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class RestHttpHandler extends AbstractHttpExchangeHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestHttpHandler.class);
 
     private final String contextPath;
     private final JsonMapper jsonMapper;
@@ -78,6 +82,7 @@ public class RestHttpHandler extends AbstractHttpExchangeHandler {
             if (exceptionHandlers.containsKey(e.getClass())) {
                 exceptionHandlers.get(e.getClass()).accept(e, httpResponse);
             } else {
+                LOGGER.error("Error handling request", e);
                 httpResponse.error(e);
             }
         }
