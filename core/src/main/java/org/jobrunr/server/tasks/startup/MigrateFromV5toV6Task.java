@@ -2,9 +2,7 @@ package org.jobrunr.server.tasks.startup;
 
 import org.jobrunr.jobs.Job;
 import org.jobrunr.server.BackgroundJobServer;
-import org.jobrunr.storage.JobRunrMetadata;
 import org.jobrunr.storage.Page;
-import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.navigation.OffsetBasedPageRequest;
 import org.jobrunr.storage.sql.SqlStorageProvider;
 import org.slf4j.Logger;
@@ -18,24 +16,18 @@ import java.util.UUID;
 import static org.jobrunr.storage.Paging.OffsetBasedPage.ascOnUpdatedAt;
 import static org.jobrunr.storage.Paging.OffsetBasedPage.next;
 
-public class MigrateFromV5toV6Task implements Runnable {
+public class MigrateFromV5toV6Task extends MigrationTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MigrateFromV5toV6Task.class);
-
-    private final StorageProvider storageProvider;
+    private static final String VERSION_6 = "6.0.0";
 
     public MigrateFromV5toV6Task(BackgroundJobServer backgroundJobServer) {
-        storageProvider = backgroundJobServer.getStorageProvider();
+        super(backgroundJobServer, VERSION_6);
     }
 
     @Override
-    public void run() {
-        JobRunrMetadata metadata = storageProvider.getMetadata("database_version", "cluster");
-        if (metadata != null && "6.0.0".equals(metadata.getValue())) return;
-
+    protected void runMigration() {
         migrateScheduledJobsIfNecessary();
-
-        storageProvider.saveMetadata(new JobRunrMetadata("database_version", "cluster", "6.0.0"));
     }
 
     private void migrateScheduledJobsIfNecessary() {
