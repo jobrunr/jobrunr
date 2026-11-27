@@ -16,7 +16,7 @@ import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import Dialog from '@mui/material/Dialog';
 import MuiDialogTitle from '@mui/material/DialogTitle';
 import MuiDialogContent from '@mui/material/DialogContent';
-import {humanFileSize} from "../../utils/helper-functions";
+import {humanFileSize, humanReadableCpuLoad} from "../../utils/helper-functions";
 import VersionFooter from "../utils/version-footer";
 import {ItemsNotFound} from "../utils/items-not-found";
 import {useServers} from "../../hooks/useServers";
@@ -117,7 +117,7 @@ const Servers = memo(() => {
                                                 {humanFileSize(server.processFreeMemory, true)}
                                             </TableCell>
                                             <TableCell>
-                                                {(server.systemCpuLoad * 100).toFixed(2)} %
+                                                {humanReadableCpuLoad(server.systemCpuLoad)}
                                             </TableCell>
                                             <TableCell>
                                                 {server.running
@@ -208,7 +208,7 @@ const Servers = memo(() => {
                                             SystemCpuLoad
                                         </TableCell>
                                         <TableCell>
-                                            {(currentServer.systemCpuLoad * 100).toFixed(2)} %
+                                            {humanReadableCpuLoad(currentServer.systemCpuLoad)}
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
@@ -232,7 +232,7 @@ const Servers = memo(() => {
                                             ProcessCpuLoad
                                         </TableCell>
                                         <TableCell>
-                                            {(currentServer.processCpuLoad * 100).toFixed(2)} %
+                                            {humanReadableCpuLoad(currentServer.processCpuLoad)}
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>

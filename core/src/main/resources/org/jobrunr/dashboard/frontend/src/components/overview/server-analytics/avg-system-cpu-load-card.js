@@ -2,6 +2,7 @@ import {DeveloperBoard} from "@mui/icons-material";
 import {AnalyticsCard} from "../../ui/AnalyticsCard.js";
 import Tooltip from "@mui/material/Tooltip";
 import LinearProgress from "@mui/material/LinearProgress";
+import {humanReadableCpuLoad} from "../../../utils/helper-functions.js";
 
 const AvgSystemCpuLoadCard = ({servers}) => {
     let averageSystemCpuLoad = servers[0].systemCpuLoad;
@@ -9,7 +10,7 @@ const AvgSystemCpuLoadCard = ({servers}) => {
         const average = (array) => array.reduce((a, b) => a + b.systemCpuLoad, 0) / array.length;
         averageSystemCpuLoad = average(servers);
     }
-    let averageSystemCpuLoadPercentage = averageSystemCpuLoad * 100;
+    let averageSystemCpuLoadPercentage = averageSystemCpuLoad < 0 ? 0 : averageSystemCpuLoad * 100;
 
     let highestUsage = {usage: 0, server: null};
     servers.forEach(server => {
@@ -26,10 +27,10 @@ const AvgSystemCpuLoadCard = ({servers}) => {
                            color={averageSystemCpuLoadPercentage > 80 ? "error" : averageSystemCpuLoadPercentage > 50 ? "warning" : "success"}
                        />}
                        subtitle={<Tooltip title={highestUsage.server ? ("On server " + highestUsage.server.name + " (" + highestUsage.server.id + ")") : ""}>
-                           Highest {(highestUsage.usage * 100).toFixed(2)}% {highestUsage.server ? `on ${highestUsage.server.name}` : ""}
+                           Highest {humanReadableCpuLoad(highestUsage.usage)} {highestUsage.server ? `on ${highestUsage.server.name}` : ""}
                        </Tooltip>}
         >
-            {`${averageSystemCpuLoadPercentage.toFixed(2)} %`}
+            {humanReadableCpuLoad(averageSystemCpuLoad)}
         </AnalyticsCard>
     );
 };

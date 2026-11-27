@@ -1,4 +1,6 @@
 export function humanFileSize(bytes, si = true) {
+    if (bytes < 0) return 'NA';
+
     const thresh = si ? 1000 : 1024;
     if (Math.abs(bytes) < thresh) {
         return bytes + ' B';
@@ -12,6 +14,11 @@ export function humanFileSize(bytes, si = true) {
         ++u;
     } while (Math.abs(bytes) >= thresh && u < units.length - 1);
     return bytes.toFixed(1) + ' ' + units[u];
+}
+
+export function humanReadableCpuLoad(cpuLoad) {
+    if (cpuLoad < 0) return 'NA';
+    return `${(cpuLoad * 100).toFixed(2)} %`;
 }
 
 export function convertISO8601DurationToSeconds(durationString) {
