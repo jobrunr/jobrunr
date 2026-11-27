@@ -1,9 +1,9 @@
 plugins {
-    id 'io.micronaut.application' version '5.0.2'
+    alias(libs.plugins.micronaut.application)
 }
 
 micronaut {
-    version '5.2.0'
+    version libs.versions.micronautPlatform.get()
     runtime("netty")
     testRuntime("junit5")
 }

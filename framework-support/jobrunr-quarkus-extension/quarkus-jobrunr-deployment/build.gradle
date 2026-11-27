@@ -13,8 +13,7 @@ compileTestJava {
 }
 
 dependencies {
-    api platform(project(':platform'))
-    api platform('io.quarkus:quarkus-bom:3.40.1.1')
+    api platform(libs.quarkus.bom)
 
     api project(':core')
     implementation project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
@@ -23,6 +22,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-health-spi'
 
     testImplementation 'io.quarkus:quarkus-smallrye-health'
+
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.junit.jupiter
 }
 
 java {
@@ -90,7 +92,10 @@ publishing {
 
                 withXml {
                     def pomNode = asNode()
-                    pomNode.remove(pomNode.dependencyManagement)
+                    def dependencyManagement = pomNode.dependencyManagement
+                    if (dependencyManagement) {
+                        pomNode.remove(dependencyManagement)
+                    }
                     pomNode.dependencies.'*'.findAll() {
                         it.optional.text() == 'true'
                     }.each() {

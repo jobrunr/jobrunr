@@ -2,10 +2,10 @@ import groovy.json.JsonSlurper
 
 plugins {
     id 'signing'
-    id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-    id 'io.github.ben-manes.versions' version '0.66.0' apply false
-    id 'net.ltgt.errorprone' version '5.1.1' apply false
-    id 'org.sonarqube' version '7.2.2.6593'
+    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.ben.manes.versions) apply false
+    alias(libs.plugins.errorprone) apply false
+    alias(libs.plugins.sonarqube)
 }
 
 nexusPublishing {
@@ -89,7 +89,7 @@ allprojects {
     }
 }
 
-configure(subprojects.findAll { it.name != 'language-support' && it.name != 'platform' && it.name != 'framework-support' }) {
+configure(subprojects.findAll { it.name != 'language-support' && it.name != 'framework-support' }) {
 
     apply plugin: 'io.github.ben-manes.versions'
 
@@ -100,7 +100,7 @@ configure(subprojects.findAll { it.name != 'language-support' && it.name != 'pla
     }
 }
 
-configure(subprojects.findAll { !['platform'].contains(it.name) }) {
+configure(subprojects) {
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'jacoco'
@@ -144,21 +144,15 @@ configure(subprojects.findAll { !['platform'].contains(it.name) }) {
     }
 
     dependencies {
-        implementation platform(project(':platform'))
-        compileOnly 'org.apache.groovy:groovy-json:4.0.33'
+        compileOnly libs.groovy.json
 
-        errorprone 'com.google.errorprone:error_prone_core:2.51.0'
+        errorprone libs.errorprone.core
 
-        testImplementation platform("org.junit:junit-bom:5.14.4")
+        testImplementation platform(libs.junit.bom)
         testImplementation 'org.junit.jupiter:junit-jupiter'
-        testImplementation 'io.github.artsok:rerunner-jupiter'
-        testImplementation 'org.awaitility:awaitility'
-        testImplementation 'org.assertj:assertj-core'
-        testImplementation 'com.tngtech.archunit:archunit-junit5'
-        testImplementation 'net.javacrumbs.json-unit:json-unit-assertj'
-        testImplementation 'ch.qos.logback:logback-classic'
-        testImplementation 'org.mockito:mockito-inline'
-        testImplementation 'org.mockito:mockito-junit-jupiter'
+        testImplementation libs.rerunner.jupiter
+        testImplementation libs.archunit.junit5
+        testImplementation libs.json.unit.assertj
 
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }

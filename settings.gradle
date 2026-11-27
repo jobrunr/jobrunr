@@ -33,7 +33,6 @@ buildCache {
 }
 
 rootProject.name = 'jobrunr'
-include ':platform'
 include ':core'
 include ':language-support:jobrunr-kotlin-support'
 include ':language-support:tests:jobrunr-kotlin-2-4-support'
