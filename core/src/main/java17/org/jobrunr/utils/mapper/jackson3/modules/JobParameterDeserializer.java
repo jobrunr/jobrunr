@@ -19,7 +19,7 @@ import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_ACTUAL_CLASS_N
 import static org.jobrunr.utils.mapper.JsonMapperUtils.Json.FIELD_CLASS_NAME;
 import static org.jobrunr.utils.reflection.ReflectionUtils.toClass;
 
-public class JobParameterDeserializer extends StdDeserializer<JobParameter> {
+class JobParameterDeserializer extends StdDeserializer<JobParameter> {
 
     protected JobParameterDeserializer() {
         super(JobParameter.class);

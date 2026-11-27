@@ -6,7 +6,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ser.std.StdSerializer;
 
-public class JobParameterSerializer extends StdSerializer<JobParameter> {
+class JobParameterSerializer extends StdSerializer<JobParameter> {
 
     protected JobParameterSerializer() {
         super(JobParameter.class);

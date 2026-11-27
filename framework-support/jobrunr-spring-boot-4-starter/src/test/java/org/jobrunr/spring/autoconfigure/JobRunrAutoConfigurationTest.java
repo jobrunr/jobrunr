@@ -3,6 +3,8 @@ package org.jobrunr.spring.autoconfigure;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoClient;
 import org.jobrunr.dashboard.JobRunrDashboardWebServer;
+import org.jobrunr.jobs.details.CachingJobDetailsGenerator;
+import org.jobrunr.jobs.details.JobDetailsGenerator;
 import org.jobrunr.kotlin.utils.mapper.KotlinxSerializationJsonMapper;
 import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
@@ -124,6 +126,30 @@ public class JobRunrAutoConfigurationTest {
             assertThat(context).doesNotHaveBean(JobRunrDashboardWebServer.class);
             assertThat(context).doesNotHaveBean(BackgroundJobServer.class);
         });
+    }
+
+    @Test
+    void jobDetailsGeneratorCanBeOverridden() {
+        final JobDetailsGenerator customJobDetailsGenerator = mock(JobDetailsGenerator.class);
+        this.contextRunner
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .withBean(JobDetailsGenerator.class, () -> customJobDetailsGenerator)
+                .run((context) -> {
+                    assertThat(context).hasSingleBean(JobDetailsGenerator.class);
+                    assertThat(context.getBean(JobDetailsGenerator.class)).isSameAs(customJobDetailsGenerator);
+                    assertThat(context.getBean(JobScheduler.class)).extracting("jobDetailsGenerator").isSameAs(customJobDetailsGenerator);
+                });
+    }
+
+    @Test
+    void jobDetailsGeneratorCanBeConfiguredViaProperties() {
+        this.contextRunner
+                .withPropertyValues("jobrunr.job-scheduler.job-details-generator=" + FromPropertiesJobDetailsGenerator.class.getName())
+                .withUserConfiguration(InMemoryStorageProvider.class)
+                .run((context) -> {
+                    assertThat(context).hasSingleBean(JobScheduler.class);
+                    assertThat(context.getBean(JobScheduler.class)).extracting("jobDetailsGenerator").isInstanceOf(FromPropertiesJobDetailsGenerator.class);
+                });
     }
 
     @Test
@@ -427,5 +453,8 @@ public class JobRunrAutoConfigurationTest {
                 return new PlatformThreadPoolJobRunrExecutor(10, "my-prefix");
             }
         }
+    }
+
+    static class FromPropertiesJobDetailsGenerator extends CachingJobDetailsGenerator {
     }
 }

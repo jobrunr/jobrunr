@@ -55,9 +55,18 @@ public class JobRunrFactory {
     }
 
     @Singleton
+    @Requires(missingBeans = {JobDetailsGenerator.class})
+    public JobDetailsGenerator jobDetailsGenerator() {
+        final Class<? extends JobDetailsGenerator> jobDetailsGenerator = configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class);
+        if (CachingJobDetailsGenerator.class.equals(jobDetailsGenerator)) {
+            return new CachingJobDetailsGenerator();
+        }
+        return ReflectionUtils.newInstance(jobDetailsGenerator);
+    }
+
+    @Singleton
     @Requires(property = "jobrunr.job-scheduler.enabled", value = "true", defaultValue = "true")
-    public JobScheduler jobScheduler(StorageProvider storageProvider) {
-        final JobDetailsGenerator jobDetailsGenerator = ReflectionUtils.newInstance(configuration.getJobScheduler().getJobDetailsGenerator().orElse(CachingJobDetailsGenerator.class.getName()));
+    public JobScheduler jobScheduler(StorageProvider storageProvider, JobDetailsGenerator jobDetailsGenerator) {
         return new JobScheduler(storageProvider, jobDetailsGenerator, emptyList());
     }
 

@@ -100,6 +100,15 @@ class VersionNumberTest {
     }
 
     @Test
+    void hasMajorVersionHigherOrEqualToTheClassFileApiGate() {
+        assertThat(v("25.0.0").hasMajorVersionHigherOrEqualTo(25)).isTrue();
+        assertThat(v("25-ea").hasMajorVersionHigherOrEqualTo(25)).isTrue();
+        assertThat(v("26.0.1").hasMajorVersionHigherOrEqualTo(25)).isTrue();
+        assertThat(v("17.0.9").hasMajorVersionHigherOrEqualTo(25)).isFalse();
+        assertThat(v("1.8.0_382").hasMajorVersionHigherOrEqualTo(25)).isFalse();
+    }
+
+    @Test
     void hasMajorAndMinorVersionHigherOrEqualTo() {
         assertThat(v("6.0.0").hasMajorAndMinorVersionHigherOrEqualTo(v("6.0.0"))).isTrue();
         assertThat(v("6.1.1").hasMajorAndMinorVersionHigherOrEqualTo(v("6.1.0"))).isTrue();

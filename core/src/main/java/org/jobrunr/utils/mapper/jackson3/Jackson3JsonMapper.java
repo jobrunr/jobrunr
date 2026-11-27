@@ -37,4 +37,8 @@ public class Jackson3JsonMapper implements JsonMapper {
     public <T> T deserialize(String serializedObjectAsString, Class<T> clazz) {
         throw new UnsupportedOperationException("You need Java 17 or higher to use Jackson3JsonMapper.");
     }
+
+    protected void extendWithCollectionTypes(BasicPolymorphicTypeValidator.Builder typeValidatorBuilder) {
+        throw new UnsupportedOperationException("You need Java 17 or higher to use Jackson3JsonMapper.");
+    }
 }

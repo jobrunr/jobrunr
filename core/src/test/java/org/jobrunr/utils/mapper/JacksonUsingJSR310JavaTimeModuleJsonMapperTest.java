@@ -94,7 +94,7 @@ class JacksonUsingJSR310JavaTimeModuleJsonMapperTest extends AbstractJsonMapperT
 
         @Override
         public int hashCode() {
-            return Objects.hash(value);
+            return Objects.hashCode(value);
         }
     }
 
