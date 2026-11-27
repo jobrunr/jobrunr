@@ -46,7 +46,8 @@ springBoot4 = "4.1.2"
 springDependencyManagement = "1.1.7"
 micronaut = "5.0.2"
 micronautPlatform = "5.2.3"
-quarkus = "3.40.1.1"
+quarkus = "3.40.1.1" # Support Quarkus 3
+quarkusTests = "4.0.1" # Test Quarkus 4 support
 kotlin = "2.2.21"
 kotlin24 = "2.4.21"
 
@@ -109,7 +110,7 @@ groovy-json = { module = "org.apache.groovy:groovy-json", version.ref = "groovy"
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 
 quarkus-bom = { module = "io.quarkus:quarkus-bom", version.ref = "quarkus" }
-quarkus-platform-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-tests-platform-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkusTests" }
 
 [plugins]
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
@@ -125,8 +126,8 @@ micronaut-library = { id = "io.micronaut.library", version.ref = "micronaut" }
 micronaut-minimal-library = { id = "io.micronaut.minimal.library", version.ref = "micronaut" }
 micronaut-application = { id = "io.micronaut.application", version.ref = "micronaut" }
 
-quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 quarkus-extension = { id = "io.quarkus.extension", version.ref = "quarkus" }
+quarkus-tests = { id = "io.quarkus", version.ref = "quarkusTests" }
 
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

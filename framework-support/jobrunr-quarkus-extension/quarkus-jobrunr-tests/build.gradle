@@ -1,10 +1,10 @@
 plugins {
     id 'java-library'
-    id 'io.quarkus' version '4.0.1'
+    alias(libs.plugins.quarkus.tests)
 }
 
 dependencies {
-    api enforcedPlatform(libs.quarkus.platform.bom)
+    api enforcedPlatform(libs.quarkus.tests.platform.bom)
 
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr')
     api project(':framework-support:jobrunr-quarkus-extension:quarkus-jobrunr-deployment')
