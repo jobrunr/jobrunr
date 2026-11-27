@@ -14,9 +14,11 @@ import org.jobrunr.jobs.states.ScheduledState;
 import org.jobrunr.scheduling.carbonaware.CarbonAwarePeriod;
 import org.jobrunr.storage.ConcurrentJobModificationException;
 import org.jobrunr.storage.StorageProvider;
+import org.jobrunr.utils.InstantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
 import java.util.List;
@@ -151,10 +153,16 @@ public abstract class AbstractJobScheduler {
     }
 
     JobId schedule(UUID id, Temporal scheduleAt, JobDetails jobDetails) {
-        return saveJob(new Job(id, jobDetails, scheduleAt instanceof CarbonAwarePeriod
-                ? new CarbonAwareAwaitingState((CarbonAwarePeriod) scheduleAt)
-                : new ScheduledState(toInstant(scheduleAt))
-        ));
+        if (scheduleAt instanceof CarbonAwarePeriod) {
+            return saveJob(new Job(id, jobDetails, new CarbonAwareAwaitingState((CarbonAwarePeriod) scheduleAt)));
+        }
+
+        Instant scheduledAt = toInstant(scheduleAt);
+        Job job = new Job(id, jobDetails, new ScheduledState(scheduledAt));
+        if (InstantUtils.isInstantBeforeOrEqualTo(scheduledAt, Instant.now())) {
+            job.enqueue();
+        }
+        return saveJob(job);
     }
 
     abstract String createRecurrently(RecurringJobBuilder recurringJobBuilder);
